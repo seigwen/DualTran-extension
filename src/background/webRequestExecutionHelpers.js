@@ -10,7 +10,7 @@ export function buildMimeTypeHeaderExecutionPlan(update) {
   return [{
     type: "set-storage",
     update,
-    logLabel: "tabToMimeType写入成功:",
+    logLabel: "tabToMimeType write succeeded:",
     logValue: update.tabToMimeType,
   }];
 }
@@ -26,7 +26,7 @@ export async function executeMimeTypeHeaderWrite({
   }
 
   const storageResult = await getStorage(["tabToMimeType"]);
-  log?.("tabToMimeType读取成功:", storageResult);
+  log?.("tabToMimeType read succeeded:", storageResult);
 
   const update = buildMimeTypeStorageUpdate(
     storageResult,

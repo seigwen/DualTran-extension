@@ -88,14 +88,14 @@ describe("install flow integration", () => {
         update: {
           tabToMimeType: {},
         },
-        logMessage: "tabToMimeType写入成功[object Object]",
+        logMessage: "tabToMimeType write succeeded [object Object]",
       },
       {
         type: "set-storage",
         update: {
           tabHasContentScript: {},
         },
-        logMessage: "tabHasContentScript[object Object]",
+        logMessage: "tabHasContentScript write succeeded [object Object]",
       },
     ]);
 

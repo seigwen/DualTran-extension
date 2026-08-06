@@ -192,7 +192,7 @@ import "../background/translationService.js"
 import "../background/textToSpeech.js"
 import "../background/aiProxy.js"
 
-// Run provider config migration after storage is loaded (必须在 onReady 内, 防止用空数据覆盖用户 API key)
+// Run provider config migration after storage is loaded (must be inside onReady to prevent overwriting user API keys with empty data)
 twpConfig.onReady(() => {
   try {
     migrateProviderConfig(twpConfig);
@@ -285,13 +285,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return false;
 })
 
-// 监听消息(可能是background发出,也可能是content script发出)
+// Listen for messages (from background or content scripts)
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const runRuntimeMessageEffects = createRuntimeMessageEffectExecutor({
     applyTabEffects: runTabEffects,
   })
 
-  // 获取主帧语言状态
+  // Get main frame page language state
   if (request.action === "getMainFramePageLanguageState") {
     executeMainFrameRuntimeQuery({
       sender,
@@ -302,7 +302,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     return true;
   }
-  // 获取主帧语言
+  // Get main frame tab language
   else if (request.action === "getMainFrameTabLanguage") {
     executeMainFrameRuntimeQuery({
       sender,
@@ -313,11 +313,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     return true;
   }
-  // 设置页面语言状态
+  // Set page language state
   else if (request.action === "setPageLanguageState") {
     updateContextMenu(request.pageLanguageState);
   }
-  // 打开选项页
+  // Open options page
   else if (request.action === "openOptionsPage") {
     const optionsHash = typeof request.hash === "string" && request.hash.startsWith("#")
       ? request.hash
@@ -326,13 +326,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       buildOpenOptionsPageEffect(chrome.runtime.getURL(`/options/options.html${optionsHash}`))
     )
   }
-  // 打开捐赠页
+  // Open donation page
   else if (request.action === "openDonationPage") {
     runRuntimeMessageEffects(
       buildOpenDonationPageEffect(chrome.runtime.getURL("/options/options.html#donation"))
     )
   }
-  // 检测页面语言
+  // Detect page language
   else if (request.action === "detectTabLanguage") {
     executeSenderTabLanguageQuery({
       sender,
@@ -341,15 +341,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     return true;
   }
-  // 获取tab的主机名
+  // Get tab hostname
   else if (request.action === "getTabHostName") {
     sendResponse(executeSenderTabHostNameQuery(sender));
   }
-  // 帧获取焦点
+  // Frame received focus
   else if (request.action === "thisFrameIsInFocus") {
     runRuntimeMessageEffects(buildFrameFocusBroadcastEffect(sender))
   }
-  // 获取tab的mimeType
+  // Get tab MIME type
   else if (request.action === "getTabMimeType") {
     executeQueriedActiveTabMimeType({
       queryTabs: chrome.tabs.query,
@@ -360,7 +360,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 /**
- * 更新划词翻译上下文菜单
+ * Update translate-selected-text context menu
  */
 function updateTranslateSelectedContextMenu() {
   if (typeof chrome.contextMenus !== "undefined") { // check if chrome context menu is defined 
@@ -377,7 +377,7 @@ function updateTranslateSelectedContextMenu() {
 }
 
 /**
- * 更新上下文菜单
+ * Update context menu
  * @param {*} pageLanguageState 
  */
 function updateContextMenu(pageLanguageState = "original") {
@@ -398,13 +398,13 @@ function updateContextMenu(pageLanguageState = "original") {
   }
 }
 
-// 监听浏览器启动事件, 启动后重置全局对象
+// Listen for browser startup event, reset global state on startup
 chrome.runtime.onStartup.addListener((details) => {
   const startupReset = buildStartupStorageReset()
   runStorageEffects(buildStartupExecutionPlan(startupReset))
 });
 
-// 监听安装事件, 安装后打开选项页或更新列表页
+// Listen for install event, open options page or release notes on install/update
 chrome.runtime.onInstalled.addListener((details) => {
   const optionsPageUrl = chrome.runtime.getURL("/options/options.html")
   const releaseNotesPageUrl = chrome.runtime.getURL("/options/options.html#release_notes")
@@ -458,8 +458,8 @@ chrome.runtime.onInstalled.addListener((details) => {
     }))
   });
 
-  // 开发模式下：在安装或更新后自动刷新所有 http/https 标签页，以便重新注入最新内容脚本
-  // 这样可从根因上避免“旧内容脚本 + 新扩展版本”的失配问题
+  // Dev mode: auto-reload all http/https tabs after install/update to re-inject fresh content scripts
+  // This prevents “stale content script + new extension version” mismatch at the root
   if (details.reason === "install" || details.reason === "update") {
     console.log("Running in development mode, reloading all tabs because extension was installed or updated...");  
     if (chrome.management && chrome.tabs && chrome.tabs.query && chrome.tabs.reload) {
@@ -477,7 +477,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 });
 
 /**
- * 重置page action
+ * Reset page action
  * @param {*} tabId 
  * @param {*} forceShow 
  */
@@ -492,7 +492,7 @@ function resetPageAction(tabId, forceShow = false) {
 }
 
 /**
- * 根据最新的translateClickingOnce设置, 设置BrowserAction的popup窗口(不弹出/弹出旧窗口/弹出新窗口)
+ * Set BrowserAction popup based on translateClickingOnce setting (none / old popup / new popup)
  * @param {*} forceShow 
  */
 function resetBrowserAction(forceShow = false) {
@@ -525,7 +525,7 @@ const runMenuEffects = createMenuEffectExecutor({
   },
 })
 
-// 创建上下文菜单(右键点击扩展图标时弹出)
+// Create context menus (shown when right-clicking the extension icon)
 if (typeof chrome.contextMenus !== "undefined") {
   executeStaticContextMenuRegistration(
     buildStaticActionContextMenuConfigs({
@@ -540,7 +540,7 @@ if (typeof chrome.contextMenus !== "undefined") {
     }
   );
 
-  // 上下文菜单点击事件处理
+  // Context menu click event handler
   chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     const basicAction = resolveBasicMenuClickAction({
       menuItemId: info.menuItemId,
@@ -553,7 +553,7 @@ if (typeof chrome.contextMenus !== "undefined") {
       runMenuEffects(basicEffects)
       return
     }
-    // 菜单事件:翻译选中文本
+    // Menu action: translate selected text
     else if (info.menuItemId == "translate-selected-text") {
       await executeTranslateSelectedFromStorage({
         tabId: tab.id,
@@ -564,7 +564,7 @@ if (typeof chrome.contextMenus !== "undefined") {
         applyEffects: runMenuEffects,
       })
     }
-    // 菜单事件:pdf转html
+    // Menu action: PDF to HTML (browser action)
     else if (info.menuItemId == "browserAction-pdf-to-html") {
       executePdfMenuFromStorage({
         tabId: tab.id,
@@ -574,7 +574,7 @@ if (typeof chrome.contextMenus !== "undefined") {
         applyEffects: runMenuEffects,
       });
     }
-    // 菜单事件:pdf转html
+    // Menu action: PDF to HTML (page action)
     else if (info.menuItemId == "pageAction-pdf-to-html") {
       executePdfMenuFromStorage({
         tabId: tab.id,
@@ -586,7 +586,7 @@ if (typeof chrome.contextMenus !== "undefined") {
     }
   });
 
-  // 监听tab激活事件, 获取tab当前语言状态然后更新上下文菜单
+  // On tab activation, get language state and update context menu
   chrome.tabs.onActivated.addListener((activeInfo) => {
     executeActivatedContextMenuRefresh(activeInfo.tabId, {
       applyContextMenuRefresh(pageLanguageState) {
@@ -597,17 +597,17 @@ if (typeof chrome.contextMenus !== "undefined") {
     })
   });
 
-  // 当用户在tab里导航到新 URL 时，tabs.Tab 对象的各种属性(如 url, title 和 favIconUrl 属性)被更新, 因此会生成多个 onUpdated 事件。 
+  // When navigating to a new URL, tab properties (url, title, favIconUrl) are updated, generating multiple onUpdated events. 
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     const lifecycleAction = resolveTabUpdatedLifecycleAction({
       isTabActive: !!tab.active,
       status: changeInfo.status,
     })
-    // tab正在加载时 (changeInfo.status属性值为"loading")
+    // Tab is loading (changeInfo.status === "loading")
     if (lifecycleAction === "refresh-context-menu") {
       twpConfig.onReady(() => updateContextMenu());
     }
-    // tab完成加载时 (changeInfo.status属性值为"complete")
+    // Tab finished loading (changeInfo.status === "complete")
     else if (lifecycleAction === "probe-content-script") {
       executeContentScriptProbe(tabId, {
         sendTabMessage: chrome.tabs.sendMessage,
@@ -618,7 +618,7 @@ if (typeof chrome.contextMenus !== "undefined") {
     }
   });
 
-  // 监听tab关闭事件, 更新tabHasContentScript的值
+  // On tab close, remove tabHasContentScript entry
   chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
     await executeTabHasContentScriptRemoval(tabId, {
       getStorage: boundStorageGet,
@@ -626,7 +626,7 @@ if (typeof chrome.contextMenus !== "undefined") {
     })
   });
 
-  // 通知所有tab, content script注入成功
+  // Probe all tabs to verify content script injection
   executeInitialContentScriptProbeBroadcast({
     queryTabs: chrome.tabs.query,
     sendTabMessage: chrome.tabs.sendMessage,
@@ -636,7 +636,7 @@ if (typeof chrome.contextMenus !== "undefined") {
   });
 }
 
-// 监听配置完成事件
+// On config ready
 twpConfig.onReady(() => {
   const runActionClickEffects = createActionClickEffectExecutor({
     hidePageAction: chrome.pageAction?.hide,
@@ -644,29 +644,29 @@ twpConfig.onReady(() => {
     sendMessageCallback: checkedLastError,
   })
 
-  // 移动平台
+  // Mobile platform
   if (platformInfo.isMobile.any) {
-    // 使pageAction变灰
+    // Gray out page action initially
     executeInitialPageActionHide({
       queryTabs: chrome.tabs.query,
       applyEffects: runActionClickEffects,
     });
-    // tab的状态为loading时,该tab的DualTran图标在loaidng时变灰
+    // Gray out DualTran icon while tab is loading
     chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       if (resolveMobilePageActionUpdate(changeInfo.status) === "hide") {
         runActionClickEffects(buildPageActionHideEffects([tabId]));
       }
     });
-    // 设置browserAction的点击事件响应回调为显示底部PopupMobile栏
+    // Show mobile bottom bar on browser action click
     chrome.action.onClicked.addListener((tab) => {
       runActionClickEffects(
         buildMobileActionClickEffects(tab.id, resolveMobileActionClickMessage())
       )
     });
   }
-  // 非移动平台
+  // Desktop platform
   else {
-    // 如果有pageAction, 则pageAction被点击时切换翻译后页面/原始页面
+    // If pageAction exists, toggle translated/original page on click
     if (chrome.pageAction) {
       chrome.pageAction.onClicked.addListener((tab) => {
         const action = resolveDesktopToggleTranslationMessage(
@@ -675,7 +675,7 @@ twpConfig.onReady(() => {
           runActionClickEffects(buildDesktopActionClickEffects(tab.id, action))
       });
     }
-    // 设置browserAction的点击事件响应回调为切换翻译后页面/原始页面
+    // Toggle translated/original page on browser action click
     chrome.action.onClicked.addListener((tab) => {
       const action = resolveDesktopToggleTranslationMessage(
         twpConfig.get("translateClickingOnce")
@@ -683,10 +683,10 @@ twpConfig.onReady(() => {
       runActionClickEffects(buildDesktopActionClickEffects(tab.id, action))
     });
 
-    // 设置browserAction点击时是否会弹出,以及弹出什么
+    // Configure browser action popup behavior
     resetBrowserAction();
 
-    // 监听配置中与action相关的变更
+    // Listen for action-related config changes
     twpConfig.onChanged((name, newvalue) => {
       const configChange = resolveActionConfigChange(name)
       if (configChange.resetBrowserAction) {
@@ -702,9 +702,9 @@ twpConfig.onReady(() => {
       }
     });
 
-    // 更新图标
+    // Icon update section
     {
-      // 页面语言状态: "original" or "translated"
+      // Page language state: "original" or "translated"
       let pageLanguageState = "original";
 
       let themeColorFieldText = null;
@@ -719,29 +719,29 @@ twpConfig.onReady(() => {
         }
       }
 
-      // 根据当前浏览器的theme更新themeColorFieldText和themeColorAttention, 然后更新所有tab的图标
+      // Update theme colors from current browser theme, then refresh all tab icons
       if (typeof browser !== "undefined" && browser?.theme) {
         browser.theme.getCurrent().then((theme) => {
           applyThemeIconRefresh(theme);
         });
 
-        // 监听theme更新事件
+        // Listen for theme updates
         chrome.theme.onUpdated.addListener((updateInfo) => {
           applyThemeIconRefresh(updateInfo);
         });
       }
 
       /**
-       * 暗黑模式适配
+       * Dark mode support
        */
-      // // 获取浏览器显示模式(是否暗黑模式)
+      // // Get browser display mode (dark mode check)
       // let darkMode = false;
       // darkMode = matchMedia("(prefers-color-scheme: dark)").matches;
 
-      // // 更新所有tab的icon
+      // // Update icons in all tabs
       // updateIconInAllTabs();
 
-      // // 监听暗黑模式变更, 更新所有tab的icon
+      // // Listen for dark mode changes, update all tab icons
       // matchMedia("(prefers-color-scheme: dark)").addEventListener(
       //   "change",
       //   () => {
@@ -751,7 +751,7 @@ twpConfig.onReady(() => {
       // );
 
       /**
-       * 获取icon(不同显示模式返回不同的icon)
+       * Get SVG icon (different icons for different display modes)
        * @param {boolean} incognito 
        * @returns 
        */
@@ -806,7 +806,7 @@ twpConfig.onReady(() => {
         }))
       }
 
-      // 更新图标
+      // Update single tab icon
       function updateIcon(tabId) {
         executeQueriedTabIconRefresh(tabId, {
           queryTabs: chrome.tabs.query,
@@ -814,7 +814,7 @@ twpConfig.onReady(() => {
         })
       }
 
-      // 更新每个tab的图标
+      // Update icons in all tabs
       function updateIconInAllTabs() {
         executeAllTabIconRefresh({
           queryTabs: chrome.tabs.query,
@@ -822,7 +822,7 @@ twpConfig.onReady(() => {
         })
       }
 
-      // 监听tab更新事件, 更新图标
+      // On tab update, refresh icon
       chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
         const iconUpdate = resolveIconUpdateOnTabLoading(changeInfo.status)
         if (iconUpdate) {
@@ -831,7 +831,7 @@ twpConfig.onReady(() => {
         }
       });
 
-      // 监听tab激活事件, 获取语言状态然后更新图标
+      // On tab activation, get language state and update icon
       chrome.tabs.onActivated.addListener((activeInfo) => {
         executeActivatedTabIconRefresh(activeInfo.tabId, {
           setPageLanguageState(nextPageLanguageState) {
@@ -851,7 +851,7 @@ twpConfig.onReady(() => {
         }
       });
 
-      // 监听配置中与action相关的变更
+      // Listen for icon-related config changes
       twpConfig.onChanged((name, newvalue) => {
         if (shouldRefreshIconsForConfigChange(name)) {
           updateIconInAllTabs();
@@ -861,7 +861,7 @@ twpConfig.onReady(() => {
   }
 });
 
-// 监听热键
+// Listen for keyboard shortcuts
 if (typeof chrome.commands !== "undefined") {
   const executeHotkeyEffects = createCommandEffectExecutor({
     setConfig(key, value) {
@@ -890,16 +890,16 @@ chrome.alarms.onAlarm.addListener(async (alarmInfo) => {
   })
 });
 
-// 监听配置完成事件,添加监听器
+// On config ready, register listeners
 twpConfig.onReady(async () => {
-  // 更新上下文菜单
+  // Update context menu
   updateContextMenu();
-  // 更新选择上下文菜单
+  // Update translate-selected context menu
   updateTranslateSelectedContextMenu();
 
-  // 监听配置中与右键菜单相关的变更
+  // Listen for context menu config changes
   twpConfig.onChanged((name, newvalue) => {
-    // 更新选择上下文菜单
+    // Update translate-selected context menu
     if (name === "showTranslateSelectedContextMenu") {
       updateTranslateSelectedContextMenu();
     }
@@ -914,8 +914,8 @@ twpConfig.onReady(async () => {
   let activeTabTranslationInfo = {};
 
   /**
-   * 更新activeTabTranslationInfo
-   * 会被绑定为chrome.tabs.onActivated事件的回调函数
+   * Update activeTabTranslationInfo
+   * Bound as callback for chrome.tabs.onActivated event
    * @param {*} activeInfo 
    */
   function tabsOnActivated(activeInfo) {
@@ -932,8 +932,8 @@ twpConfig.onReady(async () => {
   let sitesToAutoTranslate = {};
 
   /**
-   * 在tab关闭时更新sitesToAutoTranslate数组
-   * 会被绑定为chrome.tabs.onRemoved事件的回调函数
+   * Update sitesToAutoTranslate array when a tab is closed
+   * Bound as callback for chrome.tabs.onRemoved event
    * @param {*} tabId 
    */
   function tabsOnRemoved(tabId) {
@@ -941,8 +941,8 @@ twpConfig.onReady(async () => {
   }
 
   /**
-   * 在收到setPageLanguageState消息时,更新activeTabTranslationInfo
-   * 会被绑定为chrome.runtime.onMessage事件事件的回调函数
+   * Update activeTabTranslationInfo on setPageLanguageState message
+   * Bound as callback for chrome.runtime.onMessage event
    * @param {*} request 
    * @param {*} sender 
    * @param {*} sendResponse 
@@ -955,8 +955,8 @@ twpConfig.onReady(async () => {
   }
 
   /**
-   * 更新sitesToAutoTranslate数组
-   * 会被绑定为chrome.webNavigation.onCommitted事件的回调
+   * Update sitesToAutoTranslate array
+   * Bound as callback for chrome.webNavigation.onCommitted event
    * @param {*} details 
    */
   function webNavigationOnCommitted(details) {
@@ -968,8 +968,8 @@ twpConfig.onReady(async () => {
   }
 
   /**
-   * 通知tab在页面DOMContentLoaded事件触发后自动翻译网页
-   * 会被绑定为chrome.webNavigation.webNavigationOnDOMContentLoaded事件的回调
+   * Notify tab to auto-translate the page after DOMContentLoaded
+   * Bound as callback for chrome.webNavigation.onDOMContentLoaded event
    * @param {*} details 
    */
   async function webNavigationOnDOMContentLoaded(details) {
@@ -1012,7 +1012,7 @@ twpConfig.onReady(async () => {
   })
 
   /**
-   * 启用"若点击链接所访问的网站与当前域名相同，则自动翻译"
+   * Enable auto-translate when following links to the same domain
    * @returns 
    */
   function enableTranslationOnClickingALink() {
@@ -1026,7 +1026,7 @@ twpConfig.onReady(async () => {
   }
 
   /**
-   * 禁用"若点击链接所访问的网站与当前域名相同，则自动翻译"
+   * Disable auto-translate when following links to the same domain
    * @returns 
    */
   function disableTranslationOnClickingALink() {
@@ -1052,14 +1052,14 @@ twpConfig.onReady(async () => {
     },
   })
 
-  // 监听"若点击链接所访问的网站与当前域名相同，则自动翻译"的设置变更
+  // Listen for auto-translate-on-link-click setting changes
   twpConfig.onChanged((name, newvalue) => {
     const action = resolveAutoTranslateConfigChange(name, newvalue)
     runAutoTranslateRuntimeEffects(buildAutoTranslateConfigToggleEffects(action))
   });
 
-  // 当用户禁止了webNavigation权限时(该权限允许扩展监听onBeforeNavigate/onCommitted/[onDOMContentLoaded]/onCompleted事件)
-  // 禁止自动翻译
+  // When the user revokes webNavigation permission (allows listening for onBeforeNavigate/onCommitted/onDOMContentLoaded/onCompleted)
+  // disable auto-translate
   chrome.permissions.onRemoved.addListener((permissions) => {
     runAutoTranslateRuntimeEffects(
       buildAutoTranslatePermissionRemovedEffects(

@@ -69,3 +69,26 @@ jobs:
         name: coverage-report
         path: coverage/
         retention-days: 7
+
+  i18n-check:
+    name: i18n Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Check for Chinese in source (excluding _locales)
+      run: |
+        MATCHES=$(grep -rPn '[\x{4e00}-\x{9fff}]' src/ \
+          --include='*.js' --include='*.html' \
+          | grep -v '_locales/' || true)
+        if [ -n "$MATCHES" ]; then
+          echo "::warning::Found Chinese text in source files (excluding _locales/):"
+          echo "$MATCHES"
+          echo ""
+          echo "Please translate to English. i18n user-facing strings should go through _locales/."
+          # Uncomment to make this a hard failure:
+          # exit 1
+        else
+          echo "✅ No Chinese text found in source files (excluding _locales/)."
+        fi

@@ -19,29 +19,29 @@ twpConfig.onReady(function () {
   let currentPageLanguage = "und";
   let currentPageLanguageState = "original";
 
-  // 目标语言下拉框
+  // Target language dropdown
   const selectTargetLanguage = /** @type {HTMLSelectElement} */ (document.getElementById("selectTargetLanguage"));
 
   /**
-   * 填充目标语言下拉框
-   * 第一项为 "Original"，收藏语言置顶，其余按名称排序
+   * Populate target language dropdown
+   * First item is "Original", favorite languages at top, rest sorted by name
    */
   function populateTargetLanguageSelect() {
     selectTargetLanguage.innerHTML = "";
 
-    // 第一项：Original（显示原文）
+    // First item: Original (show original text)
     const originalOption = document.createElement("option");
     originalOption.value = "original";
     originalOption.textContent = chrome.i18n.getMessage("btnMobileOriginal") || "Original";
     selectTargetLanguage.appendChild(originalOption);
 
-    // 分隔线
+    // Separator
     const sep1 = document.createElement("option");
     sep1.disabled = true;
     sep1.textContent = "──────────";
     selectTargetLanguage.appendChild(sep1);
 
-    // 收藏语言置顶
+    // Favorite languages at top
     const targetLanguages = twpConfig.get("targetLanguages") || [];
     const insertedCodes = new Set();
     for (const code of targetLanguages) {
@@ -53,13 +53,13 @@ twpConfig.onReady(function () {
       selectTargetLanguage.appendChild(option);
     }
 
-    // 分隔线
+    // Separator
     const sep2 = document.createElement("option");
     sep2.disabled = true;
     sep2.textContent = "──────────";
     selectTargetLanguage.appendChild(sep2);
 
-    // 其余所有语言按名称排序
+    // All remaining languages sorted by name
     const allLangs = twpLang.getLanguageList();
     const sorted = Object.entries(allLangs)
       .filter(([code]) => !insertedCodes.has(code))
@@ -73,7 +73,7 @@ twpConfig.onReady(function () {
   }
   populateTargetLanguageSelect();
 
-  // 下拉框选择变化事件
+  // Dropdown selection change event
   selectTargetLanguage.addEventListener("change", () => {
     const value = selectTargetLanguage.value;
     currentPageLanguage = value;
@@ -93,14 +93,14 @@ twpConfig.onReady(function () {
     });
   });
 
-  // 获取active tab, 更新语言相关设置的样式
+  // Get active tab, update language-related settings styles
   chrome.tabs.query(
     {
       active: true,
       currentWindow: true,
     },
     /**
-     * 更新语言相关设置的样式
+     * Update language-related settings styles
      * @param {*} tabs 
      */
     (tabs) => {
@@ -112,7 +112,7 @@ twpConfig.onReady(function () {
       tabId = tabs[0].id
       updateInterface()
 
-      // 获取active tab的originalTabLanguage,并显示在第一个单选项的标签上
+      // Get active tab's originalTabLanguage and display it on the first radio label
       chrome.tabs.sendMessage(
         tabs[0].id,
         {
@@ -135,7 +135,7 @@ twpConfig.onReady(function () {
         }
       );
 
-      // 获取active tab的CurrentPageLanguage,并更新界面
+      // Get active tab's currentPageLanguage and update UI
       chrome.tabs.sendMessage(
         tabs[0].id,
         {
@@ -153,7 +153,7 @@ twpConfig.onReady(function () {
         }
       );
 
-      // 获取active tab的currentPageLanguageState(original/translated),并更新界面
+      // Get active tab's currentPageLanguageState (original/translated) and update UI
       chrome.tabs.sendMessage(
         tabs[0].id,
         {
@@ -171,7 +171,7 @@ twpConfig.onReady(function () {
         }
       );
 
-      // 设置"总是翻译此语言"复选框点击响应
+      // Set "Always translate this language" checkbox click handler
       $("#cbAlwaysTranslateThisLanguage").addEventListener("change", (e) => {
         if([undefined, null, "", "und"].includes(originalTabLanguage)){
           return
@@ -184,7 +184,7 @@ twpConfig.onReady(function () {
         }
         updateInterface();
       });
-      // 设置"永不翻译此语言"复选框点击响应
+      // Set "Never translate this language" checkbox click handler
       $("#cbNeverTranslateThisLanguage").addEventListener("change", (e) => {
         if([undefined, null, "", "und"].includes(originalTabLanguage)){
           return
@@ -200,7 +200,7 @@ twpConfig.onReady(function () {
       });
 
 
-      // 设置"总是翻译此网站"复选框点击响应
+      // Set "Always translate this site" checkbox click handler
       $("#cbAlwaysTranslateThisSite").addEventListener("change", (e) => {
         if([undefined, null, "", "und"].includes(hostname)){
           return
@@ -213,7 +213,7 @@ twpConfig.onReady(function () {
         }
         updateInterface();
       });
-      // 设置"永不翻译此网站"复选框点击响应
+      // Set "Never translate this site" checkbox click handler
       $("#cbNeverTranslateThisSite").addEventListener("change", (e) => {
         if([undefined, null, "", "und"].includes(hostname)){
           return
@@ -227,7 +227,7 @@ twpConfig.onReady(function () {
         updateInterface();
       });
 
-      // 设置"显示'翻译选中文本'按钮"复选框点击响应
+      // Set "Show 'translate selected text' button" checkbox click handler
       $("#cbShowTranslateSelectedButton").addEventListener("change", (e) => {
         if (e.target.checked) {
           twpConfig.set("showTranslateSelectedButton", "yes");
@@ -237,7 +237,7 @@ twpConfig.onReady(function () {
         updateInterface();
       });
 
-      // 设置"悬停显示原文"复选框点击响应
+      // Set "Show original text when hovering" checkbox click handler
       $("#cbShowOriginalWhenHovering").addEventListener("change", (e) => {
         if (e.target.checked) {
           twpConfig.set("showOriginalTextWhenHovering", "yes");
@@ -246,7 +246,7 @@ twpConfig.onReady(function () {
         }
         updateInterface();
       });
-      // 设置"在此网站悬停显示译文"复选框点击响应
+      // Set "Show translation when hovering over this site" checkbox click handler
       $("#cbShowTranslatedWhenHoveringThisSite").addEventListener(
         "change",
         (e) => {
@@ -261,7 +261,7 @@ twpConfig.onReady(function () {
           updateInterface();
         }
       );
-      // 设置"对此语言悬停显示译文"复选框点击响应
+      // Set "Show translation when hovering over this language" checkbox click handler
       $("#cbShowTranslatedWhenHoveringThisLang").addEventListener(
         "change",
         (e) => {
@@ -277,7 +277,7 @@ twpConfig.onReady(function () {
         }
       );
 
-      // 设置"自动使用AI改进翻译"复选框点击响应
+      // Set "Automatically improve translations by AI" checkbox click handler
       $("#cbAutoImproveByAi").addEventListener("change", (e) => {
         if (e.target.checked) {
           twpConfig.set("autoImproveByAI", "yes");
@@ -287,7 +287,7 @@ twpConfig.onReady(function () {
         updateInterface();
       });
 
-      // 设置"对此语言悬停显示译文"复选框点击响应
+      // Set "Show translation when hovering over this language" checkbox click handler
       $("#cbMoreOptions").addEventListener(
         "click",
         (e) => {
@@ -301,16 +301,16 @@ twpConfig.onReady(function () {
   );
 
   /**
-   * 更新界面样式
+   * Update interface styles
    */
   function updateInterface() {
     console.log("hostname:", hostname)
     console.log("originalTabLanguage:", originalTabLanguage)
-    // 更新目标语言下拉框的选中值
+    // Update target language dropdown selected value
     if (currentPageLanguageState === "translated") {
       selectTargetLanguage.value = currentPageLanguage;
     } else {
-      // 智能默认：已保存 > 浏览器语言 > 操作系统语言 > Original
+      // Smart default: saved > browser language > OS language > Original
       const saved = twpConfig.get("targetLanguage");
       if (saved) {
         selectTargetLanguage.value = saved;
@@ -327,12 +327,12 @@ twpConfig.onReady(function () {
     $("#cbAlwaysTranslateThisSite").checked = twpConfig.get("alwaysTranslateSites").indexOf(hostname) !== -1;
     $("#cbNeverTranslateThisSite").checked = twpConfig.get("neverTranslateSites").indexOf(hostname) !== -1;
 
-    // 设置"显示'翻译选中文本'按钮"复选框的样式
+    // Set "Show translate selected text button" checkbox style
     $("#cbShowTranslateSelectedButton").checked = twpConfig.get("showTranslateSelectedButton") == "yes" ? true : false;
 
     $("#cbAutoImproveByAi").checked = twpConfig.get("autoImproveByAI") == "yes" ? true : false;
 
-    // 设置"悬停显示原文"复选框的样式
+    // Set "Show original when hovering" checkbox style
     $("#cbShowOriginalWhenHovering").checked = twpConfig.get("showOriginalTextWhenHovering") == "yes" ? true : false;
 
     $("#cbShowTranslatedWhenHoveringThisLang").checked = twpConfig.get("langsToTranslateWhenHovering").indexOf(originalTabLanguage) !== -1;
@@ -341,11 +341,11 @@ twpConfig.onReady(function () {
 
 
     if (![undefined, "und"].includes(originalTabLanguage)) {
-      // 设置"总是翻译此语言"复选项的样式
+      // Set "Always translate this language" checkbox style
       $("#cbAlwaysTranslateThisLanguage").disabled = false
-      // 设置"总是翻译此语言"复选项的样式
+      // Set "Always translate this language" checkbox style
       $("#cbNeverTranslateThisLanguage").disabled = false
-      // 设置"对此语言悬停显示译文"复选项的样式
+      // Set "Show translated when hovering this language" checkbox style
       $("#cbShowTranslatedWhenHoveringThisLang").disabled = false
     } else {
       $("#cbAlwaysTranslateThisLanguage").disabled = true
@@ -354,11 +354,11 @@ twpConfig.onReady(function () {
     }
 
     if (hostname) {
-      // 设置"总是翻译此网站"复选项的样式
+      // Set "Always translate this site" checkbox style
       $("#cbAlwaysTranslateThisSite").disabled = false
-      // 设置"永不翻译此网站"复选项的样式
+      // Set "Never translate this site" checkbox style
       $("#cbNeverTranslateThisSite").disabled = false
-      // 设置"对此网站悬停显示译文"复选项的样式
+      // Set "Show translated when hovering this site" checkbox style
       $("#cbShowTranslatedWhenHoveringThisSite").disabled = false
     } else {
       $("#cbAlwaysTranslateThisSite").disabled = true
@@ -406,7 +406,7 @@ twpConfig.onReady(function () {
     );
   }, 1500)
 
-  // 开启暗夜模式
+  // Enable dark mode
   function enableDarkMode() {
     if (!$("#darkModeElement")) {
       const el = document.createElement("style");
@@ -451,14 +451,14 @@ twpConfig.onReady(function () {
     }
   }
 
-  // 关闭暗夜模式
+  // Disable dark mode
   function disableDarkMode() {
     if ($("#darkModeElement")) {
       $("#darkModeElement").remove();
     }
   }
 
-  // 开启/关闭暗夜模式
+  // Enable/disable dark mode
   switch (twpConfig.get("darkMode")) {
     case "auto":
       if (matchMedia("(prefers-color-scheme: dark)").matches) {

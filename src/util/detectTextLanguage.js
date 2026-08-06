@@ -1,7 +1,7 @@
 import twpLang from "../lib/languages.js"
 
 /**
- * 检测文本的语言
+ * Detect the language of the given text
  * @param {*} text 
  * @returns 
  */

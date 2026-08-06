@@ -1,5 +1,5 @@
 /**
- * 在移动平台上显示的弹出窗口
+ * Popup window shown on mobile platforms
  */
 
 console.log("popupMobile.js is running")
@@ -12,7 +12,7 @@ import { pageTranslator } from "./pageTranslator.js"
 var popupMobile = {};
 
 /**
- * 获取tab的主机名
+ * Get tab hostname
  * @returns 
  */
 function getTabHostName() {
@@ -26,7 +26,7 @@ function getTabHostName() {
 Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   console.log("popupMobile.js is still running")
   const tabHostName = _[1];
-  // 非移动平台, 退出本JS
+  // Not a mobile platform, exit this script
   if (!platformInfo.isMobile.any) return;
 
   const htmlMobile = `
@@ -74,22 +74,22 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   let translateThisLanguage = false;
   let showPopupMobile = twpConfig.get("showPopupMobile");
 
-  // 监听配置变更事件
+  // Watch config change events
   twpConfig.onChanged(function (name, newValue) {
     switch (name) {
-      // 总是翻译的网站
+      // Sites always translated
       case "alwaysTranslateSites":
         alwaysTranslateThisSite = newValue.indexOf(tabHostName) !== -1;
         console.log("will show mobile popup, 1111111")
         popupMobile.show();
         break;
-      // 从不翻译的网站
+      // Sites never translated
       case "neverTranslateSites":
         translateThisSite = newValue.indexOf(tabHostName) === -1;
         console.log("will show mobile popup, 2222222")
         popupMobile.show();
         break;
-      // 从不翻译的语言
+      // Languages never translated
       case "neverTranslateLangs":
         translateThisLanguage =
           originalTabLanguage === "und" ||
@@ -98,7 +98,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         console.log("will show mobile popup, 3333333")
         popupMobile.show();
         break;
-      // 显示弹出窗口
+      // Show popup window
       case "showPopupMobile":
         showPopupMobile = newValue;
         console.log("will show mobile popup, 4444444")
@@ -111,7 +111,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   let getElemById;
 
   /**
-   * 隐藏菜单
+   * Hide menu
    * @param {*} e 
    * @returns 
    */
@@ -129,7 +129,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   });
 
   /**
-   * 隐藏弹出窗口
+   * Hide popup window
    * @returns 
    */
   popupMobile.hide = function () {
@@ -143,7 +143,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   };
 
   /**
-   * 显示popup弹出窗口
+   * Show popup window
    * @param {*} forceShow 
    * @returns 
    */
@@ -169,11 +169,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
     document.body.appendChild(divElement);
 
-    // 国际化该popup
+    // Localize the popup
     chrome.i18n.translateDocument(shadowRoot);
 
     /**
-     * 开启暗黑模式
+     * Enable dark mode
      */
     function enableDarkMode() {
       if (!shadowRoot.getElementById("darkModeElement")) {
@@ -204,7 +204,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
 
     /**
-     * 关闭暗黑模式
+     * Disable dark mode
      */
     function disableDarkMode() {
       if (shadowRoot.getElementById("#darkModeElement")) {
@@ -212,7 +212,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       }
     }
 
-    // 根据配置决定是否开启暗黑模式
+    // Enable/disable dark mode based on config
     switch (twpConfig.get("darkMode")) {
       case "auto":
         if (matchMedia("(prefers-color-scheme: dark)").matches) {
@@ -242,7 +242,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
 
     /**
-     * 翻译整页
+     * Translate entire page
      * @param {*} targetLanguage 
      */
     function translatePage(targetLanguage = currentTargetLanguage) {
@@ -287,7 +287,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     })();
 
     /**
-     * 更新图标
+     * Update icon
      * @returns 
      */
     function updateIcon() {
@@ -310,13 +310,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
       currentPageTranslatorService =
         currentPageTranslatorService === "google" ? "yandex" : "google";
-      // 更新图标
+      // Update icon
       updateIcon();
 
       twpConfig.set("pageTranslatorService", currentPageTranslatorService);
     };
 
-    // 弹出窗的"显示原文"按钮的点击事件响应函数
+    // Popup "Show original" button click handler
     getElemById("btnOriginal").onclick = (e) => {
       pageTranslator.restorePage();
       if (!getElemById) return;
@@ -325,7 +325,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       getElemById("btnTranslate").style.color = null;
     };
 
-    // 弹出窗的"翻译"按钮的点击事件响应函数
+    // Popup "Translate" button click handler
     getElemById("btnTranslate").onclick = (e) => {
       translatePage();
     };
@@ -398,7 +398,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
 
   if (showPopupMobile !== "no") {
-    // 当3指触摸时,显示popupMobile
+    // Show popupMobile on 3-finger touch
     window.addEventListener("touchstart", (e) => {
       if (e.touches.length == 3) {
         console.log("will show mobile popup, 55555555")

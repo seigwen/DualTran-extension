@@ -30,7 +30,7 @@ describe("webRequest dispatch loop integration", () => {
         18: "application/pdf",
       },
     });
-    expect(log).toHaveBeenCalledWith("tabToMimeType写入成功:", {
+    expect(log).toHaveBeenCalledWith("tabToMimeType write succeeded:", {
       3: "text/html",
       18: "application/pdf",
     });
@@ -56,7 +56,7 @@ describe("webRequest dispatch loop integration", () => {
         11: null,
       },
     });
-    expect(log).toHaveBeenCalledWith("tabToMimeType写入成功:", {
+    expect(log).toHaveBeenCalledWith("tabToMimeType write succeeded:", {
       11: null,
     });
   });

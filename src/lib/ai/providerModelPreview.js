@@ -1,18 +1,18 @@
 /**
- * 模型列表预览 — 通过 models.dev 公开 API（无需认证）获取各提供商的模型列表，
- * 并在 models.dev 不可用时回退到内置静态模型列表。
+ * Model list preview — fetches model lists from models.dev public API (no auth required),
+ * falling back to built-in static model lists when models.dev is unavailable.
  *
- * 缓存策略：
- * 1. 首次成功拉取后将结果保存到 chrome.storage.local
- * 2. 后续打开 options 页时优先展示缓存（即时显示），同时后台静默刷新
- * 3. 无缓存且 models.dev 不可用时使用内置静态列表
+ * Caching strategy:
+ * 1. First successful fetch saves results to chrome.storage.local
+ * 2. Subsequent options page opens show cache immediately, with background refresh
+ * 3. No cache and models.dev unavailable → use built-in static list
  */
 
 const MODELSDEV_API_URL = "https://models.dev/api.json";
 
 /**
- * 内部 provider ID → models.dev provider ID 映射。
- * 只有在此映射表中的 provider 才会从 models.dev 拉取模型。
+ * Internal provider ID → models.dev provider ID mapping.
+ * Only providers in this mapping will have models fetched from models.dev.
  */
 const INTERNAL_TO_MODELSDEV = Object.freeze({
   openai: "openai",
@@ -32,8 +32,8 @@ const INTERNAL_TO_MODELSDEV = Object.freeze({
 });
 
 /**
- * 内置静态模型列表（终极 fallback）。
- * 当无本地缓存且 models.dev 不可用时使用。
+ * Built-in static model list (ultimate fallback).
+ * Used when no local cache and models.dev is unavailable.
  */
 const STATIC_MODELS = Object.freeze({
   openai: [
@@ -139,17 +139,17 @@ const STATIC_MODELS = Object.freeze({
 
 const ALL_PROVIDERS = Object.keys(STATIC_MODELS);
 const CACHE_KEY_PREFIX = "previewModels:v4:";
-const PERSISTENT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 小时
+const PERSISTENT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-/** 单次会话内缓存 models.dev 返回的原始数据 */
+/** In-memory cache for models.dev raw data (per session) */
 let _modelsDevCache = null;
 let _modelsDevFetchTime = 0;
 const MEMORY_CACHE_TTL_MS = 5 * 60 * 1000;
 
-/** 后台刷新进行中标记（避免重复刷新） */
+/** Background refresh in-progress flag (prevents duplicate refreshes) */
 let _backgroundRefreshPromise = null;
 
-// ── 存储缓存读写 ──────────────────────────────────────
+// ── Storage cache read/write ──────────────────────────────────────
 
 function cacheKey(provider) {
   return CACHE_KEY_PREFIX + provider;
@@ -163,7 +163,7 @@ async function readCache(provider) {
     if (entry && Array.isArray(entry.models) && entry.models.length) {
       return entry;
     }
-  } catch (_) { /* storage 不可用 */ }
+  } catch (_) { /* storage unavailable */ }
   return null;
 }
 
@@ -173,7 +173,7 @@ async function writeCache(provider, models) {
     await chrome.storage.local.set({
       [key]: { models, ts: Date.now() },
     });
-  } catch (_) { /* storage 写入失败，静默忽略 */ }
+  } catch (_) { /* storage write failed, silently ignored */ }
 }
 
 function isCacheFresh(entry) {
@@ -181,11 +181,11 @@ function isCacheFresh(entry) {
   return (Date.now() - entry.ts) < PERSISTENT_CACHE_TTL_MS;
 }
 
-// ── models.dev 拉取与解析 ───────────────────────────────
+// ── models.dev fetch & parse ───────────────────────────────
 
 /**
- * 从 models.dev 获取全量提供商和模型数据（无需认证）。
- * 结果在会话内缓存 5 分钟。
+ * Fetch all provider and model data from models.dev (no auth required).
+ * Results are cached in-memory for 5 minutes per session.
  */
 async function fetchModelsDevData(fetcher = globalThis.fetch) {
   const now = Date.now();
@@ -203,11 +203,11 @@ async function fetchModelsDevData(fetcher = globalThis.fetch) {
 }
 
 /**
- * 从 models.dev 数据中提取指定 provider 的模型列表。
- * models.dev 按提供商分组，每个模型直接有 id 和 name，无需像 OpenRouter 那样去前缀。
+ * Extract model list for a given provider from models.dev data.
+ * models.dev groups by provider, each model has id and name directly (no prefix stripping needed).
  */
 function extractModelsFromDevData(provider, data) {
-  // 优先用映射表（内部 ID → models.dev ID），若无映射则直接用 provider ID
+  // Prefer mapping table (internal ID → models.dev ID), fall back to provider ID directly
   const modelsDevId = INTERNAL_TO_MODELSDEV[provider] || provider;
 
   const providerData = data[modelsDevId];
@@ -235,8 +235,8 @@ function extractModelsFromDevData(provider, data) {
 }
 
 /**
- * 从 models.dev 拉取全量数据 → 按 provider 分组 → 写入缓存。
- * 成功后返回映射表 { provider: models[] }。
+ * Fetch all data from models.dev → group by provider → write cache.
+ * Returns mapping { provider: models[] } on success.
  */
 async function fetchAndCacheAll(fetcher) {
   const data = await fetchModelsDevData(fetcher);
@@ -252,16 +252,16 @@ async function fetchAndCacheAll(fetcher) {
 }
 
 /**
- * 后台静默刷新全部 provider 的缓存（fire-and-forget）。
+ * Background silent refresh of all provider caches (fire-and-forget).
  */
 function backgroundRefresh(fetcher) {
   if (_backgroundRefreshPromise) return;
   _backgroundRefreshPromise = fetchAndCacheAll(fetcher)
-    .catch(() => { /* 静默失败 */ })
+    .catch(() => { /* silently failed */ })
     .finally(() => { _backgroundRefreshPromise = null; });
 }
 
-// ── 智能默认模型选择 ──────────────────────────────────
+// ── Smart default model selection ──────────────────────────────────
 
 const PROVIDER_PRIORITY = Object.freeze({
   openai: [
@@ -300,17 +300,18 @@ function scoreModelByName(text) {
 }
 
 /**
- * 根据提供的模型列表和 provider，智能选择一个默认模型。
- * 优先级：
- * 1. 如果 models 含有 pricing 字段，则选择单价最低的模型（由于模型列表获取已从openrouter改为models.dev，后者数据不包含price，所以其实第一步不会真正生效）
- * 2. 否则根据名称启发式打分，选择得分最高的模型（适用于内置静态列表）
- * 3. 否则根据 PROVIDER_PRIORITY 中的优先级顺序选择第一个匹配的模型
- * 4. 否则返回 null（不指定默认模型）
+ * Smart default model selection based on the model list and provider.
+ * Priority:
+ * 1. If models have pricing fields, select the cheapest model (note: models.dev data lacks pricing,
+ *    so this tier rarely applies in practice)
+ * 2. Otherwise, heuristic name scoring — pick the highest-scoring model (for built-in static lists)
+ * 3. Otherwise, match against PROVIDER_PRIORITY order
+ * 4. Otherwise return null (no default specified)
  */
 export function getSmartDefaultModel({ provider, models }) {
   if (!Array.isArray(models) || !models.length) return null;
 
-  // Tier 1 — models.dev 定价（仅 models 含 pricing 时适用）
+  // Tier 1 — models.dev pricing (only applies when models contain pricing data)
   const withPricing = models.filter((m) => m?.pricing?.prompt && m?.pricing?.completion);
   if (withPricing.length) {
     const cheapest = withPricing.reduce((best, cur) => {
@@ -321,14 +322,14 @@ export function getSmartDefaultModel({ provider, models }) {
     if (cheapest) return cheapest.value;
   }
 
-  // Tier 2 — 名称启发式
+  // Tier 2 — name heuristic
   const scored = models
     .map((m) => ({ ...m, _score: scoreModelByName(m.text || m.value) }))
     .filter((m) => m._score > 0)
     .sort((a, b) => b._score - a._score);
   if (scored.length) return scored[0].value;
 
-  // Tier 3 — 静态优先级
+  // Tier 3 — static priority
   const priority = PROVIDER_PRIORITY[provider] || [];
   for (const preferred of priority) {
     if (models.some((m) => m.value === preferred)) return preferred;
@@ -337,45 +338,45 @@ export function getSmartDefaultModel({ provider, models }) {
   return null;
 }
 
-// ── 主导出函数 ─────────────────────────────────────────
+// ── Main export functions ─────────────────────────────────────────
 
 /**
- * 获取指定 provider 的预览模型列表。
+ * Get preview model list for a given provider.
  *
- * 优先级：
- * 1. 本地缓存（chrome.storage.local）→ 即时返回，同时后台刷新
- * 2. models.dev 实时拉取 → 写入缓存 → 返回
- * 3. 内置静态列表（终极 fallback）
+ * Priority:
+ * 1. Local cache (chrome.storage.local) → return immediately, refresh in background
+ * 2. models.dev live fetch → write cache → return
+ * 3. Built-in static list (ultimate fallback)
  *
  * @param {Object} options
- * @param {string} options.provider - 内部 provider 名称
+ * @param {string} options.provider - internal provider name
  * @param {Function} [options.fetcher=globalThis.fetch]
  * @returns {Promise<Array<{value: string, text: string}>>}
  */
 export async function loadPreviewModels({ provider, fetcher = globalThis.fetch }) {
-  // 1. 优先读本地缓存（即时显示）
+  // 1. Read local cache first (instant display)
   const cached = await readCache(provider);
   if (cached?.models?.length) {
-    // 仅在缓存超过 24 小时时后台刷新
+    // Background refresh only if cache is older than 24 hours
     if (!isCacheFresh(cached)) {
       backgroundRefresh(fetcher);
     }
     return cached.models;
   }
 
-  // 2. 无缓存 → 实时从 models.dev 拉取
+  // 2. No cache → fetch live from models.dev
   try {
     const data = await fetchModelsDevData(fetcher);
     const models = extractModelsFromDevData(provider, data);
     if (models.length) {
-      writeCache(provider, models); // 异步缓存，不阻塞
+      writeCache(provider, models); // async cache, non-blocking
       return models;
     }
   } catch (_) {
-    // models.dev 不可用
+    // models.dev unavailable
   }
 
-  // 3. 终极 fallback：内置静态列表
+  // 3. Ultimate fallback: built-in static list
   return [...(STATIC_MODELS[provider] || [])];
 }
 

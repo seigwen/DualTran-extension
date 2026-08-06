@@ -15,7 +15,7 @@ export function buildTabHasContentScriptExecutionPlan(writePlan) {
   return [{
     type: "set-storage",
     update: writePlan.update,
-    logLabel: "tabHasContentScript写入成功:",
+    logLabel: "tabHasContentScript write succeeded:",
     logValue: writePlan.update.tabHasContentScript,
   }];
 }

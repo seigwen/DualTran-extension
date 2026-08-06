@@ -5,7 +5,7 @@ import { createProviderRegistry, BUILT_IN_PROVIDERS } from "../lib/ai/providerRe
 const _defaultRegistry = createProviderRegistry(BUILT_IN_PROVIDERS);
 
 /**
- * 将兼容 OpenAI 的聊天端点规范化为模型列表端点。
+ * Normalize an OpenAI-compatible chat endpoint to a model list endpoint.
  * @param {string} endpoint
  * @returns {string}
  */

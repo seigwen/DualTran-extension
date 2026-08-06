@@ -13,7 +13,7 @@ export async function refreshAiModelSelect({
   getLabel = (model) => model?.text,
   errorToNotice,
   onLoadedOptions,
-  smartDefaultProvider, // 智能默认：provider 名称，用于 getSmartDefaultModel
+  smartDefaultProvider, // Smart default: provider name, used by getSmartDefaultModel
 }) {
   if (!select || select._isMissingElement) return [];
 
@@ -30,7 +30,7 @@ export async function refreshAiModelSelect({
 
   try {
     const models = await loadOptions();
-    // 智能计算选中提供商的默认模型
+    // Smart-compute default model for the selected provider
     let smartDefault;
     if (!storedValue && smartDefaultProvider) {
       smartDefault = getSmartDefaultModel({ provider: smartDefaultProvider, models });

@@ -1,30 +1,30 @@
 /**
- * 页面翻译主脚本
+ * Page translation main script
  */
 
-// DONE: 当译文颜色不为原色(默认色)时,即使译文和原文完全相同,仍然显示译文
-// DONE: 某些情况下, 父元素高度会不够大. 这是由于某些高层父元素的高度限制未去除. 现已去除全部高层元素的高度限制
-// DONE: 当文本节点的父元素是flex元素时, 会造成translated元素不换行显示, 优化之
-// DONE: 父元素是inline-flex时,子元素会style.display的值会变成block,但实际上并没有新建行,在判断isNewLine时要特殊对待
-// DONE: https://www.scmp.com/无法滚动的问题
-// DONE: 更改目标语言后, 点击floatingBtn仍然使用旧语言(原因:currentTargetLanguage是独立变量,与targetLanguage不一定相同,已更改)
-// DONE: 有时候翻译结果并不是目标语言,而是原文(例如在twitter的个人简介页翻译个人简介时, 例子:https://twitter.com/therealbuni). 原因:文本内容违反相关政策. 解决方案:要求chatGPT翻译所有文本包括那些违反相关政策的.
-// DONE: 设置options页为大屏显示
-// DONE: 整页翻译中,加入openAI
-// DONE：划词翻译中添加openAI
-// DONE: hfacebook 和 producthunt 有些已翻译的会重新翻译. 应该是网页自身会刷新node的原因. 方法: 建立缓存
-// DONE: singleTranslation模式下,无法翻译"English(US)"这段文字. 取消singleTranslation模式, 一律按batchTranslation
-// DONE: 划词翻译窗口有时候弹不出来：这是因为原先代码中，获取到翻译结果才弹出窗口，如果没开VPN，就一直获取不到翻译结果，所以一直不弹窗口。已修改。
-// DONE: 添加fireFox支持（把chrome.改为browser.）
-// DONE: 当translateLongerThan不为0时, 应优化为:仅对单个存在的元素适用, 对于夹在长文中的,不应该适用. 临时解决方案:translateLongerThan默认设置为0。最终解决方案：此问题似乎已经解决
+// DONE: When translated text color is not the original (default) color, still show translated text even if it is identical to the original
+// DONE: In some cases, parent element height is insufficient. This is because height limits on some ancestor elements were not removed. Now all ancestor element height limits are removed
+// DONE: When a text node's parent is a flex element, the translated element does not wrap. Optimized this
+// DONE: When parent is inline-flex, child element's style.display becomes block but no new line is actually created. Special handling needed when determining isNewLine
+// DONE: https://www.scmp.com/ scrolling issue
+// DONE: After changing target language, clicking floatingBtn still used the old language (reason: currentTargetLanguage is a separate variable, not always the same as targetLanguage; fixed)
+// DONE: Sometimes the translation result is not the target language but the original text (e.g., when translating a Twitter profile bio, example: https://twitter.com/therealbuni). Reason: text content violates content policies. Solution: have ChatGPT translate all text including policy-violating content.
+// DONE: Set options page to large screen display
+// DONE: Added OpenAI to full-page translation
+// DONE: Added OpenAI to selected-text translation
+// DONE: Facebook and ProductHunt re-translate some already-translated nodes. Likely caused by the page itself refreshing nodes. Solution: build a cache
+// DONE: In singleTranslation mode, cannot translate "English(US)" text. Removed singleTranslation mode; now always use batchTranslation
+// DONE: Selected-text translation popup sometimes fails to appear: the original code only showed the popup after receiving translation results; without VPN, results could never be obtained so the popup never appeared. Fixed.
+// DONE: Added Firefox support (changed chrome. to browser.)
+// DONE: When translateLongerThan is not 0, it should only apply to standalone elements, not elements embedded in long text. Temporary solution: set translateLongerThan default to 0. Final solution: this issue appears to be resolved
 
-// TODO: 在inline替换翻译时, 如果dontSortResults为no, 会造成链接与译文对不上的问题. 临时解决方案： 一律dontSortResults设为yes，不允许修改
-// TODO: 网站的视频界面自定义控件高度被设为unlimit后导致覆盖video. 应优化。 临时解决方案: 遇到有video元素的页面,不设置unlimit-height
-// TODO: 某些情况下, 父元素高度会被撑得过大. 主要原因: 在block父元素有多个inline元素时, 如果任何一个inline元素添加block子元素(比如<translated>>),会导致换行(例子:https://developer.chrome.com/docs/extensions/mv3/getstarted/tut-reading-time/). 
+// TODO: In inline replacement translation, if dontSortResults is "no", links and translations may not align. Temporary solution: always set dontSortResults to "yes", disallow modification
+// TODO: Custom video controls height set to unlimit causes overlay on video. Should be optimized. Temporary solution: do not set unlimit-height on pages with video elements
+// TODO: In some cases, parent element height becomes excessively large. Main cause: when a block parent has multiple inline elements, if any inline element adds a block child (e.g., <translated>), it causes line breaks (example: https://developer.chrome.com/docs/extensions/mv3/getstarted/tut-reading-time/).
 
-// TOOD: 当译文颜色不为原色(默认色)时, 如果译文颜色与背景色过于相似,则更改译文颜色. 参考此文章: https://stackoverflow.com/questions/11867545/change-text-color-based-on-brightness-of-the-covered-background-area
-// TODO: 扩展的介绍增加多语言
-// TODO：pdf翻译功能
+// TOOD: When translated text color is not the original (default), if translated color is too similar to the background color, change the translated text color. Reference: https://stackoverflow.com/questions/11867545/change-text-color-based-on-brightness-of-the-covered-background-area
+// TODO: Add multi-language support for extension description
+// TODO: PDF translation feature
 
 "use strict";
 
@@ -62,8 +62,8 @@ import { wordsCount } from "../util/globalWordsCount.js"
 import { registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, setCallbacks, getProxiesForTranslation, getAllProxies, getBlockState } from "./singletonBtnGroup.js";
 
 /**
- * 将 dontSortResults 配置值转换为布尔值（纯函数，供测试使用）。
- * @param {string} configValue — twpConfig.get("dontSortResults") 的返回值 ("yes" | "no" | undefined)
+ * Convert the dontSortResults config value to a boolean (pure function, for unit testing).
+ * @param {string} configValue — return value of twpConfig.get("dontSortResults") ("yes" | "no" | undefined)
  * @returns {boolean}
  */
 export function resolveDontSortResults(configValue) {
@@ -71,32 +71,32 @@ export function resolveDontSortResults(configValue) {
 }
 
 /**
- * 判断文本是否应触发 AI 改进（纯函数，供测试使用）。
- * @param {number} wordCount — 文本字数
- * @param {number|string} threshold — aiImproveForLongerThan 配置值
+ * Determine whether text should trigger AI improvement (pure function, for unit testing).
+ * @param {number} wordCount — word count of the text
+ * @param {number|string} threshold — aiImproveForLongerThan config value
  * @returns {boolean}
  */
 export function shouldTriggerAiImprove(wordCount, threshold) {
   const t = parseInt(threshold);
-  // threshold=0 表示"始终触发"（与 newLine 模式 addTranslatedContent 的行为一致）
+  // threshold=0 means "always trigger" (consistent with addTranslatedContent behavior in newLine mode)
   if (isNaN(t) || t < 0) return false;
   if (t === 0) return wordCount > 0;
   return wordCount > t;
 }
 
 /**
- * 解析 AI 渲染状态的下一个值（纯函数，供测试使用）。
+ * Resolve the next value of the AI render state (pure function, for unit testing).
  *
- * 调用时机：需要根据当前已注册块的 AI 状态决定全局 AI 按钮状态时。
- * 特别处理 bfcache 恢复场景 —— AI 译文无缓存，bfcache 恢复后动态内容
- * 会被 Google 缓存重新翻译但 AI 翻译缺失，需将过时的 "success"/"error"
- * 纠正为 "idle"。
+ * Called when the global AI button state needs to be determined based on currently registered blocks' AI states.
+ * Special handling for bfcache restore scenarios — AI translations are not cached, so after bfcache restore, dynamic content
+ * will be re-translated by Google cache but AI translations are missing. Need to correct stale "success"/"error"
+ * states to "idle".
  *
- * @param {string} currentAiRenderState — 当前 AI 渲染状态 ("idle"|"loading"|"success"|"error")
- * @param {number} translatingCount — 正在翻译的块数量
- * @param {number} toBeTranslatedCount — 待翻译的块数量
- * @param {number} totalBlockCount — 总块数量
- * @returns {string|null} — 新状态，或 null 表示保持当前状态不变
+ * @param {string} currentAiRenderState — current AI render state ("idle"|"loading"|"success"|"error")
+ * @param {number} translatingCount — number of blocks currently being translated
+ * @param {number} toBeTranslatedCount — number of blocks waiting to be translated
+ * @param {number} totalBlockCount — total number of blocks
+ * @returns {string|null} — new state, or null to keep current state unchanged
  */
 export function resolveNextAiRenderState(currentAiRenderState, translatingCount, toBeTranslatedCount, totalBlockCount) {
   if (translatingCount > 0) {
@@ -106,10 +106,10 @@ export function resolveNextAiRenderState(currentAiRenderState, translatingCount,
     return "success";
   }
   if (toBeTranslatedCount > 0 && translatingCount === 0) {
-    // 存在待翻译块但无正在翻译的块。
-    // 如果当前状态是 success/error，说明是 bfcache 恢复等场景下的过时状态
-    // —— AI 译文未缓存，动态内容经 Google 缓存翻译后新增了 <translated> 节点，
-    // 但这些节点尚未 AI 翻译。此时应将状态纠正为 idle。
+     // There are blocks waiting to be translated but none are currently being translated.
+     // If current state is success/error, it indicates a stale state from bfcache restore or similar scenario
+     // — AI translations are not cached, dynamic content added new <translated> nodes via Google cache translation,
+     // but these nodes have not yet been AI-translated. Correct the state to idle.
     if (currentAiRenderState === "success" || currentAiRenderState === "error") {
       return "idle";
     }
@@ -130,9 +130,9 @@ function ensureSingletonInit() {
 }
 
 let hasVideoInPage = false
-const translationInterval = 600 // 正常情况下,每隔translationInterval发送一个翻译请求
-const aiTranslationInterval = 2500 // 正常情况下,每隔aiTranslationInterval发送一个AI翻译请求
-const openAiRateLimitWaitingTime = 10 * 1000 // 当遇到AI翻译接口错误时, 等待openAiRateLimitWaitingTime后才重新开始发送AI翻译请求.
+const translationInterval = 600 // Under normal conditions, send a translation request every translationInterval ms
+const aiTranslationInterval = 2500 // Under normal conditions, send an AI translation request every aiTranslationInterval ms
+const openAiRateLimitWaitingTime = 10 * 1000 // When an AI translation API error occurs, wait openAiRateLimitWaitingTime ms before resuming AI translation requests.
 export const abortControllers = []
 export const aiCache = []
 /* mili-seconds to wait for next openAI request after translation error happened. 
@@ -143,31 +143,31 @@ let timerAiTran
 let hadGoogleTranslationError = false
 let shouldForceAiAfterPageTranslation = false
 
-// ── AI 翻译状态持久化（sessionStorage）──────────────────────────
-// 用于在 Turbo/pjax 导航后恢复 AI 翻译状态。
-// GitHub 等站点使用 Turbo Drive 做 SPA 导航，且设置 turbo-cache-control=no-cache，
-// 导致点击回退按钮时 Turbo 重新从服务器获取页面（而非从缓存恢复），
-// 新页面的 DOM 不含任何翻译。Mutation Observer 会自动重新翻译 Google 译文，
-// 但 AI 译文不会自动触发（因为 shouldForceAiAfterPageTranslation 已被上次翻译完成后重置为 false）。
-// 通过在 sessionStorage 中记录"此 URL 曾被 AI 翻译过"的标记，
-// 在 popstate / pageshow 时恢复 shouldForceAiAfterPageTranslation，使 AI 翻译自动重新触发。
+// ── AI translation state persistence (sessionStorage) ──────────────────────────
+// Used to restore AI translation state after Turbo/pjax navigation.
+// Sites like GitHub use Turbo Drive for SPA navigation and set turbo-cache-control=no-cache,
+// causing Turbo to re-fetch the page from the server (not from cache) when the back button is clicked,
+// so the new page's DOM contains no translations. Mutation Observer automatically re-translates Google translations,
+     // Silently degrade when sessionStorage is unavailable
+// By recording a "this URL was AI-translated" marker in sessionStorage,
+// restore shouldForceAiAfterPageTranslation on popstate / pageshow, so AI translation is automatically re-triggered.
 const AI_APPLIED_KEY_PREFIX = "dualtran:aiApplied:";
 
-/** 获取当前页面 URL 对应的 sessionStorage 键名 */
+/** Get the sessionStorage key name for the current page URL */
 function getAiAppliedStorageKey() {
   return AI_APPLIED_KEY_PREFIX + location.origin + location.pathname;
 }
 
-/** 标记当前页面已被 AI 翻译过（在 AI 译文应用成功后调用） */
+/** Mark the current page as having been AI-translated (called after AI translation is successfully applied) */
 function saveAiAppliedFlag() {
   try {
     sessionStorage.setItem(getAiAppliedStorageKey(), "true");
   } catch (_) {
-    // sessionStorage 不可用时静默降级
+     // Silently degrade when sessionStorage is unavailable
   }
 }
 
-/** 检查当前页面是否曾被 AI 翻译过，不消费标记 */
+/** Check whether the current page was previously AI-translated, without consuming the marker */
 function checkAiAppliedFlag() {
   try {
     return sessionStorage.getItem(getAiAppliedStorageKey()) === "true";
@@ -176,7 +176,7 @@ function checkAiAppliedFlag() {
   }
 }
 
-/** 清除当前页面的 AI 翻译标记（在用户点击"恢复原文"时调用） */
+/** Clear the AI translation marker for the current page (called when user clicks "Restore original") */
 function removeAiAppliedFlag() {
   try {
     sessionStorage.removeItem(getAiAppliedStorageKey());
@@ -196,21 +196,21 @@ function applyTranslatedColorToNode(node) {
 }
 
 /**
- * newLine 模式下，将 AI 译文颜色应用到包含 translatedTextNode 的 <translated> 元素上。
- * replaceOriginal 模式下跳过（使用原文颜色）。
- * @param {object} btnAi - BtnAiProxy 或类似对象，需有 translatedTextNode 属性
- * @param {string} aiColor - AI 译文颜色值
+ * In newLine mode, apply AI translation color to the <translated> element containing translatedTextNode.
+ * In replaceOriginal mode, skip (use original text color).
+ * @param {object} btnAi - BtnAiProxy or similar object, must have translatedTextNode property
+ * @param {string} aiColor - AI translation color value
  */
 function _applyAiColorToTranslatedElement(btnAi, aiColor) {
   try {
     if (!aiColor || ["", "rgba(0, 0, 0, 1)", undefined, null].includes(aiColor)) return;
     const ttn = btnAi?.translatedTextNode;
     if (!ttn) return;
-    // replaceOriginal 模式下不应用 AI 颜色（使用原文颜色）
-    // 通过检查 nodesToClear 是否存在来区分模式：newLine 模式 nodesToClear 为 null
+     // Do not apply AI color in replaceOriginal mode (use original text color)
+     // Distinguish modes by checking whether nodesToClear exists: in newLine mode nodesToClear is null
     const blockState = btnAi?._st ? btnAi._st() : null;
     if (blockState && Array.isArray(blockState.nodesToClear) && blockState.nodesToClear.length > 0) return;
-    // 向上查找 <translated> 元素并设置 AI 译文颜色
+     // Walk up to find <translated> element and set AI translation color
     let target = ttn.nodeType === 3 ? ttn.parentNode : ttn;
     while (target && target !== document.body) {
       if (target.nodeName?.toLowerCase() === "translated") {
@@ -254,17 +254,17 @@ function hasActiveProviderApiKey() {
 }
 
 /**
- * 获取指定 provider 的当前模型名称（三层查找）。
+ * Get the current model name for the specified provider (three-tier lookup).
  *
- * Tier 1: 专属 config key（仅 7 个主要 provider 有）:
+ * Tier 1: Dedicated config key (only 7 major providers have these):
  *   openai→openAiModel, anthropic→anthropicModel, google-gemini→googleGeminiModel,
  *   azure-openai→azureOpenAIModel, deepseek→deepSeekModel, grok→grokModel,
  *   openrouter→openRouterModel
  *
- * Tier 2: providerConfigs 通用存储（适用于所有 provider，尤其是 models.dev 动态注册的）:
+ * Tier 2: providerConfigs generic storage (works for all providers, especially models.dev dynamically registered ones):
  *   twpConfig.get("providerConfigs")?.[providerId]?.model
  *
- * Tier 3: 硬编码 fallback（适用于已知 provider 但上述两级均未设置时）
+ * Tier 3: Hardcoded fallback (for known providers when the above two tiers are not set)
  *
  * @param {string} providerId — e.g. "openai", "anthropic", "zhipu"
  * @returns {string} — model name, or "" if unresolvable
@@ -367,12 +367,12 @@ function setCachedAiTranslation(sourceLanguage, targetLanguage, providerId, mode
 }
 
 /**
- * 判断是否应跳过 AI 自动翻译（纯决策函数，无副作用，供单元测试使用）。
- * @param {string} autoImproveByAI — twpConfig 中的 "autoImproveByAI" 值（"yes" / "no"）
- * @param {boolean} hasApiKey — 当前提供商是否已配置 API key
- * @param {number} rateLimitCountdown — rate limit 冷却倒计时（毫秒）
- * @param {boolean} shouldForce — shouldForceAiAfterPageTranslation 标志
- * @returns {boolean} true = 跳过 AI 翻译，false = 执行 AI 翻译
+ * Determine whether to skip AI auto-translation (pure decision function, no side effects, for unit testing).
+ * @param {string} autoImproveByAI — "autoImproveByAI" value from twpConfig ("yes" / "no")
+ * @param {boolean} hasApiKey — whether the current provider has an API key configured
+ * @param {number} rateLimitCountdown — rate limit cooldown countdown (milliseconds)
+ * @param {boolean} shouldForce — shouldForceAiAfterPageTranslation flag
+ * @returns {boolean} true = skip AI translation, false = proceed with AI translation
  */
 function _shouldSkipAiTranslation(autoImproveByAI, hasApiKey, rateLimitCountdown, shouldForce) {
   return rateLimitCountdown > 0 || (autoImproveByAI === "no" && !shouldForce) || !hasApiKey;
@@ -441,19 +441,19 @@ async function handleSingletonGoogleClick(translatedElement) {
       if (state.nodesToClear) {
         state.nodesToClear.forEach((n) => {
           try {
-            // 恢复被清空/隐藏的节点
+             // Restore cleared/hidden nodes
             const restored = nodesToRestore.find((r) => r.node === n);
             if (restored) {
               if (n.nodeType === 3) {
-                // 文本节点：恢复内容
+                 // Text node: restore content
                 n.textContent = restored.originalText;
-                // 恢复被隐藏的父元素（如 <code>）
+                 // Restore hidden parent element (e.g., <code>)
                 const parent = n.parentNode;
                 if (parent && parent.nodeType === 1 && parent.style?.display === "none") {
                   parent.style.display = "";
                 }
               } else if (n.nodeType === 1) {
-                // 元素节点：显示并恢复内容
+                 // Element node: show and restore content
                 n.style.display = "";
                 n.textContent = restored.originalText;
               }
@@ -499,25 +499,25 @@ async function handleSingletonAiClick(translatedElement) {
     if (state.googleBtnState === "success" && state.translatedTextNode && typeof state.googleTranslatedText === "string") {
       try { state.translatedTextNode.textContent = state.googleTranslatedText; } catch (_) {}
     } else if (state.nodesToClear) {
-      // replaceOriginal 模式：恢复原文节点，并清除 AI 译文 span
+       // replaceOriginal mode: restore original nodes and clear AI translation span
       if (state.translatedTextNode) {
         try { state.translatedTextNode.textContent = ""; } catch (_) {}
       }
       state.nodesToClear.forEach((n) => {
         try {
-          // 恢复被清空/隐藏的节点
+           // Restore cleared/hidden nodes
           const restored = nodesToRestore.find((r) => r.node === n);
           if (restored) {
             if (n.nodeType === 3) {
-              // 文本节点：恢复内容
+               // Text node: restore content
               n.textContent = restored.originalText;
-              // 恢复被隐藏的父元素（如 <code>）
+               // Restore hidden parent element (e.g., <code>)
               const parent = n.parentNode;
               if (parent && parent.nodeType === 1 && parent.style?.display === "none") {
                 parent.style.display = "";
               }
             } else if (n.nodeType === 1) {
-              // 元素节点：显示并恢复内容
+               // Element node: show and restore content
               n.style.display = "";
               n.textContent = restored.originalText;
             }
@@ -529,7 +529,7 @@ async function handleSingletonAiClick(translatedElement) {
   }
 
   state.aiStatus = "translating";
-  // 清除上次错误信息，防止重试成功后残留
+   // Clear previous error message to prevent stale errors after successful retry
   state.errorMessage = undefined;
   try {
     // Build a lightweight proxy with direct state access
@@ -571,7 +571,7 @@ async function handleSingletonAiClick(translatedElement) {
  * @param {Array<any>} toBeTranslated 
  * @returns 
  */
-// 提前声明 AI 渲染状态（供 onError/onFinished 使用）
+// Pre-declare AI render state (for use by onError/onFinished)
 let aiRenderState = "idle";
 const aiRenderStateObservers = [];
 function setAiRenderState(state) {
@@ -607,10 +607,10 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
         tooltipText: "Translated, click to translate again",
         titleText: null,
       })
-      // newLine 模式：确保 AI 译文颜色覆盖谷歌译文颜色
+       // newLine mode: ensure AI translation color overrides Google translation color
       _applyAiColorToTranslatedElement(btnAi, twpConfig.get("aiTranslatedColor"));
-      // 页面级 AI 翻译成功后，在 sessionStorage 标记此 URL 曾被 AI 翻译，
-      // 以便 Turbo/pjax 导航回退时自动恢复 AI 翻译状态
+       // After page-level AI translation succeeds, mark this URL as AI-translated in sessionStorage,
+       // so AI translation state is automatically restored on Turbo/pjax navigation back
       if (!isSelectedPanel) saveAiAppliedFlag();
       continue
     }
@@ -630,9 +630,9 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
         tooltipText: "Translated (cached), click to translate again",
         titleText: null,
       });
-      // newLine 模式：确保 AI 译文颜色覆盖谷歌译文颜色
+       // newLine mode: ensure AI translation color overrides Google translation color
       _applyAiColorToTranslatedElement(btnAi, twpConfig.get("aiTranslatedColor"));
-      // 页面级 AI 翻译成功后（持久缓存命中），在 sessionStorage 标记此 URL
+       // After page-level AI translation succeeds (persistent cache hit), mark this URL in sessionStorage
       if (!isSelectedPanel) saveAiAppliedFlag();
       // Populate in-memory cache for subsequent lookups
       aiCache.push({
@@ -646,7 +646,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
     // 3. No cache hit — queue for API translation
     btnAi.translationId = "i" + Math.random().toString().substring(2, 10)
     btnAi.translationStatus = "queuing"
-    // 清除上次错误信息（若存在），防止重试成功后残留
+     // Clear previous error message (if any) to prevent stale errors after successful retry
     try { const st = btnAi._st(); if (st) st.errorMessage = undefined; } catch (_) {}
     btnAi.btnAiTxtNode.textContent = "queuing"
     btnAi.tooltip.textContent = "This text will be translated by AI soon"
@@ -654,14 +654,14 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
   }
   console.log("contentSequence:", contentSequence)
 
-  // contentSequence 为空 → 全部命中缓存，无需发起 API 请求
+   // contentSequence is empty → all cache hits, no API request needed
   if (!(contentSequence.trim().length)) {
-    console.log("contentSequence为空字符串（全部命中缓存）")
+    console.log("contentSequence is empty (all cache hits)")
     return true
   }
 
   let accumulatedText = ""
-  // 解析响应
+   // Parse the response
   let onMessage = (msg) => {
     console.log(11111, 'received message', msg)
 
@@ -681,7 +681,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
       })
     }
     if (parsedChunk.kind === "parse-error") {
-      console.log("解析响应出错1", parsedChunk.error)
+      console.log("Response parsing error 1", parsedChunk.error)
       notifyAiStreamParseError({
         error: parsedChunk.error,
         controller,
@@ -719,12 +719,12 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
     while (true) {
       // Trim leading whitespace that AI may insert between XML blocks
       // (e.g. newlines). The regex in parseTaggedPageTranslationProgress
-      // expects the text to start with "<译泽".
+       // expects the text to start with "<译泽".
       accumulatedText = accumulatedText.trimStart()
 
-      // 某些 AI 模型（如 DeepSeek R1/V4）可能在译文 XML 之前输出推理文本或
-      // 解释性文字。在此处检测并丢弃第一个 <译泽 标签之前的所有内容，
-      // 确保 parseTaggedPageTranslationProgress 能正确识别 XML 块。
+       // Some AI models (e.g., DeepSeek R1/V4) may output reasoning text or explanatory content
+       // before the translation XML. Detect and discard everything before the first <译泽 tag here,
+       // ensuring parseTaggedPageTranslationProgress can correctly identify XML blocks.
       if (accumulatedText && !accumulatedText.startsWith("<译泽")) {
         const firstTagIndex = accumulatedText.indexOf("<译泽")
         if (firstTagIndex > 0) {
@@ -747,12 +747,12 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
         console.log("translationId:", translationId)
         console.log("translatedText:", progress.translatedText)
 
-        // 用AI译文替换原译文
+         // Replace original translation with AI translation
         btnAi = toBeTranslated.find(btnAi => btnAi.translationId === translationId)
         if (!btnAi) {
-          // 翻译块在 DOM 中已不存在（可能在翻译期间被移除），
-          // 跳过当前块继续处理后续译文，避免丢失所有剩余段落。
-          console.log("未找到btnAi, 跳过此块:", translationId)
+           // Translation block no longer exists in DOM (may have been removed during translation),
+           // skip current block and continue processing remaining translations to avoid losing all remaining paragraphs.
+          console.log("btnAi not found, skipping this block:", translationId)
           if (progress.remainingAccumulatedText !== null) {
             accumulatedText = progress.remainingAccumulatedText
             continue
@@ -764,7 +764,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
           translatedText: progress.translatedText,
           translatedTextColor: twpConfig.get("aiTranslatedColor"),
         })
-        // newLine 模式：确保 AI 译文颜色覆盖谷歌译文颜色
+         // newLine mode: ensure AI translation color overrides Google translation color
         _applyAiColorToTranslatedElement(btnAi, twpConfig.get("aiTranslatedColor"));
 
         console.log("indexOfCloseTag:", progress.remainingAccumulatedText === null ? -1 : 0)
@@ -777,12 +777,12 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
             tooltipText: "translated, click to translate again",
             titleText: null,
           })
-          // newLine 模式：确保 AI 译文颜色覆盖谷歌译文颜色
+           // newLine mode: ensure AI translation color overrides Google translation color
           _applyAiColorToTranslatedElement(btnAi, twpConfig.get("aiTranslatedColor"));
-          // 页面级 AI 翻译成功后（流式响应完成），在 sessionStorage 标记此 URL
+           // After page-level AI translation succeeds (streaming response complete), mark this URL in sessionStorage
           if (!isSelectedPanel) saveAiAppliedFlag();
-          // replaceOriginal 模式：AI 翻译开始时已通过 display:none 隐藏原始文本节点，
-          // 这里保持隐藏状态即可（节点已在 applyAiTranslatingState 中隐藏）
+           // replaceOriginal mode: AI translation start already hid original text nodes via display:none,
+           // just keep them hidden here (nodes were already hidden in applyAiTranslatingState)
           // In-memory cache write
           aiCache.push({
             original: btnAi.sourceString,
@@ -804,7 +804,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
         }
 
       } catch (e) {
-        console.log("解析响应出错2", e)
+        console.log("Response parsing error 2", e)
         break
       }
     }
@@ -819,9 +819,9 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
       timeStamp: Date.now()
     })
 
-    openAiRateLimitCountDown = openAiRateLimitWaitingTime // 等待
+    openAiRateLimitCountDown = openAiRateLimitWaitingTime // Wait
 
-    // 统一错误文案：若为超时，显示“server response timeout”；否则同时展示 code 与 message（若存在）
+     // Unified error message: if timeout, show "server response timeout"; otherwise show both code and message (if present)
     const errTxt = formatAiTranslationError(err)
     console.log(999999, err)
     // Toastify({
@@ -842,7 +842,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
     toBeTranslated
       .filter(btnAi => btnAi.translationStatus != "translated")
       .map(btnAi => {
-        // 持久化错误信息到 blockState，供 hover 时 updateSingletonUI 恢复 tooltip
+         // Persist error info to blockState for updateSingletonUI to restore tooltip on hover
         try { const st = btnAi._st(); if (st) st.errorMessage = errTxt; } catch (_) {}
         applyAiErrorState(btnAi, {
           errorText: errTxt,
@@ -870,18 +870,18 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
     }
   }
   let onFinished = () => {
-    // AI 响应已完整，将仍未匹配到的 queuing 块标记为错误
-    // （这些块在 AI 返回的 XML 中没有对应的译泽标签）
+     // AI response is complete; mark remaining unmatched queuing blocks as errors
+     // (these blocks have no corresponding 译泽 tags in the AI response XML)
     let stuckCount = 0;
-    // 诊断信息：记录残留文本，帮助排查 AI 返回格式问题
+     // Diagnostic: log residual text to help troubleshoot AI response format issues
     if (accumulatedText && accumulatedText.trim().length > 0) {
       console.log("[AI-STATE] onFinished: residual accumulatedText (no matching <译泽> tags):",
         accumulatedText.trim().substring(0, 200));
     }
     toBeTranslated.forEach((btn) => {
       if (btn.translationStatus === "queuing") {
-        // 统一通过 applyAiErrorState 应用错误状态（含视觉标记），
-        // 避免仅修改 status 导致 UI 不一致（如红色 X 仅在 hover 后才出现）。
+         // Uniformly apply error state (including visual markers) via applyAiErrorState,
+         // to avoid UI inconsistency from only modifying status (e.g., red X only appearing on hover).
         const errTxt = accumulatedText && accumulatedText.trim().length > 0
           ? (chrome.i18n.getMessage("errorAiResponseNoTranslationTags") || "AI response did not contain expected translation tags")
           : (chrome.i18n.getMessage("errorAiNoResponse") || "No response from AI provider");
@@ -922,7 +922,7 @@ function countTokens(str) {
 }
 
 function insertGlobalRule() {
-  // 插入样式: 1.解除高度限制 2.使元素display方式变为block
+   // Insert styles: 1. Remove height limits 2. Change element display to block
   var style = document.createElement("style");
   style.innerHTML = `
     .dualtran-hide{
@@ -1160,10 +1160,10 @@ let compressionMap;
 
 
 /**
- *  把匹配的关键字(在customDictionary字典中)替换为特殊数字,在送往翻译引擎前,会过滤掉这些关键字(替换为数字).
- *  这是为了用户能自定义翻译术语.
- *  仅对单词之间有空格的语言有效,如英语,法语等. 对于中文,缅甸语等没有空格的语言无效.
- *  与handleCustomWords()配对使用
+ *  Replace matched keywords (from customDictionary) with special numbers before sending to translation engine. These keywords are filtered out (replaced with numbers).
+ *  This allows users to customize translation terminology.
+ *  Only effective for languages with spaces between words, such as English, French, etc. Not effective for languages without spaces like Chinese, Burmese, etc.
+ *  Paired with handleCustomWords()
  * 
  *  Convert matching keywords to a string of special numbers to skip translation before sending to the translation engine.
  * 
@@ -1230,8 +1230,8 @@ function filterKeywordsInText(textContext) {
 }
 
 /**
- *  对翻译后的结果,把匹配的关键字(在customDictionary字典中)替换为特殊数字,
- *  与filterKeywordsInText()配对使用
+ *  Replace matched keywords (from customDictionary) with special numbers in the translated result,
+ *  Paired with filterKeywordsInText()
  * 
  *  handle the keywords in translatedText, replace it if there is a custom replacement value.
  *
@@ -1319,7 +1319,7 @@ function handleHitKeywords(value, mode) {
 }
 
 /**
- * 是否标点或分隔符
+ * Whether the character is punctuation or a separator
  * any kind of punctuation character (including international e.g. Chinese and Spanish punctuation), and spaces, newlines
  *
  * source: https://github.com/slevithan/xregexp/blob/41f4cd3fc0a8540c3c71969a0f81d1f00e9056a9/src/addons/unicode/unicode-categories.js#L142
@@ -1370,12 +1370,12 @@ function emitDualTranDebugLog(level, marker, payload) {
 }
 
 /**
- * 请求后台翻译节点列表
+ * Request background to translate a node list
  *  
  * @param {*} translationService 
  * @param {*} targetLanguage 
  * @param {*} sourceArray2d 
- * @param {*} dontSortResults  // true: 按原始HTML节点顺序; false: 按翻译后节点顺序
+ * @param {*} dontSortResults  // true: maintain original HTML node order; false: use translated node order
  * @returns 
  */
 function backgroundTranslateHTML(
@@ -1439,7 +1439,7 @@ function backgroundTranslateHTML(
 }
 
 /**
- * 请求后台翻译属性文本列表
+ * Request background to translate an attribute text list
  * 
  * @param {*} translationService 
  * @param {*} targetLanguage 
@@ -1475,7 +1475,7 @@ function backgroundTranslateText(
 }
 
 /**
- * 请求后台翻译单串文字(用于标题翻译或划词翻译)
+ * Request background to translate a single string (used for title translation or selected-text translation)
  * 
  * @param {*} translationService 
  * @param {*} targetLanguage 
@@ -1511,7 +1511,7 @@ backgroundTranslateSingleText = function (
 }
 
 /**
- * 获取tab主机名
+ * Get the tab hostname
  * @returns 
  */
 function getTabHostName() {
@@ -1526,7 +1526,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   console.log("pageTranslator.js promise.all is resolved")
 
   const tabHostName = _[1];
-  // inline文本
+   // inline text
   const htmlTagsInlineText = [
     "#text",
     "a",
@@ -1554,20 +1554,20 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     "mark"
   ];
 
-  // 不翻译的inline元素. 如果送给google的原文段缺少某些inline元素,会造成翻译效果不好,译文不通顺, 所以还是把所有inline元素都送去翻(但是最后addToTranslated时,仍然采用翻译前的原文字), 因此把此数组置空.
+   // Non-translatable inline elements. If the original text sent to Google is missing some inline elements, the translation quality will suffer. So we send all inline elements for translation (but when adding to translated, we still use the pre-translation original text). Therefore, this array is left empty.
   const htmlTagsInlineIgnore = []
 
-  // 不翻译的block元素
+   // Non-translatable block elements
   const htmlTagsNoTranslate = ["title", "script", "style", "textarea", "translated", "noscript"];
 
   if (twpConfig.get("translateTag_pre") !== "yes") {
     htmlTagsInlineIgnore.push("pre");
   }
 
-  // 监听配置变更, 实时反映到内存变量htmlTagsInlineIgnore中
+   // Listen for config changes and reflect them in the htmlTagsInlineIgnore memory variable in real time
   twpConfig.onChanged((name, newvalue) => {
     switch (name) {
-      // 是否翻译pre标签的内容
+       // Whether to translate content inside <pre> tags
       case "translateTag_pre":
         const index = htmlTagsInlineIgnore.indexOf("pre");
         if (index !== -1) {
@@ -1582,31 +1582,31 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
   // Pieces are a set of nodes separated by inline tags that form a sentence or paragraph.
   let piecesToTranslate = [];
-  // 页面原始语言
+   // Original language of the page
   let originalTabLanguage = "und";
-  // 页面当前语言
+   // Current language of the page
   let currentPageLanguage = "und";
-  // 页面语言状态(原始/已翻译)
+   // Page language state (original/translated)
   let pageLanguageState = "original"; // "original" or "translated"
-  // 当前目标语言. 一开始时,改值从config获取到, 用户使用中更改目标语言时, currentTargetLanguage随之更改
+   // Current target language. Initially loaded from config; when the user changes the target language during use, currentTargetLanguage updates accordingly
   let currentTargetLanguage = twpConfig.get("targetLanguage");
-  // 翻译服务引擎(google/yandex)
+   // Translation service engine (google/yandex)
   let currentPageTranslatorService = twpConfig.get("pageTranslatorService");
-  // google返回的翻译结果为了通顺, HTML节点顺序会跟原始HTML节点顺序不一样. 
-  // 可以选择重新排序(dontSortResults === false),按照原始HTML节点顺序显示,更符合原有的样式.但是这样可能会不通顺例如"what is the <b>treatment</b> for stroke",会被翻译成"是什么<b>治疗方法</b>中风的"
-  // 也可设置为不重排(dontSortResults === true),按照google的结果显示,会更通顺,但是样式可能不对
+   // Google returns translations with HTML node order different from the original for fluency.
+   // You can choose to re-sort (dontSortResults === false) to display in original HTML node order, which better matches the original layout, but may reduce fluency. E.g., "what is the <b>treatment</b> for stroke" may become "是什么<b>治疗方法</b>中风的" (Chinese example showing poor word order)
+   // Or set to not re-sort (dontSortResults === true) to display in Google's order, which is more fluent but the layout may be incorrect
   let dontSortResults =
     twpConfig.get("dontSortResults") == "yes" ? true : false;
   let fooCount = 0;
 
   let originalPageTitle;
-  // 需要翻译的attributes(如placeholder等)
+   // Attributes to translate (e.g., placeholder, etc.)
   let attributesToTranslate = [];
-  // 定时翻译新节点(用setInterval定时)
+   // Periodic translation of new nodes (using setInterval)
   let translateNewNodesTimerHandler;
-  // 新节点(mutationObserver添加的节点)
+   // New nodes (added by mutationObserver)
   let newNodes = [];
-  // 新节点(mutationObserver删除的节点)
+   // Removed nodes (removed by mutationObserver)
   let removedNodes = [];
 
   let nodesToRestore = [];
@@ -1614,13 +1614,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
 
   /**
-   * 实时更新newNodes数组和removedNodes数组
-   * 原理: 新建一个MutationObserver观察者实例, 实时将新增节点放入newNodes数组,删除节点放入removedNodes数组
+    * Update newNodes and removedNodes arrays in real time
+    * Principle: Create a MutationObserver instance, continuously adding new nodes to newNodes array and removed nodes to removedNodes array
    */
-  const mutationObserver = new MutationObserver(function (mutations) { // 浏览器要等到当前所有排队中的 DOM 操作都结束才调用此回调参数,因此传入回调函数的参数是复数mutations
+   const mutationObserver = new MutationObserver(function (mutations) { // The browser waits until all queued DOM operations are finished before calling this callback, hence the plural "mutations" parameter
     const tmpNewNodes = [];
     mutations.forEach((mutation) => {
-      // 新增节点, 如果是块级元素且属于要翻译的标签, 则放入本地的tmpNewNodes数组
+       // New nodes: if a block-level element belonging to translatable tags, add to local tmpNewNodes array
       mutation.addedNodes.forEach((addedNode) => {
         const nodeName = addedNode.nodeName.toLowerCase();
         if (nodeName.toLowerCase() !== "translated" && addedNode.parentNode?.nodeName.toLowerCase() !== "translated") {
@@ -1634,13 +1634,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         }
       });
 
-      // 删除节点放入removedNodes数组
+       // Add removed nodes to removedNodes array
       mutation.removedNodes.forEach((removedNode) => {
         removedNodes.push(removedNode);
       });
     });
 
-    // 如果tmpNewNodes数组的元素不在newNodes数组里, 则把元素推入newNodes数组
+     // If tmpNewNodes array elements are not in newNodes array, push them into newNodes array
     tmpNewNodes.forEach((node) => {
       if (newNodes.indexOf(node) == -1) {
         newNodes.push(node);
@@ -1649,17 +1649,17 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   });
 
   /**
-   * 每2秒更新piecesToTranslate数组(根据newNodes的信息)
+    * Update piecesToTranslate array every 2 seconds (based on newNodes information)
    */
   function updatePiecesToTranslateWithNewNodes() {
     try {
       newNodes.forEach((nn) => {
         if (removedNodes.indexOf(nn) != -1) return;
 
-        // 从每个new node中取得pieces
+         // Get pieces from each new node
         let newPiecesToTranslate = getPiecesToTranslate(nn);
 
-        // 检查piecesToTranslate数组里是否已包含新取得的piece,如果没有包含,则push到piecesToTranslate数组
+         // Check if piecesToTranslate array already contains the newly obtained piece; if not, push it into piecesToTranslate array
         for (const i in newPiecesToTranslate) {
           const newNodes = newPiecesToTranslate[i].nodes;
           let finded = false;
@@ -1684,15 +1684,15 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 用观察者实例观察整个文档,即监听document.body树的所有节点变更,实时更新newNodes,每2秒把newNodes选择合适的推入piecesToTranslate数组
+    * Use the observer instance to observe the entire document, i.e., listen for all node changes in document.body tree, update newNodes in real time, and push appropriate newNodes into piecesToTranslate array every 2 seconds
    */
   function enableMutatinObserver() {
     disableMutatinObserver();
 
     if (twpConfig.get("translateDynamicallyCreatedContent") == "yes") {
-      // 设定定时器: 每2秒把新节点推入piecesToTranslate数组
+       // Set up timer: push new nodes into piecesToTranslate array every 2 seconds
       translateNewNodesTimerHandler = setInterval(updatePiecesToTranslateWithNewNodes, 2000);
-      // 监听document.body的更新, 实时更新
+       // Listen for document.body updates in real time
       mutationObserver.observe(document.body, {
         childList: true,
         subtree: true,
@@ -1701,15 +1701,15 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 取消观察者实例对整个文档的监听; 取消定时翻译器
+    * Disconnect the observer instance from the entire document; cancel the periodic translator
    */
   function disableMutatinObserver() {
     clearInterval(translateNewNodesTimerHandler);
     newNodes = [];
     removedNodes = [];
-    //取消监听
+     // Disconnect listener
     mutationObserver.disconnect();
-    // 除了使用回调函数，我们还可以使用 takeRecords 函数主动从 通知队列中拉取所有待处理的通知, 此动作会导致清空所有通知。
+     // Besides using callback functions, we can also use takeRecords to actively pull all pending notifications from the notification queue. This action clears all notifications.
     mutationObserver.takeRecords();
   }
 
@@ -1733,7 +1733,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   //     .observe(document.body)
 
   /**
-   * 监视页面可视性. 页面可视时启用mutationObserver观察者实例监听页面,否则关闭mutationObserver观察者实例对于页面的监听
+    * Monitor page visibility. When the page is visible, enable the mutationObserver to watch the page; otherwise disable it.
    */
   const handleVisibilityChange = function () {
     if (document.visibilityState == "visible") {
@@ -1751,24 +1751,24 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   document.addEventListener("visibilitychange", handleVisibilityChange, false);
 
   /**
-   * 处理 bfcache (back/forward cache) 恢复事件。
-   * 页面从 bfcache 恢复时，JavaScript 堆状态被保留，但动态内容可能已被页面的
-   * JavaScript 重新获取。Google 翻译有缓存所以能重新应用到新 DOM 节点，
-   * 但 AI 翻译没有缓存 —— 导致 AI 按钮显示绿色（过时的 success 状态），
-   * 实际页面上 AI 译文缺失（仅剩 Google 译文）。
+    * Handle bfcache (back/forward cache) restore events.
+    * When a page is restored from bfcache, the JavaScript heap state is preserved, but dynamic content may have been
+    * re-fetched by the page's JavaScript. Google translations have cache so they can be re-applied to new DOM nodes,
+    * but AI translations have no cache — causing the AI button to show green (stale success state),
+    * while the actual page has no AI translations (only Google translations remain).
    *
-   * 在 bfcache 恢复时立即重新评估 AI 渲染状态，纠正过时状态。
+    * Re-evaluate AI render state immediately on bfcache restore to correct stale states.
    *
-   * 对于非 bfcache 的 pageshow（完整页面重新加载），
-   * 检查 sessionStorage 中是否有 AI 翻译标记，
-   * 若有则设置 shouldForceAiAfterPageTranslation，使后续自动翻译包含 AI。
+    * For non-bfcache pageshow events (full page reload),
+    * check sessionStorage for an AI translation marker,
+    * and if present, set shouldForceAiAfterPageTranslation so subsequent auto-translations include AI.
    */
   const handlePageShow = function (event) {
     if (event.persisted) {
       console.log("[AI-STATE] page restored from bfcache, re-evaluating AI render state");
       updateAiRenderStateInternal();
     } else {
-      // 非bfcache恢复（完整页面加载），检查是否需要恢复AI翻译状态
+       // Non-bfcache restore (full page load): check if AI translation state needs to be restored
       if (checkAiAppliedFlag()) {
         console.log("[AI-STATE] pageshow (non-bfcache): restoring shouldForceAiAfterPageTranslation");
         shouldForceAiAfterPageTranslation = true;
@@ -1779,21 +1779,21 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   window.addEventListener("pageshow", handlePageShow, false);
 
   /**
-   * 处理 popstate 事件（浏览器回退/前进按钮）。
+    * Handle popstate events (browser back/forward buttons).
    *
-   * GitHub 等站点使用 Turbo Drive 做 SPA 导航，且设置 turbo-cache-control=no-cache。
-   * 当用户点击回退按钮时：
-   * 1. popstate 事件触发（URL 已切换到目标页面）
-   * 2. Turbo 从服务器重新获取页面内容（因为 no-cache）
-   * 3. Turbo 替换 data-turbo-body 内容为全新的原始 HTML（不含任何翻译）
-   * 4. Mutation Observer 检测到新节点，自动翻译 Google 译文
-   * 5. 但 AI 翻译不会自动触发（shouldForceAiAfterPageTranslation 已被上次翻译完成后重置为 false）
+    * Sites like GitHub use Turbo Drive for SPA navigation and set turbo-cache-control=no-cache.
+    * When the user clicks the back button:
+    * 1. popstate event fires (URL has switched to the target page)
+    * 2. Turbo re-fetches page content from the server (because no-cache)
+    * 3. Turbo replaces data-turbo-body content with brand-new original HTML (no translations)
+    * 4. Mutation Observer detects new nodes and automatically translates Google translations
+    * 5. But AI translation does not auto-trigger (shouldForceAiAfterPageTranslation was reset to false after last translation completed)
    *
-   * 通过在 popstate 时检查 sessionStorage 标记，恢复 shouldForceAiAfterPageTranslation。
-   * 由于 Turbo/SPA 的 body 替换是异步的（fetch → then → innerHTML），
-   * 使用 setTimeout 延迟调用 translatePage()，确保 SPA 已完成 body 替换后再重新翻译。
-   * 延迟设为 1500ms——大多数 SPA 的 fetch + DOM 替换在一秒内完成。
-   * 使用 pendingPopstateTranslate 防止多次快速 popstate 导致重复翻译。
+    * By checking the sessionStorage marker on popstate, restore shouldForceAiAfterPageTranslation.
+    * Since Turbo/SPA body replacement is asynchronous (fetch → then → innerHTML),
+    * use setTimeout to delay translatePage() call, ensuring the SPA has completed body replacement before re-translating.
+    * Delay is set to 1500ms — most SPAs complete fetch + DOM replacement within one second.
+    * Use pendingPopstateTranslate to prevent repeated translations from multiple rapid popstate events.
    */
   let pendingPopstateTranslate = null;
   const handlePopState = function () {
@@ -1802,19 +1802,19 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       shouldForceAiAfterPageTranslation = true;
       setAiRenderState("loading");
 
-      // 清除之前的待处理定时器（防止多次快速 popstate 堆积）
+       // Clear previous pending timer (prevent multiple rapid popstate events from piling up)
       if (pendingPopstateTranslate !== null) {
         clearTimeout(pendingPopstateTranslate);
       }
 
-      // 为 SPA body 替换预留时间，然后重新翻译整个页面。
-      // 注意：pageLanguageState 仍为 "translated"（SPA 导航未重置），
-      // 但 body 内容已被替换为全新 HTML，需要从头翻译。
-      // translatePage 内部会调用 restorePage 清除旧状态，
-      // 然后重新扫描 DOM、翻译 Google 和 AI 译文。
+       // Allow time for SPA body replacement, then re-translate the entire page.
+       // Note: pageLanguageState is still "translated" (SPA navigation did not reset it),
+       // but body content has been replaced with brand-new HTML and needs to be translated from scratch.
+       // translatePage internally calls restorePage to clear old state,
+       // then re-scans the DOM and translates both Google and AI translations.
       pendingPopstateTranslate = setTimeout(() => {
         pendingPopstateTranslate = null;
-        // 再次检查标记（可能在等待期间被 restorePage 清除）
+         // Re-check the marker (may have been cleared by restorePage during the wait)
         if (checkAiAppliedFlag()) {
           console.log("[AI-STATE] popstate: SPA body likely replaced, triggering translatePage");
           pageTranslator.translatePage();
@@ -1825,17 +1825,17 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   window.addEventListener("popstate", handlePopState, false);
 
   /**
-   * 获取传入的节点的树(包括节点自身和它的所有后代节点)的所有需要翻译的节点的信息
-   * 原理: 通过遍历,获取所有元素的信息,每个块级元素的信息放入一个对象,然后把块级元素下面的inline子元素放入对象的nodes属性,然后将该对象推入一个数组,最后返回此数组
+    * Get information about all nodes that need translation in the tree of the given node (including the node itself and all its descendants)
+    * Principle: Through traversal, get information about all elements. Each block-level element's info is placed in an object, with its inline child elements stored in the object's nodes property. Then push the object into an array and return it.
    * @param {*} root 
-   * @returns {array} piecesToTranslate, 一维数组, 数组元素格式如下:
+    * @returns {array} piecesToTranslate, one-dimensional array with elements in the following format:
    *  {
         isTranslated: boolean,
-        parentElement: node, // 上一个需要翻译的文本节点的祖先element(不一定是直接的parentNode), 在此node下面添加<translated>子元素
-        topElement: node, // 本piece的第一个element
-        bottomElement: node, // 本piece的最后一个element
-        nodes: [], // 所有要翻译的文本节点
-        nodesToBeInTranslatedNode: [] // 所有会进入<translated>节点的原始节点(包括要翻译的,以及不翻译(直接复制的)的节点)
+         parentElement: node, // Ancestor element of the previous text node needing translation (not necessarily the direct parentNode); <translated> child elements are added under this node
+         topElement: node, // First element of this piece
+         bottomElement: node, // Last element of this piece
+         nodes: [], // All text nodes to translate
+         nodesToBeInTranslatedNode: [] // All original nodes that will enter the <translated> node (including those to translate and those to copy directly without translation)
       },
    */
   function getPiecesToTranslate(root = document.body) {
@@ -1905,10 +1905,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
 
     /**
-     * 获取节点的树的全部节点(即节点和后代节点),更新piecesToTranslate数组. 
-     * 过程为递归调用. 深度优先, 先序遍历
+     * Get all nodes in the node's tree (i.e., the node and its descendants) and update the piecesToTranslate array.
+     * Process: recursive calls. Depth-first, pre-order traversal
      * @param {*} node 
-     * @param {*} lastHTMLElement   // 分析过程中最后的一个HTML元素,动态赋值的,一般是当前正在分析的节点. (注意textNode节点不是HTML元素)
+     * @param {*} lastHTMLElement   // The last HTML element encountered during analysis, dynamically assigned — usually the node currently being analyzed. (Note: textNode is not an HTML element)
      * @param {*} lastSelectOrDataListElement 
      * @returns 
      */
@@ -1917,7 +1917,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       lastHTMLElement = null,
       lastSelectOrDataListElement = null
     ) {
-      // 忽略"translated"节点
+       // Ignore "translated" nodes
       if (node?.nodeName.toLowerCase() === "translated"
       ) {
         return
@@ -1926,25 +1926,25 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       /**
        * nodeType:
        *  
-        1	Node.ELEMENT_NODE                 一个 元素 节点，例如 <p> 和 <div>。
-        2	Node.ATTRIBUTE_NODE	              元素 的耦合 属性。
-        3	Node.TEXT_NODE                    Element或者 Attr 中实际的 文字
-        4	Node.CDATA_SECTION_NODE           一个 CDATASection，例如 <!CDATA[[ … ]]>。
-        7	Node.PROCESSING_INSTRUCTION_NODE	一个用于 XML 文档的 ProcessingInstruction (en-US) ，例如 <?xml-stylesheet ... ?> 声明。
-        8	Node.COMMENT_NODE	                一个 Comment 节点。
-        9	Node.DOCUMENT_NODE	              一个 Document 节点。
-        10 Node.DOCUMENT_TYPE_NODE	        描述文档类型的 DocumentType 节点。例如 <!DOCTYPE html> 就是用于 HTML5 的。
-        11 Node.DOCUMENT_FRAGMENT_NODE		  一个 DocumentFragment 节点
+        1	Node.ELEMENT_NODE                 An element node, e.g., <p> and <div>。
+        2	Node.ATTRIBUTE_NODE	              A coupled attribute of an element.
+        3	Node.TEXT_NODE                    Actual text in an Element or Attr
+        4	Node.CDATA_SECTION_NODE           A CDATASection, e.g., <!CDATA[[ … ]]>.
+        7	Node.PROCESSING_INSTRUCTION_NODE	A ProcessingInstruction for an XML document (en-US), e.g., <?xml-stylesheet ... ?> declaration.
+        8	Node.COMMENT_NODE	                A Comment node.
+        9	Node.DOCUMENT_NODE	              A Document node.
+        10 Node.DOCUMENT_TYPE_NODE	        A DocumentType describing the document type. E.g., <!DOCTYPE html> is for HTML5.
+        11 Node.DOCUMENT_FRAGMENT_NODE		  A DocumentFragment node
        */
-      // element node or fragment node, 这两种节点具有子节点
+       // element node or fragment node — these two types have child nodes
       if (node.nodeType == 1 || node.nodeType == 11) {
-        // 有video元素时, 删除全页的unlimit-height
+         // When video element is present, remove unlimit-height from the entire page
         if (node.nodeName === "VIDEO" && !hasVideoInPage) {
           document.querySelectorAll(".unlimit-height").forEach((node) => { node.classList.remove('unlimit-height') })
           document.querySelectorAll(".unlimit-height-2").forEach((node) => { node.classList.remove('unlimit-height-2') })
           hasVideoInPage = true
         }
-        // 是video元素时, 删除Video元素和它的所有祖先元素的的unlimit-height类
+         // When it is a video element, remove unlimit-height class from the video element and all its ancestor elements
         // if (node.nodeName === "VIDEO"){
         //   let tmp = node
         //   while(tmp !== document.body){
@@ -1957,7 +1957,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           lastHTMLElement = node.host;
           lastSelectOrDataListElement = null;
         }
-        // 如果是element node
+         // If it is an element node
         else if (node.nodeType == 1) {
 
           lastHTMLElement = node;
@@ -1966,9 +1966,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           if (nodeName === "select" || nodeName === "datalist")
             lastSelectOrDataListElement = node;
 
-          // 如果根元素是不需要翻译的元素
-          // 特例：当元素为 <code> 且不在 <pre> 内部时，应当被翻译（即使带有 translate="no" 或 notranslate 类）
-          //       只有当 <code> 是 <pre> 的后代时，才不翻译。
+           // If the root element is one that should not be translated
+           // Special case: when the element is <code> and not inside <pre>, it should be translated (even with translate="no" or notranslate class)
+           //       Only when <code> is a descendant of <pre> should it not be translated.
           let shouldSkipTranslate =
             htmlTagsInlineIgnore.indexOf(nodeName) !== -1 ||
             htmlTagsNoTranslate.indexOf(nodeName) !== -1 ||
@@ -1981,20 +1981,20 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           try {
             if (nodeName === "code") {
               const insidePre = !!(node.closest && node.closest("pre"));
-              // 规则：<code> 在 <pre> 内部 -> 不翻译；否则 -> 翻译
+               // Rule: <code> inside <pre> → don't translate; otherwise → translate
               shouldSkipTranslate = insidePre ? true : false;
             }
           } catch (e) {
-            // 安全兜底：若 closest 不可用或异常，保持原判定
+             // Safety fallback: if closest is unavailable or throws, keep original determination
           }
 
           if (shouldSkipTranslate) {
             const isNewLine = isNewLineBoundary(node)
 
 
-            // 如果是block元素
+             // If it is a block element
             if (isNewLine) {
-              // 前面没有需要翻译的
+               // Nothing to translate before this
               if (tmpPiecesToTranslate[index].nodes.length === 0
                 || countTokens(tmpPiecesToTranslate[index].nodes.reduce((accumulated, current) => { return accumulated + " " + current.textContent }, "")) <= translateLongerThan
               ) {
@@ -2007,7 +2007,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                   nodesToBeInTranslatedNode: [],
                 }
               }
-              // 前面有需要翻译的
+               // There is content to translate before this
               else {
                 console.log(111111, tmpPiecesToTranslate[index].nodes)
                 currentParagraphSize = 0;
@@ -2021,7 +2021,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                 // translatedElement.appendChild(translatedInnerElement)
                 tmpPiecesToTranslate[index].translatedElement = translatedElement
 
-                // 把一个新对象(代表一个新行)推入piecesToTranslate数组作为一级元素, 并退出getAllNodes函数!!!!!!!!!
+                 // Push a new object (representing a new line) into piecesToTranslate array as a top-level element, and exit getAllNodes function!!!!!!!!!
                 tmpPiecesToTranslate.push({
                   isTranslated: false,
                   parentElement: null,
@@ -2033,21 +2033,21 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                 index++;
               }
             }
-            // 如果是inline元素
+             // If it is an inline element
             else {
-              // 直接放入nodesToBeInTranslatedNode, 不进行翻译
+               // Directly add to nodesToBeInTranslatedNode, do not translate
               tmpPiecesToTranslate[index].nodesToBeInTranslatedNode.push(node)
             }
 
-            // 退出!!!!!!!!!
+             // Exit!!!!!!!!!
             return;
           }
         }
 
         /**
-         * 获取节点的全部子节点
+          * Get all child nodes of the given node
          * 
-         * @param {*} childNodes !!!!注意:childNodes其实是父节点的所有子节点, 包括元素起始标签与下一个元素标签之间的换行(算作一个#text)\元素节点\文本节点\注释节点等等!!!!!!!
+          * @param {*} childNodes !!!!Note: childNodes is actually all child nodes of the parent node, including whitespace between element start and next element tags (counted as a #text)\element nodes\text nodes\comment nodes etc.!!!!!!!
          */
         function getAllChilds(childNodes) {
           let prevNode
@@ -2064,10 +2064,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                 lastSelectOrDataListElement = _node;
             }
 
-            // 如果节点是"非inline元素"或button元素或br元素或flex子元素
+             // If the node is a "non-inline element" or button element or br element or flex child element
             const isNewLine = isNewLineBoundary(_node)
             if (isNewLine) {
-              // 前面没有需要翻译的
+               // Nothing to translate before this
               if (tmpPiecesToTranslate[index].nodes.length === 0
                 || countTokens(tmpPiecesToTranslate[index].nodes.reduce((accumulated, current) => { return accumulated + " " + current.textContent }, "")) <= translateLongerThan
               ) {
@@ -2081,7 +2081,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                   nodesToBeInTranslatedNode: [],
                 }
               }
-              // 前面有需要翻译的
+               // There is content to translate before this
               else {
                 console.log(333333, tmpPiecesToTranslate[index].nodes)
                 currentParagraphSize = 0;
@@ -2097,11 +2097,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                       childNodes[0].parentNode.previousSibling.appendChild(translatedElement)
                     }
                   } catch (error) {
-                    console.log("插入翻译节点出错:", error)
+                     console.log("Error inserting translation node:", error)
                   }
 
                 }
-                // 如果tmpPiecesToTranslate[index]只有一个节点, 且是元素节点(而不是文本节点)
+                 // If tmpPiecesToTranslate[index] has only one node and it is an element node (not a text node)
                 else if (tmpPiecesToTranslate[index].nodes.length === 1 && tmpPiecesToTranslate[index].nodes[0].nodeType == 1) {
                   prevNode.appendChild(translatedElement)
                 }
@@ -2110,7 +2110,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                 }
                 tmpPiecesToTranslate[index].translatedElement = translatedElement
 
-                // 把一个新对象(代表一行)推入piecesToTranslate数组作为一级元素
+                 // Push a new object (representing a line) into piecesToTranslate array as a top-level element
                 tmpPiecesToTranslate.push({
                   isTranslated: false,
                   parentElement: null,
@@ -2122,10 +2122,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                 index++;
               }
 
-              // 获取该子节点的所有子节点
+               // Get all child nodes of this child node
               getAllNodes(_node, lastHTMLElement, lastSelectOrDataListElement);
 
-              // 前面没有需要翻译的
+               // Nothing to translate before this
               if (tmpPiecesToTranslate[index].nodes.length === 0
                 || countTokens(tmpPiecesToTranslate[index].nodes.reduce((accumulated, current) => { return accumulated + " " + current.textContent }, "")) <= translateLongerThan
               ) {
@@ -2140,7 +2140,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                   nodesToBeInTranslatedNode: [],
                 }
               }
-              // 前面有需要翻译的
+               // There is content to translate before this
               else {
                 // console.log(777777, tmpPiecesToTranslate[index].nodes)
                 currentParagraphSize = 0;
@@ -2151,7 +2151,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                 lastHTMLElement.appendChild(translatedElement)
                 tmpPiecesToTranslate[index].translatedElement = translatedElement
 
-                // 把一个初始对象推入piecesToTranslate数组作为一级元素
+                 // Push an initial object into piecesToTranslate array as a top-level element
                 tmpPiecesToTranslate.push({
                   isTranslated: false,
                   parentElement: null,
@@ -2163,9 +2163,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                 index++;
               }
             }
-            // 如果节点是inline元素
+             // If the node is an inline element
             else {
-              // 获取该子节点的所有子节点
+               // Get all child nodes of this child node
               getAllNodes(_node, lastHTMLElement, lastSelectOrDataListElement);
             }
             prevNode = _node
@@ -2183,18 +2183,18 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           }
         }
       }
-      // 文本节点
+       // Text node
       else if (node.nodeType == 3) {
-        // 文本长度大于0
+         // Text length greater than 0
         if (node.textContent.trim().length > 0) {
-          // 对developer.mozilla.org,删除文本中的换行符
+           // For developer.mozilla.org, remove newlines from text
           if (location.hostname.includes("developer.mozilla.org")) {
             node.textContent = node.textContent.replace(/[\r\n]/g, '')
           }
 
-          // 给piece元素的parentElement赋值(注意:最终值不一定是元素实际上的那个parentNode)
+           // Assign parentElement to the piece element (note: the final value may not be the actual parentNode)
           if (!tmpPiecesToTranslate[index].parentElement) {
-            // 如果是option元素的子元素
+             // If it is a child of an option element
             if (
               node &&
               node.parentNode &&
@@ -2207,10 +2207,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                 lastSelectOrDataListElement;
               tmpPiecesToTranslate[index].topElement = lastSelectOrDataListElement;
             }
-            // 如果不是option元素的子元素
+             // If it is not a child of an option element
             else {
               let temp = node.parentNode;
-              // 向上递归寻找父元素(父元素是inline元素,则继续向上寻找,直至root)
+               // Recursively walk up to find parent element (if parent is inline, keep walking up until root)
               let isNewLine = isNewLineBoundary(temp)
               while (
                 temp &&
@@ -2229,7 +2229,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             }
           }
 
-          // 给piece元素的topElement赋值 (实际上就是上一个非文本节点的元素节点)
+           // Assign topElement to the piece element (actually the last non-text element node)
           if (!tmpPiecesToTranslate[index].topElement) {
             tmpPiecesToTranslate[index].topElement = lastHTMLElement;
           }
@@ -2237,7 +2237,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
           if (currentParagraphSize > 1000) {
 
-            // 新建一个translatedElement, 赋给tmpPiecesToTranslate[index].translatedElement
+             // Create a new translatedElement and assign it to tmpPiecesToTranslate[index].translatedElement
             let translatedElement = document.createElement("translated")
             translatedElement.style.display = "none"
             lastHTMLElement.appendChild(translatedElement)
@@ -2245,7 +2245,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
             tmpPiecesToTranslate[index].bottomElement = lastHTMLElement;
 
-            // 再新建一个piece
+             // Create a new piece
             const pieceInfo = {
               isTranslated: false,
               parentElement: null,
@@ -2266,7 +2266,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           try {
             isParentBlockFlex = window.getComputedStyle(node.parentNode).display.includes("flex") && !window.getComputedStyle(node.parentNode).display.includes("inline")
           } catch (e) {
-            console.log("判断父元素是否为flex元素:", e)
+             console.log("Error checking if parent is flex element:", e)
             isParentBlockFlex = false
           }
           if (isParentBlockFlex) {
@@ -2284,12 +2284,12 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
             tmpPiecesToTranslate[index].translatedElement = translatedElement
 
-            // 把文本节点推入piecesToTranslate的元素的nodes属性(是一个数组)
+             // Push the text node into the nodes array of the piecesToTranslate element
             tmpPiecesToTranslate[index].nodes.push(node);
             tmpPiecesToTranslate[index].bottomElement = null;
             tmpPiecesToTranslate[index].nodesToBeInTranslatedNode.push(node);
 
-            // 把一个新对象(代表一行)推入piecesToTranslate数组作为一级元素
+             // Push a new object (representing a line) into piecesToTranslate array as a top-level element
             tmpPiecesToTranslate.push({
               isTranslated: false,
               parentElement: null,
@@ -2300,7 +2300,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             });
             index++;
           } else {
-            // 把文本节点推入piecesToTranslate的元素的nodes属性(是一个数组)
+             // Push the text node into the nodes array of the piecesToTranslate element
             tmpPiecesToTranslate[index].nodes.push(node);
             tmpPiecesToTranslate[index].bottomElement = null;
             tmpPiecesToTranslate[index].nodesToBeInTranslatedNode.push(node);
@@ -2314,7 +2314,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     };
     getAllNodes(root);
 
-    // 如果最后一个piece的nodes是空数组,则删除该piece
+     // If the last piece's nodes array is empty, remove that piece
     if (
       tmpPiecesToTranslate.length > 0 &&
       tmpPiecesToTranslate[tmpPiecesToTranslate.length - 1].nodes.length == 0
@@ -2326,10 +2326,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 获取传入的节点的树(包括节点自身和它的所有后代节点)的所有需要翻译的属性的信息
+    * Get information about all attributes that need translation in the tree of the given node (including the node itself and all its descendants)
    * 
    * @param {*} root 
-   * @returns {array} attributesToTranslate, 一维数组(通过遍历,获取所有属性的信息,每个属性的信息放入一个对象,然后将该对象推入此一维数组), 数组元素格式如下:
+    * @returns {array} attributesToTranslate, one-dimensional array (through traversal, get info for all attributes, place each attribute's info in an object, then push into this one-dimensional array). Element format:
    *  {
         node: e,
         original: "Reset",
@@ -2428,8 +2428,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 用font标签包裹文本节点
-   * @param {*} node 文本节点
+    * Wrap a text node with a font tag
+    * @param {*} node text node
    * @returns 
    */
   // encapsulating the text makes the video disappear 
@@ -2448,22 +2448,22 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   /**
 
   /**
-   * 把节点文本替换为翻译后的文本
+    * Replace node text with translated text
    * 
-   * @param {*} piecesToTranslateNow 要翻译的节点
-   * @param {*} results 翻译结果. 结构为二维数组.
+    * @param {*} piecesToTranslateNow nodes to translate
+    * @param {*} results translation results. Structure is a two-dimensional array.
    */
   function translateResults(piecesToTranslateNow, results) {
-    // true: 按原始HTML节点顺序; false: true: 按翻译后节点顺序; false: 按原始HTML节点顺序（重排结果）
+     // true: maintain original HTML node order; false: true: use translated node order; false: maintain original HTML node order (re-sorted results)
     if (dontSortResults) {
       for (let i = 0; i < results.length; i++) {
         const nodes = piecesToTranslateNow[i].nodes;
 
-        // 添加内联按钮组（Google + AI）
+         // Add inline button group (Google + AI)
         if (nodes.length > 0 && nodes[0]) {
           let sourceString = nodes.reduce((accumulator, currentNode) => accumulator + currentNode.textContent, "")
           if (shouldTriggerAiImprove(wordsCount(sourceString), twpConfig.get("aiImproveForLongerThan"))) {
-            // 译文节点（用于显示AI翻译结果）
+             // Translation node (for displaying AI translation results)
             let lastTextNode = nodes[nodes.length - 1]
             if (lastTextNode && lastTextNode.parentNode) {
               lastTextNode.parentNode.classList.add("dualtran-result-container")
@@ -2485,7 +2485,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           if (nodes[j]) {
             let translated = results[i][j] + " ";
 
-            // 有时候,results[i]数组长度比piecesToTranslateNow[i].nodes数组长度要长,此时把剩余结果append to last node
+             // Sometimes results[i] array is longer than piecesToTranslateNow[i].nodes array; in that case, append remaining results to last node
             if (
               piecesToTranslateNow[i].nodes.length - 1 === j &&
               results[i].length > j
@@ -2496,35 +2496,35 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
             const originalTextNode = nodes[j];
 
-            // "悬停显示原文"已开启
+             // "Hover to show original" is enabled
             if (showOriginal.isEnabled) {
-              // 把文本节点用font标签包裹
+               // Wrap the text node with a font tag
               nodes[j] = encapsulateTextNode(nodes[j]);
               showOriginal.add(nodes[j]);
             }
 
-            // 把节点的原始文本存储起来, 用于恢复
+             // Store the node's original text for restoration
             const toRestore = {
-              original: originalTextNode,  // 原始文本节点
-              originalText: originalTextNode.textContent, // 原始文本
-              node: nodes[j],  // 文本节点(在"悬停显示原文"已开启的情况下,是包裹后文本节点,否则为原始文本节点)
-              translatedText: translated,  // 翻译后文本
+               original: originalTextNode,  // Original text node
+               originalText: originalTextNode.textContent, // Original text
+               node: nodes[j],  // Text node (when "hover to show original" is enabled, this is the wrapped text node; otherwise, the original text node)
+               translatedText: translated,  // Translated text
             };
             nodesToRestore.push(toRestore);
 
-            // 处理自定义翻译
+             // Handle custom translation
             handleCustomWords(
               translated,
               nodes[j].textContent,
               currentPageTranslatorService,
               currentTargetLanguage
             ).then((results) => {
-              // 如果节点已被 AI 翻译隐藏（display: none），则跳过更新
-              // 这避免了覆盖 applyAiTranslatingState 中的隐藏操作
+               // If the node has been hidden by AI translation (display: none), skip updating
+               // This avoids overwriting the hide operation in applyAiTranslatingState
               if (nodes[j].nodeType === 1 && nodes[j].style?.display === "none") {
                 return;
               }
-              // 把文本节点的文本的值赋为翻译后文本
+               // Set the text node's text value to the translated text
               // nodes[j].textContent = results;
               nodes[j].textContent = results;
               applyTranslatedColorToNode(nodes[j]);
@@ -2543,13 +2543,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
             const originalTextNode = nodes[j];
 
-            // "悬停显示原文"已开启
+             // "Hover to show original" is enabled
             if (showOriginal.isEnabled) {
               nodes[j] = encapsulateTextNode(nodes[j]);
               showOriginal.add(nodes[j]);
             }
 
-            // 把节点的原始文本存储起来, 用于恢复
+             // Store the node's original text for restoration
             const toRestore = {
               node: nodes[j],
               original: originalTextNode,
@@ -2558,14 +2558,14 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             };
             nodesToRestore.push(toRestore);
 
-            // 处理自定义翻译
+             // Handle custom translation
             handleCustomWords(
               translated,
               nodes[j].textContent,
               currentPageTranslatorService,
               currentTargetLanguage
             ).then((results) => {
-              // 把文本节点的文本的值赋为翻译后文本
+               // Set the text node's text value to the translated text
               nodes[j].textContent = results;
               applyTranslatedColorToNode(nodes[j]);
               toRestore.translatedText = results;
@@ -2579,23 +2579,23 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
 
   /**
-   * 把翻译后文本添加到已有的translatedElement节点
+    * Add translated text to an existing translatedElement node
    * 
-   * @param {*} piecesToTranslateNow 要翻译的节点
-   * @param {*} results 翻译结果. 结构为二维数组.
+    * @param {*} piecesToTranslateNow nodes to translate
+    * @param {*} results translation results. Structure is a two-dimensional array.
    */
   async function addTranslatedContent(piecesToTranslateNow, results) {
     console.log("piecesToTranslateNow:", piecesToTranslateNow)
     console.log("results:", results)
     for (const i in piecesToTranslateNow) {
       try {
-        // 获取<translated>元素的引用
+         // Get reference to the <translated> element
         const translatedElement = piecesToTranslateNow[i].translatedElement
         if (!translatedElement) {
           continue
         }
 
-        // 设置样式
+         // Set styles
         // translatedElement.classList.add("columnified")
         translatedElement.style.display = "block"
         translatedElement.classList.add("dualtran-result-container")
@@ -2608,13 +2608,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         // translatedElement.style.opacity = "0.75"
         applyTranslatedColorToNode(translatedElement)
 
-        // 强制使左右padding与父元素一致(当父元素是inline元素时,其padding无法影响block类型子元素,所以手动设置其padding为inherit)
+         // Force left/right padding to match parent (when parent is inline, its padding cannot affect block-type children, so manually set padding to inherit)
         if (translatedElement.parentNode.style.display.includes("inline")) {
           translatedElement.style.paddingLeft = "inherit"
           translatedElement.style.paddingRight = "inherit"
         }
 
-        // 解除高度限制
+         // Remove height limits
         if (!hasVideoInPage) {
           let parentNode = translatedElement.parentNode
           let shouldRemoveHeightLimit = false
@@ -2625,29 +2625,29 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             try {
               shouldRemoveHeightLimit = (parentNode.nodeName !== "BODY" && !(['scroll', 'auto'].includes(window.getComputedStyle(parentNode).overflowY)))
             } catch (e) {
-              console.log("解除高度限制出错:", e)
+               console.log("Error removing height limit:", e)
               shouldRemoveHeightLimit = false
             }
           } while (shouldRemoveHeightLimit)
         }
-        // dontSortResults: true: 按翻译后节点顺序; false: 按原始HTML节点顺序（重排结果）
+         // dontSortResults: true: use translated node order; false: maintain original HTML node order (re-sorted results)
         if (dontSortResults) {
-          // 如果翻译前只有一个元素
+           // If there was only one element before translation
           if (piecesToTranslateNow[i].nodes.length === 1) {
-            // 如果类型是code或kbd元素
+             // If the type is code or kbd element
             if (["code", "kbd"].includes(piecesToTranslateNow[i].nodes[0].parentNode?.nodeName.toLowerCase())
-              // 或者翻译前后文字完全一样并且译文颜色为原色
+               // Or the text before and after translation is identical and the translation color is the original color
               // || (['','rgba(0, 0, 0, 1)'].includes(twpConfig.get("translatedColor")) && piecesToTranslateNow[i].nodes[0]?.textContent === results[i].reduce((accumulated, item) => { return "" + accumulated + item }))
             ) {
-              // 则translatedElement节点隐藏
+               // Then hide the translatedElement node
               translatedElement.style.display = "none"
               continue
             }
           }
 
-          // 如果译文颜色为原色
+           // If the translation color is the original color
           if (['', 'rgba(0, 0, 0, 1)'].includes(twpConfig.get("translatedColor"))) {
-            // 如果翻译前后文本完全相同,则translatedElement节点隐藏
+             // If the text before and after translation is identical, hide the translatedElement node
             let same = true
             for (let k = 0; k < results[i].length; k++) {
               if (results[i][k].trim() !== piecesToTranslateNow[i].nodes[k].textContent.trim()) {
@@ -2661,27 +2661,27 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             }
           }
 
-          // 拼接翻译后文本
+           // Concatenate translated text
 
           let finalResults = ""
           for (let k = 0; k < results[i].length; k++) {
 
-            // 由于 results数组的长度有可能比piecesToTranslateNow[i].nodes数组的长度要更长,所以下面这个方法行不通(piecesToTranslateNow[i].nodes[k]可能不存在)
+             // Since results array length may be longer than piecesToTranslateNow[i].nodes array length, the following approach won't work (piecesToTranslateNow[i].nodes[k] may not exist)
             // let nodeName = piecesToTranslateNow[i].nodes[k].parentNode.nodeName.toLowerCase()
-            // // 如果是code节点或kdb节点
+             // // If it is a code or kbd node
             // if (["code", "kdb"].includes(nodeName)) {
-            //   // 直接复制节点(不管翻译如何)
+             //   // Copy the node directly (regardless of translation)
             //   translatedElement.appendChild(piecesToTranslateNow[i].nodes[k].parentNode.cloneNode(true))
             // } else {
             //   const translated = results[i][k]
-            //   // 用自定义词典再过一遍
+             //   // Run through custom dictionary again
             //   finalResults = await handleCustomWords(
             //     translated,
             //     piecesToTranslateNow[i].nodes[k].textContent,
             //     currentPageTranslatorService,
             //     currentTargetLanguage
             //   )
-            //   // 添加翻译后文字
+             //   // Add translated text
             //   translatedElement.appendChild(document.createTextNode(finalResults))
             // }
 
@@ -2700,9 +2700,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           const translatedTextNode = document.createTextNode(finalResults)
           translatedElement.appendChild(translatedTextNode)
 
-          // 添加内联按钮组（Google + AI）
+           // Add inline button group (Google + AI)
           let sourceString = piecesToTranslateNow[i].nodes.reduce((accumulator, currentNode) => accumulator + currentNode.textContent, "")
-          // 使用 shouldTriggerAiImprove 而非内联表达式，确保 newLine 和 replaceOriginal 模式行为一致
+           // Use shouldTriggerAiImprove instead of inline expression to ensure consistent behavior between newLine and replaceOriginal modes
           if (shouldTriggerAiImprove(wordsCount(finalResults), twpConfig.get("aiImproveForLongerThan"))) {
             ensureSingletonInit();
             registerBlock(
@@ -2712,9 +2712,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             );
           }
         }
-        // dontSortResult: true: 按翻译后节点顺序; false: 按原始HTML节点顺序（重排结果） 
+         // dontSortResult: true: use translated node order; false: maintain original HTML node order (re-sorted results)
         else {
-          // TODO: 有时候results数组的长度比piecesToTranslateNow[i]数组的长度要长, 比如1句英文翻译成了2句中文, 这种情况要添加处理逻辑
+           // TODO: Sometimes results array is longer than piecesToTranslateNow[i] array, e.g., one English sentence translated into two Chinese sentences. Need to add handling logic for this case.
 
           const allChildNodes = piecesToTranslateNow[i].nodesToBeInTranslatedNode
           for (let k = 0; k < allChildNodes.length; k++) {
@@ -2722,23 +2722,23 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
             let m = piecesToTranslateNow[i].nodes.indexOf(node)
 
-            // 如果节点是要翻译的节点 
+             // If the node needs to be translated
             if (m > -1) {
-              // 拿到机翻结果
+               // Get the machine translation result
               const translated = results[i][m] + " ";
-              // 用自定义词典再过一遍
+               // Run through custom dictionary again
               const finalResults = await handleCustomWords(
                 translated,
                 piecesToTranslateNow[i].nodes[m].textContent,
                 currentPageTranslatorService,
                 currentTargetLanguage
               )
-              // 添加翻译后文字
+               // Add translated text
               translatedElement.appendChild(document.createTextNode(finalResults))
             }
-            // 如果节点是不要翻译的节点         
+             // If the node does not need translation
             else {
-              // 直接复制节点
+               // Copy the node directly
               translatedElement.appendChild(node.cloneNode(true))
             }
           }
@@ -2755,7 +2755,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 把属性文本替换为翻译后的属性文本
+    * Replace attribute text with translated attribute text
    * @param {*} attributesToTranslateNow 
    * @param {*} results 
    */
@@ -2783,8 +2783,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 每600毫秒, 在piecesToTranslate数组和attributesToTranslate数组找到那些进入了屏幕可视区域的节点, 进行翻译
-   * 这里通过遍历元素的坐标, 而不是使用intersectionObserver, 不知道为什么??? (可能是为了代码更易写,或者兼容性)
+    * Every 600ms, find nodes in piecesToTranslate and attributesToTranslate arrays that are in the visible screen area, and translate them
+    * This iterates element coordinates rather than using intersectionObserver — not sure why??? (possibly for easier coding or compatibility)
    */
   function translateDynamically() {
     try {
@@ -2793,7 +2793,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           const innerHeight = window.innerHeight;
 
           /**
-           * 判断元素是否完全在屏幕
+            * Check if the element is completely within the screen
            * @param {*} element 
            * @returns {boolean}
            */
@@ -2809,7 +2809,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           }
 
           /**
-           * 判断元素顶部是否在屏幕显示
+            * Check if the element's top is visible on screen
            * @param {*} element 
            * @returns {boolean}
            */
@@ -2826,7 +2826,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           }
 
           /**
-           * 判断元素底部是否在屏幕显示
+            * Check if the element's bottom is visible on screen
            * @param {*} element 
            * @returns {boolean}
            */
@@ -2844,7 +2844,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
           const currentFooCount = fooCount;
 
-          // 从piecesToTranslate数组中选择那些进入了屏幕可视区域的未翻译的元素,放入piecesToTranslateNow数组中
+           // Select untranslated elements from piecesToTranslate array that are in the visible screen area, put them in piecesToTranslateNow array
           const piecesToTranslateNow = [];
           piecesToTranslate.forEach((ptt) => {
             if (!ptt.isTranslated) {
@@ -2858,11 +2858,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
               ptt.isTranslated = true;
               piecesToTranslateNow.push(ptt);
               let time = new Date()
-              console.log(time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "   " + "有新节点需要翻译!")
+               console.log(time.getHours() + ":" + time.getMinutes() + ":" + time.getSeconds() + "   " + "New nodes need translation!")
             }
           });
 
-          // 从attributesToTranslate数组中选择那些进入了屏幕可视区域的未翻译的元素,放入attributesToTranslateNow数组中
+           // Select untranslated elements from attributesToTranslate array that are in the visible screen area, put them in attributesToTranslateNow array
           const attributesToTranslateNow = [];
           attributesToTranslate.forEach((ati) => {
             if (!ati.isTranslated) {
@@ -2877,7 +2877,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             pendingGoogleBatches++;
             updateGoogleRenderState();
 
-            // 翻译节点列表
+             // Translate node list
             let array2d = piecesToTranslateNow.map((ptt) =>
               ptt.nodes.map((node) => filterKeywordsInText(node.textContent))
             )
@@ -2920,9 +2920,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                   console.log("translated results:", results)
 
                   twpConfig.get("whereToDisplayTranslatedText") === "newLine"
-                    // 添加翻译文本子节点
+                     // Add translated text child node
                     ? await addTranslatedContent(piecesToTranslateNow, results)
-                    // 把原节点文本替换为翻译后的节点文本
+                     // Replace original node text with translated node text
                     : await translateResults(piecesToTranslateNow, results);
                 }
               }
@@ -2958,7 +2958,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           }
 
           if (attributesToTranslateNow.length > 0) {
-            // 翻译属性列表
+             // Translate attribute list
             backgroundTranslateText(
               currentPageTranslatorService,
               currentTargetLanguage,
@@ -2968,7 +2968,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                 pageLanguageState === "translated" &&
                 currentFooCount === fooCount
               ) {
-                // 把属性文本替换为翻译后的属性文本
+                 // Replace attribute text with translated attribute text
                 translateAttributes(attributesToTranslateNow, results);
               }
             });
@@ -3003,16 +3003,16 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
   }
 
-  // 用AI自动翻译.
-  // 注意事项: 由于是跨域请求, 浏览器会发起预检, 坑爹的是, 预检请求也会被openAI视为有效请求... 导致更容易触发rate limit
+   // Auto-translate with AI.
+   // Note: Since this is a cross-origin request, the browser will send a preflight request. Unfortunately, OpenAI also counts preflight requests as valid... making rate limits easier to trigger
   //
-  // shouldForceAiAfterPageTranslation 的语义：
-  // 用户点击 AI 按钮后被设为 true，并在整个页面会话期间保持 true，
-  // 使后续动态加载的新内容（如 x.com 信息流、无限滚动页面）也会被自动 AI 翻译。
-  // 仅在以下情况重置为 false：
-  //   1. restorePage() —— 用户主动恢复原文
-  //   2. pageTranslator.stopAiAutoTranslate() —— 用户从 AI 译文切换到 Google 译文
-  //   3. translatePageAi() 检测到无 API key —— 无法进行 AI 翻译
+   // shouldForceAiAfterPageTranslation semantics:
+   // Set to true when the user clicks the AI button, and remains true for the entire page session,
+   // so that subsequently loaded dynamic content (e.g., x.com feed, infinite scroll pages) is also automatically AI-translated.
+   // Only reset to false in the following cases:
+   //   1. restorePage() — user actively restores original text
+   //   2. pageTranslator.stopAiAutoTranslate() — user switches from AI translation to Google translation
+   //   3. translatePageAi() detects no API key — unable to perform AI translation
   async function aiTranslateDynamically() {
     console.log("aiTranslateDynamically() is called")
     updateAiRenderStateInternal();
@@ -3034,8 +3034,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       console.log("[AI-STATE] aiTranslateDynamically: translating " + toBeTranslated.length + " blocks")
       await aiTranslateText(toBeTranslated)
       console.log("[AI-STATE] aiTranslateDynamically: aiTranslateText returned")
-      // 注意：此处不再重置 shouldForceAiAfterPageTranslation。
-      // 保留为 true，使后续动态加载的新内容也会被自动 AI 翻译。
+       // Note: shouldForceAiAfterPageTranslation is NOT reset here.
+       // Keep it as true so subsequently loaded dynamic content is also automatically AI-translated.
       updateAiRenderStateInternal()
     } catch (e) {
       console.error(e)
@@ -3085,10 +3085,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   };
 
   /**
-   * 停止 AI 自动翻译模式。
-   * 重置 shouldForceAiAfterPageTranslation 标志，使后续动态加载的新内容不再被自动 AI 翻译。
-   * 用于用户主动从 AI 译文切换到 Google 译文的场景。
-   * 注意：restorePage() 内部已包含此重置，故恢复原文时无需额外调用。
+    * Stop AI auto-translate mode.
+    * Reset the shouldForceAiAfterPageTranslation flag so that subsequently loaded dynamic content is no longer automatically AI-translated.
+    * Used when the user actively switches from AI translation to Google translation.
+    * Note: restorePage() already includes this reset internally, so no extra call is needed when restoring original text.
    */
   pageTranslator.stopAiAutoTranslate = function () {
     shouldForceAiAfterPageTranslation = false;
@@ -3109,16 +3109,16 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
 
     shouldForceAiAfterPageTranslation = true;
-    // 用户主动点击 AI 按钮 → 清除错误后的 rate limit 倒计时，
-    // 否则 _shouldSkipAiTranslation 会因 rateLimitCountdown > 0 跳过请求
+     // User actively clicks AI button → clear the rate limit countdown after clearing errors,
+     // otherwise _shouldSkipAiTranslation will skip the request due to rateLimitCountdown > 0
     openAiRateLimitCountDown = 0;
     setAiRenderState("loading");
     if (pageLanguageState === "original") {
       pageTranslator.translatePage(targetLanguage);
     } else {
-      // 页面已翻译（如已被 Google 翻译）→ 重置错误块为 idle，
-      // 否则 getProxiesForTranslation() 会过滤掉 translationError 状态的块，
-      // 导致 aiTranslateDynamically() 无块可翻译、不发请求
+       // Page is already translated (e.g., by Google) → reset error blocks to idle,
+       // otherwise getProxiesForTranslation() will filter out blocks in translationError state,
+       // causing aiTranslateDynamically() to have no blocks to translate and not send requests
       getAllProxies().forEach((p) => {
         if (p.translationStatus === "translationError") {
           p.translationStatus = "idle";
@@ -3131,25 +3131,25 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   };
 
   /**
-   * 翻译整个页面
+    * Translate the entire page
    * @param {*} targetLanguage 
    */
   pageTranslator.translatePage = function (targetLanguage) {
     const shouldForceAiForThisRun = shouldForceAiAfterPageTranslation
     fooCount++;
-    // 恢复原来页面
+     // Restore original page
     pageTranslator.restorePage();
     shouldForceAiAfterPageTranslation = shouldForceAiForThisRun
     hadGoogleTranslationError = false
     pendingGoogleBatches = 0
     setPageRenderState("loading")
     setAiRenderState(shouldForceAiAfterPageTranslation ? "loading" : "idle")
-    // 开启悬停显示原文字
+     // Enable hover-to-show-original text
     showOriginal.enable();
-    // 删除错误翻译
+     // Remove erroneous translations
     chrome.runtime.sendMessage({ action: "removeTranslationsWithError" });
 
-    // true: 按翻译后节点顺序; false: 按原始HTML节点顺序（重排结果）
+     // true: use translated node order; false: maintain original HTML node order (re-sorted results)
     dontSortResults = resolveDontSortResults(twpConfig.get("dontSortResults"));
 
     if (targetLanguage) {
@@ -3158,10 +3158,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       currentTargetLanguage = twpConfig.get("targetLanguage")
     }
 
-    // 获取所有要翻译的节点的信息列表(一维数组)
+     // Get info list for all nodes to translate (one-dimensional array)
     piecesToTranslate = getPiecesToTranslate();
 
-    // 获取所有要翻译的属性的信息列表(一维数组)
+     // Get info list for all attributes to translate (one-dimensional array)
     attributesToTranslate = getAttributesToTranslate();
 
     pageLanguageState = "translated";
@@ -3174,49 +3174,49 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     );
     currentPageLanguage = currentTargetLanguage;
 
-    // 翻译标题
+     // Translate title
     translatePageTitle();
 
-    // 监听节点变更
+     // Listen for node changes
     enableMutatinObserver();
 
-    // 翻译节点和属性(带定时器setTimeout)
+     // Translate nodes and attributes (with setTimeout timer)
     translateDynamically();
   };
 
-  // 恢复原始页面
+   // Restore original page
   pageTranslator.restorePage = function () {
     shouldForceAiAfterPageTranslation = false;
     hadGoogleTranslationError = false;
     pendingGoogleBatches = 0;
     setPageRenderState("idle");
     setAiRenderState("idle");
-    // 用户主动恢复原文，清除 AI 翻译标记，避免回退时自动触发 AI 翻译
+     // User actively restores original text; clear AI translation marker to avoid auto-triggering AI translation on back navigation
     removeAiAppliedFlag();
-    // 删除所有<translated>元素
+     // Remove all <translated> elements
     document.querySelectorAll("translated").forEach((node) => { node.parentNode.removeChild(node); node = null })
 
-    // 删除所有内联按钮组（包含其中的AI按钮和Google按钮）
-    // 销毁单例按钮组
+     // Remove all inline button groups (including their AI and Google buttons)
+     // Destroy the singleton button group
     destroySingletonButtonGroup();
     singletonInitialized = false;
-    // 删除所有遗留的AI按钮
+     // Remove all leftover AI buttons
     document.querySelectorAll(".dualtran-ai-btn").forEach((node) => { if (node.parentNode) node.parentNode.removeChild(node); node = null })
 
-    // 删除inline替换模式下所有AI翻译文本
+     // Remove all AI translated text in inline replacement mode
     document.querySelectorAll(".dualtran-aitranslatedtext-replacemode").forEach((node) => { node.parentNode.removeChild(node); node = null })
 
-    // 删除所有unlimit-height类
+     // Remove all unlimit-height classes
     document.querySelectorAll(".unlimit-height").forEach((node) => { node.classList.remove('unlimit-height') })
     document.querySelectorAll(".unlimit-height-2").forEach((node) => { node.classList.remove('unlimit-height-2') })
 
     fooCount++;
     piecesToTranslate = [];
 
-    // 禁止悬停显示原文字(因为已经是原始页面了)
+     // Disable hover-to-show-original text (because we are already on the original page)
     showOriginal.disable();
 
-    // 禁止监听节点变化
+     // Stop listening for node changes
     disableMutatinObserver();
 
     pageLanguageState = "original";
@@ -3225,7 +3225,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       pageLanguageState,
     });
 
-    // 调用所有监听"pageLanguageState"变更事件的回调
+     // Call all callbacks listening for "pageLanguageState" change events
     pageLanguageStateObservers.forEach((callback) =>
       callback(pageLanguageState)
     );
@@ -3237,18 +3237,18 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     originalPageTitle = null;
 
     for (const ntr of nodesToRestore) {
-      // 如果现元素与原始元素相同
+       // If the current element is the same as the original element
       if (ntr.node === ntr.original) {
-        // // 如果现元素内容为翻译后文本
+         // // If the current element content is translated text
         // if (ntr.node.textContent === ntr.translatedText) {
-        //   // 翻译后文本替换为原始文本
+         //   // Replace translated text with original text
         //   ntr.node.textContent = ntr.originalText;
         // }
         ntr.node.textContent = ntr.originalText;
       }
-      // 现元素与原始元素不同
+       // Current element is different from original element
       else {
-        // 把现元素替换为原始元素
+         // Replace current element with original element
         ntr.node.replaceWith(ntr.original);
       }
     }
@@ -3264,7 +3264,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   };
 
   /**
-   * 切换翻译服务
+    * Switch translation service
    */
   pageTranslator.swapTranslationService = function () {
     if (currentPageTranslatorService === "google") {
@@ -3277,36 +3277,36 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
   };
 
-  // 暴露内部函数供测试使用（遵循 resolveDontSortResults / shouldTriggerAiImprove 的先例）
-  /** @internal — 仅用于测试 translateResults 和 addTranslatedContent 的行为 */
+   // Expose internal functions for testing (following the precedent of resolveDontSortResults / shouldTriggerAiImprove)
+   /** @internal — for testing translateResults and addTranslatedContent behavior */
   pageTranslator._translateResults = translateResults;
-  /** @internal — 仅用于测试 */
+   /** @internal — for testing */
   pageTranslator._addTranslatedContent = addTranslatedContent;
-  /** @internal — 仅用于测试 getPiecesToTranslate 的 DOM 解析行为 */
+   /** @internal — for testing getPiecesToTranslate DOM parsing behavior */
   pageTranslator._getPiecesToTranslate = getPiecesToTranslate;
-  /** @internal — 仅用于测试自定义词典过滤 */
+   /** @internal — for testing custom dictionary filtering */
   pageTranslator._filterKeywordsInText = filterKeywordsInText;
-  /** @internal — 仅用于测试自定义词典替换 */
+   /** @internal — for testing custom dictionary replacement */
   pageTranslator._handleCustomWords = handleCustomWords;
-  /** @internal — 仅用于测试 AI 按钮点击处理 */
+   /** @internal — for testing AI button click handling */
   pageTranslator._handleSingletonAiClick = handleSingletonAiClick;
-  /** @internal — 仅用于测试 Google 按钮点击处理 */
+   /** @internal — for testing Google button click handling */
   pageTranslator._handleSingletonGoogleClick = handleSingletonGoogleClick;
-  /** @internal — 仅用于测试视口感知翻译 */
+   /** @internal — for testing viewport-aware translation */
   pageTranslator._translateDynamically = translateDynamically;
-  /** @internal — 仅用于测试 provider → model 映射 */
+   /** @internal — for testing provider → model mapping */
   pageTranslator._getModelForProvider = getModelForProvider;
-  /** @internal — 仅用于测试 AI 持续翻译模式（检测”动态加载内容 AI 翻译失败“回归） */
+   /** @internal — for testing AI continuous translation mode (detects "dynamic content AI translation failure" regressions) */
   pageTranslator._aiTranslateDynamically = aiTranslateDynamically;
-  /** @internal — 仅用于测试：设置 shouldForceAiAfterPageTranslation 内部状态 */
+   /** @internal — for testing: set shouldForceAiAfterPageTranslation internal state */
   pageTranslator._setForceAiTranslation = (v) => { shouldForceAiAfterPageTranslation = v; };
 
   let alreadyGotTheLanguage = false;
-  // 探测到tab语言时的回调函数
+   // Callback function for when tab language is detected
   const observersOnTabLanguageDetected = [];
 
   /**
-   * 为"获取tab语言"消息调用回调或添加回调
+    * Call callback or add callback for "get tab language" message
    * @param {Function} callback 
    */
   pageTranslator.onGetOriginalTabLanguage = function (callback) {
@@ -3364,7 +3364,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
   // Requests the detection of the tab language in the background
 
-  // 主帧
+   // Main frame
   if (window.self === window.top) {
     // is main frame
     const onTabVisible = function () {
@@ -3432,10 +3432,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           observersOnTabLanguageDetected.forEach((callback) => callback(originalTabLanguage));
           alreadyGotTheLanguage = true;
 
-          // 如果 sessionStorage 中有 AI 翻译标记（说明此页面之前被 AI 翻译过），
-          // 且页面当前处于未翻译状态，则强制调用 translatePage() 恢复翻译。
-          // 这处理的是 Turbo/pjax 导航回退后页面被重新加载的场景：
-          // 页面是全新的原始 HTML，但用户之前已经翻译过，应该自动恢复翻译状态。
+           // If sessionStorage has an AI translation marker (indicating this page was previously AI-translated),
+           // and the page is currently untranslated, force call translatePage() to restore translation.
+           // This handles the scenario where a page is reloaded after Turbo/pjax navigation back:
+           // the page is fresh original HTML, but the user had previously translated it, so translation should be auto-restored.
           if (needAutoTranslateFromSession && pageLanguageState === "original") {
             console.log("[AI-STATE] onTabVisible: auto-restoring translation from sessionStorage flag");
             pageTranslator.translatePage();
@@ -3443,17 +3443,17 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         }
       );
     };
-    // 安全兜底：如果 pageshow 事件在 pageshow 监听器注册前已触发，
-    // 此处补充检查 sessionStorage 标记，确保 shouldForceAiAfterPageTranslation
-    // 在 onTabVisible → translatePage 之前被正确设置。
-    // 同时记录"需要自动翻译"标志，以便在 onTabVisible 中强制调用 translatePage()。
+     // Safety fallback: if the pageshow event fired before the pageshow listener was registered,
+     // supplement the sessionStorage marker check here to ensure shouldForceAiAfterPageTranslation
+     // is correctly set before onTabVisible → translatePage.
+     // Also record the "needs auto-translation" flag so that translatePage() is forced in onTabVisible.
     const needAutoTranslateFromSession = checkAiAppliedFlag();
     if (needAutoTranslateFromSession) {
       console.log("[AI-STATE] init: restoring shouldForceAiAfterPageTranslation from sessionStorage");
       shouldForceAiAfterPageTranslation = true;
       setAiRenderState("loading");
     }
-    // 监听主页面可视性, 设置可视性变更的回调
+     // Listen for main page visibility and set up visibility change callback
     setTimeout(function () {
       if (document.visibilityState == "visible") {
         onTabVisible();
@@ -3475,7 +3475,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       }
     }, 120);
   }
-  // 非主帧
+   // Non-main frame
   else {
     // is subframe (iframe)
     chrome.runtime.sendMessage(
@@ -3489,7 +3489,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       }
     );
 
-    // 获取主帧状态
+     // Get main frame state
     chrome.runtime.sendMessage(
       {
         action: "getMainFramePageLanguageState",
@@ -3510,7 +3510,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 });
 
 window.addEventListener("beforeunload", (event) => {
-  console.log("触发beforeunload事件")
+   console.log("beforeunload event triggered")
   abortControllers.forEach((controller) => {
     controller.abort()
   })

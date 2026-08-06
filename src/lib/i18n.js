@@ -40,7 +40,7 @@ void (function () {
   }
 
   /**
-   * 项目页面的国际化
+   * Internationalize document elements
    * translate innerText and attributes for a Document or HTMLElement
    * @param {Document | HTMLElement} root
    */

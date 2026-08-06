@@ -1,11 +1,11 @@
 "use strict";
 
 /**
- * AI 端口客户端 — 通过 chrome.runtime.Port 向后台 Service Worker 发送
- * 结构化的 AI 请求（provider + apiKey + model + messages），
- * 并接收后台流式返回的纯文本 chunk。
+ * AI port client — sends
+ * structured AI requests (provider + apiKey + model + messages) to the
+ * background Service Worker and receives streamed plain-text chunks.
  *
- * 后台 Service Worker 使用 Vercel AI SDK streamText() 处理请求。
+ * The background Service Worker processes requests via Vercel AI SDK streamText().
  */
 
 /**
@@ -60,7 +60,7 @@ export async function fetchSSE(options) {
   const canUsePort = typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.connect;
 
   if (canUsePort) {
-    // 通过后台 Service Worker 代理（使用 Vercel AI SDK）
+    // Proxy through background Service Worker (Vercel AI SDK)
     const port = chrome.runtime.connect({ name: "ai-sse" });
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -70,7 +70,7 @@ export async function fetchSSE(options) {
         onStatusCode?.(message.status);
       } else if (message.type === "data") {
         resetTimer();
-        onMessage?.(message.chunk); // 纯文本 chunk，无需 SSE 解析！
+        onMessage?.(message.chunk); // Plain-text chunk, no SSE parsing needed!
       } else if (message.type === "done") {
         clearTimeout(timerId);
         onFinished?.();
@@ -108,7 +108,7 @@ export async function fetchSSE(options) {
       resetTimer();
       port.onMessage.addListener(onPortMessage);
 
-      // 发送结构化请求（不再发送原始 HTTP url/headers/body）
+      // Send structured request (no longer sending raw HTTP url/headers/body)
       port.postMessage({
         type: "start",
         id,
@@ -131,7 +131,7 @@ export async function fetchSSE(options) {
   // Fallback: 非 Chrome 环境，直接 fetch（使用 OpenAI 兼容端点）
   try {
     resetTimer();
-    // 从 registry 获取 apiBase 作为兜底
+    // Get apiBase from registry as fallback
     let apiBase = extra.baseURL || "";
     if (!apiBase) {
       try {
@@ -146,7 +146,7 @@ export async function fetchSSE(options) {
         apiBase = cache?.["modelsdev:providers"]?.data?.[provider]?.api || "";
       } catch (_) {}
     }
-    // 提取 base URL（去掉 /chat/completions 后缀，如果有的话）
+    // Extract base URL (strip /chat/completions suffix if present)
     let baseURL = apiBase ? apiBase.replace(/\/chat\/completions\/?$/, "") : "https://api.openai.com/v1";
     const url = `${baseURL}/chat/completions`;
 

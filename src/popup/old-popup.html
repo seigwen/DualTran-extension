@@ -1,4 +1,4 @@
-<!--简单模式的popup-->
+<!--Simple mode popup-->
 <!DOCTYPE html>
 <html>
   <head>
@@ -12,10 +12,10 @@
 
   <body>
     <main>
-      <!--右上角菜单-->
+      <!--Top-right menu-->
       <div class="w3-display-topright">
         <div style="display: flex">
-          <!--切换按钮-->
+          <!--Switch button-->
           <div
             class="w3-hover-light-grey"
             id="btnSwitchInterfaces"
@@ -27,7 +27,7 @@
         </div>
       </div>
 
-      <!--左上角标题-->
+      <!--Top-left title-->
       <label
         id="lblTranslate"
         class=""
@@ -65,7 +65,7 @@
         >Target language</label
       >
       <br />
-      <!--"总是翻译-XX语"-->
+      <!--"Always translate XX language"-->
       <div id="divAlwaysTranslateThisLang">
         <input
           id="cbAlwaysTranslateThisLang"
@@ -94,7 +94,7 @@
       </select>
 
       <div class="flex-container">
-        <!--左下角的翻译服务切换按钮-->
+        <!--Bottom-left translation service switch button-->
         <div
           id="divIconTranslateContainer"
           style="margin-left: 5px; margin-right: 25px"
@@ -110,22 +110,22 @@
               id="iconTranslate"
               src="/icons/google-translate-32.png"
               class="w3-btn w3-hover-none"
-              alt="翻译按钮图片, 默认为谷歌翻译图片"
+              alt="Translation button image, defaults to Google Translate image"
             />
             <img
               id="iconSwap"
               src="/icons/swap-32.png"
               class="w3-btn w3-hover-none"
-              alt="切换翻译引擎的按钮,当hover在翻译按钮图片时, 本图片会出现,覆盖在翻译按钮图片上"
+              alt="Switch translation engine button; appears on hover, overlaying the translation button image"
             />
           </div>
           -->
         </div>
 
-        <!--右下角的翻译按钮和选项下拉框-->
+        <!--Bottom-right translate button and options dropdown-->
         <div style="margin-left: auto">
 
-          <!--翻译/原文按钮-->
+          <!--Translate/original buttons-->
           <button
             id="btnReset"
             class="w3-btn w3-padding-small w3-border w3-round w3-text-blue"
@@ -155,7 +155,7 @@
             Try Again
           </button>
 
-          <!--选项下拉框-->
+          <!--Options dropdown-->
           <div id="btnOptionsDiv" style="position: relative; margin-left: 5px">
             <select
               id="btnOptions"

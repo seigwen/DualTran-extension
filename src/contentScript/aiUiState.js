@@ -11,23 +11,23 @@ function applyAiTranslatedTextColor(btnAi, translatedTextColor) {
     return;
   }
 
-  // replaceOriginal 模式下，AI 译文应使用原文颜色，不应用配置的译文颜色
-  // 通过检查 translatedTextNode 或其父元素是否带有 data-dualtran-block 属性来判断是否为 replaceOriginal 模式
+  // In replaceOriginal mode, AI translation should use original text color, not the configured translation color
+  // Check if in replaceOriginal mode by looking for data-dualtran-block attribute on translatedTextNode or its ancestors
   const translatedTextNode = btnAi?.translatedTextNode;
   if (!translatedTextNode) {
     return;
   }
 
-  // 检查是否在 replaceOriginal 模式下
-  // replaceOriginal 模式下，AI span 的父元素（或祖先元素）会有 data-dualtran-block 属性
+  // Check if in replaceOriginal mode
+  // In replaceOriginal mode, the AI span's parent (or ancestor) will have data-dualtran-block attribute
   let checkElement = translatedTextNode;
   while (checkElement) {
     if (checkElement.dataset?.dualtranBlock) {
-      // replaceOriginal 模式下不应用颜色，使用原文颜色
+      // In replaceOriginal mode, don't apply color; use original text color
       return;
     }
     checkElement = checkElement.parentElement || checkElement.parentNode;
-    // 只检查到 body 元素为止
+    // Only check up to the body element
     if (checkElement === document.body) break;
   }
 
@@ -87,24 +87,24 @@ export function applyAiTranslatingState(btnAi, {
 
   updateInlineBtnStateClass(btnAi, "loading");
 
-  // replaceOriginal 模式：AI 翻译开始时清空/隐藏原始节点，避免 AI 译文显示在原文右侧
-  // 文本节点（nodeType === 3）：清空内容，并隐藏其父元素（如 <code>）
-  // 元素节点（nodeType === 1）：使用 display:none 隐藏（保留元素以便恢复）
+  // replaceOriginal mode: clear/hide original nodes when AI translation starts, to avoid showing AI translation to the right of original text
+  // Text nodes (nodeType === 3): clear content and hide parent element (e.g., <code>)
+  // Element nodes (nodeType === 1): hide with display:none (keep element for restoration)
   try {
     const blockState = btnAi._st ? btnAi._st() : null;
     if (blockState && Array.isArray(blockState.nodesToClear) && blockState.nodesToClear.length > 0) {
       blockState.nodesToClear.forEach((node) => {
         try {
           if (node.nodeType === 3) {
-            // 文本节点：清空内容
+            // Text node: clear content
             node.textContent = "";
-            // 如果父元素是内联元素（如 <code>、<a>、<b> 等），也隐藏父元素
+            // If parent is an inline element (e.g., <code>, <a>, <b>), also hide the parent
             const parent = node.parentNode;
             if (parent && parent.nodeType === 1 && parent.style && !parent.dataset?.dualtranBlock) {
               parent.style.display = "none";
             }
           } else if (node.nodeType === 1 && node.style) {
-            // 元素节点：隐藏（保留元素以便恢复）
+            // Element node: hide (keep element for restoration)
             node.style.display = "none";
           }
         } catch (_) {}
@@ -146,24 +146,24 @@ export function applyAiSuccessState(btnAi, {
 } = {}) {
   if (!btnAi) return;
 
-  // replaceOriginal 模式：AI 翻译成功时清空/隐藏原始节点（包括缓存命中场景）
-  // 文本节点（nodeType === 3）：清空内容，并隐藏其父元素（如 <code>）
-  // 元素节点（nodeType === 1）：使用 display:none 隐藏（保留元素以便恢复）
+  // replaceOriginal mode: clear/hide original nodes when AI translation succeeds (including cache hits)
+  // Text nodes (nodeType === 3): clear content and hide parent element (e.g., <code>)
+  // Element nodes (nodeType === 1): hide with display:none (keep element for restoration)
   try {
     const blockState = btnAi._st ? btnAi._st() : null;
     if (blockState && Array.isArray(blockState.nodesToClear) && blockState.nodesToClear.length > 0) {
       blockState.nodesToClear.forEach((node) => {
         try {
           if (node.nodeType === 3) {
-            // 文本节点：清空内容
+            // Text node: clear content
             node.textContent = "";
-            // 如果父元素是内联元素（如 <code>、<a>、<b> 等），也隐藏父元素
+            // If parent is an inline element (e.g., <code>, <a>, <b>), also hide the parent
             const parent = node.parentNode;
             if (parent && parent.nodeType === 1 && parent.style && !parent.dataset?.dualtranBlock) {
               parent.style.display = "none";
             }
           } else if (node.nodeType === 1 && node.style) {
-            // 元素节点：隐藏（保留元素以便恢复）
+            // Element node: hide (keep element for restoration)
             node.style.display = "none";
           }
         } catch (_) {}
@@ -246,7 +246,7 @@ export function formatAiTranslationError(err) {
   // Pre-formatted message from aiProxy
   const msg = err?.error?.message || err?.message;
   if (msg) {
-    // 如果有 error code（如 HTTP 状态码），将其包含在消息中
+    // If there's an error code (e.g., HTTP status), include it in the message
     const code = err?.error?.code ?? err?.code;
     const prefix = (code != null) ? code + " - " : "";
     return "AI translation error: " + prefix + msg;

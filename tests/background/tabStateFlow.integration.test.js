@@ -39,7 +39,7 @@ describe("tab state flow integration", () => {
             18: true,
           },
         },
-        logLabel: "tabHasContentScript写入成功:",
+        logLabel: "tabHasContentScript write succeeded:",
         logValue: {
           3: true,
           18: true,
@@ -72,7 +72,7 @@ describe("tab state flow integration", () => {
             3: true,
           },
         },
-        logLabel: "tabHasContentScript写入成功:",
+        logLabel: "tabHasContentScript write succeeded:",
         logValue: {
           3: true,
         },

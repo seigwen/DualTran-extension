@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * 安全地从 tab URL 解析 hostname，当 URL 不可用或不合法时返回空字符串。
+ * Safely parse hostname from tab URL; returns empty string when URL is unavailable or invalid.
  * @param {chrome.tabs.Tab[]} tabs
  * @returns {string}
  */
@@ -14,7 +14,7 @@ function safeHostname(tabs) {
 }
 
 /**
- * 简单模式的popup
+ * Simple mode popup
  **/
 
 import twpLang from "../lib/languages.js"
@@ -168,7 +168,7 @@ twpConfig.onReady(function () {
       currentWindow: true,
     },
     (tabs) => {
-      // 获取页面原始语言
+      // Get page original language
       chrome.tabs.sendMessage(
         tabs[0].id,
         {
@@ -188,7 +188,7 @@ twpConfig.onReady(function () {
         }
       );
 
-      // 获取页面当前语言
+      // Get page current language
       chrome.tabs.sendMessage(
         tabs[0].id,
         {
@@ -206,7 +206,7 @@ twpConfig.onReady(function () {
         }
       );
 
-      // 获取页面翻译状态(已翻译?未翻译?)
+      // Get page translation state (translated? not translated?)
       chrome.tabs.sendMessage(
         tabs[0].id,
         {
@@ -224,7 +224,7 @@ twpConfig.onReady(function () {
         }
       );
 
-      // 获取当前页面使用的翻译服务
+      // Get translation service used by current page
       chrome.tabs.sendMessage(
         tabs[0].id,
         {
@@ -246,22 +246,22 @@ twpConfig.onReady(function () {
 
   let showSelectTargetLanguage = false;
 
-  // 更新界面
+  // Update interface
   function updateInterface() {
-    // // 当前翻译服务为yandex
+    // // Current translation service is yandex
     // if (currentPageTranslatorService == "yandex") {
-    //   // 更新选项弹出窗的倒数第二个菜单项的文字为"在Yandex中打开翻译"
+    //   // Update the second-to-last menu item text to "Open in Yandex Translate"
     //   $("#btnOptions option[value='translateInExternalSite']").textContent =
     //     chrome.i18n.getMessage("msgOpenOnYandexTranslator");
-    //   // 更新左下角语言服务切换按键的图标
+    //   // Update bottom-left language service switch icon
     //   $("#iconTranslate").setAttribute("src", "/icons/yandex-translate-32.png");
     // } 
-    // // 当前翻译服务为google
+    // // Current translation service is google
     // else {
-    //   // 更新选项弹出窗的倒数第二个菜单项的文字为"在Google中打开翻译"
+    //   // Update the second-to-last menu item text to "Open in Google Translate"
     //   $("#btnOptions option[value='translateInExternalSite']").textContent =
     //     chrome.i18n.getMessage("btnOpenOnGoogleTranslate");
-    //   // 更新左下角语言服务切换按键的图标
+    //   // Update bottom-left language service switch icon
     //   $("#iconTranslate").setAttribute("src", "/icons/google-translate-32.png");
     // }
 
@@ -404,7 +404,7 @@ twpConfig.onReady(function () {
   }
   updateInterface();
 
-  // 为"翻译"按钮添加事件响应
+  // Add event handler for "Translate" button
   $("#btnTranslate").onclick = (e) => {
     currentPageLanguageState = "translated";
 
@@ -414,7 +414,7 @@ twpConfig.onReady(function () {
         currentWindow: true,
       },
       (tabs) => {
-        // 获取目标语言
+        // Get target language
         if (twpConfig.get("targetLanguage") !== selectTargetLanguage.value) {
           twpConfig.setTargetLanguage(selectTargetLanguage.value, true);
         } else {
@@ -425,7 +425,7 @@ twpConfig.onReady(function () {
         lblTranslate.textContent = chrome.i18n.getMessage("lblTranslatePageInto", langs[twpConfig.get("targetLanguage")] || twpConfig.get("targetLanguage"))
         lblTranslated.textContent = chrome.i18n.getMessage("lblPageTranslateInto", langs[twpConfig.get("targetLanguage")] || twpConfig.get("targetLanguage"))
 
-        // 翻译页面
+        // Translate page
         chrome.tabs.sendMessage(
           tabs[0].id,
           {

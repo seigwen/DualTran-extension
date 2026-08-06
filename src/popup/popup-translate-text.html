@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--
-  本文件仅适用于firefox。
-  在用户点击"翻译选中文本"按钮后,
-  对于firefox等有browserAction.setPopup接口的浏览器,可以在sw.js直接调用browserAction.setPopup()弹出本HTML
-  对于chrome等没有browserAction.setPopup接口的浏览器,需要从sw.js向contentScript发送消息,content script里再调用translateSelected.js里的相关函数弹出翻译窗口(不是本HTML,而是动态创建的div)
+  This file is for Firefox only.
+  After the user clicks the "Translate selected text" button,
+  For browsers like Firefox with browserAction.setPopup, sw.js can directly call browserAction.setPopup() to open this HTML
+  For browsers like Chrome without browserAction.setPopup, sw.js sends a message to the content script, which then calls functions in translateSelected.js to open a translation popup (not this HTML, but a dynamically created div)
 -->
 <html>
   <head>

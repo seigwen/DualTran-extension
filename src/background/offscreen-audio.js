@@ -2,7 +2,7 @@
 
 console.log("offscreen-audio.js is running");
 
-// 播放状态
+// Playback state
 let currentQueue = [];
 let isPlaying = false;
 let audioSpeed = 1.0;
@@ -38,7 +38,7 @@ async function playAll(audios, requestId) {
     };
     audio.addEventListener("ended", onEnded);
     audio.play().catch(() => {
-      // 跳过故障段
+      // Skip faulty segment
       audio.removeEventListener("ended", onEnded);
       playNext(idx + 1);
     });

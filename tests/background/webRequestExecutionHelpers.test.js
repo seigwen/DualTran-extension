@@ -18,7 +18,7 @@ describe("webRequestExecutionHelpers", () => {
             18: "application/pdf",
           },
         },
-        logLabel: "tabToMimeType写入成功:",
+        logLabel: "tabToMimeType write succeeded:",
         logValue: {
           18: "application/pdf",
         },
@@ -59,7 +59,7 @@ describe("webRequestExecutionHelpers", () => {
     });
 
     expect(getStorage).toHaveBeenCalledWith(["tabToMimeType"]);
-    expect(log).toHaveBeenCalledWith("tabToMimeType读取成功:", {
+    expect(log).toHaveBeenCalledWith("tabToMimeType read succeeded:", {
       tabToMimeType: {
         3: "text/html",
       },
@@ -73,7 +73,7 @@ describe("webRequestExecutionHelpers", () => {
             18: "application/pdf",
           },
         },
-        logLabel: "tabToMimeType写入成功:",
+        logLabel: "tabToMimeType write succeeded:",
         logValue: {
           3: "text/html",
           18: "application/pdf",

@@ -1,5 +1,6 @@
 /**
- * 此库抄自https://www.npmjs.com/package/words-count. 不用npm安装该库是因为该库默认使用了commonjs打包
+ * Adapted from https://www.npmjs.com/package/words-count.
+ * Not installed via npm because the library uses CommonJS bundling by default.
  */
 
 const DEFAULT_PUNCTUATION = [

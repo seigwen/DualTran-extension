@@ -23,7 +23,7 @@ describe("tabStateExecutionHelpers", () => {
             18: true,
           },
         },
-        logLabel: "tabHasContentScript写入成功:",
+        logLabel: "tabHasContentScript write succeeded:",
         logValue: {
           18: true,
         },
@@ -80,7 +80,7 @@ describe("tabStateExecutionHelpers", () => {
             18: true,
           },
         },
-        logLabel: "tabHasContentScript写入成功:",
+        logLabel: "tabHasContentScript write succeeded:",
         logValue: {
           3: true,
           18: true,
@@ -184,7 +184,7 @@ describe("tabStateExecutionHelpers", () => {
             3: true,
           },
         },
-        logLabel: "tabHasContentScript写入成功:",
+        logLabel: "tabHasContentScript write succeeded:",
         logValue: {
           3: true,
         },

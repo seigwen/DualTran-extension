@@ -24,7 +24,7 @@ export function createAiOptionsController({
 
   function handleProviderChange(provider) {
     const nextProvider = provider || "openai";
-    // 同步维护新旧两个活动提供商键，避免旧迁移字段在页面重开时覆盖最新选择。
+    // Sync both old and new active provider keys to prevent stale migration fields from overwriting the latest selection when the page reopens.
     config?.set?.("aiProvider", nextProvider);
     config?.set?.("activeProviderId", nextProvider);
     syncAiProviderSelection({

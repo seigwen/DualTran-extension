@@ -64,7 +64,7 @@ const blockStateMap = new WeakMap();
  * Called by pageTranslator.js instead of createInlineButtonGroup().
  */
 export function registerBlock(translatedElement, sourceString, translatedTextNode, googleTranslatedText, nodesToClear) {
-  // 标记元素，使 getProxiesForTranslation 可以在 replaceOriginal 模式下找到非 <translated> 元素
+  // Mark element so getProxiesForTranslation can find non-<translated> elements in replaceOriginal mode
   translatedElement.dataset.dualtranBlock = "1";
   blockStateMap.set(translatedElement, {
     sourceString,
@@ -125,15 +125,15 @@ export function getProxiesForTranslation(_map = null, _s = null) {
   const singleton = _s || _singleton;
   if (window.self !== window.top && !_map) return [];
   const result = [];
-  // 同时查询 <translated> 元素（newLine 模式）和带有 data-dualtran-block 标记的元素（replaceOriginal 模式）
+  // Query both <translated> elements (newLine mode) and elements with data-dualtran-block attribute (replaceOriginal mode)
   for (const el of document.querySelectorAll("translated, [data-dualtran-block]")) {
     if (!stateMap.has(el)) continue;
     result.push(new BtnAiProxy(el, stateMap, singleton));
   }
-  // 过滤掉 queuing/translating/translated/translationError 状态的块。
-  // translationError 也需过滤，否则 aiTranslateDynamically() 会在冷却倒计时结束后
-  // 不断重试已出错的块，遇到持久性错误（如 503）时形成无限重试循环。
-  // 用户可手动点击 AI 按钮重试（点击时 status 会被重置为 idle）。
+  // Filter out blocks in queuing/translating/translated/translationError state.
+  // translationError must also be filtered, otherwise aiTranslateDynamically() would
+  // keep retrying errored blocks after cooldown, causing infinite retry loops on persistent errors (e.g., 503).
+  // Users can manually click the AI button to retry (status is reset to idle on click).
   return result.filter(p => !["queuing", "translating", "translated", "translationError"].includes(p.translationStatus));
 }
 
@@ -179,7 +179,7 @@ let _singleton = {
  * Create the singleton button group host (Shadow DOM) on document.body.
  */
 export function createSingletonButtonGroup() {
-  // 如果 host 已脱离 DOM 树（被 Turbo/SPA 导航替换了 body），重置引用以允许重建
+  // If host has been detached from DOM tree (body replaced by Turbo/SPA navigation), reset references to allow rebuilding
   if (_singleton.host) {
     if (!document.body.contains(_singleton.host)) {
       if (_singleton._pendingHideTimer) {
@@ -423,7 +423,7 @@ export function updateSingletonUI(translatedElement) {
     cross.className = "dualtran-ai-error-cross";
     _singleton.aiTextNode.textContent = "AI";
     _singleton.aiTextNode.appendChild(cross);
-    // 从 blockState 恢复错误原因到 tooltip（错误发生时已存入 state.errorMessage）
+    // Restore error reason from blockState to tooltip (stored in state.errorMessage when error occurred)
     _singleton.tooltipNode.textContent = state.errorMessage || "AI translation error";
     _singleton.tooltipNode.style.color = "#dc2626";
     _singleton.aiBtn.style.color = "#dc2626";
@@ -434,7 +434,7 @@ export function updateSingletonUI(translatedElement) {
     _singleton.tooltipNode.style.color = "";
     _singleton.aiBtn.style.color = "";
   } else {
-    // idle 状态：清空 tooltip，避免残留之前 block 的错误/成功信息
+    // Idle state: clear tooltip to avoid residual error/success info from previous block
     _singleton.aiTextNode.textContent = "AI";
     _singleton.tooltipNode.textContent = "";
     _singleton.tooltipNode.style.color = "";
@@ -449,7 +449,7 @@ let _hoverDelegationAttached = false;
 const HIDE_DELAY_MS = 250;
 
 const _onMouseover = (e) => {
-  // 查找 <translated> 元素（newLine 模式）或带有 data-dualtran-block 属性的元素（replaceOriginal 模式）
+  // Find <translated> element (newLine mode) or element with data-dualtran-block attribute (replaceOriginal mode)
   const translated = e.target.closest("translated, [data-dualtran-block]");
   if (translated) {
     showButtonGroup(translated);
@@ -466,7 +466,7 @@ const _onMouseover = (e) => {
 
 const _onMouseout = (e) => {
   // Only trigger if leaving a translated element and not entering another or the btnGroup
-  // 查找 <translated> 元素（newLine 模式）或带有 data-dualtran-block 属性的元素（replaceOriginal 模式）
+  // Find <translated> element (newLine mode) or element with data-dualtran-block attribute (replaceOriginal mode)
   const leaveTranslated = e.target.closest("translated, [data-dualtran-block]");
   if (!leaveTranslated) return;
 

@@ -6,7 +6,7 @@ import twpLang from "../lib/languages.js"
 
 const twpConfig = (function () {
   /**
-   * twpConfig变更监听器队列
+   * twpConfig change listener queue
    *  @type {function[]} 
    **/
   const observers = [];
@@ -18,10 +18,10 @@ const twpConfig = (function () {
   const defaultConfig = {
     openAiUserType: "paid",
     autoImproveByAI: "no",  // yes no
-    enableAiTranslationCache: "yes", // yes no - 是否启用 AI 翻译缓存（默认开启）
+    enableAiTranslationCache: "yes", // yes no
     aiImproveForLongerThan: 0,
     apiKeyOpenAI: "",
-    openAiModel: "gpt-4o-mini", // OpenAI模型选择
+    openAiModel: "gpt-4o-mini",
     openAiApiBase: "",
     apiKeyAnthropic: "",
     anthropicModel: "claude-haiku-3-5-20241022",
@@ -41,7 +41,7 @@ const twpConfig = (function () {
     aiProvider: "openai",
     apiKeyOpenRouter: "",
     openRouterModel: "openai/gpt-4o-mini",
-    openRouterApiBase: "", // 默认值在 providerRegistry 中
+    openRouterApiBase: "",
     openRouterReferer: "",
     openRouterTitle: "",
     translatedColor: "rgba(11, 112, 33, 1)",
@@ -52,9 +52,9 @@ const twpConfig = (function () {
     textTranslatorService: "google", // google yandex bing deepl microsoft
     ttsSpeed: 1.0,
     enableDeepL: "yes",
-    targetLanguage: null, // 网页翻译目标语言
-    targetLanguageTextTranslation: null, // 文本翻译目标语言
-    targetLanguages: [], // 优先选择目标语言 "en", "es", "de"  
+    targetLanguage: null,
+    targetLanguageTextTranslation: null,
+    targetLanguages: [],
     alwaysTranslateSites: [],
     neverTranslateSites: [],
     sitesToTranslateWhenHovering: [],
@@ -78,9 +78,9 @@ const twpConfig = (function () {
     dontShowIfSelectedTextIsTargetLang: "no",
     dontShowIfSelectedTextIsUnknown: "no",
     hotkeys: {}, // Hotkeys are obtained from the manifest file
-    expandPanelTranslateSelectedText: "yes", // 划词翻译窗口是否显示原文
+    expandPanelTranslateSelectedText: "yes",
     translateTag_pre: "no",
-    dontSortResults: "yes",  // yes: 按翻译后节点顺序直接显示，不重排，语句更通顺。no：按原始HTML节点顺序重排google翻译结果，可能导致不通顺
+    dontSortResults: "yes",  // yes: display in translated node order (smoother). no: reorder to original HTML node order (may cause awkward phrasing)
     translateDynamicallyCreatedContent: "yes",
     autoTranslateWhenClickingALink: "no",
     translateSelectedWhenPressTwice: "no",
@@ -91,11 +91,11 @@ const twpConfig = (function () {
   };
   const config = structuredClone(defaultConfig);
   /**
-   * twpConfig ready监听器队列. 当设置快捷键结束时会调用此队列的所有监听器回调
+   * twpConfig ready listener queue. Called when config is loaded from storage.local
    *  @type {function[]} 
    **/
   let onReadyObservers = [];
-  // 当从storage.local加载config完成后会调用此函数
+  // Called when config has finished loading from storage.local
   let configIsReady = false;
   let onReadyResolvePromise;
   const onReadyPromise = new Promise(
@@ -103,7 +103,7 @@ const twpConfig = (function () {
   );
 
   /**
-   * 当从storage.local加载config完成后会调用此函数
+   * Called when config has finished loading from storage.local
    */
   function readyConfig() {
     configIsReady = true;
@@ -168,7 +168,7 @@ const twpConfig = (function () {
       version: chrome.runtime.getManifest().version,
     };
 
-    // 把map转为对象,把set转为数组
+    // Convert Maps to objects, Sets to arrays
     for (const key in defaultConfig) {
       //@ts-ignore
       r[key] = toObjectOrArrayIfTypeIsMapOrSet(twpConfig.get(key));
@@ -205,7 +205,7 @@ const twpConfig = (function () {
       }
     }
 
-    // 重新加载扩展
+    // Reload the extension
     chrome.runtime.reload();
   };
 
@@ -247,10 +247,11 @@ const twpConfig = (function () {
     observers.push(callback);
   };
 
-  // 监听storage变化: 当storage变化时, 更新内存中的twpConfig对象对应的键的值,然后执行twpConfig的所有用onReady()注册的监听器
-  // 由于background script和content script均运行了config.js, 所以有两个twpConfig,且出于不同的线程中. 
-  // 当其中一个twpConfig的set被调用时, 内存值被设置为新值, storage也被设置为新值, 同时还会调用observers里的callback, 但是另一个twpConfig的内存值不变,observers不被调用.
-  // 此处通过监听storage变化然后更新,可确保这两个twpConfig的值同步, 而且两个twpConfig里的observers的callback都被调用.
+  // Listen for storage changes: when storage changes, update in-memory twpConfig values,
+  // then fire all registered observers.
+  // Since both background and content scripts run config.js, there are two twpConfig
+  // instances in different threads. When one calls set(), only its memory and storage
+  // are updated. This listener ensures both instances stay in sync and both fire callbacks.
   chrome.storage.onChanged.addListener((changes, areaName) => {
     twpConfig.onReady(function () {
       if (areaName === "local") {

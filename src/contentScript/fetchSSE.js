@@ -8,7 +8,7 @@ import { oneLine } from 'common-tags'
 import detectTextLanguage from "../util/detectTextLanguage.js"
 import { fetchSSE } from "../lib/ai/sseClient.js"
 import { createProviderRegistry, BUILT_IN_PROVIDERS } from "../lib/ai/providerRegistry.js"
-import "../lib/i18n.js" // 导入 i18n 支持
+import "../lib/i18n.js" // Import i18n support
 
 const _providerRegistry = createProviderRegistry(BUILT_IN_PROVIDERS);
 

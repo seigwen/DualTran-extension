@@ -27,11 +27,11 @@ const textToSpeech = (function () {
       this.baseURL = baseURL;
       this.xhrMethod = xhrMethod;
       this.cbGetExtraParameters = cbGetExtraParameters;
-  /** @type {Map<string, string>} dataURL 缓存 */
+  /** @type {Map<string, string>} dataURL cache */
       this.audios = new Map();
-      // BUG: ttsSpeed 初始值从未从 config 读取，浏览器重启后速度重置为 1.0。
-      // 应在 constructor 或 onReady 中读取 twpConfig.get("ttsSpeed")。
-      // 当前仅在 onChanged listener 中更新（参见本文件 L266-271）。
+      // BUG: ttsSpeed initial value is never read from config; speed resets to 1.0 after browser restart.
+      // Should read twpConfig.get("ttsSpeed") in constructor or onReady.
+      // Currently only updated via onChanged listener (see L266-271 in this file).
       this.audioSpeed = 1.0;
       /** @type {Map<string, (value?: any) => void>} */
       this._pendingResolves = new Map();
@@ -93,13 +93,13 @@ const textToSpeech = (function () {
      * @returns {Promise<any>} Promise\<blob\>
      */
     async makeRequest(text, targetLanguage) {
-      // 在 MV3 Service Worker 中没有 XMLHttpRequest，使用 fetch。
+      // MV3 Service Workers have no XMLHttpRequest; use fetch.
       const url = this.baseURL + this.cbGetExtraParameters(text, targetLanguage);
       console.log("text2speech request:", url, text, targetLanguage);
       const res = await fetch(url, { method: this.xhrMethod || "GET" });
       if (!res.ok) throw new Error(`TTS HTTP ${res.status}`);
       const blob = await res.blob();
-      // 转为 data:URL（Offscreen 使用 Audio(dataURL) 播放，避免跨域/CORS 与 referer 问题）
+      // Convert to data:URL (Offscreen uses Audio(dataURL) to avoid cross-origin/CORS/referer issues)
       const buf = await blob.arrayBuffer();
       let binary = "";
       const bytes = new Uint8Array(buf);
@@ -151,11 +151,11 @@ const textToSpeech = (function () {
      * @param {HTMLAudioElement | HTMLAudioElement[]} audios
      */
     /**
-     * 通过 Offscreen 文档播放音频
-     * @param {string[] | string} audios data:URL 列表或单个 data:URL
+     * Play audio via Offscreen document
+     * @param {string[] | string} audios data:URL list or single data:URL
      */
     async play(audios) {
-      // 在 SW 中通过 Offscreen 文档播放
+      // Play via Offscreen document from SW
       await this.ensureOffscreen();
       this.stopAll();
       const requestId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -170,8 +170,8 @@ const textToSpeech = (function () {
     }
 
     async ensureOffscreen() {
-      const offscreen = chrome["offscreen"]; // 避免类型检查报错
-      if (!offscreen) return; // 环境不支持则跳过（例如部分非 Chrome 浏览器）
+      const offscreen = chrome["offscreen"]; // Bypass type-checker complaints
+      if (!offscreen) return; // Skip if unsupported (e.g. non-Chrome browsers)
       try {
         if (offscreen.hasDocument) {
           const has = await offscreen.hasDocument();
@@ -183,7 +183,7 @@ const textToSpeech = (function () {
             });
           }
         } else {
-          // 老版本缺少 hasDocument，就直接尝试创建，若已存在会异常，忽略即可
+          // Older versions lack hasDocument; try creating directly and ignore errors if already exists
           try {
             await offscreen.createDocument({
               url: chrome.runtime.getURL("/background/offscreen-audio.html"),
@@ -192,7 +192,7 @@ const textToSpeech = (function () {
             });
           } catch (_) {}
         }
-        // 同步速度
+        // Sync playback speed
         chrome.runtime.sendMessage({ action: "offscreenSetSpeed", speed: this.audioSpeed });
       } catch (e) {
         console.error("ensureOffscreen failed", e);
@@ -205,7 +205,7 @@ const textToSpeech = (function () {
      */
     setAudioSpeed(speed) {
       this.audioSpeed = speed;
-      // 通知 Offscreen 更新速度
+      // Notify Offscreen to update speed
       chrome.runtime.sendMessage({ action: "offscreenSetSpeed", speed: this.audioSpeed });
     }
 
@@ -213,7 +213,7 @@ const textToSpeech = (function () {
      * Pause all audio and reset audio time to start
      */
     stopAll() {
-      // 通知 Offscreen 停止
+      // Notify Offscreen to stop
       chrome.runtime.sendMessage({ action: "offscreenStop" });
     }
   }
@@ -250,7 +250,7 @@ const textToSpeech = (function () {
     }
   });
 
-  // 等待 Offscreen 播放结束的通知
+  // Wait for Offscreen playback-done notification
   chrome.runtime.onMessage.addListener((request, _sender, _sendResponse) => {
     if (request?.action === "offscreenAudioDone" && request?.requestId) {
       try {

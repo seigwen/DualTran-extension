@@ -79,7 +79,7 @@ Please be respectful and inclusive in all interactions. We are committed to prov
 ### General
 - Use descriptive variable and function names
 - Add comments for all functions, classes, and important variables
-- Comments should be in **Chinese** (中文注释)
+- Comments should be in **English**
 
 ### JavaScript
 - Use ES6+ features

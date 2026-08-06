@@ -1,46 +1,51 @@
 /**
- * AI 请求后台代理 — 使用 Vercel AI SDK streamText() 处理各提供商的请求。
- * 通过 models.dev 数据实现 npm 包 → SDK 客户端的动态映射。
+ * AI backend proxy — handles provider requests using Vercel AI SDK streamText().
+ * Dynamic npm → SDK client mapping via models.dev data.
  *
- * 数据流：
- *   models.dev/api.json → 缓存到 chrome.storage.local
- *   provider.npm → SDK_MAP 查找 createXxx 函数
- *   未知 npm → fallback 到 @ai-sdk/openai-compatible
+ * Data flow:
+ *   models.dev/api.json → cached in chrome.storage.local
+ *   provider.npm → SDK_MAP lookup for createXxx function
+ *   unknown npm → fallback to @ai-sdk/openai-compatible
  *
  * ═══════════════════════════════════════════════════════════
- * 为什么有些提供商走 openai-compatible fallback？
+ * Why do some providers use the openai-compatible fallback?
  * ═══════════════════════════════════════════════════════════
  *
- * OpenRouter 是典型例子：它的 API 完全兼容 OpenAI 格式（/v1/chat/completions），
- * 但在 SDK_MAP 中没有 @ai-sdk/openrouter 条目。这不是疏漏，而是有意设计：
+ * OpenRouter is the canonical example: its API is fully OpenAI-compatible
+ * (/v1/chat/completions), but has no @ai-sdk/openrouter entry in SDK_MAP.
+ * This is intentional, not an oversight:
  *
- * 1. Vercel AI SDK 官方没有提供 @ai-sdk/openrouter 包。
- * 2. 即使将其映射到 @ai-sdk/openai，OpenAI SDK 包含 OpenRouter 不支持的
- *    专有功能（Responses API、Realtime API、Files API），错误处理语义也可能差异。
- * 3. @ai-sdk/openai-compatible 是更干净的抽象 — 只依赖标准 /v1/chat/completions
- *    契约，不绑定任何提供商的专有扩展。
+ * 1. Vercel AI SDK does not ship an @ai-sdk/openrouter package.
+ * 2. Mapping to @ai-sdk/openai would pull in OpenAI-specific features
+ *    (Responses API, Realtime API, Files API) that OpenRouter doesn't support,
+ *    and whose error-handling semantics may differ.
+ * 3. @ai-sdk/openai-compatible is a cleaner abstraction — it depends only on
+ *    the standard /v1/chat/completions contract, without binding to any
+ *    provider's proprietary extensions.
  * 4. createOpenAICompatible({ baseURL: "https://openrouter.ai/api/v1" })
- *    产生的 HTTP 请求与 createOpenAI 完全等价 — OpenRouter 本身就是 OpenAI
- *    格式的透明代理。
+ *    produces HTTP requests functionally identical to createOpenAI — OpenRouter
+ *    acts as a transparent proxy for the OpenAI format.
  *
- * 同理适用于其他 API 格式为 OpenAI-compatible 但没有专用 SDK 的提供商
- * （如 models.dev 中的 100+ 小型提供商）。只要它们的 chat endpoint 接受标准
- * OpenAI JSON 格式，openai-compatible fallback 就能正确工作。
+ * The same applies to any other provider whose API is OpenAI-compatible but
+ * lacks a dedicated SDK (100+ smaller providers in models.dev). As long as
+ * their chat endpoint accepts standard OpenAI JSON, the openai-compatible
+ * fallback works correctly.
  *
- * 只有提供非标准 API 或有重要专有特性的提供商才值得加入 SDK_MAP
- * （如 Anthropic 的 Messages API、Google Gemini 的 generateContent API）。
+ * Only providers with non-standard APIs or important proprietary features
+ * warrant a dedicated SDK_MAP entry (e.g. Anthropic Messages API,
+ * Google Gemini generateContent API).
  */
 
 import { streamText } from "ai";
 
-// ── SDK 映射表：npm 包名 → createXxx 函数 ──────────────
-// 仅包含可在浏览器/Service Worker 环境中使用的 SDK 包。
-// Node.js 专有包（如 google-vertex, amazon-bedrock）走 openai-compatible fallback。
+// ── SDK mapping table: npm package name → createXxx function ──────────────
+// Only includes SDK packages usable in browser/Service Worker environments.
+// Node.js-only packages (e.g. google-vertex, amazon-bedrock) use openai-compatible fallback.
 //
-// 注意：以下提供商有意通过 openai-compatible fallback 路由，而非专用 SDK：
-//   • OpenRouter — 无 @ai-sdk/openrouter 包；API 完全兼容 OpenAI 格式
-//   • 任何 models.dev 中 npm 字段不匹配 SDK_MAP 的提供商
-// 详见本文件头部注释。
+// Note: the following providers intentionally route through openai-compatible fallback:
+//   • OpenRouter — no @ai-sdk/openrouter package; API is fully OpenAI-compatible
+//   • Any models.dev provider whose npm field does not match SDK_MAP
+// See file header comment for details.
 
 import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
@@ -56,7 +61,7 @@ import { createPerplexity } from "@ai-sdk/perplexity";
 import { createDeepInfra } from "@ai-sdk/deepinfra";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
-/** npm 包名 → createXxx 函数 */
+/** npm package name → createXxx function */
 const SDK_MAP = Object.freeze({
   "@ai-sdk/openai": createOpenAI,
   "@ai-sdk/anthropic": createAnthropic,
@@ -76,13 +81,13 @@ import { lookupKnownApiBase } from "../lib/ai/providerRegistry.js";
 
 const AI_PORT_NAME = "ai-sse";
 
-// ── models.dev 数据缓存 ────────────────────────────────
+// ── models.dev data cache ────────────────────────────────
 
 const MODELSDEV_URL = "https://models.dev/api.json";
 const MODELSDEV_CACHE_KEY = "modelsdev:providers";
 let _providersData = null;
 
-const MODELSDEV_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 小时
+const MODELSDEV_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 async function getProvidersData() {
   if (_providersData) return _providersData;
@@ -93,7 +98,7 @@ async function getProvidersData() {
       _providersData = cached.data;
       const age = Date.now() - (cached.ts || 0);
       if (age > MODELSDEV_CACHE_TTL_MS) {
-        refreshProvidersData(); // 缓存过期，后台刷新
+        refreshProvidersData(); // Cache expired, refresh in background
       }
       return _providersData;
     }
@@ -111,7 +116,7 @@ async function getProvidersData() {
 
 async function refreshProvidersData() {
   try {
-    // 再次检查缓存年龄，避免并发重复拉取
+    // Re-check cache age to avoid concurrent duplicate fetches
     const result = await chrome.storage.local.get(MODELSDEV_CACHE_KEY);
     const cached = result[MODELSDEV_CACHE_KEY];
     if (cached?.ts && (Date.now() - cached.ts) < MODELSDEV_CACHE_TTL_MS) return;
@@ -125,9 +130,9 @@ async function refreshProvidersData() {
   } catch (_) {}
 }
 
-getProvidersData(); // 启动时拉取
+getProvidersData(); // Fetch on startup
 
-// ── 客户端创建（动态 npm → SDK 映射） ──────────────────
+// ── Client creation (dynamic npm → SDK mapping) ──────────────────
 
 export async function createModelClient({ provider, apiKey, model, extra = {} }) {
   const data = await getProvidersData();
@@ -136,20 +141,20 @@ export async function createModelClient({ provider, apiKey, model, extra = {} })
   const rawApi = providerData?.api || "";
   const apiBase = extra.baseURL || (rawApi && !rawApi.includes("${") ? rawApi : "") || lookupKnownApiBase(provider) || undefined;
 
-  // Azure 特例处理
+  // Azure special handling
   if (provider === "azure" || provider === "azure-openai") {
     const resourceName = extra.resourceName || "";
     return createAzure({ apiKey, resourceName, baseURL: apiBase })(model);
   }
 
-  // 查 SDK 映射表
+  // Lookup SDK mapping
   if (npm && SDK_MAP[npm]) {
     try {
       return SDK_MAP[npm]({ apiKey, baseURL: apiBase })(model);
     } catch (_) {}
   }
 
-  // Fallback: OpenAI 兼容客户端
+  // Fallback: OpenAI-compatible client
   if (!apiBase) {
     throw new Error(`Unknown AI provider "${provider}" and no base URL in models.dev data`);
   }
@@ -160,7 +165,7 @@ export async function createModelClient({ provider, apiKey, model, extra = {} })
   })(model);
 }
 
-// ── Port 监听 ──────────────────────────────────────────
+// ── Port listener ──────────────────────────────────────────
 
 /**
  * Extract the most user-friendly error message from an AI SDK or fetch error.
@@ -188,8 +193,8 @@ function _formatErrorPayload(err) {
 }
 
 /**
- * 兼容 AI SDK `text-delta` 事件的新旧字段名。
- * 新版使用 `part.text`，旧版或历史 bundle 可能仍然使用 `part.textDelta`。
+ * Compatible with both old and new field names for AI SDK `text-delta` events.
+ * New versions use `part.text`, older/historical bundles may still use `part.textDelta`.
  */
 function _extractAiTextDelta(part) {
   if (typeof part?.text === "string") {
@@ -230,18 +235,19 @@ chrome.runtime.onConnect.addListener((port) => {
         inflight.set(id, { controller, port });
         try {
           const languageModel = await createModelClient({ provider, apiKey, model, extra });
-          // maxRetries: 0 — 禁用 AI SDK 内置重试，由 content script 的 aiTranslateDynamically()
-          // 间隔重试机制统一控制重试策略（带 10s 退避），避免多层重试叠加导致请求风暴。
+          // maxRetries: 0 — disable AI SDK built-in retries; retry strategy is unified
+          // by the content script's aiTranslateDynamically() with 10s backoff to avoid request storms.
           const result = streamText({ model: languageModel, messages, temperature, topP, maxRetries: 0, abortSignal: controller.signal });
           let totalChunks = 0;
           let streamError = null;
           for await (const part of result.fullStream) {
             if (part.type === "error") {
-              streamError = part.error; // 保存原始 API 错误
+              streamError = part.error; // Save original API error
             } else if (part.type === "text-delta") {
               const chunkText = _extractAiTextDelta(part);
 
-              // 跳过空 chunk，避免“把 `undefined` 计为成功输出而导致前端只收到 done 不收到文本”。
+              // Skip empty chunks to avoid counting `undefined` as successful output, which would cause
+              // the frontend to receive only "done" without any text.
               if (!chunkText) {
                 continue;
               }

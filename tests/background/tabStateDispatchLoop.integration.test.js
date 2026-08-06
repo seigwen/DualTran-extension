@@ -31,7 +31,7 @@ describe("tab state dispatch loop integration", () => {
         18: true,
       },
     });
-    expect(log).toHaveBeenCalledWith("tabHasContentScript写入成功:", {
+    expect(log).toHaveBeenCalledWith("tabHasContentScript write succeeded:", {
       3: true,
       18: true,
     });

@@ -1,6 +1,6 @@
 # DualTran
 
-[English](#features) | [中文](#功能特性)
+[English](#features) | [中文](#features)
 
 AI-powered browser extension that translates web pages and displays the translated text alongside the original text in the same page.
 

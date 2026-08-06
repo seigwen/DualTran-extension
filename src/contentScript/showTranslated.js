@@ -1,5 +1,5 @@
 /**
- * 在已翻译过但之后又显示原文的页面悬停显译文
+ * Hover to show translated text on pages that were translated then restored to original
  */
 
 console.log("showTranslated.js is running")
@@ -10,7 +10,7 @@ import platformInfo from "../lib/platformInfo.js"
 import { getAiImproveTranslationTooltipText } from "./i18n.js"
 import { backgroundTranslateSingleText, pageTranslator, aiTranslateText } from "./pageTranslator.js"
 
-// 这个对象似乎没有地方用到?????
+// This object seems unused?????
 var showTranslated = {};
 
 /**
@@ -25,7 +25,7 @@ var showTranslated = {};
  */
 
 /**
- * 获取tab主机名
+ * Get tab hostname
  * @returns 
  */
 function getTabHostName() {
@@ -40,7 +40,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   console.log("showTranslated.js promise.all is resolved")
 
   const tabHostName = _[1];
-  // 移动平台上,不允许showOriginal的任何相关操作(悬停显示原文)
+  // On mobile, all showOriginal operations (hover to show original) are disabled
   if (platformInfo.isMobile.any) return;
 
   let styleTextContent = "";
@@ -64,23 +64,23 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     twpConfig.get("translateTextOverMouseWhenPressTwice") === "yes";
   let fooCount = 0;
 
-  // 监听配置变更事件, 以实时修改内存中的变量
+  // Watch config change events to update in-memory variables in real time
   twpConfig.onChanged(function (name, newValue) {
     switch (name) {
-      // 翻译服务设置变更
+      // Translation service setting changed
       case "textTranslatorService":
         currentTextTranslatorService =
           newValue === "deepl" ? "google" : newValue;
         break;
-      // 目标语言设置变更
+      // Target language list setting changed
       case "targetLanguages":
         currentTargetLanguages = newValue;
         break;
-      // 目标语言设置变更
+      // Target language setting changed
       case "targetLanguageTextTranslation":
         currentTargetLanguage = newValue;
         break;
-      // 鼠标悬停翻译设置变更
+      // Mouse hover translation setting changed
       case "sitesToTranslateWhenHovering":
         showTranslatedTextWhenHoveringThisSite =
           newValue.indexOf(tabHostName) !== -1;
@@ -92,7 +92,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           newValue.indexOf(originalTabLanguage) !== -1;
         updateEventListener();
         break;
-      // 双击翻译设置变更
+      // Double-click translation setting changed
       case "translateTextOverMouseWhenPressTwice":
         translateTextOverMouseWhenPressTwice =
           twpConfig.get("translateTextOverMouseWhenPressTwice") === "yes";
@@ -132,10 +132,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     htmlTagsInlineIgnore.push("pre");
   }
 
-  // 监听配置变更事件, 以实时修改内存中的变量
+  // Watch config change events to update in-memory variables in real time
   twpConfig.onChanged((name, newvalue) => {
     switch (name) {
-      // 是否翻译pre
+      // Whether to translate <pre> elements
       case "translateTag_pre":
         const index = htmlTagsInlineIgnore.indexOf("pre");
         if (index !== -1) {
@@ -153,7 +153,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   let eTextTranslated;
   let currentNodeOverMouse;
   let timeoutHandler;
-  // 最近一次用于翻译的源文本，供 AI 改进使用
+  // Last source text used for translation, for AI improvement use
   let lastSourceText = "";
 
   function onScroll(e) {
@@ -197,15 +197,15 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   let isPlayingAudio = false;
 
   /**
-   * 播放音频
+   * Play audio
    * 
-   * @param {*} text 文字
-   * @param {*} targetLanguage  目标语言
-   * @param {*} cbOnEnded 音频播放完毕回调
+   * @param {*} text Text
+   * @param {*} targetLanguage  Target language
+   * @param {*} cbOnEnded Callback when audio playback ends
    */
   function playAudio(text, targetLanguage, cbOnEnded = () => { }) {
     isPlayingAudio = true;
-    // 文字转语音
+    // Text to speech
     chrome.runtime.sendMessage(
       {
         action: "textToSpeech",
@@ -234,7 +234,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   let prevNode = null;
 
   /**
-   * 翻译划词选择的节点
+   * Translate the selected node
    * 
    * @param {*} node 
    * @param {*} usePrevNode 
@@ -319,10 +319,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
     if (!text || text.length < 1 || text.length > 1000) return;
 
-    // 记录源文本，供 AI 改进用
+    // Record source text for AI improvement use
     lastSourceText = text;
 
-    // 翻译
+    // Translate
     backgroundTranslateSingleText(
       currentTextTranslatorService,
       currentTargetLanguage,
@@ -342,7 +342,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         } else {
           eTextTranslated.setAttribute("dir", "ltr");
         }
-        // 在翻译结果框显示翻译结果
+        // Display translation result in the result box
         eTextTranslated.textContent = result;
 
         const eDivResult = shadowRoot.getElementById("eDivResult");
@@ -368,7 +368,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 处理拖曳
+   * Handle drag-and-drop
    * 
    * @param {*} elmnt 
    * @param {*} elmnt2 
@@ -416,13 +416,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 初始化翻译结果框
+   * Initialize translation result box
    * 
    * @returns 
    */
   function init() {
     destroy();
-  // 防止与划词框并存
+  // Prevent coexistence with selection popup
   if (/** @type {any} */ (window).isTranslatingSelected) return;
 
     divElement = document.createElement("div");
@@ -595,25 +595,25 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       sGoogle.classList.add("selected");
     };
 
-    // 配置 AI 改进按钮
+    // Configure AI improve button
     if (sOpenAI) {
-      // 准备 tooltip
+      // Prepare tooltip
       let tooltip = document.createElement("span");
       tooltip.textContent = getAiImproveTranslationTooltipText();
       tooltip.classList.add("dualtran-ai-tooltip");
       sOpenAI.appendChild(tooltip);
-      // 在 shadowRoot 内部加入最小样式，避免影响全局
+      // Add minimal styles inside shadowRoot to avoid affecting the page
       const aiStyle = document.createElement("style");
       aiStyle.textContent = `
         .dualtran-ai-tooltip{ display:none; }
-        /* AI 按钮默认淡灰、选中深灰 */
+        /* AI button: default light gray, selected dark gray */
         #sOpenAI{ background-color:#bbb; color:#fff; }
         #sOpenAI.selected{ background-color:#666; color:#fff; }
         #sOpenAI:hover{ background-color:#c9c9c9; }
       `;
       shadowRoot.appendChild(aiStyle);
 
-      // 映射所需属性，复用 aiTranslateText 逻辑
+      // Map required properties, reuse aiTranslateText logic
       sOpenAI.tooltip = tooltip;
       sOpenAI.translationStatus = null;
       sOpenAI.translatedTextNode = eTextTranslated;
@@ -624,11 +624,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       sOpenAI.addEventListener("click", () => {
         const src = (lastSourceText || "").trim();
         if (!src) return;
-        // 每次点击先还原按钮文案
+        // Reset button text on each click
         if (btnAiTxtNode) btnAiTxtNode.textContent = "AI";
         sOpenAI.style.color = "white";
         sOpenAI.classList.add("selected");
-        // 设置源文本并触发 AI 翻译
+        // Set source text and trigger AI translate
         sOpenAI.sourceString = src;
         aiTranslateText([sOpenAI], true);
       });
@@ -713,7 +713,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
     document.body.appendChild(divElement);
 
-    // 翻译结果框的国际化
+    // Translation result box i18n
   /** @type {any} */ (chrome.i18n).translateDocument(shadowRoot);
 
     const targetLanguageButtons = shadowRoot.querySelectorAll(
@@ -764,7 +764,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 销毁翻译结果框
+   * Destroy translation result box
    */
   function destroy() {
     fooCount++;

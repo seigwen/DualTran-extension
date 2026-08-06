@@ -1,8 +1,10 @@
 "use strict";
 
 /**
- * 这个模块定义了内置的AI提供商列表，并提供了一个函数来合并内置、远程和用户定义的提供商注册表。
- * 它还提供了一个工厂函数来创建一个提供商注册表实例，以及一个静态函数来根据已知ID查找API基础URL。
+ * Defines the built-in AI provider list and provides functions to merge
+ * built-in, remote, and user-defined provider registries.
+ * Also provides a factory function to create a provider registry instance,
+ * and a static function to look up API base URLs by known IDs.
  */
 
 import { validateProviderDefinition } from "./providerTypes.js";

@@ -1,10 +1,10 @@
 "use strict";
 
 /**
- * 统一 UI：所有供应商共用 #genericAiSettings 面板（标签和模型由 JS 动态填充）。
+ * Unified UI: all providers share the #genericAiSettings panel (labels and models are dynamically populated by JS).
  */
 
-/** @deprecated 保留仅用于测试兼容 — 所有供应商统一走 genericAiSettings */
+/** @deprecated Kept only for test compatibility — all providers use genericAiSettings */
 export const AI_PROVIDER_SETTING_IDS = {};
 
 /**

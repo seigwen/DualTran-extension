@@ -1,5 +1,5 @@
 /**
- * 后台翻译服务
+ * Background translation service
  */
 
 "use strict";
@@ -249,7 +249,7 @@ const translationService = (function () {
    */
   class Service {
     /**
-     * Returns a string with additional parameters to be concatenated to the request URL.(获取url参数)
+     * Returns a string with additional parameters to be concatenated to the request URL.
      * @callback callback_cbParameters
      * @param {string} sourceLanguage
      * @param {string} targetLanguage
@@ -348,7 +348,6 @@ const translationService = (function () {
     }
 
     /**
-     * 准备请求列表
      * Receives the `sourceArray2d` parameter and prepares the requests.
      * Calls `cbTransformRequest` for each `sourceArray` of `sourceArray2d`.
      * The `currentTranslationsInProgress` array will be the **final result** with requests already completed or in progress. 
@@ -378,7 +377,7 @@ const translationService = (function () {
           // Takes `sourceArray` and returns a request string to the translation service.
           this.cbTransformRequest(sourceArray)
         );
-        // requestHash是字符串, 等于 `sourceLanguage+","+targetLanguage+","+requestString`
+        // requestHash is a string: `sourceLanguage + "," + targetLanguage + "," + requestString`
         const requestHash = [
           sourceLanguage,
           targetLanguage,
@@ -386,13 +385,13 @@ const translationService = (function () {
         ].join(", ");
 
         // progressInfo: TranslationInfo
-        // 格式类似于这样:{originalText: '<pre>YouTube</pre>', translatedText: '<pre>YouTube</pre>', detectedLanguage: 'en', waitTranlate: Promise}
+        // Format: {originalText: '<pre>YouTube</pre>', translatedText: '<pre>YouTube</pre>', detectedLanguage: 'en', waitTranlate: Promise}
         const progressInfo = this.translationsInProgress.get(requestHash);
-        // 当前有一模一样的request
+        // Identical request already in progress
         if (progressInfo) {
           currentTranslationsInProgress.push(progressInfo);
         }
-        // 当前没有一模一样的request
+        // No matching request in progress
         else {
           /** @type {TranslationStatus} */
           let status = "translating";
@@ -451,7 +450,6 @@ const translationService = (function () {
     }
 
     /**
-     * 发出请求列表里的所有请求
      * Makes a request using the *XMLHttpRequest* API. Returns a promise that will be resolved with the result of the request. If the request fails, the promise will be rejected.
      * @param {string} sourceLanguage
      * @param {string} targetLanguage
@@ -566,7 +564,6 @@ const translationService = (function () {
     }
 
     /**
-     * 翻译HTML: 根据参数准备请求列表, 然后全部发出(google translate api允许参数是HTML格式,)
      * Translates the `sourceArray2d`.
      *
      * If `dontSaveInPersistentCache` is **true** then the translation result will not be saved in the on-disk translation cache, only in the in-memory cache.
@@ -588,7 +585,7 @@ const translationService = (function () {
       dontSortResults = false
     ) {
 
-      // 准备requests数组
+      // Build requests array
       const [requests, currentTranslationsInProgress] = await this.getRequests(
         sourceLanguage,
         targetLanguage,
@@ -596,13 +593,13 @@ const translationService = (function () {
       );
       /** @type {Promise<void>[]} */
       const promises = [];
-      // 发出所有request数组里的所有request
+      // Dispatch all requests
       for (const request of requests) {
         promises.push(
           this.makeRequest(sourceLanguage, targetLanguage, request)
             .then((response) => {
 
-              // 执行响应解析的回调函数,得到results
+              // Parse response to get results
               const results = this.cbParseResponse(response);
 
               for (const idx in request) {
@@ -1220,8 +1217,9 @@ const translationService = (function () {
     }
 
     /**
-     * Edge 免费接口偶发拿不到 token 或直接拒绝请求。
-     * 这时回退到现有 Bing 实现，保证“微软翻译”至少还能正常产出双语内容。
+     * Edge free endpoint occasionally fails to acquire a token or rejects requests outright.
+     * In those cases, fall back to the existing Bing implementation so “Microsoft Translate”
+     * still produces bilingual output.
      * @param {string} sourceLanguage
      * @param {string} targetLanguage
      * @param {Array<string[]>} sourceArray2d
@@ -1355,7 +1353,8 @@ const translationService = (function () {
             return "";
           });
 
-          // 如果返回维度异常或所有非空输入都变成空串，说明接口虽然返回了 200，结果仍不可用。
+          // If the response array shape is wrong or all non-empty inputs mapped to empty strings,
+          // the API returned 200 but the results are unusable.
           if (
             !Array.isArray(data) ||
             data.length !== sourceArray.length ||
@@ -1425,7 +1424,7 @@ const translationService = (function () {
   );
 
   /**
-   * 翻译元素列表(二维列表)
+   * Translate element list (2D array)
    * 
    * @param {*} serviceName 
    * @param {*} sourceLanguage 
@@ -1460,7 +1459,7 @@ const translationService = (function () {
   };
 
   /**
-   * 翻译属性列表(一维列表)
+   * Translate text array (1D array)
    * @param {*} serviceName 
    * @param {*} sourceLanguage 
    * @param {*} targetLanguage 
@@ -1486,14 +1485,14 @@ const translationService = (function () {
       await service.translate(
         sourceLanguage,
         targetLanguage,
-        [sourceArray], // sourceArray放入数组内,从而构成一个二维数组
+        [sourceArray], // Wrap in array to form a 2D array
         dontSaveInPersistentCache
       )
     )[0];
   };
 
   /**
-   * 翻译单串字符串
+   * Translate a single string
    * @param {*} serviceName 
    * @param {*} sourceLanguage 
    * @param {*} targetLanguage 
@@ -1519,13 +1518,13 @@ const translationService = (function () {
       await service.translate(
         sourceLanguage,
         targetLanguage,
-        [[originalText]], // 文本装入二维数组
+        [[originalText]], // Wrap text into 2D array
         dontSaveInPersistentCache
       )
     )[0][0];
   };
 
-  // 监听页面发的翻译请求, 进行翻译
+  // Listen for translation requests from content scripts
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log(222222222, request)
     // If the translation request came from an incognito window, the translation should not be cached on disk.
@@ -1533,7 +1532,7 @@ const translationService = (function () {
     if (request.action === "translateHTML") {
       console.log(333333333333)
       translationService
-        .translateHTML(  // 翻译元素列表(二维列表)
+        .translateHTML(
           request.translationService,
           "auto",
           request.targetLanguage,
@@ -1557,7 +1556,7 @@ const translationService = (function () {
       return true;
     } else if (request.action === "translateText") {
       translationService
-        .translateText( // 翻译属性列表(一维列表)
+        .translateText(
           request.translationService,
           "auto",
           request.targetLanguage,
@@ -1573,7 +1572,7 @@ const translationService = (function () {
       return true;
     } else if (request.action === "translateSingleText") {
       translationService
-        .translateSingleText(  // 翻译单串字符串
+        .translateSingleText(
           request.translationService,
           "auto",
           request.targetLanguage,

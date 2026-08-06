@@ -6,9 +6,10 @@ import "./i18n.js"
 
 const twpLang = (function () {
   /**
-   * 其实更好的方法是引入"iso-639-1"这个npm包
-   * ISO 639-1 是国际标准化组织(ISO)制定的语言代码标准,使用两个字母来表示语言。
-   * iso-639-1这个npm包提供了一个简单的接口来获取语言代码和名称之间的映射关系。
+   * Ideally we would use the "iso-639-1" npm package.
+   * ISO 639-1 is a language code standard defined by the International Organization for Standardization (ISO),
+   * using two-letter codes for languages. The iso-639-1 npm package provides a simple interface for
+   * language code ↔ name mapping.
    */
   const allLanguagesNames = {
     en: {
@@ -5428,7 +5429,7 @@ const twpLang = (function () {
   };
 
   /**
-   * 以下配置借鉴了openai-translator, 主要使用了其中的phoneticNotation
+   * The following configuration is adapted from openai-translator, primarily using phoneticNotation
    */
   twpLang.otherConfigs =  {
     // English

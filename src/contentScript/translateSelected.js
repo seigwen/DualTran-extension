@@ -1,19 +1,19 @@
 /**
- * 划词翻译。
+ * Selected text translation.
  * 
- * 用户在网页上选择文本后, 显示划词按钮, 点击划词按钮后, 即弹出翻译窗口并进行翻译. 允许用户选择翻译引擎和目标语言, 还允许复制译文, 朗读原文和译文等.
+ * After the user selects text on a web page, a translate button appears. Clicking it opens a translation window and performs the translation. Users can choose the translation engine and target language, and also copy the translation, read aloud the original text and translation, etc.
  * 
- * 本文件适用于chrome浏览器。chrome等没有browserAction.setPopup接口的浏览器,需要从sw.js向contentScript发送消息,content script里再调用translateSelected.js里的相关函数弹出翻译窗口(动态创建的div)
- * 对于firefox等有browserAction.setPopup接口的浏览器,可以在sw.js直接调用browserAction.setPopup()弹出\src\popup\popup-translate-text.html
+ * This file is for Chrome browser. Browsers like Chrome that lack the browserAction.setPopup API need to send messages from sw.js to contentScript, and the content script then calls relevant functions in translateSelected.js to pop up the translation window (a dynamically created div)
+ * For browsers like Firefox that have the browserAction.setPopup API, sw.js can directly call browserAction.setPopup() to open \src\popup\popup-translate-text.html
  */
 
-// DONE: 对单词进行AI翻译时, 词源不是以目标语言解释的。已修复
+// DONE: When doing AI translation for words, the etymology was not explained in the target language. Fixed.
 
 
-// TODO: 提高语言检测准确性: 对单个单词进行语言检测时,很容易检测错误,比如properties/represents等会检测为德文
-// TODO: 对is这个单词进行AI翻译时,会列出非常非常多的义项,其实根本没必要
+// TODO: Improve language detection accuracy: single words are easily misdetected, e.g. properties/represents are detected as German
+// TODO: When doing AI translation for the word "is", far too many definitions are listed, which is really unnecessary
 
-const TRANSLATION_TIMEOUT_MS = 10000; // 超时时间（毫秒）
+const TRANSLATION_TIMEOUT_MS = 10000; // Timeout duration (milliseconds)
 
 console.log("translateSelected.js is running")
 
@@ -37,7 +37,7 @@ import {
   formatAiTranslationError,
 } from "./aiUiState.js"
 
-// 这个对象没有被用到??
+// This object is not being used??
 var translateSelected = {};
 
 const GOOGLE_BUTTON_LABEL = "google";
@@ -85,7 +85,7 @@ function getTabHostName() {
 }
 
 /**
- * 用AI翻译
+ * Translate with AI
  * @param {Array<Element>} toBeTranslated 
  * @returns 
  */
@@ -94,19 +94,19 @@ let aiTranslateWord = async (toBeTranslated, showToastForError = true) => {
   let btnAi = toBeTranslated[0]
   let hasAiStreamError = false
 
-  // contentSequence为空字符串, 则退出
+  // If contentSequence is empty string, exit
   if (!(btnAi.sourceString.trim().length)) {
-    console.log("contentSequence为空字符串")
+    console.log("contentSequence is empty")
     return
   }
 
-  // 如果正在翻译中, 则退出
+  // If already translating, exit
   btnAi.translationStatus = "queuing"
   btnAi.btnAiTxtNode.textContent = "queuing"
 
-  // 目标语言采用“文本翻译”的目标语言
+  // Use the “text translation” target language as the target language
   const targetLanguageCodeForAI = twpConfig.get("targetLanguageTextTranslation") || twpConfig.get("targetLanguage")
-  // 如果缓存里有相同原文且相同目标语言,则直接使用缓存
+  // If the cache has the same source text and target language, use the cache directly
   let cacheItem = aiCache.find(item => btnAi.sourceString === item.original && item.targetLanguage === targetLanguageCodeForAI)
   if (cacheItem) {
     applyAiSuccessState(btnAi, {
@@ -118,10 +118,10 @@ let aiTranslateWord = async (toBeTranslated, showToastForError = true) => {
     return
   }
 
-  // 开始翻译
+  // Start translation
   let accumulatedText = ""
 
-  // 定义响应解析函数
+  // Define response parsing function
   let onMessage = (msg) => {
     console.log(9999, 'received message', msg)
 
@@ -142,7 +142,7 @@ let aiTranslateWord = async (toBeTranslated, showToastForError = true) => {
     }
 
     if (parsedChunk.kind === "parse-error") {
-      console.log("解析响应出错1", parsedChunk.error)
+      console.log("Response parsing error 1", parsedChunk.error)
       hasAiStreamError = true
       showToastForError = true
       notifyAiStreamParseError({
@@ -184,11 +184,11 @@ let aiTranslateWord = async (toBeTranslated, showToastForError = true) => {
         tooltipColor: "darkgreen...",
       })
     } catch (e) {
-      console.log("解析响应出错2", e)
+      console.log("Response parsing error 2", e)
     }
   }
 
-  // 定义错误处理函数
+  // Define error handling function
   let onError = (err) => {
     hasAiStreamError = true
     chrome.runtime.sendMessage({
@@ -197,7 +197,7 @@ let aiTranslateWord = async (toBeTranslated, showToastForError = true) => {
       timeStamp: Date.now()
     })
 
-    // 构造错误提示文案：若为超时，显示“server response timeout”；否则同时展示 code 与 message（若存在）
+    // Build error message: if timeout, show “server response timeout”; otherwise show both code and message (if present)
     const errTxt = formatAiTranslationError(err)
     console.log(999999, err)
 
@@ -223,20 +223,20 @@ let aiTranslateWord = async (toBeTranslated, showToastForError = true) => {
     }
   }
 
-  // 定义完成处理函数
+  // Define completion handler
   let onFinished = () => {
     if (hasAiStreamError) {
       console.log("onFinished skipped due to previous error")
       return
     }
     console.log("onFinished is called")
-    // 确保移除 loading 状态
+    // Ensure loading state is removed
     applyAiSuccessState(btnAi, {
       translatedTextColor: twpConfig.get("aiTranslatedColor"),
       tooltipText: "AI translated successfully!",
       titleText: "AI translated successfully!",
     })
-    // 写入缓存（按原文 + 目标语言区分）
+    // Write to cache (keyed by source text + target language)
     try {
       aiCache.push({
         original: btnAi.sourceString,
@@ -246,12 +246,12 @@ let aiTranslateWord = async (toBeTranslated, showToastForError = true) => {
     } catch (_) { }
   }
 
-  // 构建中止控制器
+  // Build abort controller
   const controller = new AbortController();
   abortControllers.push(controller)
   const signal = controller.signal;
 
-  // 开始调用AI翻译
+  // Start calling AI translation
   translateWithAI(btnAi.sourceString, onMessage, onError, onFinished, signal, true, targetLanguageCodeForAI)
 }
 
@@ -261,36 +261,36 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   const tabHostName = _[1];
 
   /**
-   * 选定文本的信息
+   * Selected text info
    */
   let gSelectionInfo;
   /**
-   * 上一次选定文本的信息
+   * Previous selected text info
    */
   let prevSelectionInfo;
 
   /**
-   * 划词窗口的父元素(shwoDOM的host)
+   * Parent element of the translation popup (host of shadow DOM)
    */
   let divElement;
   /**
-   * 划词后显示的图标按钮(点击后显示划词窗口)
+   * Icon button shown after text selection (click to show translation popup)
    */
   let eButtonTransSelText;
   /**
-   * 划词窗口
+   * Translation popup window
    */
   let eDivResult;
   /**
-   * 显示译文的元素
+   * Element that displays the translated text
    */
   let eSelTextTrans;
   /**
-   * 显示原始文本的元素
+   * Element that displays the original text
    */
   let eOrigText;
   /**
-   * 显示原始文本的元素的父元素
+   * Parent element of the original text display element
    */
   let origTextContainer;
   let sOpenAI = null;
@@ -298,45 +298,45 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   let updateTranslatorButtonState = null;
 
   /**
-   * 从配置文件获取配置, 赋值给内存变量
+   * Load config from configuration and assign to memory variables
    */
 
-  // tab原语言
+  // Original tab language
   let originalTabLanguage = "und";
-  // 当前目标语言列表
+  // Current target language list
   let currentTargetLanguages = twpConfig.get("targetLanguages");
-  // 当前目标语言
+  // Current target language
   let currentTargetLanguage = twpConfig.get("targetLanguageTextTranslation");
-  // 当前翻译服务
+  // Current translation service
   let currentTextTranslatorService = twpConfig.get("textTranslatorService") || "google";
   let activeTextTranslatorService =
     currentTextTranslatorService === "google" ? "google" : "ai";
-  // 总是翻译此网站
+  // Always translate this site
   let alwaysTranslateThisSite =
     twpConfig.get("alwaysTranslateSites").indexOf(tabHostName) !== -1;
-  // 可翻译此网站(从不翻译此网站的反值)
+  // Can translate this site (inverse of never translate this site)
   let translateThisSite =
     twpConfig.get("neverTranslateSites").indexOf(tabHostName) === -1;
-  // 可翻译此语言(从不翻译此语言的反值)
+  // Can translate this language (inverse of never translate this language)
   let translateThisLanguage =
     twpConfig.get("neverTranslateLangs").indexOf(originalTabLanguage) === -1;
-  // 是否在选中文本侧边显示"翻译"图标
+  // Whether to show "translate" icon next to selected text
   let showTranslateSelectedButton = twpConfig.get(
     "showTranslateSelectedButton"
   );
-  // 当语言是目标语言时不显示划词翻译弹出框
+  // Don't show translation popup when page language is the target language
   let dontShowIfPageLangIsTargetLang = twpConfig.get(
     "dontShowIfPageLangIsTargetLang"
   );
-  // 当语言是未知语言时不显示划词翻译弹出框
+  // Don't show translation popup when page language is unknown
   let dontShowIfPageLangIsUnknown = twpConfig.get(
     "dontShowIfPageLangIsUnknown"
   );
-  // 当选中文本是目标语言时不显示划词翻译弹出框
+  // Don't show translation popup when selected text is in the target language
   let dontShowIfSelectedTextIsTargetLang = twpConfig.get(
     "dontShowIfSelectedTextIsTargetLang"
   );
-  // 当选中文本是目标语言时不显示划词翻译弹出框
+  // Don't show translation popup when selected text language is unknown
   let dontShowIfSelectedTextIsUnknown = twpConfig.get(
     "dontShowIfSelectedTextIsUnknown"
   );
@@ -345,7 +345,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   let panelLockedPosition = null;
   let panelAppliedRevision = -1;
 
-  // 获取页面原始语言, 更新对应变量
+  // Get page original language, update corresponding variables
   pageTranslator.onGetOriginalTabLanguage(function (tabLanguage) {
     originalTabLanguage = tabLanguage;
     translateThisLanguage =
@@ -356,7 +356,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   let isPlayingAudio = false;
 
   /**
-   * 播放音频
+   * Play audio
    * @param {*} text 
    * @param {*} targetLanguage 
    * @param {*} cbOnEnded 
@@ -378,7 +378,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
   /**
    * 
-   * @returns 停止播放音频
+   * @returns Stop playing audio
    */
   function stopAudio() {
     if (!isPlayingAudio) return;
@@ -389,9 +389,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 拖曳划词翻译窗口(鼠标放在划词窗口最下面一行时进行拖曳)
-   * @param {*} elmnt 划词窗口
-   * @param {*} elmnt2 拖曳时鼠标所在元素
+   * Drag the translation popup (drag when mouse is on the bottom bar of the popup)
+   * @param {*} elmnt Translation popup
+   * @param {*} elmnt2 Element where the mouse is during dragging
    */
   function enableDragAndDrop(elmnt, elmnt2) {
     var pos1 = 0,
@@ -405,7 +405,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
 
     /**
-     * 当mouseDown发生在拖曳栏时, 添加mouseMove和mouseUp监听
+     * When mousedown occurs on the drag bar, add mouseMove and mouseUp listeners
      * @param {*} e 
      */
     function onMouseDown(e) {
@@ -420,8 +420,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
 
     /**
-     * 此函数是mouseMove事件的响应函数. 
-     * 获取moveMove事件坐标值, 然后据此调整划词翻译窗口的坐标值
+     * This function handles the mouseMove event.
+     * Get mouseMove event coordinates and adjust the translation popup position accordingly
      * @param {*} e 
      */
     function onMouseMove(e) {
@@ -442,8 +442,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
 
     /**
-     * 此函数是mouseup事件的响应函数
-     * 去除mouseup和mouseMove事件的监听
+     * This function handles the mouseup event
+     * Remove mouseup and mouseMove event listeners
      */
     function onMouseUp() {
       // stop moving when mouse button is released:
@@ -474,7 +474,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   let isCSSLoaded = false;
 
   /**
-   * 初始化并显示划词窗口
+   * Initialize and show the translation popup
    */
   function init() {
     destroy();
@@ -489,11 +489,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       mode: "closed",
     });
 
-    // 划词翻译窗的HTML
+    // HTML of the translation popup
     shadowRoot.innerHTML = `
-    <!--划词后显示的图标按钮(点击后显示划词窗口)-->
+    <!--Icon button shown after text selection (click to show translation popup)-->
     <div id="eButtonTransSelText" style="display: none"></div>
-    <!--划词窗口-->
+    <!--Translation popup window-->
 		<div id="eDivResult" style="display: none">
       <div id="drag" 
         style="
@@ -508,17 +508,17 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         DualTran
       </div>
 
-      <!--原文部分-->
+      <!--Original text section-->
 			<div id="origTextContainer">
-        <!--原文-->
+        <!--Original text-->
 				<div>
 					<div id="eOrigText" contentEditable="true" spellcheck="false" dir="auto"></div>
 					<hr>
 				</div>
 				<ul>
-          <!--"朗读"按钮-->
+          <!--"Listen" button-->
           <li title="Listen" data-i18n-title="btnListen" id="listenOriginal">
-            <!--"复制"按钮-->
+            <!--"Copy" button-->
             <svg id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="10px" height="10px" viewBox="0 0 93.038 93.038"
               style="enable-background:new 0 0 93.038 93.038;" xml:space="preserve">
               <g>
@@ -538,13 +538,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           </li>
         </ul>
 			</div>
-      <!--译文部分-->
+      <!--Translation section-->
 			<div id="transTextContainer">
-        <!--译文-->
+        <!--Translation-->
 				<div id="eSelTextTrans" dir="auto"></div>
-        <!--按钮行-->
+        <!--Button row-->
 				<ul>
-          <!--朗读译文按钮-->
+          <!--Listen to translation button-->
 					<li title="Listen" data-i18n-title="btnListen" id="listenTranslated">
 						<svg id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="10px" height="10px" viewBox="0 0 93.038 93.038"
 							style="enable-background:new 0 0 93.038 93.038;" xml:space="preserve">
@@ -563,7 +563,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 						</g>
 						</svg>
 					</li>
-          <!--复制译文按钮-->
+          <!--Copy translation button-->
 					<li title="Copy" data-i18n-title="btnCopy" id="copy">
 						<svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 						<path d="M13 7H7V5H13V7Z" fill="currentColor" />
@@ -572,7 +572,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 						<path fill-rule="evenodd" clip-rule="evenodd" d="M3 19V1H17V5H21V23H7V19H3ZM15 17V3H5V17H15ZM17 7V19H9V21H19V7H17Z" fill="currentColor"/>
 						</svg>
 					</li>
-          <!--???按钮-->
+          <!--??? button-->
 					<li title="Replace" data-i18n-title="btnReplace" id="replace" hidden>
 						<svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 						<path
@@ -583,9 +583,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 					</li>
 				</ul>
 			</div>
-      <!--按钮栏-->
+      <!--Button bar-->
       <div style="display: flex; justify-content: space-between; flex-direction: row;">
-        <!--目标语言-->
+        <!--Target language-->
         <ul id="setTargetLanguage" style="position:relative;">
           <li value="en" title="English">en</li>
           <li value="es" title="Spanish">es</li>
@@ -593,9 +593,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           <li id="btnMoreTargetLang" title="More languages">+</li>
           <select id="selectMoreTargetLang" style="display:none; position:absolute; bottom:100%; left:0; max-width:140px; font-size:12px; padding:2px; background:#1c1b1b; color:#fff; border:1px solid #555; border-radius:3px;"></select>
         </ul>
-        <!--是否显示原文-->
+        <!--Whether to show original text-->
         <div id="moreOrLess" style="display:block"><i class="arrow up" id="showOriginalText"></i><i class="arrow down" id="hideOriginalText"></i></div>        
-        <!--翻译服务-->
+        <!--Translation service-->
         <ul>
           <li title="Google" id="sGoogle">google</li>
           <li title="openAI" id="sOpenAI" style="color: white;">
@@ -606,7 +606,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 		</div>
         `;
 
-    // 插入划词翻译框需要的CSS 
+    // Insert CSS needed for the translation popup
     const link = document.createElement("link");
     link.setAttribute("rel", "stylesheet");
     link.setAttribute(
@@ -774,7 +774,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     sOpenAI = shadowRoot.getElementById("sOpenAI");
     const btnAiTxtNode = shadowRoot.getElementById("btnAiTxtNode");
 
-    // 模拟btnAi
+    // Simulate btnAi
     let tooltip = document.createElement("span")
     tooltip.textContent = getAiImproveTranslationTooltipText()
     tooltip.classList.add("dualtran-ai-tooltip")
@@ -793,7 +793,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     `;
     shadowRoot.appendChild(el);
 
-    // 将 tooltip 文案同步到原生 title（避免默认 title="openAI" 导致悬浮只显示固定文案）
+    // Sync tooltip text to native title (to avoid default title="openAI" always showing fixed text on hover)
     try { sOpenAI.setAttribute("title", tooltip.textContent || "") } catch (_) { }
     try {
       const syncTitle = () => {
@@ -801,7 +801,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       };
       const observer = new MutationObserver(syncTitle);
       observer.observe(tooltip, { childList: true, characterData: true, subtree: true });
-      // 立即同步一次
+      // Sync once immediately
       syncTitle();
     } catch (_) { }
 
@@ -876,11 +876,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     const eCopy = shadowRoot.getElementById("copy");
     const eReplace = shadowRoot.getElementById("replace");
     /**
-     * 原始文本的"朗读"按钮
+     * "Listen" button for original text
      */
     const eListenOriginal = shadowRoot.getElementById("listenOriginal");
     /**
-     * 译文的"朗读"按钮
+     * "Listen" button for translated text
      */
     const eListenTranslated = shadowRoot.getElementById("listenTranslated");
 
@@ -896,7 +896,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
 
     /**
-     * 复制翻译后文本  
+     * Copy translated text  
      */
     eCopy.onclick = () => {
       if (navigator.clipboard) {
@@ -943,7 +943,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     };
 
     /**
-     * 把旧文本替换为新文本
+     * Replace old text with new text
      */
     function replaceText() {
       const prevSelInfo = prevSelectionInfo;
@@ -994,9 +994,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
     let translateNewInputTimerHandler;
     eOrigText.oninput = () => {
-      // 复位
+      // Reset
       btnAiTxtNode.textContent = "AI"
-      // 重置 tooltip 文案并同步到 title，避免保留上一次错误/成功提示
+      // Reset tooltip text and sync to title, to avoid retaining previous error/success message
       try {
         tooltip.textContent = getAiImproveTranslationTooltipText();
         sOpenAI.setAttribute("title", tooltip.textContent || "");
@@ -1026,14 +1026,14 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
     setTranslatorButtonState(currentTextTranslatorService === "google" ? "google" : "ai");
 
-    // "更多/更少"按钮的点击事件响应
+    // Click event handler for "more/less" button
     eMoreOrLess.onclick = () => {
       if (twpConfig.get("expandPanelTranslateSelectedText") === "no") {
         twpConfig.set("expandPanelTranslateSelectedText", "yes");
       } else {
         twpConfig.set("expandPanelTranslateSelectedText", "no");
       }
-      // 保持页面原有选区，不在面板展开/收起时强制将光标移动到面板输入框
+      // Preserve the page's existing selection, don't force cursor to panel input on expand/collapse
     };
 
     sGoogle.onclick = () => {
@@ -1100,7 +1100,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     };
 
     /**
-     * 朗读
+     * Listen
      * @param {*} type "original" or "translated"
      * @param {*} element 
      * @param {*} text 
@@ -1130,7 +1130,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     let lastListenAudioType = null;
 
     /**
-     * "朗读"原文
+     * "Listen" to original text
      */
     eListenOriginal.onclick = async () => {
       let { lang, isReliable } = await detectTextLanguage(
@@ -1147,7 +1147,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     };
 
     /**
-     * "朗读"译文
+     * "Listen" to translation
      */
     eListenTranslated.onclick = () => {
       if (lastListenAudioType !== "translated") {
@@ -1173,7 +1173,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
 
     /**
-     * 点击划词图标后,进行翻译
+     * Translate when the selection icon is clicked
      */
     eButtonTransSelText.addEventListener("click", onClick);
     document.addEventListener("mousedown", onDown);
@@ -1182,7 +1182,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       "#setTargetLanguage li"
     );
 
-    // 目标语言元素
+    // Target language elements
     for (let i = 0; i < 3; i++) {
       if (currentTargetLanguages[i] == currentTargetLanguage) {
         targetLanguageButtons[i].classList.add("selected");
@@ -1195,11 +1195,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       );
     }
 
-    // "更多语言"按钮和下拉框
+    // "More languages" button and dropdown
     const btnMore = shadowRoot.getElementById("btnMoreTargetLang");
     const selectMore = shadowRoot.getElementById("selectMoreTargetLang");
 
-    // 填充全部语言到下拉框
+    // Populate all languages into the dropdown
     const allLangs = twpLang.getLanguageList();
     const sorted = Object.entries(allLangs).sort((a, b) => (a[1] || "").localeCompare(b[1] || ""));
     selectMore.innerHTML = "";
@@ -1211,7 +1211,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       selectMore.appendChild(opt);
     });
 
-    /** 刷新三个语言按钮的显示文本和高亮状态 */
+    /** Refresh the display text and highlight state of the three language buttons */
     function refreshLanguageButtons() {
       const langs = twpConfig.get("targetLanguages") || [];
       for (let i = 0; i < 3 && i < targetLanguageButtons.length && i < langs.length; i++) {
@@ -1223,7 +1223,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         targetLanguageButtons[i].classList.remove("selected");
       }
       btnMore.classList.remove("selected");
-      // 高亮匹配的按钮
+      // Highlight the matching button
       const activeIdx = langs.indexOf(currentTargetLanguage);
       if (activeIdx >= 0 && activeIdx < 3) {
         targetLanguageButtons[activeIdx].classList.add("selected");
@@ -1232,14 +1232,14 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       }
     }
 
-    // 点击"+"按钮 → 展开为多行列表，直接显示所有语言
+    // Click "+" button → expand to multi-line list showing all languages
     btnMore.addEventListener("click", (ev) => {
       ev.stopPropagation();
       selectMore.querySelectorAll("option").forEach((opt) => {
         opt.selected = (opt.value === currentTargetLanguage);
       });
 
-      // 定位：用 fixed 定位避免被弹窗裁切
+      // Positioning: use fixed positioning to avoid being clipped by popups
       const btnRect = btnMore.getBoundingClientRect();
       selectMore.style.position = "fixed";
       selectMore.style.top = "auto";
@@ -1247,29 +1247,29 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       selectMore.style.left = btnRect.left + "px";
       selectMore.style.zIndex = "2147483647";
 
-      selectMore.size = Math.min(sorted.length, 15); // 展开为可见列表（最多15行）
+      selectMore.size = Math.min(sorted.length, 15); // Expand to visible list (max 15 rows)
       selectMore.style.display = "inline-block";
       btnMore.style.display = "none";
       selectMore.focus();
     });
 
-    // 收起下拉框
+    // Collapse the dropdown
     function collapseSelectMore() {
       selectMore.size = 1;
       selectMore.style.display = "none";
       btnMore.style.display = "";
     }
 
-    // 选择语言 → 提升为首选收藏，翻译，刷新按钮
+    // Select language → promote to top favorite, translate, refresh buttons
     selectMore.addEventListener("change", () => {
       const code = selectMore.value;
       if (!code) return;
 
-      // 将该语言提升为首选收藏语言
+      // Promote this language to the top favorite
       let langs = twpConfig.get("targetLanguages") || [];
-      langs = langs.filter((l) => l !== code); // 去重
-      langs.unshift(code);                     // 插入首位
-      langs = langs.slice(0, 3);               // 只保留前 3 个
+      langs = langs.filter((l) => l !== code); // Remove duplicates
+      langs.unshift(code);                     // Insert at first position
+      langs = langs.slice(0, 3);               // Keep only first 3
       twpConfig.set("targetLanguages", langs);
 
       currentTargetLanguage = code;
@@ -1280,12 +1280,12 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       collapseSelectMore();
     });
 
-    // 失焦时关闭下拉框（但不触发翻译）
+    // Close dropdown on blur (but don't trigger translation)
     selectMore.addEventListener("blur", () => {
       setTimeout(() => collapseSelectMore(), 150);
     });
 
-    // 翻译引擎元素
+    // Translation engine elements
     // if (currentTextTranslatorService === "yandex") {
     //   sYandex.classList.add("selected");
     // } else if (currentTextTranslatorService == "deepl") {
@@ -1303,7 +1303,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     //   sDeepL.setAttribute("hidden", "");
     // }
 
-    // 划词翻译窗口是否显示原文
+    // Whether to show original text in the translation popup
     if (
       twpConfig.get("expandPanelTranslateSelectedText") === "yes" ||
       (prevSelectionInfo &&
@@ -1357,7 +1357,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 销毁划词翻译窗口. 移除监听
+   * Destroy the translation popup. Remove listeners
    * @returns 
    */
   function destroy() {
@@ -1389,7 +1389,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
   }
 
-  // 监听配置变更事件, 更新内存里的值
+  // Listen for config change events, update in-memory values
   twpConfig.onChanged(function (name, newValue) {
     switch (name) {
       case "textTranslatorService":
@@ -1486,9 +1486,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 更新译文显示元素以显示最新的译文
-   * @param {string} result 译文内容
-   * @param {{ skipTextUpdate?: boolean }} [options] 是否跳过更新译文文本
+   * Update the translation display element to show the latest translation
+   * @param {string} result Translation content
+   * @param {{ skipTextUpdate?: boolean }} [options] Whether to skip updating the translation text
    */
   function update_eDivResult(result = "", { skipTextUpdate = false } = {}) {
     if (!eDivResult || eDivResult.style.display !== "block") {
@@ -1504,14 +1504,14 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       const eLeft = prevSelectionInfo.left;
 
       let shouldRevealAfterLayout = false;
-      // 始终显示弹窗骨架
+      // Always show popup skeleton
       if (eDivResult.style.display !== "block") {
         eDivResult.style.visibility = "hidden";
         eDivResult.style.display = "block";
         shouldRevealAfterLayout = true;
       }
 
-      // 设置译文显示方向
+      // Set translation text direction
       if (twpLang.isRtlLanguage(currentTargetLanguage)) {
         eSelTextTrans.setAttribute("dir", "rtl");
       } else {
@@ -1582,14 +1582,14 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
   }
 
-  // 防止点击按钮时默认行为导致页面选区折叠（保持原页面选中文本高亮）
+  // Prevent default button click behavior from collapsing page selection (preserve original page text highlight)
   if (eButtonTransSelText && typeof eButtonTransSelText.addEventListener === "function") {
     eButtonTransSelText.addEventListener("mousedown", (ev) => {
       ev.preventDefault();
     });
   }
   /**
-   * 翻译输入的新文本
+   * Translate newly input text
    */
   function translateNewInput() {
     fooCount++;
@@ -1666,7 +1666,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 翻译选中文本, 更新划词翻译窗口的译文元素
+   * Translate selected text, update the translation element in the popup
    * @param {*} usePrevSelectionInfo 
    * @returns 
    */
@@ -1690,7 +1690,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 翻译选中文本,隐藏划词图标按钮
+   * Translate selected text, hide the selection icon button
    * @param {*} e 
    */
   function onClick(e) {
@@ -1699,7 +1699,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 当点击划词窗口以外区域时, 隐藏划词窗口
+   * Hide the translation popup when clicking outside of it
    * @param {*} e 
    */
   function onDown(e) {
@@ -1718,7 +1718,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 获取选定文本
+   * Get selected text
    * @returns 
    */
   function getSelectionText() {
@@ -1742,7 +1742,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 读取选中文本, 以便翻译
+   * Read selected text for translation
    * @param {*} dontReadIfSelectionDontChange 
    * @returns 
    */
@@ -1812,7 +1812,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 显示划词图标 (当鼠标点击up或触摸完成时, 会调用本函数)
+   * Show the selection icon (called when mouse button is released or touch ends)
    * @param {*} e 
    * @returns 
    */
@@ -1851,7 +1851,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         eButtonTransSelText.style.top = Math.max(2, clientY - 35) + "px";
       }
 
-      // 显示划词图标
+      // Show the selection icon
       eButtonTransSelText.style.display = "block";
     }
   }
@@ -1859,7 +1859,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   let showButtonTimerHandler = null;
 
   /**
-   * 当触发MouseUp时, 读取选取区域文字, 并且显示划词图标
+   * When MouseUp is triggered, read selected text and show the selection icon
    * @param {*} e 
    * @returns 
    */
@@ -1873,7 +1873,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 当触发touchEnd时, 读取选取区域文字, 并且显示划词图标
+   * When touchEnd is triggered, read selected text and show the selection icon
    * @param {*} e 
    * @returns 
    */
@@ -1885,7 +1885,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 当选定发生变更时, 读取选定区域文字
+   * When selection changes, read the selected text
    * @param {*} e 
    */
   function onSelectionchange(e) {
@@ -1895,7 +1895,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   /**
-   * 判断当前选定的是否包含文本
+   * Check if the current selection contains text
    * @returns 
    */
   function isSelectingText() {
@@ -1925,7 +1925,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   let lastTimePressedCtrl = null;
 
   /**
-   * 当触发KeyUp时, 读取选取区域文字, 并且立即翻译
+   * When KeyUp is triggered, read selected text and translate immediately
    * @param {*} e 
    * @returns 
    */

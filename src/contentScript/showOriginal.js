@@ -1,5 +1,5 @@
 /**
- * 在已翻译页面悬停显示原文
+ * Hover to show original text on translated pages
  */
 "use strict";
 
@@ -9,12 +9,12 @@ import twpConfig from "../lib/config.js";
 import platformInfo from "../lib/platformInfo.js";
 
 /**
- * 在已翻译页面悬停显示原文
+ * Hover to show original text on translated pages
  */
 const showOriginal = {};
 
 twpConfig.onReady(function () {
-  // 移动平台上,不允许showOriginal(悬停显示原文)的任何相关操作
+  // On mobile, all showOriginal (hover to show original) operations are disabled
   if (platformInfo.isMobile.any) {
     showOriginal.enable = () => {};
     showOriginal.disable = () => {};
@@ -162,7 +162,7 @@ twpConfig.onReady(function () {
     if (showOriginalTextWhenHovering !== "yes") return;
     if (divElement) return;
 
-    // 重置鼠标悬停节点引用，避免功能重新启用后同一节点的 mouseenter 被跳过
+    // Reset mouse hover node reference to avoid skipping mouseenter on the same node after re-enabling
     currentNodeOverMouse = null;
 
     divElement = document.createElement("div");

@@ -1,6 +1,6 @@
 
 /**
- * 浮动按钮
+ * Floating button
  */
 
 console.log("floatingBtn.js is running")
@@ -16,7 +16,7 @@ import {
 var floatingBtn = {};
 
 /**
- * 获取tab的主机名
+ * Get tab hostname
  * @returns 
  */
 function getTabHostName() {
@@ -27,7 +27,7 @@ function getTabHostName() {
   );
 }
 
-// 仅在顶层窗口显示悬浮按钮，iframe 中不创建
+// Only show floating button in top-level window, skip iframes
 if (window.self !== window.top) {
   console.log("floatingBtn.js: skip iframe, only top window shows floating button");
 } else {
@@ -107,22 +107,22 @@ if (window.self !== window.top) {
   let translateThisLanguage = false;
   let showFloatingBtn = twpConfig.get("showFloatingBtn");
 
-  // 监听配置变更事件
+  // Watch config change events
   twpConfig.onChanged(function (name, newValue) {
     switch (name) {
-      // 总是翻译的网站
+      // Sites always translated
       case "alwaysTranslateSites":
         alwaysTranslateThisSite = newValue.indexOf(tabHostName) !== -1;
         console.log("will show floating button, 1111111")
         floatingBtn.show();
         break;
-      // 从不翻译的网站
+      // Sites never translated
       case "neverTranslateSites":
         translateThisSite = newValue.indexOf(tabHostName) === -1;
         console.log("will show floating button, 2222222")
         floatingBtn.show();
         break;
-      // 从不翻译的语言
+      // Languages never translated
       case "neverTranslateLangs":
         translateThisLanguage =
           originalTabLanguage === "und" ||
@@ -131,7 +131,7 @@ if (window.self !== window.top) {
         console.log("will show floating button, 3333333")
         floatingBtn.show();
         break;
-      // 显示浮动按钮
+      // Show floating button
       case "showFloatingBtn":
         showFloatingBtn = newValue;
         console.log("will show floating button, 4444444")
@@ -149,7 +149,7 @@ if (window.self !== window.top) {
   const MIN_FLOATING_BTN_WIDTH = 48;
 
   /**
-   * 隐藏浮动按钮
+   * Hide floating button
    * @returns 
    */
   floatingBtn.hide = function () {
@@ -170,7 +170,7 @@ if (window.self !== window.top) {
   };
 
   /**
-   * 显示浮动按钮
+   * Show floating button
    * @param {*} forceShow 
    * @returns 
    */
@@ -192,7 +192,7 @@ if (window.self !== window.top) {
     divElement.style = "all: initial";
     divElement.classList.add("notranslate");
 
-    // 使用 open shadow root，保留样式隔离的同时，为自动化测试和调试提供稳定的只读观察入口。
+    // Use open shadow root: maintains style isolation while providing stable read-only access for automation testing and debugging.
     const shadowRoot = divElement.attachShadow({
       mode: "open",
     });
@@ -200,26 +200,26 @@ if (window.self !== window.top) {
 
     document.body.appendChild(divElement);
 
-    // 国际化该按钮
+    // Localize the button
     chrome.i18n.translateDocument(shadowRoot);
 
 
 
     /**
-     * 开启暗黑模式
+     * Enable dark mode
      */
     function enableDarkMode() {
       // TODO
     }
 
     /**
-     * 关闭暗黑模式
+     * Disable dark mode
      */
     function disableDarkMode() {
       // TODO
     }
 
-    // 根据配置决定是否开启暗黑模式
+    // Enable/disable dark mode based on config
     switch (twpConfig.get("darkMode")) {
       case "auto":
         if (matchMedia("(prefers-color-scheme: dark)").matches) {
@@ -419,7 +419,7 @@ if (window.self !== window.top) {
       console.warn("restore floating button state failed", e);
     }
 
-    // 开启拖拽以改变位置，并在松开时保存
+    // Enable drag to reposition, save on release
     (function enableDragging() {
       let dragging = false;
       let startX = 0;
@@ -638,21 +638,21 @@ if (window.self !== window.top) {
         e.stopImmediatePropagation();
         return;
       }
-      console.log("Google 翻译按钮被点击");
+      console.log("Google translate button clicked");
       if (pageLanguageState === "original") {
-        // 原始状态 → 翻译整页
+        // Original state → translate entire page
         googleRenderState = "loading";
         updateButtons(googleRenderState, aiRenderState);
         translatePage();
       } else {
-        // 已翻译状态 → 返回原始，然后检查 AI 是否已翻译
+        // Translated state → restore original, then check if AI has translated
         if (aiRenderState === "success") {
-          // AI 已翻译 → 切换到 AI 译文
+          // AI has translated → switch to AI translation
           googleRenderState = "idle";
           updateButtons(googleRenderState, aiRenderState);
           pageTranslator.translatePageAi();
         } else {
-          // AI 未翻译 → 隐藏译文
+          // AI not translated → hide translation
           pageTranslator.restorePage();
         }
       }
@@ -665,28 +665,28 @@ if (window.self !== window.top) {
         e.stopImmediatePropagation();
         return;
       }
-      console.log("AI 翻译按钮被点击");
+      console.log("AI translate button clicked");
       if (aiRenderState === "loading") {
         return;
       }
       if (aiRenderState === "success") {
-        // 已翻译状态 → 返回原始，然后检查 Google 是否已翻译
+        // Translated state → restore original, then check if Google has translated
         if (googleRenderState === "success") {
-          // Google 已翻译 → 切换到 Google 译文
-          // 用户主动从 AI 切换到 Google，停止 AI 自动翻译模式，
-          // 避免后续动态加载的新内容继续被 AI 翻译。
-          // 注意：translatePage() 内部会保留 shouldForceAiAfterPageTranslation，
-          // 故必须在此处显式调用 stopAiAutoTranslate() 才能正确重置。
+          // Google has translated → switch to Google translation
+          // User manually switched from AI to Google, stop AI auto-translate mode,
+          // to prevent newly loaded content from being auto-translated by AI.
+          // Note: translatePage() internally keeps shouldForceAiAfterPageTranslation,
+          // so we must explicitly call stopAiAutoTranslate() here to correctly reset.
           aiRenderState = "idle";
           updateButtons(googleRenderState, aiRenderState);
           pageTranslator.stopAiAutoTranslate();
           pageTranslator.translatePage();
         } else {
-          // Google 未翻译 → 隐藏译文
+          // Google not translated → hide translation
           pageTranslator.restorePage();
         }
       } else if (pageLanguageState === "original" || googleRenderState === "success" || googleRenderState === "loading") {
-        // 原始状态 → 翻译整页
+        // Original state → translate entire page
         aiRenderState = "loading";
         updateButtons(googleRenderState, aiRenderState);
         const started = pageTranslator.translatePageAi();
@@ -768,7 +768,7 @@ if (window.self !== window.top) {
 
     updateButtons(googleRenderState, aiRenderState);
 
-    // 监听页面翻译状态
+    // Watch page translation state
     pageTranslator.onPageLanguageStateChange((_pageLanguageState) => {
       pageLanguageState = _pageLanguageState;
       if (pageLanguageState === "original") {
@@ -796,9 +796,9 @@ if (window.self !== window.top) {
     console.log("will show floating button, 88888888111111")
     floatingBtn.show();
 
-    // 监听浏览器前进/后退导航（popstate），在 SPA（如 GitHub Turbo）导航后重新创建悬浮按钮
-    // 当 Turbo/pjax 等框架替换 DOM 时，浮动按钮的 host 元素会随旧 body 被移除，
-    // 而浮动按钮仅在初始加载时创建一次，不会自动重建。
+    // Listen for browser forward/back navigation (popstate), recreate floating button after SPA (e.g., GitHub Turbo) navigation
+    // When Turbo/pjax replaces DOM, the floating button's host element is removed with the old body,
+    // and the floating button is only created once on initial load, so it won't auto-rebuild.
     let floatingBtnPopstateTimer = null;
     window.addEventListener("popstate", () => {
       if (floatingBtnPopstateTimer) clearTimeout(floatingBtnPopstateTimer);
@@ -811,12 +811,12 @@ if (window.self !== window.top) {
       }, 200);
     });
 
-    // 使用 MutationObserver 监听 body 的 DOM 替换，作为 popstate 的补充覆盖：
-    // 1. SPA 链接导航（非回退，仅 pushState）不会触发 popstate
-    // 2. SPA 框架异步加载缓慢时，popstate 的 200ms 延迟可能不够
-    // Observer 会检测 host 被移除并自动重建，debounce 300ms 防止循环触发。
-    // 通过检查 divElement 来区分主动 hide() 和被动 DOM 替换：hide() 会将
-    // divElement 置为 null，此时 Observer 跳过重建。
+    // Use MutationObserver to watch body DOM replacement, as a complement to popstate:
+    // 1. SPA link navigation (non-back, pushState only) does not trigger popstate
+    // 2. When SPA framework loads slowly, popstate's 200ms delay may not be enough
+    // Observer detects host removal and auto-rebuilds, debounce 300ms to prevent loops.
+    // Distinguish active hide() from passive DOM replacement: hide() sets
+    // divElement to null, so Observer skips rebuild.
     let floatingBtnObserver = null;
     let floatingBtnObserverTimer = null;
     function setupFloatingBtnObserver() {
@@ -825,7 +825,7 @@ if (window.self !== window.top) {
         if (floatingBtnObserverTimer) return; // debounce
         floatingBtnObserverTimer = setTimeout(() => {
           floatingBtnObserverTimer = null;
-          // divElement 为 null 表示 hide() 已主动移除，不重建
+          // divElement is null means hide() already removed it, skip rebuild
           if (!divElement) return;
           const host = document.getElementById("dualtran-floating-btn-host");
           if (!host || !document.body.contains(host)) {
@@ -840,13 +840,13 @@ if (window.self !== window.top) {
     }
     setupFloatingBtnObserver();
 
-    // 处理 bfcache 恢复：bfcache 保留完整 DOM，正常情况下不需要重建。
-    // 但当 bfcache 不可用（页面被 evict）时，浏览器会完全重新加载页面，
-    // 此时 content script 会重新注入 —— 所以这里只处理那些 bfcache 下
-    // DOM 被部分替换的边缘情况。
+    // Handle bfcache restore: bfcache preserves full DOM, normally no rebuild needed.
+    // But when bfcache is unavailable (page evicted), browser fully reloads the page,
+    // and content script re-injects — so this only handles edge cases
+    // where DOM is partially replaced under bfcache.
     window.addEventListener("pageshow", (e) => {
       if (e.persisted) {
-        // bfcache 恢复：检查 host 是否仍然存在
+        // bfcache restore: check if host still exists
         const host = document.getElementById("dualtran-floating-btn-host");
         if (!host || !document.body.contains(host)) {
           console.log("[floatingBtn] host missing after bfcache restore, recreating");

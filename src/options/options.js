@@ -1,31 +1,31 @@
-  // Helper: 简写工具，用 $ 代替 document.querySelector（需要在文件中早期使用 $ 之前定义）
-  // 返回匹配的 DOM 元素；若未找到则返回 null-safe 代理，避免后续属性访问（如 .onchange = ...）抛出 TypeError。
+  // Helper: Shorthand utility: use $ as alias for document.querySelector (must be defined early before first use of $)
+  // Returns the matched DOM element; if not found, returns a null-safe proxy to avoid TypeError on subsequent property access (e.g. .onchange = ...).
   var _rawQS = document.querySelector.bind(document);
-  // 缓存的 null-safe 代理对象：吸收所有属性读写、方法调用和 addEventListener 等操作而不抛出异常。
-  // 使用 Proxy 而非哑 DOM 元素，因为引用的 ID 涉及 <select>、<input> 等不同元素类型，
-  // 需要兼容 .options、.selectedIndex、.checked、.value、.style 等各种属性。
+  // Cached null-safe proxy object: absorbs all property reads/writes, method calls, and addEventListener operations without throwing.
+  // Uses Proxy instead of a dummy DOM element because the referenced IDs involve different element types like <select>, <input>, etc.,
+  // and needs to be compatible with various properties like .options, .selectedIndex, .checked, .value, .style, etc.
   var _nullProxy = new Proxy(function () {}, {
     get: function (_target, prop) {
-      // 标记属性：允许外部检查 if (el._isMissingElement) 来判断是否为哑代理
+      // Flag property: allows external code to check if (el._isMissingElement) to determine if this is a dummy proxy
       if (prop === "_isMissingElement") return true;
-      // 特殊属性：让 truthiness 检查和类型判断正常工作
+      // Special properties: make truthiness checks and type coercion work correctly
       if (prop === Symbol.toPrimitive || prop === "valueOf") return function () { return 0; };
       if (prop === "toString") return function () { return ""; };
-      // .options 应返回空的类数组以兼容 Array.from(select.options || [])
+      // .options should return an empty array-like to be compatible with Array.from(select.options || [])
       if (prop === "options") return [];
-      // .classList 返回一个空的 DOMTokenList 代理
+      // .classList returns an empty DOMTokenList proxy
       if (prop === "classList") return _nullProxy;
-      // .style 返回自身代理（可连续赋值 .style.display = "none"）
+      // .style returns itself as proxy (allows chained assignment like .style.display = "none")
       if (prop === "style") return _nullProxy;
-      // .length 用于 options.length 等
+      // .length used for options.length etc.
       if (prop === "length") return 0;
-      // 数值属性
+      // Numeric properties
       if (prop === "selectedIndex") return -1;
-      // 布尔属性
+      // Boolean properties
       if (prop === "checked" || prop === "disabled") return false;
-      // 字符串属性
+      // String properties
       if (prop === "value" || prop === "innerHTML" || prop === "textContent" || prop === "color") return "";
-      // 方法类属性返回空函数（addEventListener, appendChild, querySelector 等）
+      // Method-like properties return empty functions (addEventListener, appendChild, querySelector, etc.)
       if (prop === "addEventListener" || prop === "removeEventListener" ||
           prop === "appendChild" || prop === "removeChild" ||
           prop === "querySelector" || prop === "querySelectorAll" ||
@@ -36,37 +36,37 @@
           prop === "find" || prop === "some" || prop === "filter") {
         return function () { return _nullProxy; };
       }
-      // ownerDocument — 部分代码如 renderModelOptions 会通过 select.ownerDocument.createElement 创建元素
+      // ownerDocument — some code like renderModelOptions uses select.ownerDocument.createElement to create elements
       if (prop === "ownerDocument") return document;
       // dataset
       if (prop === "dataset") return {};
-      // 其它属性返回 undefined（不再递归代理，避免无限深度）
+      // Other properties return undefined (no recursive proxying to avoid infinite depth)
       return undefined;
     },
-    // 拦截属性赋值（如 .onchange = fn, .value = "xxx"）—
-    // 在 null proxy 上这意味着目标 DOM 元素不存在，必须发出可见警告。
+    // Intercept property assignment (e.g. .onchange = fn, .value = "xxx") —
+    // on a null proxy this means the target DOM element does not exist, must emit a visible warning.
     set: function (_target, prop, _value) {
-      // 事件处理器属性赋值是最危险的静默失败：handler 注册了但永不触发
+      // Event handler property assignment is the most dangerous silent failure: the handler is registered but never fires
       if (typeof prop === "string" && /^on(change|input|click|keyup|keydown|blur|focus)$/.test(prop)) {
         console.warn("[options.js] Cannot assign " + prop + " handler: target element not found in DOM. The handler will never fire.");
       }
       return true;
     },
-    apply: function () { return _nullProxy; },  // 当作函数调用时返回代理自身
+    apply: function () { return _nullProxy; },  // Return proxy itself when called as a function
   });
   /** @type {typeof document.querySelector} */
   var $ = function $(selector) {
     var el = _rawQS(selector);
     if (el) return el;
-    // 若元素未找到，打印一次警告便于调试，然后返回 null-safe 代理
+    // If element not found, print a warning for debugging, then return the null-safe proxy
     if (typeof console !== "undefined" && console.debug) {
       console.debug("[options.js] Element not found for selector:", selector);
     }
     return _nullProxy;
   };
-  // Helper: 获取 i18n 文本并提供默认回退（避免某些 locale 缺少 key 导致空字符串）
-  // 如果传入的 fallback 包含中文字符，则使用一组安全的替换规则将其转换为英文。
-  // 该转换为本地化友好型的简单映射/规则，覆盖常见的错误提示与模型列表为空等句式。
+  // Helper: get i18n text with a default fallback (to avoid empty strings when some locales lack a key)
+  // If the passed fallback contains Chinese characters, convert it to English using a set of safe replacement rules.
+  // The conversion uses localization-friendly simple mappings/rules covering common error messages and patterns like empty model lists.
   function i18nOrDefault(key, fallback) {
     try {
       const msg = chrome.i18n.getMessage(key);
@@ -77,22 +77,22 @@
 
     const fb = fallback || "";
 
-    // 如果 fallback 包含中文汉字，则尝试转换为英文（基于安全的规则，避免调用外部翻译服务）
+    // If the fallback contains Chinese characters, attempt to convert to English (using safe rules, avoiding external translation services)
     if (/[\u4E00-\u9FFF]/.test(fb)) {
       let english = String(fb);
 
-      // 先尝试捕获类似："无法加载<Provider>模型 (HTTP 123)" 这种形式
+      // First try to match patterns like: "Unable to load <Provider> models (HTTP 123)"
       english = english.replace(/无法加载\s*(.+?)\s*模型/g, 'Unable to load $1 models');
-      // 常见句式替换
+      // Common pattern replacements
       english = english.replace(/无法从API加载/g, 'Unable to load from API');
       english = english.replace(/模型列表为空/g, 'models list is empty');
-      // 一般 "模型" -> "models"，放在后面以避免覆盖上面的捕获规则
+      // General "模型" -> "models", placed last to avoid overriding the capture rules above
       english = english.replace(/模型/g, 'models');
       english = english.replace(/无法加载/g, 'Unable to load');
 
-      // 如果替换后仍包含汉字（未命中规则），则退回到一个通用英文提示以保证可读性
+      // If the result still contains Chinese characters (no rule matched), fall back to a generic English message for readability
       if (/[\u4E00-\u9FFF]/.test(english)) {
-        // 保持括号内的 HTTP 状态码或其它括号内容
+        // Preserve HTTP status codes or other content within parentheses
         const httpMatch = fb.match(/\(HTTP[^)]+\)/i);
         const httpPart = httpMatch ? ` ${httpMatch[0]}` : '';
         return `Unable to load models${httpPart}`;
@@ -104,7 +104,7 @@
     return fb;
   }
 
-  // Azure OpenAI模型下拉框自动填充
+  // Azure OpenAI model dropdown auto-fill
   async function populateAzureOpenAIModels(select, apiKey, endpoint, storedValue, fallbackOptions) {
     if (!select || select._isMissingElement) return;
     const fallback = Array.isArray(fallbackOptions) ? fallbackOptions : [];
@@ -131,10 +131,10 @@
         },
       });
     } catch (error) {
-      console.warn("无法从API加载Azure OpenAI模型:", error);
+      console.warn("Unable to load Azure OpenAI models from API:", error);
     }
   }
-  // Azure OpenAI模型下拉框自动填充逻辑
+  // Azure OpenAI model dropdown auto-fill logic
   const azureOpenAIModelSelect = $("#azureOpenAIModel");
   const fallbackAzureOpenAIOptions = azureOpenAIModelSelect
     ? Array.from(azureOpenAIModelSelect.options || []).map((option) => ({
@@ -197,7 +197,7 @@
       twpConfig.set("azureOpenAIModel", e.target.value);
     };
   }
-  // DeepSeek模型下拉框自动填充
+  // DeepSeek model dropdown auto-fill
   async function populateDeepSeekModels(select, apiKey, storedValue, fallbackOptions) {
     if (!select || select._isMissingElement) return;
     const fallback = Array.isArray(fallbackOptions) ? fallbackOptions : [];
@@ -221,10 +221,10 @@
         },
       });
     } catch (error) {
-      console.warn("无法从API加载DeepSeek模型:", error);
+      console.warn("Unable to load DeepSeek models from API:", error);
     }
   }
-  // DeepSeek模型下拉框自动填充逻辑
+  // DeepSeek model dropdown auto-fill logic
   const deepSeekModelSelect = $("#deepSeekModel");
   const fallbackDeepSeekOptions = deepSeekModelSelect
     ? Array.from(deepSeekModelSelect.options || []).map((option) => ({
@@ -264,7 +264,7 @@
       twpConfig.set("deepSeekModel", e.target.value);
     };
   }
-  // Grok模型下拉框自动填充
+  // Grok model dropdown auto-fill
   async function populateGrokModels(select, apiKey, storedValue, fallbackOptions) {
     if (!select || select._isMissingElement) return;
     const fallback = Array.isArray(fallbackOptions) ? fallbackOptions : [];
@@ -288,10 +288,10 @@
         },
       });
     } catch (error) {
-      console.warn("无法从API加载Grok模型:", error);
+      console.warn("Unable to load Grok models from API:", error);
     }
   }
-  // Grok模型下拉框自动填充逻辑
+  // Grok model dropdown auto-fill logic
   const grokModelSelect = $("#grokModel");
   const fallbackGrokOptions = grokModelSelect
     ? Array.from(grokModelSelect.options || []).map((option) => ({
@@ -331,7 +331,7 @@
       twpConfig.set("grokModel", e.target.value);
     };
   }
-  // Anthropic模型下拉框自动填充
+  // Anthropic model dropdown auto-fill
   async function populateAnthropicModels(select, apiKey, storedValue, fallbackOptions) {
     if (!select || select._isMissingElement) return;
     const fallback = Array.isArray(fallbackOptions) ? fallbackOptions : [];
@@ -355,11 +355,11 @@
         },
       });
     } catch (error) {
-      console.warn("无法从API加载Anthropic模型:", error);
+      console.warn("Unable to load Anthropic models from API:", error);
     }
   }
 
-  // Anthropic模型下拉框自动填充逻辑
+  // Anthropic model dropdown auto-fill logic
   const anthropicModelSelect = $("#anthropicModel");
   const fallbackAnthropicOptions = anthropicModelSelect
     ? Array.from(anthropicModelSelect.options || []).map((option) => ({
@@ -399,50 +399,50 @@
       twpConfig.set("anthropicModel", e.target.value);
     };
   }
-"use strict"; // 启用严格模式，避免潜在的隐式错误
+"use strict"; // Enable strict mode to avoid potential implicit errors
 
-import twpLang from "../lib/languages.js" // 导入语言相关工具
-import twpConfig from "../lib/config.js" // 导入配置存取模块
-import platformInfo from "../lib/platformInfo.js" // 导入平台信息（判断移动端等）
-import "../lib/i18n.js" // 导入国际化初始化脚本（副作用导入）
+import twpLang from "../lib/languages.js" // Import language utilities
+import twpConfig from "../lib/config.js" // Import config storage module
+import platformInfo from "../lib/platformInfo.js" // Import platform info (detect mobile, etc.)
+import "../lib/i18n.js" // Import i18n initialization script (side-effect import)
 import { createAiOptionsController } from "./aiOptionsController.js";
-import { enableDarkMode, disableDarkMode } from "./darkmode.js"; // 导入深色模式开关函数
+import { enableDarkMode, disableDarkMode } from "./darkmode.js"; // Import dark mode toggle functions
 import { loadAiProviderModelOptions, normalizeOpenAiCompatibleModelsEndpoint } from "./aiModelApi.js";
 import { refreshAiModelSelect } from "./aiModelRefresh.js";
 import { loadPreviewModels } from "../lib/ai/providerModelPreview.js";
 import { createProviderRegistry, BUILT_IN_PROVIDERS, mergeRegistries, lookupKnownApiBase } from "../lib/ai/providerRegistry.js";
 import { migrateProviderConfig } from "../lib/ai/providerMigration.js";
-import 'toolcool-color-picker'; // 引入第三方取色器组件（自定义元素）
+import 'toolcool-color-picker'; // Import third-party color picker component (custom element)
 
-// 配置加载完成后执行主初始化逻辑
+// Execute main initialization logic after config is loaded
 twpConfig.onReady(function () {
-  if (platformInfo.isMobile.any) { // 如果是任意移动端
-    let style = document.createElement("style"); // 动态创建 style 元素
-    style.textContent = ".desktopOnly {display: none !important}"; // 隐藏仅桌面可见元素
-    document.head.appendChild(style); // 注入到页面
+  if (platformInfo.isMobile.any) { // If on any mobile device
+    let style = document.createElement("style"); // Dynamically create a style element
+    style.textContent = ".desktopOnly {display: none !important}"; // Hide desktop-only elements
+    document.head.appendChild(style); // Inject into page
   }
 
-  let sideBarIsVisible = false; // 记录侧边栏当前是否展开，当页面宽度较小时（一般为移动端）为false，展开时为true
+  let sideBarIsVisible = false; // Track whether sidebar is currently expanded; false when page width is small (typically mobile), true when expanded
 
-  $("#btnOpenMenu").onclick = (e) => { // 绑定菜单按钮点击事件，该按钮位于右上角，移动端可见。
-    $("#menuContainer").classList.toggle("change"); // 切换动画/样式类
+  $("#btnOpenMenu").onclick = (e) => { // Bind click event for menu button, located at top-right corner, visible on mobile.
+    $("#menuContainer").classList.toggle("change"); // Toggle animation/style class
 
-    if (sideBarIsVisible) { // 如果当前显示，则隐藏
+    if (sideBarIsVisible) { // If currently shown, hide it
       $("#sideBar").style.display = "none";
-      sideBarIsVisible = false; // 更新状态
-    } else { // 如果当前隐藏，则显示
+      sideBarIsVisible = false; // Update state
+    } else { // If currently hidden, show it
       $("#sideBar").style.display = "block";
-      sideBarIsVisible = true; // 更新状态
+      sideBarIsVisible = true; // Update state
     }
   };
 
   /**
-   * url hash变更事件的回调函数
-   * 当url hash变更时, 显示hash代表的元素(选项卡内容), 隐藏其他元素
+   * Callback function for url hash change event
+   * When the url hash changes, show the element represented by the hash (tab content) and hide others
    */
-  function hashchange() { // 处理地址栏 #hash 切换
-    const hash = location.hash || "#languages"; // 当前 hash，默认语言选项卡
-    const divs = [ // 所有选项卡内容块集合
+  function hashchange() { // Handle address bar #hash switching
+    const hash = location.hash || "#languages"; // Current hash, defaults to languages tab
+    const divs = [ // Collection of all tab content blocks
       $("#languages"),
       $("#sites"),
       $("#translations"),
@@ -452,134 +452,134 @@ twpConfig.onReady(function () {
       $("#storage"),
       $("#others"),
     ];
-    divs.forEach((element) => { // 统一隐藏
+    divs.forEach((element) => { // Hide all uniformly
       element.style.display = "none";
     });
 
-    document.querySelectorAll("nav a").forEach((a) => { // 移除所有导航高亮
+    document.querySelectorAll("nav a").forEach((a) => { // Remove all navigation highlights
       a.classList.remove("w3-light-grey");
     });
 
-    if($(hash).style.display){ // 如果当前 hash 对应元素有 display 属性（此判断似乎冗余）
-      $(hash).style.display = "block"; // 显示对应 tab
+    if($(hash).style.display){ // If the element for current hash has a display property (this check seems redundant)
+      $(hash).style.display = "block"; // Show the corresponding tab
     }
-    $('a[href="' + hash + '"]').classList.add("w3-light-grey"); // 高亮对应导航链接
+    $('a[href="' + hash + '"]').classList.add("w3-light-grey"); // Highlight the corresponding nav link
 
-    let text; // 标题文本
-    text = chrome.i18n.getMessage("lblSettings"); // 获取多语言标题
+    let text; // Title text
+    text = chrome.i18n.getMessage("lblSettings"); // Get localized title
 
-    $("#itemSelectedName").textContent = text; // 更新头部显示的选中项名称
+    $("#itemSelectedName").textContent = text; // Update the selected item name displayed in header
 
-    if (sideBarIsVisible) { // 如果侧边栏当前显示，切换为隐藏（移动端点击后关闭）
-      $("#menuContainer").classList.toggle("change"); // 同步按钮视觉状态
-      $("#sideBar").style.display = "none"; // 隐藏侧栏
-      sideBarIsVisible = false; // 更新状态
+    if (sideBarIsVisible) { // If sidebar is currently shown, toggle to hidden (close on mobile after click)
+      $("#menuContainer").classList.toggle("change"); // Sync button visual state
+      $("#sideBar").style.display = "none"; // Hide sidebar
+      sideBarIsVisible = false; // Update state
     }
 
   }
-  hashchange(); // 初始化时根据当前 hash 显示对应 tab
-  window.addEventListener("hashchange", hashchange); // 监听 hash 变化
+  hashchange(); // On init, show the tab corresponding to current hash
+  window.addEventListener("hashchange", hashchange); // Listen for hash changes
 
   /**
-   * 为下拉列表填充语言列表
-   * @param { Element } select 目标 select 元素(下拉列表)
+   * Fill language list for a dropdown
+   * @param { Element } select Target select element (dropdown)
    */
-  function fillLanguageList(select) { // 动态填充语言下拉列表
-    let langs = twpLang.getLanguageList(); // 获取语言映射（code->名称）
+  function fillLanguageList(select) { // Dynamically fill language dropdown
+    let langs = twpLang.getLanguageList(); // Get language mapping (code -> name)
 
-    const langsSorted = []; // 排序后的数组
+    const langsSorted = []; // Sorted array
 
-    for (const i in langs) { // 遍历对象属性
-      langsSorted.push([i, langs[i]]); // 推入数组供排序
+    for (const i in langs) { // Iterate object properties
+      langsSorted.push([i, langs[i]]); // Push into array for sorting
     }
 
-    langsSorted.sort(function (a, b) { // 按语言名称排序
+    langsSorted.sort(function (a, b) { // Sort by language name
       return a[1]?.localeCompare?.(b[1]);
     });
 
-    langsSorted.forEach((value) => { // 生成并插入 option
+    langsSorted.forEach((value) => { // Generate and insert option elements
       const option = document.createElement("option");
-      option.value = value[0]; // 语言代码
-      option.textContent = value[1]; // 显示名
+      option.value = value[0]; // Language code
+      option.textContent = value[1]; // Display name
       select.appendChild(option);
     });
   }
 
-  fillLanguageList($("#selectTargetLanguage")); // 为网页翻译目标下拉列表填充语言列表
-  fillLanguageList($("#selectTargetLanguageForText")); // 为文本翻译目标下拉列表填充语言列表
+  fillLanguageList($("#selectTargetLanguage")); // Fill language list for web page translation target dropdown
+  fillLanguageList($("#selectTargetLanguageForText")); // Fill language list for text translation target dropdown
 
-  fillLanguageList($("#favoriteLanguage1")); // 为收藏语言 1 下拉列表填充语言列表
-  fillLanguageList($("#favoriteLanguage2")); // 为收藏语言 2 下拉列表填充语言列表
-  fillLanguageList($("#favoriteLanguage3")); // 为收藏语言 3 下拉列表填充语言列表
+  fillLanguageList($("#favoriteLanguage1")); // Fill language list for favorite language 1 dropdown
+  fillLanguageList($("#favoriteLanguage2")); // Fill language list for favorite language 2 dropdown
+  fillLanguageList($("#favoriteLanguage3")); // Fill language list for favorite language 3 dropdown
 
-  fillLanguageList($("#addToNeverTranslateLangs")); // 为永不翻译语言下拉列表填充语言列表
-  fillLanguageList($("#addToAlwaysTranslateLangs")); // 为总是翻译语言下拉列表填充语言列表
-  fillLanguageList($("#addLangToTranslateWhenHovering")); // 为悬停翻译语言下拉列表填充语言列表
+  fillLanguageList($("#addToNeverTranslateLangs")); // Fill language list for never-translate language dropdown
+  fillLanguageList($("#addToAlwaysTranslateLangs")); // Fill language list for always-translate language dropdown
+  fillLanguageList($("#addLangToTranslateWhenHovering")); // Fill language list for translate-on-hover language dropdown
 
-  function updateDarkMode() { // 根据配置应用深色模式策略
-    switch (twpConfig.get("darkMode")) { // 获取 darkMode 配置项
-      case "auto": // 自动模式：根据系统偏好
-        if (matchMedia("(prefers-color-scheme: dark)").matches) { // 若系统为暗色
-          enableDarkMode(); // 启用
+  function updateDarkMode() { // Apply dark mode strategy based on config
+    switch (twpConfig.get("darkMode")) { // Get darkMode config value
+      case "auto": // Auto mode: follow system preference
+        if (matchMedia("(prefers-color-scheme: dark)").matches) { // If system prefers dark
+          enableDarkMode(); // Enable
         } else {
-          disableDarkMode(); // 否则禁用
+          disableDarkMode(); // Otherwise disable
         }
         break;
-      case "yes": // 强制启用
+      case "yes": // Force enable
         enableDarkMode();
         break;
-      case "no": // 强制关闭
+      case "no": // Force disable
         disableDarkMode();
         break;
-      default: // 其他情况不处理
+      default: // Other cases not handled
         break;
     }
   }
-  updateDarkMode(); // 初始化执行一次
+  updateDarkMode(); // Execute once on init
 
-  // 网页翻译目标语言配置
-  const targetLanguage = twpConfig.get("targetLanguage"); // 当前网页翻译目标语言
-  $("#selectTargetLanguage").value = targetLanguage; // 设置 select 初始值
-  $("#selectTargetLanguage").onchange = (e) => { // 变更时事件
-    console.log("target language is changed to: ", e.target.value) // 控制台记录
-    twpConfig.setTargetLanguage(e.target.value); // 更新配置
-    // reload options page 重新加载页面以刷新依赖语言的部分 UI
+  // Web page translation target language config
+  const targetLanguage = twpConfig.get("targetLanguage"); // Current web page translation target language
+  $("#selectTargetLanguage").value = targetLanguage; // Set select initial value
+  $("#selectTargetLanguage").onchange = (e) => { // Change event handler
+    console.log("target language is changed to: ", e.target.value) // Log to console
+    twpConfig.setTargetLanguage(e.target.value); // Update config
+    // reload options page to refresh language-dependent parts of the UI
     location.reload();
   };
 
-  // 文本翻译目标语言配置
+  // Text translation target language config
   const targetLanguageTextTranslation = twpConfig.get(
     "targetLanguageTextTranslation"
-  ); // 获取"文本翻译"目标语言
-  $("#selectTargetLanguageForText").value = targetLanguageTextTranslation; // 设置初始值
-  $("#selectTargetLanguageForText").onchange = (e) => { // 选择改变事件
-    twpConfig.setTargetLanguage(e.target.value, true); // 设置文本翻译目标语言
-    twpConfig.setTargetLanguage(targetLanguage, false); // 同步主语言（保持之前的主语言）
-    location.reload(); // 重新加载刷新
+  ); // Get text translation target language
+  $("#selectTargetLanguageForText").value = targetLanguageTextTranslation; // Set initial value
+  $("#selectTargetLanguageForText").onchange = (e) => { // Selection change event
+    twpConfig.setTargetLanguage(e.target.value, true); // Set text translation target language
+    twpConfig.setTargetLanguage(targetLanguage, false); // Sync main language (preserve the previous main language)
+    location.reload(); // Reload to refresh
   };
 
-  // 优先目标语言配置
-  const targetLanguages = twpConfig.get("targetLanguages"); // 收藏语言数组 [l1,l2,l3]
-  $("#favoriteLanguage1").value = targetLanguages[0]; // 初始化收藏语言1
-  $("#favoriteLanguage2").value = targetLanguages[1]; // 初始化收藏语言2
-  $("#favoriteLanguage3").value = targetLanguages[2]; // 初始化收藏语言3
+  // Priority target languages config
+  const targetLanguages = twpConfig.get("targetLanguages"); // Favorite languages array [l1,l2,l3]
+  $("#favoriteLanguage1").value = targetLanguages[0]; // Initialize favorite language 1
+  $("#favoriteLanguage2").value = targetLanguages[1]; // Initialize favorite language 2
+  $("#favoriteLanguage3").value = targetLanguages[2]; // Initialize favorite language 3
 
-  $("#favoriteLanguage1").onchange = (e) => { // 收藏语言1变更
-    targetLanguages[0] = e.target.value; // 更新内存中的数组
-    twpConfig.set("targetLanguages", targetLanguages); // 保存
-    if (targetLanguages.indexOf(twpConfig.get("targetLanguage")) == -1) { // 如果当前主语言不再收藏列表
-      twpConfig.set("targetLanguage", targetLanguages[0]); // 重置为第一个收藏
+  $("#favoriteLanguage1").onchange = (e) => { // Favorite language 1 change
+    targetLanguages[0] = e.target.value; // Update in-memory array
+    twpConfig.set("targetLanguages", targetLanguages); // Save
+    if (targetLanguages.indexOf(twpConfig.get("targetLanguage")) == -1) { // If current main language is no longer in favorites
+      twpConfig.set("targetLanguage", targetLanguages[0]); // Reset to first favorite
     }
     if (
       targetLanguages.indexOf(twpConfig.get("targetLanguageTextTranslation")) ==
       -1
-    ) { // 如果文本翻译目标语言不在收藏列表
-      twpConfig.set("targetLanguageTextTranslation", targetLanguages[0]); // 重置
+    ) { // If text translation target language is not in favorites
+      twpConfig.set("targetLanguageTextTranslation", targetLanguages[0]); // Reset
     }
-    location.reload(); // 刷新界面
+    location.reload(); // Refresh UI
   };
 
-  $("#favoriteLanguage2").onchange = (e) => { // 收藏语言2变更逻辑同上
+  $("#favoriteLanguage2").onchange = (e) => { // Favorite language 2 change logic (same as above)
     targetLanguages[1] = e.target.value;
     twpConfig.set("targetLanguages", targetLanguages);
     if (targetLanguages.indexOf(twpConfig.get("targetLanguage")) == -1) {
@@ -594,7 +594,7 @@ twpConfig.onReady(function () {
     location.reload();
   };
 
-  $("#favoriteLanguage3").onchange = (e) => { // 收藏语言3变更
+  $("#favoriteLanguage3").onchange = (e) => { // Favorite language 3 change
     targetLanguages[2] = e.target.value;
     twpConfig.set("targetLanguages", targetLanguages);
     if (targetLanguages.indexOf(twpConfig.get("targetLanguage")) == -1) {
@@ -609,48 +609,48 @@ twpConfig.onReady(function () {
     location.reload();
   };
 
-  // 永不翻译语言列表的配置
-  function createNodeToNeverTranslateLangsList(langCode, langName) { // 创建"永不翻译语言"列表项
+  // Never-translate language list config
+  function createNodeToNeverTranslateLangsList(langCode, langName) { // Create never-translate language list item
     const li = document.createElement("li");
-    li.setAttribute("class", "w3-display-container"); // 容器类
-    li.value = langCode; // 保存语言代码
-    li.textContent = langName; // 显示语言名称
+    li.setAttribute("class", "w3-display-container"); // Container class
+    li.value = langCode; // Store language code
+    li.textContent = langName; // Display language name
 
-    const close = document.createElement("span"); // 删除按钮
-    close.setAttribute("class", "w3-button w3-transparent w3-display-right"); // 样式类
-    close.innerHTML = "&times;"; // 叉号符号
+    const close = document.createElement("span"); // Delete button
+    close.setAttribute("class", "w3-button w3-transparent w3-display-right"); // Style classes
+    close.innerHTML = "&times;"; // Multiplication sign symbol
 
-    close.onclick = (e) => { // 点击删除
+    close.onclick = (e) => { // Click to delete
       e.preventDefault();
 
-      twpConfig.removeLangFromNeverTranslate(langCode); // 从配置移除
-      li.remove(); // 从 DOM 移除
+      twpConfig.removeLangFromNeverTranslate(langCode); // Remove from config
+      li.remove(); // Remove from DOM
     };
 
-    li.appendChild(close); // 挂载按钮
+    li.appendChild(close); // Attach button
 
-    return li; // 返回 DOM 节点
+    return li; // Return DOM node
   }
 
-  const neverTranslateLangs = twpConfig.get("neverTranslateLangs"); // 获取"永不翻译"语言数组
-  neverTranslateLangs.sort((a, b) => a?.localeCompare?.(b)); // 排序
-  neverTranslateLangs.forEach((langCode) => { // 渲染列表
-    const langName = twpLang.codeToLanguage(langCode); // 代码转名称
-    const li = createNodeToNeverTranslateLangsList(langCode, langName); // 创建 LI
-    $("#neverTranslateLangs").appendChild(li); // 插入 DOM
+  const neverTranslateLangs = twpConfig.get("neverTranslateLangs"); // Get never-translate languages array
+  neverTranslateLangs.sort((a, b) => a?.localeCompare?.(b)); // Sort
+  neverTranslateLangs.forEach((langCode) => { // Render list
+    const langName = twpLang.codeToLanguage(langCode); // Code to name
+    const li = createNodeToNeverTranslateLangsList(langCode, langName); // Create LI element
+    $("#neverTranslateLangs").appendChild(li); // Insert into DOM
   });
 
-  $("#addToNeverTranslateLangs").onchange = (e) => { // 添加"永不翻译"语言事件
-    const langCode = e.target.value; // 选择的语言代码
-    const langName = twpLang.codeToLanguage(langCode); // 转换名称
-    const li = createNodeToNeverTranslateLangsList(langCode, langName); // 创建节点
-    $("#neverTranslateLangs").appendChild(li); // 插入 DOM
+  $("#addToNeverTranslateLangs").onchange = (e) => { // Add never-translate language event
+    const langCode = e.target.value; // Selected language code
+    const langName = twpLang.codeToLanguage(langCode); // Convert to name
+    const li = createNodeToNeverTranslateLangsList(langCode, langName); // Create node
+    $("#neverTranslateLangs").appendChild(li); // Insert into DOM
 
-    twpConfig.addLangToNeverTranslate(langCode); // 写入配置
+    twpConfig.addLangToNeverTranslate(langCode); // Save to config
   };
 
-  // 总是翻译语言列表的配置
-  function createNodeToAlwaysTranslateLangsList(langCode, langName) { // 创建"总是翻译语言"列表项
+  // Always-translate language list config
+  function createNodeToAlwaysTranslateLangsList(langCode, langName) { // Create always-translate language list item
     const li = document.createElement("li");
     li.setAttribute("class", "w3-display-container");
     li.value = langCode;
@@ -660,10 +660,10 @@ twpConfig.onReady(function () {
     close.setAttribute("class", "w3-button w3-transparent w3-display-right");
     close.innerHTML = "&times;";
 
-    close.onclick = (e) => { // 删除事件
+    close.onclick = (e) => { // Delete event
       e.preventDefault();
 
-      twpConfig.removeLangFromAlwaysTranslate(langCode); // 移除配置
+      twpConfig.removeLangFromAlwaysTranslate(langCode); // Remove from config
       li.remove();
     };
 
@@ -672,25 +672,25 @@ twpConfig.onReady(function () {
     return li;
   }
 
-  const alwaysTranslateLangs = twpConfig.get("alwaysTranslateLangs"); // 获取"总是翻译"语言数组
-  alwaysTranslateLangs.sort((a, b) => a?.localeCompare?.(b)); // 排序
-  alwaysTranslateLangs.forEach((langCode) => { // 渲染
+  const alwaysTranslateLangs = twpConfig.get("alwaysTranslateLangs"); // Get always-translate languages array
+  alwaysTranslateLangs.sort((a, b) => a?.localeCompare?.(b)); // Sort
+  alwaysTranslateLangs.forEach((langCode) => { // Render
     const langName = twpLang.codeToLanguage(langCode);
     const li = createNodeToAlwaysTranslateLangsList(langCode, langName);
     $("#alwaysTranslateLangs").appendChild(li);
   });
 
-  $("#addToAlwaysTranslateLangs").onchange = (e) => { // 添加事件
+  $("#addToAlwaysTranslateLangs").onchange = (e) => { // Add event
     const langCode = e.target.value;
     const langName = twpLang.codeToLanguage(langCode);
     const li = createNodeToAlwaysTranslateLangsList(langCode, langName);
     $("#alwaysTranslateLangs").appendChild(li);
 
-    twpConfig.addLangToAlwaysTranslate(langCode); // 写入配置
+    twpConfig.addLangToAlwaysTranslate(langCode); // Save to config
   };
 
-  // 悬停翻译语言列表的配置
-  function createNodeToLangsToTranslateWhenHoveringList(langCode, langName) { // 创建悬停翻译语言列表项
+  // Translate-on-hover language list config
+  function createNodeToLangsToTranslateWhenHoveringList(langCode, langName) { // Create translate-on-hover language list item
     const li = document.createElement("li");
     li.setAttribute("class", "w3-display-container");
     li.value = langCode;
@@ -700,10 +700,10 @@ twpConfig.onReady(function () {
     close.setAttribute("class", "w3-button w3-transparent w3-display-right");
     close.innerHTML = "&times;";
 
-    close.onclick = (e) => { // 删除事件
+    close.onclick = (e) => { // Delete event
       e.preventDefault();
 
-      twpConfig.removeLangFromTranslateWhenHovering(langCode); // 从配置移除
+      twpConfig.removeLangFromTranslateWhenHovering(langCode); // Remove from config
       li.remove();
     };
 
@@ -714,38 +714,38 @@ twpConfig.onReady(function () {
 
   const langsToTranslateWhenHovering = twpConfig.get(
     "langsToTranslateWhenHovering"
-  ); // 获取悬停翻译语言数组
-  langsToTranslateWhenHovering.sort((a, b) => a?.localeCompare?.(b)); // 排序
-  langsToTranslateWhenHovering.forEach((langCode) => { // 渲染
+  ); // Get translate-on-hover languages array
+  langsToTranslateWhenHovering.sort((a, b) => a?.localeCompare?.(b)); // Sort
+  langsToTranslateWhenHovering.forEach((langCode) => { // Render
     const langName = twpLang.codeToLanguage(langCode);
     const li = createNodeToLangsToTranslateWhenHoveringList(langCode, langName);
     $("#langsToTranslateWhenHovering").appendChild(li);
   });
 
-  $("#addLangToTranslateWhenHovering").onchange = (e) => { // 新增事件
+  $("#addLangToTranslateWhenHovering").onchange = (e) => { // Add event
     const langCode = e.target.value;
     const langName = twpLang.codeToLanguage(langCode);
     const li = createNodeToLangsToTranslateWhenHoveringList(langCode, langName);
     $("#langsToTranslateWhenHovering").appendChild(li);
 
-    twpConfig.addLangToTranslateWhenHovering(langCode); // 写入配置
+    twpConfig.addLangToTranslateWhenHovering(langCode); // Save to config
   };
 
-  // 总是翻译站点列表的配置
-  function createNodeToAlwaysTranslateSitesList(hostname) { // 创建总是翻译站点列表项
+  // Always-translate sites list config
+  function createNodeToAlwaysTranslateSitesList(hostname) { // Create always-translate site list item
     const li = document.createElement("li");
     li.setAttribute("class", "w3-display-container");
-    li.value = hostname; // 存主机名
-    li.textContent = hostname; // 显示主机名
+    li.value = hostname; // Store hostname
+    li.textContent = hostname; // Display hostname
 
     const close = document.createElement("span");
     close.setAttribute("class", "w3-button w3-transparent w3-display-right");
     close.innerHTML = "&times;";
 
-    close.onclick = (e) => { // 删除站点
+    close.onclick = (e) => { // Delete site
       e.preventDefault();
 
-      twpConfig.removeSiteFromAlwaysTranslate(hostname); // 配置移除
+      twpConfig.removeSiteFromAlwaysTranslate(hostname); // Remove from config
       li.remove();
     };
 
@@ -754,26 +754,26 @@ twpConfig.onReady(function () {
     return li;
   }
 
-  const alwaysTranslateSites = twpConfig.get("alwaysTranslateSites"); // 获取"总是翻译站点"数组
-  alwaysTranslateSites.sort((a, b) => a?.localeCompare?.(b)); // 字母排序
-  alwaysTranslateSites.forEach((hostname) => { // 渲染
+  const alwaysTranslateSites = twpConfig.get("alwaysTranslateSites"); // Get always-translate sites array
+  alwaysTranslateSites.sort((a, b) => a?.localeCompare?.(b)); // Alphabetical sort
+  alwaysTranslateSites.forEach((hostname) => { // Render
     const li = createNodeToAlwaysTranslateSitesList(hostname);
     $("#alwaysTranslateSites").appendChild(li);
   });
 
-  $("#addToAlwaysTranslateSites").onclick = (e) => { // 添加站点按钮
-    const hostname = prompt("Enter the site hostname", "www.site.com"); // 提示输入
-    if (!hostname) return; // 取消直接返回
+  $("#addToAlwaysTranslateSites").onclick = (e) => { // Add site button
+    const hostname = prompt("Enter the site hostname", "www.site.com"); // Prompt for input
+    if (!hostname) return; // Return on cancel
 
-    const li = createNodeToAlwaysTranslateSitesList(hostname); // 创建节点
-    $("#alwaysTranslateSites").appendChild(li); // 插入
+    const li = createNodeToAlwaysTranslateSitesList(hostname); // Create node
+    $("#alwaysTranslateSites").appendChild(li); // Insert
 
-    twpConfig.addSiteToAlwaysTranslate(hostname); // 写配置
+    twpConfig.addSiteToAlwaysTranslate(hostname); // Save to config
   };
 
-  // 永不翻译站点列表的配置
+  // Never-translate sites list config
 
-  function createNodeToNeverTranslateSitesList(hostname) { // 创建永不翻译站点列表项
+  function createNodeToNeverTranslateSitesList(hostname) { // Create never-translate site list item
     const li = document.createElement("li");
     li.setAttribute("class", "w3-display-container");
     li.value = hostname;
@@ -783,10 +783,10 @@ twpConfig.onReady(function () {
     close.setAttribute("class", "w3-button w3-transparent w3-display-right");
     close.innerHTML = "&times;";
 
-    close.onclick = (e) => { // 删除事件
+    close.onclick = (e) => { // Delete event
       e.preventDefault();
 
-      twpConfig.removeSiteFromNeverTranslate(hostname); // 配置移除
+      twpConfig.removeSiteFromNeverTranslate(hostname); // Remove from config
       li.remove();
     };
 
@@ -795,75 +795,75 @@ twpConfig.onReady(function () {
     return li;
   }
 
-  const neverTranslateSites = twpConfig.get("neverTranslateSites"); // 获取永不翻译站点数组
-  neverTranslateSites.sort((a, b) => a?.localeCompare?.(b)); // 排序
-  neverTranslateSites.forEach((hostname) => { // 渲染
+  const neverTranslateSites = twpConfig.get("neverTranslateSites"); // Get never-translate sites array
+  neverTranslateSites.sort((a, b) => a?.localeCompare?.(b)); // Sort
+  neverTranslateSites.forEach((hostname) => { // Render
     const li = createNodeToNeverTranslateSitesList(hostname);
     $("#neverTranslateSites").appendChild(li);
   });
 
-  $("#addToNeverTranslateSites").onclick = (e) => { // 添加永不翻译站点
+  $("#addToNeverTranslateSites").onclick = (e) => { // Add never-translate site
     const hostname = prompt("Enter the site hostname", "www.site.com");
     if (!hostname) return;
 
     const li = createNodeToNeverTranslateSitesList(hostname);
     $("#neverTranslateSites").appendChild(li);
 
-    twpConfig.addSiteToNeverTranslate(hostname); // 写配置
+    twpConfig.addSiteToNeverTranslate(hostname); // Save to config
   };
 
-  // 自定义词典配置
-  function createcustomDictionary(keyWord, customValue) { // 创建自定义词典条目显示
+  // Custom dictionary config
+  function createcustomDictionary(keyWord, customValue) { // Create custom dictionary entry display
     const li = document.createElement("li");
     li.setAttribute("class", "w3-display-container");
-    li.value = keyWord; // 保存关键字
+    li.value = keyWord; // Store keyword
     if (customValue !== "") {
-      li.textContent = keyWord + " ------------------- " + customValue; // 显示映射
+      li.textContent = keyWord + " ------------------- " + customValue; // Display mapping
     } else {
-      li.textContent = keyWord; // 仅显示关键词
+      li.textContent = keyWord; // Display keyword only
     }
-    const close = document.createElement("span"); // 删除按钮
+    const close = document.createElement("span"); // Delete button
     close.setAttribute("class", "w3-button w3-transparent w3-display-right");
     close.innerHTML = "&times;";
 
-    close.onclick = (e) => { // 删除词条
+    close.onclick = (e) => { // Delete entry
       e.preventDefault();
-      twpConfig.removeKeyWordFromcustomDictionary(keyWord); // 配置移除
+      twpConfig.removeKeyWordFromcustomDictionary(keyWord); // Remove from config
       li.remove();
     };
     li.appendChild(close);
     return li;
   }
 
-  let customDictionary = twpConfig.get("customDictionary"); // 获取自定义词典（Map）
-  customDictionary = new Map( // 重新构造排序后的 Map
+  let customDictionary = twpConfig.get("customDictionary"); // Get custom dictionary (Map)
+  customDictionary = new Map( // Rebuild sorted Map
     [...customDictionary.entries()].sort((a, b) =>
       String(a[0])?.localeCompare?.(String(b[0]))
     )
   );
-  customDictionary.forEach(function (customValue, keyWord) { // 渲染词典列表
+  customDictionary.forEach(function (customValue, keyWord) { // Render dictionary list
     const li = createcustomDictionary(keyWord, customValue);
     $("#customDictionary").appendChild(li);
   });
 
-  $("#addToCustomDictionary").onclick = (e) => { // 添加自定义词条
-    let keyWord = prompt("Enter the keyWord, Minimum two letters ", ""); // 输入关键字
-    if (!keyWord || keyWord.length < 2) return; // 长度不足返回
-    keyWord = keyWord.trim().toLowerCase(); // 标准化处理
+  $("#addToCustomDictionary").onclick = (e) => { // Add custom entry
+    let keyWord = prompt("Enter the keyWord, Minimum two letters ", ""); // Enter keyword
+    if (!keyWord || keyWord.length < 2) return; // Return if too short
+    keyWord = keyWord.trim().toLowerCase(); // Normalize
     let customValue = prompt(
       "(Optional)\nYou can enter a value to replace it , or fill in nothing.",
       ""
-    ); // 可选替换值
-    if (!customValue) customValue = ""; // 为空使用空串
-    customValue = customValue.trim(); // 去空格
-    const li = createcustomDictionary(keyWord, customValue); // 创建节点
-    $("#customDictionary").appendChild(li); // 插入
-    twpConfig.addKeyWordTocustomDictionary(keyWord, customValue); // 写配置
+    ); // Optional replacement value
+    if (!customValue) customValue = ""; // Use empty string if empty
+    customValue = customValue.trim(); // Trim whitespace
+    const li = createcustomDictionary(keyWord, customValue); // Create node
+    $("#customDictionary").appendChild(li); // Insert
+    twpConfig.addKeyWordTocustomDictionary(keyWord, customValue); // Save to config
   };
 
-  // 悬停翻译站点列表的配置
+  // Translate-on-hover sites list config
 
-  function createNodeToSitesToTranslateWhenHoveringList(hostname) { // 创建悬停翻译站点条目
+  function createNodeToSitesToTranslateWhenHoveringList(hostname) { // Create translate-on-hover site entry
     const li = document.createElement("li");
     li.setAttribute("class", "w3-display-container");
     li.value = hostname;
@@ -873,10 +873,10 @@ twpConfig.onReady(function () {
     close.setAttribute("class", "w3-button w3-transparent w3-display-right");
     close.innerHTML = "&times;";
 
-    close.onclick = (e) => { // 删除事件
+    close.onclick = (e) => { // Delete event
       e.preventDefault();
 
-      twpConfig.removeSiteFromTranslateWhenHovering(hostname); // 配置移除
+      twpConfig.removeSiteFromTranslateWhenHovering(hostname); // Remove from config
       li.remove();
     };
 
@@ -887,48 +887,48 @@ twpConfig.onReady(function () {
 
   const sitesToTranslateWhenHovering = twpConfig.get(
     "sitesToTranslateWhenHovering"
-  ); // 获取悬停翻译站点数组
-  sitesToTranslateWhenHovering.sort((a, b) => a?.localeCompare?.(b)); // 排序
-  sitesToTranslateWhenHovering.forEach((hostname) => { // 渲染
+  ); // Get translate-on-hover sites array
+  sitesToTranslateWhenHovering.sort((a, b) => a?.localeCompare?.(b)); // Sort
+  sitesToTranslateWhenHovering.forEach((hostname) => { // Render
     const li = createNodeToSitesToTranslateWhenHoveringList(hostname);
     $("#sitesToTranslateWhenHovering").appendChild(li);
   });
 
-  $("#addSiteToTranslateWhenHovering").onclick = (e) => { // 添加悬停翻译站点
+  $("#addSiteToTranslateWhenHovering").onclick = (e) => { // Add translate-on-hover site
     const hostname = prompt("Enter the site hostname", "www.site.com");
     if (!hostname) return;
 
     const li = createNodeToSitesToTranslateWhenHoveringList(hostname);
     $("#sitesToTranslateWhenHovering").appendChild(li);
 
-    twpConfig.addSiteToTranslateWhenHovering(hostname); // 写配置
+    twpConfig.addSiteToTranslateWhenHovering(hostname); // Save to config
   };
 
-  // 翻译行为相关配置
-  $("#translateLongerThan").value = twpConfig.get("translateLongerThan"); // 初始化"长度大于 X 翻译"阈值
-  $("#translateLongerThan").onchange = (e) => { // 修改阈值
+  // Translation behavior config
+  $("#translateLongerThan").value = twpConfig.get("translateLongerThan"); // Initialize "translate longer than X" threshold
+  $("#translateLongerThan").onchange = (e) => { // Modify threshold
     twpConfig.set("translateLongerThan", e.target.value);
   };
 
-  $("#whereToDisplayTranslatedText").onchange = (e) => { // 译文显示位置变更
+  $("#whereToDisplayTranslatedText").onchange = (e) => { // Translated text display position change
     twpConfig.set("whereToDisplayTranslatedText", e.target.value);
   };
-  $("#whereToDisplayTranslatedText").value = twpConfig.get("whereToDisplayTranslatedText"); // 初始化译文显示位置
+  $("#whereToDisplayTranslatedText").value = twpConfig.get("whereToDisplayTranslatedText"); // Initialize translated text display position
 
-  $("#aiImproveForLongerThan").value = twpConfig.get("aiImproveForLongerThan"); // AI 改进阈值初始化
-  $("#aiImproveForLongerThan").onchange = (e) => { // 修改
+  $("#aiImproveForLongerThan").value = twpConfig.get("aiImproveForLongerThan"); // AI improvement threshold init
+  $("#aiImproveForLongerThan").onchange = (e) => { // Modify
     twpConfig.set("aiImproveForLongerThan", e.target.value);
   };
 
-  $("#autoImproveByAI").onchange = (e) => { // 是否自动 AI 改进
+  $("#autoImproveByAI").onchange = (e) => { // Auto AI improvement toggle
     twpConfig.set("autoImproveByAI", e.target.value);
   };
-  $("#autoImproveByAI").value = twpConfig.get("autoImproveByAI"); // 初始化值
+  $("#autoImproveByAI").value = twpConfig.get("autoImproveByAI"); // Initialize value
 
-  $("#enableAiTranslationCache").onchange = (e) => { // 是否启用 AI 翻译缓存
+  $("#enableAiTranslationCache").onchange = (e) => { // Enable AI translation cache toggle
     twpConfig.set("enableAiTranslationCache", e.target.value);
   };
-  $("#enableAiTranslationCache").value = twpConfig.get("enableAiTranslationCache") || "yes"; // 初始化值（默认开启）
+  $("#enableAiTranslationCache").value = twpConfig.get("enableAiTranslationCache") || "yes"; // Initialize value (default enabled)
 
   const aiProviderSelect = $("#aiProvider");
   const aiOptionsController = createAiOptionsController({
@@ -1051,8 +1051,8 @@ twpConfig.onReady(function () {
       aiOptionsController.handleProviderChange(e.target.value);
     };
   }
-  // 当配置在其它地方（例如弹出窗口或后台页）被修改时，保持 options 页面 UI 同步
-  // 例如：在扩展其它页面修改了 aiProvider 或 API key，则在 options 页面也应立即切换到对应的设置面板或刷新模型列表
+  // Keep options page UI in sync when config is changed elsewhere (e.g. popup or background page)
+  // E.g.: if aiProvider or API key is changed in another extension page, the options page should immediately switch to the corresponding settings panel or refresh model list
   if (typeof twpConfig.onChanged === "function") {
     twpConfig.onChanged((name, newValue) => {
       console.debug("twpConfig.onChanged event:", name, newValue);
@@ -1068,7 +1068,7 @@ twpConfig.onReady(function () {
           case "openRouterTitle":
             break;
           default:
-            // 未处理的配置项忽略
+            // Unhandled config items ignored
             break;
         }
       } catch (err) {
@@ -1077,7 +1077,7 @@ twpConfig.onReady(function () {
     });
   }
 
-  // 额外监听 storage 变化，作为保险(如果 twpConfig.onChanged 在某些情况下没有被调用)
+  // Additional storage change listener as a safeguard (in case twpConfig.onChanged is not called in some cases)
   if (typeof chrome !== "undefined" && chrome.storage && typeof chrome.storage.onChanged !== "undefined") {
     chrome.storage.onChanged.addListener((changes, areaName) => {
       aiOptionsController.handleStorageChanged(changes, areaName);
@@ -1085,7 +1085,7 @@ twpConfig.onReady(function () {
   }
 
 
-  // Google Gemini模型下拉框自动填充（提前声明，避免未定义）
+  // Google Gemini model dropdown auto-fill (declared early to avoid undefined)
   async function populateGoogleGeminiModels(select, apiKey, storedValue, fallbackOptions) {
     if (!select || select._isMissingElement) return;
     const fallback = Array.isArray(fallbackOptions) ? fallbackOptions : [];
@@ -1112,7 +1112,7 @@ twpConfig.onReady(function () {
             : i18nOrDefault("msgCannotLoadGoogleGeminiModelsHttp", "Unable to load Google Gemini models"),
       });
     } catch (error) {
-      console.warn("无法从API加载Google Gemini模型:", error);
+      console.warn("Unable to load Google Gemini models from API:", error);
     }
   }
   const openAiModelSelect = $("#openAiModel");
@@ -1158,7 +1158,7 @@ twpConfig.onReady(function () {
     };
   }
 
-  // Google Gemini模型下拉框自动填充
+  // Google Gemini model dropdown auto-fill
   const googleGeminiModelSelect = $("#googleGeminiModel");
   const fallbackGoogleGeminiOptions = googleGeminiModelSelect
     ? Array.from(googleGeminiModelSelect.options || []).map((option) => ({
@@ -1220,7 +1220,7 @@ twpConfig.onReady(function () {
     select.appendChild(loadingOption);
     const sanitizedKey = (apiKey || "").trim();
     if (!sanitizedKey) {
-      // 无 API Key：使用预览（OpenRouter → 静态列表 fallback）
+      // No API Key: use preview (OpenRouter → static list fallback)
       try {
         const previewModels = await loadPreviewModels({ provider: "google-gemini" });
         select.innerHTML = "";
@@ -1251,7 +1251,7 @@ twpConfig.onReady(function () {
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${sanitizedKey}`);
       if (!response.ok) {
-        let message = i18nOrDefault("msgCannotLoadGoogleGeminiModelsHttp", `无法加载Google Gemini模型 (HTTP ${response.status})`);
+        let message = i18nOrDefault("msgCannotLoadGoogleGeminiModelsHttp", `Unable to load Google Gemini models (HTTP ${response.status})`);
         try {
           const errorPayload = await response.json();
           if (errorPayload?.error?.message) {
@@ -1262,7 +1262,7 @@ twpConfig.onReady(function () {
       }
       const payload = await response.json();
       const models = Array.isArray(payload?.models) ? payload.models : [];
-      if (!models.length) throw new Error("Google Gemini模型列表为空");
+      if (!models.length) throw new Error("Google Gemini models list is empty");
       models.sort((a, b) => String(a?.name || "").localeCompare(String(b?.name || "")));
       select.innerHTML = "";
       models.forEach((model) => {
@@ -1279,7 +1279,7 @@ twpConfig.onReady(function () {
         select.appendChild(preservedOption);
       }
     } catch (error) {
-      console.warn("无法从API加载Google Gemini模型:", error);
+      console.warn("Unable to load Google Gemini models from API:", error);
       select.innerHTML = "";
       fallback.forEach((item) => {
         const option = document.createElement("option");
@@ -1414,7 +1414,7 @@ twpConfig.onReady(function () {
     };
   }
 
-  // 各 provider 的自定义端点输入
+  // Custom endpoint inputs for each provider
   for (const [id, configKey] of [
     ["openAiApiBase", "openAiApiBase"],
     ["anthropicApiBase", "anthropicApiBase"],
@@ -1431,7 +1431,7 @@ twpConfig.onReady(function () {
     }
   }
 
-  // 统一为所有 API Key 输入设置 i18n placeholder
+  // Set i18n placeholder for all API Key inputs uniformly
   const apiKeyPlaceholder = chrome.i18n.getMessage("lblEnterApiKey") || "Enter API key";
   for (const id of [
     "apiKeyOpenAI", "apiKeyOpenRouter", "apiKeyAnthropic", "apiKeyGoogleGemini",
@@ -1443,7 +1443,7 @@ twpConfig.onReady(function () {
     }
   }
 
-  // 仅暴露当前支持的免费网页翻译引擎，并将历史不兼容值回退到 google。
+  // Only expose currently supported free page translation engines; fall back to google for incompatible legacy values.
   $("#pageTranslatorService").onchange = (e) => {
     twpConfig.set("pageTranslatorService", e.target.value);
   };
@@ -1457,67 +1457,67 @@ twpConfig.onReady(function () {
   // };
   // $("#textTranslatorService").value = twpConfig.get("textTranslatorService");
 
-  $("#ttsSpeed").oninput = (e) => { // TTS 语速滑块实时更新
+  $("#ttsSpeed").oninput = (e) => { // TTS speed slider real-time update
     twpConfig.set("ttsSpeed", e.target.value);
-    $("#displayTtsSpeed").textContent = e.target.value; // 显示当前值
+    $("#displayTtsSpeed").textContent = e.target.value; // Display current value
   };
-  $("#ttsSpeed").value = twpConfig.get("ttsSpeed"); // 初始化语速
-  $("#displayTtsSpeed").textContent = twpConfig.get("ttsSpeed"); // 显示初始语速
+  $("#ttsSpeed").value = twpConfig.get("ttsSpeed"); // Initialize speech speed
+  $("#displayTtsSpeed").textContent = twpConfig.get("ttsSpeed"); // Display initial speech speed
 
-  $("#showOriginalTextWhenHovering").onchange = (e) => { // 悬停显示原文开关
+  $("#showOriginalTextWhenHovering").onchange = (e) => { // Show original text on hover toggle
     twpConfig.set("showOriginalTextWhenHovering", e.target.value);
   };
   $("#showOriginalTextWhenHovering").value = twpConfig.get(
     "showOriginalTextWhenHovering"
-  ); // 初始化
+  ); // Initialize
 
-  $("#translateTag_pre").onchange = (e) => { // 是否翻译 <pre> 标签内容
+  $("#translateTag_pre").onchange = (e) => { // Whether to translate <pre> tag content
     twpConfig.set("translateTag_pre", e.target.value);
   };
-  $("#translateTag_pre").value = twpConfig.get("translateTag_pre"); // 初始化
+  $("#translateTag_pre").value = twpConfig.get("translateTag_pre"); // Initialize
 
-  $("#enableDeepL").onchange = (e) => { // DeepL 翻译开关变更
+  $("#enableDeepL").onchange = (e) => { // DeepL translation toggle change
     twpConfig.set("enableDeepL", e.target.value);
   };
-  $("#enableDeepL").value = twpConfig.get("enableDeepL"); // 初始化 DeepL 开关状态
+  $("#enableDeepL").value = twpConfig.get("enableDeepL"); // Initialize DeepL toggle state
 
-  $("#dontSortResults").onchange = (e) => { // 是否不对翻译结果排序
+  $("#dontSortResults").onchange = (e) => { // Whether to not sort translation results
     twpConfig.set("dontSortResults", e.target.value);
   };
-  $("#dontSortResults").value = twpConfig.get("dontSortResults"); // 初始化
+  $("#dontSortResults").value = twpConfig.get("dontSortResults"); // Initialize
 
-  $("#translateDynamicallyCreatedContent").onchange = (e) => { // 是否翻译动态创建内容
+  $("#translateDynamicallyCreatedContent").onchange = (e) => { // Whether to translate dynamically created content
     twpConfig.set("translateDynamicallyCreatedContent", e.target.value);
   };
   $("#translateDynamicallyCreatedContent").value = twpConfig.get(
     "translateDynamicallyCreatedContent"
-  ); // 初始化
+  ); // Initialize
 
-  $("#autoTranslateWhenClickingALink").onchange = (e) => { // 点击链接自动翻译开关
-    if (e.target.value == "yes") { // 需要申请 webNavigation 权限
+  $("#autoTranslateWhenClickingALink").onchange = (e) => { // Auto-translate when clicking link toggle
+    if (e.target.value == "yes") { // Need to request webNavigation permission
       chrome.permissions.request(
         {
-          permissions: ["webNavigation"], // 申请权限
+          permissions: ["webNavigation"], // Request permission
         },
-        (granted) => { // 回调处理
+        (granted) => { // Callback handler
           if (granted) {
-            twpConfig.set("autoTranslateWhenClickingALink", "yes"); // 授予更新配置
+            twpConfig.set("autoTranslateWhenClickingALink", "yes"); // Granted: update config
           } else {
-            twpConfig.set("autoTranslateWhenClickingALink", "no"); // 否则回退
-            e.target.value = "no"; // 同步 UI
+            twpConfig.set("autoTranslateWhenClickingALink", "no"); // Otherwise fall back
+            e.target.value = "no"; // Sync UI
           }
         }
       );
-    } else { // 关闭时移除权限
+    } else { // Remove permission when disabling
       twpConfig.set("autoTranslateWhenClickingALink", "no");
       chrome.permissions.remove({
-        permissions: ["webNavigation"], // 释放权限
+        permissions: ["webNavigation"], // Release permission
       });
     }
   };
   $("#autoTranslateWhenClickingALink").value = twpConfig.get(
     "autoTranslateWhenClickingALink"
-  ); // 初始化
+  ); // Initialize
 
   // if (twpConfig.get("enableDeepL") === "yes") {
   //   $('#textTranslatorService option[value="deepl"]').removeAttribute("hidden");
@@ -1547,7 +1547,7 @@ twpConfig.onReady(function () {
   // });
 
   /**
-   * 根据开关使能/禁用高级选项
+   * Enable/disable advanced options based on toggle
    * @param {*} value 
    */
   function enableOrDisableTranslateSelectedAdvancedOptions(value) { 
@@ -1555,48 +1555,48 @@ twpConfig.onReady(function () {
       document
         .querySelectorAll("#translateSelectedAdvancedOptions input")
         .forEach((input) => {
-          input.setAttribute("disabled", ""); // 禁用输入
+          input.setAttribute("disabled", ""); // Disable input
         });
     } else {
       document
         .querySelectorAll("#translateSelectedAdvancedOptions input")
         .forEach((input) => {
-          input.removeAttribute("disabled"); // 解除禁用
+          input.removeAttribute("disabled"); // Re-enable
         });
     }
   }
 
-  // 悬浮翻译按钮开关及其高级选项
+  // Floating translate button toggle and its advanced options
   $("#showTranslateSelectedButton").onchange = (e) => { 
     twpConfig.set("showTranslateSelectedButton", e.target.value);
-    enableOrDisableTranslateSelectedAdvancedOptions(e.target.value); // 同步高级选项状态
+    enableOrDisableTranslateSelectedAdvancedOptions(e.target.value); // Sync advanced options state
   };
   $("#showTranslateSelectedButton").value = twpConfig.get(
     "showTranslateSelectedButton"
-  ); // 初始化
+  ); // Initialize
   enableOrDisableTranslateSelectedAdvancedOptions(
     twpConfig.get("showTranslateSelectedButton")
-  ); // 初始设置高级选项可用状态
+  ); // Initial set of advanced options enabled state
 
-  $("#dontShowIfPageLangIsTargetLang").onchange = (e) => { // 页面语言与目标语言相同则不显示按钮
+  $("#dontShowIfPageLangIsTargetLang").onchange = (e) => { // Don't show button if page language is target language
     twpConfig.set(
       "dontShowIfPageLangIsTargetLang",
       e.target.checked ? "yes" : "no"
     );
   };
   $("#dontShowIfPageLangIsTargetLang").checked =
-    twpConfig.get("dontShowIfPageLangIsTargetLang") === "yes" ? true : false; // 初始化勾选状态
+    twpConfig.get("dontShowIfPageLangIsTargetLang") === "yes" ? true : false; // Initialize checkbox state
 
-  $("#dontShowIfPageLangIsUnknown").onchange = (e) => { // 页面语言未知时不显示按钮
+  $("#dontShowIfPageLangIsUnknown").onchange = (e) => { // Don't show button when page language is unknown
     twpConfig.set(
       "dontShowIfPageLangIsUnknown",
       e.target.checked ? "yes" : "no"
     );
   };
   $("#dontShowIfPageLangIsUnknown").checked =
-    twpConfig.get("dontShowIfPageLangIsUnknown") === "yes" ? true : false; // 初始化
+    twpConfig.get("dontShowIfPageLangIsUnknown") === "yes" ? true : false; // Initialize
 
-  $("#dontShowIfSelectedTextIsTargetLang").onchange = (e) => { // 选中文本已是目标语言则不显示
+  $("#dontShowIfSelectedTextIsTargetLang").onchange = (e) => { // Don't show if selected text is already in target language
     twpConfig.set(
       "dontShowIfSelectedTextIsTargetLang",
       e.target.checked ? "yes" : "no"
@@ -1605,32 +1605,32 @@ twpConfig.onReady(function () {
   $("#dontShowIfSelectedTextIsTargetLang").checked =
     twpConfig.get("dontShowIfSelectedTextIsTargetLang") === "yes"
       ? true
-      : false; // 初始化
+      : false; // Initialize
 
-  $("#dontShowIfSelectedTextIsUnknown").onchange = (e) => { // 选中文本语言未知则不显示
+  $("#dontShowIfSelectedTextIsUnknown").onchange = (e) => { // Don't show if selected text language is unknown
     twpConfig.set(
       "dontShowIfSelectedTextIsUnknown",
       e.target.checked ? "yes" : "no"
     );
   };
   $("#dontShowIfSelectedTextIsUnknown").checked =
-    twpConfig.get("dontShowIfSelectedTextIsUnknown") === "yes" ? true : false; // 初始化
+    twpConfig.get("dontShowIfSelectedTextIsUnknown") === "yes" ? true : false; // Initialize
 
-  // style options 样式/主题相关
-  $("#useOldPopup").onchange = (e) => { // 弹窗样式变更
+  // Style options / theme related
+  $("#useOldPopup").onchange = (e) => { // Popup style change
     twpConfig.set("useOldPopup", e.target.value);
     updateDarkMode();
   };
-  $("#useOldPopup").value = twpConfig.get("useOldPopup"); // 初始化弹窗样式
+  $("#useOldPopup").value = twpConfig.get("useOldPopup"); // Initialize popup style
 
-  // 深色模式选项
+  // Dark mode options
   $("#darkMode").onchange = (e) => { 
     twpConfig.set("darkMode", e.target.value);
-    updateDarkMode(); // 应用变更
+    updateDarkMode(); // Apply change
   };
-  $("#darkMode").value = twpConfig.get("darkMode"); // 初始化
+  $("#darkMode").value = twpConfig.get("darkMode"); // Initialize
 
-  // 翻译后文字颜色取色器变更
+  // Translated text color picker change
   const googleTranslatedColorPicker = $("#translatedColorEyeDropper");
   const aiTranslatedColorPicker = $("#aiTranslatedColorEyeDropper");
 
@@ -1654,16 +1654,16 @@ twpConfig.onReady(function () {
     aiTranslatedColorPicker.color = "";
   });
 
-  // 是否在整站翻译后显示蓝色 popup
+  // Whether to show blue popup after whole-site translation
   $("#popupBlueWhenSiteIsTranslated").onchange = (e) => { 
     twpConfig.set("popupBlueWhenSiteIsTranslated", e.target.value);
   };
   $("#popupBlueWhenSiteIsTranslated").value = twpConfig.get(
     "popupBlueWhenSiteIsTranslated"
-  ); // 初始化
+  ); // Initialize
 
-  // 快捷键配置
-  function escapeHtml(unsafe) { // 简单 HTML 转义（未使用于上方输入，保留）
+  // Keyboard shortcut config
+  function escapeHtml(unsafe) { // Simple HTML escape (not used in inputs above, kept for reference)
     return unsafe
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -1673,51 +1673,51 @@ twpConfig.onReady(function () {
   }
   $('[data-i18n="lblTranslateSelectedWhenPressTwice"]').innerHTML = $(
     '[data-i18n="lblTranslateSelectedWhenPressTwice"]'
-  ).innerHTML.replace("[Ctrl]", "<kbd>Ctrl</kbd>"); // 替换提示文本中 [Ctrl]
+  ).innerHTML.replace("[Ctrl]", "<kbd>Ctrl</kbd>"); // Replace [Ctrl] in hint text
   $('[data-i18n="lblTranslateTextOverMouseWhenPressTwice"]').innerHTML = $(
     '[data-i18n="lblTranslateTextOverMouseWhenPressTwice"]'
-  ).innerHTML.replace("[Ctrl]", "<kbd>Ctrl</kbd>"); // 同上
+  ).innerHTML.replace("[Ctrl]", "<kbd>Ctrl</kbd>"); // Same as above
 
-  $("#openNativeShortcutManager").onclick = (e) => { // 打开浏览器原生快捷键管理页
+  $("#openNativeShortcutManager").onclick = (e) => { // Open browser native shortcut manager page
     chrome.tabs.create({
       url: "chrome://extensions/shortcuts",
     });
   };
 
-  $("#translateSelectedWhenPressTwice").onclick = (e) => { // 双击 Ctrl 翻译选中文本开关
+  $("#translateSelectedWhenPressTwice").onclick = (e) => { // Double-press Ctrl to translate selected text toggle
     twpConfig.set(
       "translateSelectedWhenPressTwice",
       e.target.checked ? "yes" : "no"
     );
   };
   $("#translateSelectedWhenPressTwice").checked =
-    twpConfig.get("translateSelectedWhenPressTwice") === "yes"; // 初始化
+    twpConfig.get("translateSelectedWhenPressTwice") === "yes"; // Initialize
 
-  $("#translateTextOverMouseWhenPressTwice").onclick = (e) => { // 双击 Ctrl 翻译鼠标下文字开关
+  $("#translateTextOverMouseWhenPressTwice").onclick = (e) => { // Double-press Ctrl to translate text under mouse toggle
     twpConfig.set(
       "translateTextOverMouseWhenPressTwice",
       e.target.checked ? "yes" : "no"
     );
   };
   $("#translateTextOverMouseWhenPressTwice").checked =
-    twpConfig.get("translateTextOverMouseWhenPressTwice") === "yes"; // 初始化
+    twpConfig.get("translateTextOverMouseWhenPressTwice") === "yes"; // Initialize
 
-  const defaultShortcuts = {}; // 存放默认快捷键映射
-  // 遍历 manifest 中注册的 commands，放入 defaultShortcuts 对象
+  const defaultShortcuts = {}; // Store default shortcut mappings
+  // Iterate commands registered in manifest, populate defaultShortcuts object
   for (const name of Object.keys(chrome.runtime.getManifest().commands || {})) { 
-    const info = chrome.runtime.getManifest().commands[name]; // 单个命令信息
-    if (info.suggested_key && info.suggested_key.default) { // 如果有默认快捷键
-      defaultShortcuts[name] = info.suggested_key.default; // 记录
+    const info = chrome.runtime.getManifest().commands[name]; // Single command info
+    if (info.suggested_key && info.suggested_key.default) { // If has a default shortcut
+      defaultShortcuts[name] = info.suggested_key.default; // Record
     } else {
-      defaultShortcuts[name] = ""; // 否则为空字符串
+      defaultShortcuts[name] = ""; // Otherwise empty string
     }
   }
 
-  // 是否允许在扩展自己的页面修改快捷键。Firefox下为true， Chromium (MV3) 为 false。Chromium只能通过浏览器原生入口修改
+  // Whether to allow modifying shortcuts in extension's own page. true for Firefox, false for Chromium (MV3). Chromium can only modify via native browser entry
   const canUpdateBrowserShortcut = (typeof browser !== 'undefined') ? true : false;
-  console.log(`浏览器支持 commands.update: ${canUpdateBrowserShortcut}`);
+  console.log(`Browser supports commands.update: ${canUpdateBrowserShortcut}`);
   const browserApi = (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : undefined);
-  // 对于fireFox，隐藏浏览器原生快捷键管理入口，显示扩展自己的快捷键界面；对于Chromium，反之
+  // For Firefox, hide native shortcut manager and show extension's own shortcut UI; for Chromium, vice versa
   if (canUpdateBrowserShortcut) { // fireFox
     console.log("Browser supports commands.update, can update browser-level shortcuts.");
     $("#openNativeShortcutManager").style.display = "none";
@@ -1729,18 +1729,18 @@ twpConfig.onReady(function () {
   }
 
   /**
-   * 从 browser.commands 获取已有的快捷键的信息, 并添加到页面
-   * @param {*} hotkeyname 快捷键命令名称
-   * @param {*} description 描述文本
+   * Get existing shortcut info from browser.commands and add to the page
+   * @param {*} hotkeyname Shortcut command name
+   * @param {*} description Description text
    */
-  function addHotkey(hotkeyname, description) { // 动态构建快捷键编辑 UI
-    if (hotkeyname === "_execute_browser_action" && !description) { // 特殊命令默认描述
+  function addHotkey(hotkeyname, description) { // Dynamically build shortcut editing UI
+    if (hotkeyname === "_execute_browser_action" && !description) { // Default description for special command
       description = "Enable the extension";
     }
 
-    const li = document.createElement("li"); // 外层 LI
-    li.classList.add("shortcut-row"); // 添加样式类
-    li.setAttribute("id", hotkeyname); // 设定 id
+    const li = document.createElement("li"); // Outer LI
+    li.classList.add("shortcut-row"); // Add style class
+    li.setAttribute("id", hotkeyname); // Set id
     li.innerHTML = `
         <div>${description}</div>
         <div class="shortcut-input-options">
@@ -1751,163 +1751,163 @@ twpConfig.onReady(function () {
             <div class="w3-hover-light-grey shortcut-button" name="removeKey"><i class="gg-trash"></i></div>
             <div class="w3-hover-light-grey shortcut-button" name="resetKey"><i class="gg-sync"></i></div>
         </div>  
-        `; // 模板字符串插入编辑区结构
-    $("#KeyboardShortcuts").appendChild(li); // 插入快捷键列表容器
+        `; // Template string inserting edit area structure
+    $("#KeyboardShortcuts").appendChild(li); // Insert into shortcut list container
 
-    const input = /** @type {HTMLInputElement} */ (li.querySelector(`[name="input"]`)); // 强制断言为输入框
-    const error = /** @type {HTMLElement} */ (li.querySelector(`[name="error"]`)); // 错误提示元素
-    const removeKey = /** @type {HTMLElement} */ (li.querySelector(`[name="removeKey"]`)); // 移除按钮元素
-    const resetKey = /** @type {HTMLElement} */ (li.querySelector(`[name="resetKey"]`)); // 重置按钮元素
+    const input = /** @type {HTMLInputElement} */ (li.querySelector(`[name="input"]`)); // Cast to input element
+    const error = /** @type {HTMLElement} */ (li.querySelector(`[name="error"]`)); // Error message element
+    const removeKey = /** @type {HTMLElement} */ (li.querySelector(`[name="removeKey"]`)); // Remove button element
+    const resetKey = /** @type {HTMLElement} */ (li.querySelector(`[name="resetKey"]`)); // Reset button element
 
-    // 运行时保护：若某元素未找到则直接返回避免后续空引用
+    // Runtime guard: if any element is missing, return early to avoid null reference
     if(!input || !error || !removeKey || !resetKey){
       console.warn("Hotkey row elements missing for", hotkeyname);
       return;
     }
 
-    input.value = twpConfig.get("hotkeys")[hotkeyname]; // 设置当前已存储的快捷键的显示值
-    if (input.value) { // 如果有自定义值
-      resetKey.style.display = "none"; // 隐藏"恢复默认"
+    input.value = twpConfig.get("hotkeys")[hotkeyname]; // Set display value for the currently stored shortcut
+    if (input.value) { // If has a custom value
+      resetKey.style.display = "none"; // Hide "restore default"
     } else {
-      removeKey.style.display = "none"; // 否则隐藏"移除"
+      removeKey.style.display = "none"; // Otherwise hide "remove"
     }
 
-    function setError(errorname) { // 根据错误类型显示对应提示
-      const text = chrome.i18n.getMessage("hotkeyError_" + errorname); // 从 i18n 获取本地化文本
-      switch (errorname) { // 分类处理
+    function setError(errorname) { // Show corresponding error message based on error type
+      const text = chrome.i18n.getMessage("hotkeyError_" + errorname); // Get localized text from i18n
+      switch (errorname) { // Handle by category
         case "ctrlOrAlt":
-          error.textContent = text ? text : "Include Ctrl or Alt"; // 必须包含 Ctrl 或 Alt
+          error.textContent = text ? text : "Include Ctrl or Alt"; // Must include Ctrl or Alt
           break;
         case "letter":
-          error.textContent = text ? text : "Type a letter"; // 需要输入字母/数字
+          error.textContent = text ? text : "Type a letter"; // Need to type a letter/digit
           break;
         case "invalid":
-          error.textContent = text ? text : "Invalid combination"; // 组合非法
+          error.textContent = text ? text : "Invalid combination"; // Invalid combination
           break;
         default:
-          error.textContent = ""; // 清空错误
+          error.textContent = ""; // Clear error
           break;
       }
     }
 
     /**
-     * 将按键事件转为字符串形式
+     * Convert key event to string form
      * @param {*} e 
      * @returns 
      */
     function getKeyString(e) {
-      let result = ""; // 初始空串
-      if (e.ctrlKey) { // Ctrl 修饰符
+      let result = ""; // Initial empty string
+      if (e.ctrlKey) { // Ctrl modifier
         result += "Ctrl+";
       }
-      if (e.altKey) { // Alt 修饰符
+      if (e.altKey) { // Alt modifier
         result += "Alt+";
       }
-      if (e.shiftKey) { // Shift 修饰符
+      if (e.shiftKey) { // Shift modifier
         result += "Shift+";
       }
-      if (e.code.match(/Key([A-Z])/)) { // 字母键
+      if (e.code.match(/Key([A-Z])/)) { // Letter key
         result += e.code.match(/Key([A-Z])/)[1];
-      } else if (e.code.match(/Digit([0-9])/)) { // 数字键
+      } else if (e.code.match(/Digit([0-9])/)) { // Digit key
         result += e.code.match(/Digit([0-9])/)[1];
       }
 
-      return result; // 返回组合串
+      return result; // Return combination string
     }
 
     /**
-     * 保存快捷键到配置并通知浏览器
+     * Save shortcut to config and notify browser
      * @param {*} name 
      * @param {*} keystring 
      */
     function setShortcut(name, keystring) { 
-      const hotkeys = twpConfig.get("hotkeys"); // 读取当前映射
-      hotkeys[hotkeyname] = keystring; // 更新指定命令快捷键
-      twpConfig.set("hotkeys", hotkeys); // 写回配置
-      // 只有 Firefox (或支持 commands.update 的浏览器) 才能真正更新浏览器层快捷键
-      // @ts-ignore Firefox 支持 commands.update，Chromium 不支持
+      const hotkeys = twpConfig.get("hotkeys"); // Read current mappings
+      hotkeys[hotkeyname] = keystring; // Update specified command shortcut
+      twpConfig.set("hotkeys", hotkeys); // Write back to config
+      // Only Firefox (or browsers supporting commands.update) can actually update browser-level shortcuts
+      // @ts-ignore Firefox supports commands.update, Chromium does not
       if (canUpdateBrowserShortcut && browserApi?.commands && typeof browserApi.commands.update === 'function') {
         try {
-          // @ts-ignore 类型定义中缺少 update，但在 Firefox 中可用
+          // @ts-ignore update is missing from type definitions but available in Firefox
           browserApi.commands.update({
             name: name,
             shortcut: keystring,
           });
         } catch (err) {
-          console.warn("commands.update 调用失败：", err);
+          console.warn("commands.update call failed:", err);
         }
       } else {
-        // Chromium 下无 commands.update，保留本地配置即可
+        // No commands.update under Chromium, keeping local config is sufficient
       }
     }
 
     /**
-     * 处理键盘按下/弹起事件
+     * Handle keyboard keydown/keyup events
      * @param {*} e 
      * @returns 
      */
     function onkeychange(e) { 
-      input.value = getKeyString(e); // 实时显示组合
+      input.value = getKeyString(e); // Display combination in real-time
 
-      if (e.Key == "Tab") { // Tab 跳过
+      if (e.Key == "Tab") { // Tab skip
         return;
       }
-      if (e.key == "Escape") { // Esc 取消输入
+      if (e.key == "Escape") { // Esc cancels input
         input.blur();
         return;
       }
-      if (e.key == "Backspace" || e.key == "Delete") { // 删除键即清除快捷键
-        setShortcut(hotkeyname, getKeyString(e)); // 保存为空（因为组合为空串）
-        input.blur(); // 失焦
+      if (e.key == "Backspace" || e.key == "Delete") { // Delete key clears the shortcut
+        setShortcut(hotkeyname, getKeyString(e)); // Save as empty (because the combination is an empty string)
+        input.blur(); // Blur
         return;
       }
-      if (!e.ctrlKey && !e.altKey) { // 未包含 Ctrl / Alt 则报错
+      if (!e.ctrlKey && !e.altKey) { // Show error if Ctrl / Alt not included
         setError("ctrlOrAlt");
         return;
       }
-      if (e.ctrlKey && e.altKey && e.shiftKey) { // 三修饰符同时被按下判定非法
+      if (e.ctrlKey && e.altKey && e.shiftKey) { // All three modifiers pressed simultaneously is invalid
         setError("invalid");
         return;
       }
-      e.preventDefault(); // 阻止默认浏览器行为（避免触发快捷操作）
-      if (!e.code.match(/Key([A-Z])/) && !e.code.match(/Digit([0-9])/)) { // 不是字母或数字
+      e.preventDefault(); // Prevent default browser behavior (to avoid triggering shortcut actions)
+      if (!e.code.match(/Key([A-Z])/) && !e.code.match(/Digit([0-9])/)) { // Not a letter or digit
         setError("letter");
         return;
       }
 
-      setShortcut(hotkeyname, getKeyString(e)); // 设置并保存快捷键
-      input.blur(); // 输入结束
+      setShortcut(hotkeyname, getKeyString(e)); // Set and save shortcut
+      input.blur(); // Input complete
 
-      setError("none"); // 清除错误
+      setError("none"); // Clear error
     }
 
-    input.onkeydown = (e) => onkeychange(e); // 按下事件绑定
-    input.onkeyup = (e) => onkeychange(e); // 弹起事件绑定
+    input.onkeydown = (e) => onkeychange(e); // Keydown event binding
+    input.onkeyup = (e) => onkeychange(e); // Keyup event binding
 
-    input.onfocus = (e) => { // 聚焦时清空已显示值准备重新录入
+    input.onfocus = (e) => { // Clear displayed value on focus to prepare for new input
       input.value = "";
       setError("");
     };
 
-    input.onblur = (e) => { // 失焦恢复为已保存配置值
+    input.onblur = (e) => { // Restore to saved config value on blur
       input.value = twpConfig.get("hotkeys")[hotkeyname];
       setError("");
     };
 
-    removeKey.onclick = (e) => { // 移除当前自定义快捷键
-      input.value = ""; // 输入框清空
-      setShortcut(hotkeyname, ""); // 保存为空
+    removeKey.onclick = (e) => { // Remove current custom shortcut
+      input.value = ""; // Clear input field
+      setShortcut(hotkeyname, ""); // Save as empty
 
-      removeKey.style.display = "none"; // 隐藏移除按钮
-      resetKey.style.display = "block"; // 显示恢复默认按钮
+      removeKey.style.display = "none"; // Hide remove button
+      resetKey.style.display = "block"; // Show restore default button
     };
 
-    resetKey.onclick = (e) => { // 恢复默认快捷键
-      input.value = defaultShortcuts[hotkeyname]; // 显示默认
-      setShortcut(hotkeyname, defaultShortcuts[hotkeyname]); // 保存默认
+    resetKey.onclick = (e) => { // Restore default shortcut
+      input.value = defaultShortcuts[hotkeyname]; // Show default
+      setShortcut(hotkeyname, defaultShortcuts[hotkeyname]); // Save default
 
-      removeKey.style.display = "block"; // 显示移除按钮
-      resetKey.style.display = "none"; // 隐藏恢复按钮
+      removeKey.style.display = "block"; // Show remove button
+      resetKey.style.display = "none"; // Hide restore button
     };
 
   }
@@ -1920,24 +1920,24 @@ twpConfig.onReady(function () {
     });
   }
 
-  // 存储/备份相关
-  $("#deleteTranslationCache").onclick = (e) => { // 删除翻译缓存按钮
-    if (confirm(chrome.i18n.getMessage("doYouWantToDeleteTranslationCache"))) { // 确认提示
-      chrome.runtime.sendMessage({ // 发送消息通知后台删除缓存
+  // Storage/backup related
+  $("#deleteTranslationCache").onclick = (e) => { // Delete translation cache button
+    if (confirm(chrome.i18n.getMessage("doYouWantToDeleteTranslationCache"))) { // Confirmation prompt
+      chrome.runtime.sendMessage({ // Send message to background to delete cache
         action: "deleteTranslationCache",
         reload: true,
       });
     }
   };
 
-  $("#backupToFile").onclick = (e) => { // 备份配置到文件
-    const configJSON = twpConfig.export(); // 导出 JSON 文本
+  $("#backupToFile").onclick = (e) => { // Backup config to file
+    const configJSON = twpConfig.export(); // Export JSON text
 
-    const element = document.createElement("a"); // 创建下载链接
+    const element = document.createElement("a"); // Create download link
     element.setAttribute(
       "href",
       "data:text/plain;charset=utf-8," + encodeURIComponent(configJSON)
-    ); // 使用 data URL 触发下载
+    ); // Use data URL to trigger download
     element.setAttribute(
       "download",
       "twp-backup_" +
@@ -1947,38 +1947,38 @@ twpConfig.onReady(function () {
           .replace(/\..+/, "")
           .replace(/\:/g, ".") +
         ".txt"
-    ); // 命名包含时间戳
+    ); // Name includes timestamp
 
-    element.style.display = "none"; // 隐藏临时元素
-    document.body.appendChild(element); // 插入文档
+    element.style.display = "none"; // Hide temporary element
+    document.body.appendChild(element); // Insert into document
 
-    element.click(); // 触发点击下载
+    element.click(); // Trigger click to download
 
-    document.body.removeChild(element); // 移除临时元素
+    document.body.removeChild(element); // Remove temporary element
   };
-  $("#restoreFromFile").onclick = (e) => { // 从文件恢复配置
-    const element = document.createElement("input"); // 文件选择 input
+  $("#restoreFromFile").onclick = (e) => { // Restore config from file
+    const element = document.createElement("input"); // File selection input
     element.setAttribute("type", "file");
-    element.setAttribute("accept", "text/plain"); // 限制文本文件
+    element.setAttribute("accept", "text/plain"); // Restrict to text files
 
-    element.style.display = "none"; // 隐藏
+    element.style.display = "none"; // Hide
     document.body.appendChild(element);
 
-    element.oninput = (e) => { // 选择文件后事件
-      const inputEl = /** @type {HTMLInputElement} */(e.target); // 断言为文件输入框
-      const file = inputEl.files && inputEl.files[0]; // 获取第一份文件
-      if(!file){ // 无文件直接返回
+    element.oninput = (e) => { // File selection event
+      const inputEl = /** @type {HTMLInputElement} */(e.target); // Cast to file input element
+      const file = inputEl.files && inputEl.files[0]; // Get the first file
+      if(!file){ // Return if no file
         return;
       }
 
-      const reader = new FileReader(); // 创建文件读取器
-      reader.onload = function () { // 读取完成回调
+      const reader = new FileReader(); // Create file reader
+      reader.onload = function () { // Read complete callback
         try {
-          const loaded = reader.result; // 读取结果（string | ArrayBuffer）
-          let textContent = ""; // 统一后的文本内容
-          if (typeof loaded === "string") { // 已经是字符串
+          const loaded = reader.result; // Read result (string | ArrayBuffer)
+          let textContent = ""; // Unified text content
+          if (typeof loaded === "string") { // Already a string
             textContent = loaded;
-          } else if (loaded instanceof ArrayBuffer) { // 转换 ArrayBuffer -> UTF-8 文本
+          } else if (loaded instanceof ArrayBuffer) { // Convert ArrayBuffer -> UTF-8 text
             try {
               textContent = new TextDecoder("utf-8").decode(loaded);
             } catch (err) {
@@ -1989,82 +1989,82 @@ twpConfig.onReady(function () {
           }
           if (
             confirm(chrome.i18n.getMessage("doYouWantOverwriteAllSettings"))
-          ) { // 确认覆盖
-            twpConfig.import(textContent); // 导入配置（保证是字符串）
+          ) { // Confirm overwrite
+            twpConfig.import(textContent); // Import config (ensure it's a string)
           }
-        } catch (e) { // 捕获错误
-          alert(chrome.i18n.getMessage("fileIsCorrupted")); // 文件损坏提示
-          console.error(e); // 控制台输出
+        } catch (e) { // Catch error
+          alert(chrome.i18n.getMessage("fileIsCorrupted")); // File corrupted message
+          console.error(e); // Console output
         }
       };
 
-      reader.readAsText(file); // 开始读取所选文件为文本
+      reader.readAsText(file); // Start reading selected file as text
     };
 
-    element.click(); // 触发文件选择
+    element.click(); // Trigger file selection
 
-    document.body.removeChild(element); // 移除临时 input
+    document.body.removeChild(element); // Remove temporary input
   };
-  $("#resetToDefault").onclick = (e) => { // 恢复默认设置
-    if (confirm(chrome.i18n.getMessage("doYouWantRestoreSettings"))) { // 确认提示
-      twpConfig.restoreToDefault(); // 重置配置
+  $("#resetToDefault").onclick = (e) => { // Restore to default settings
+    if (confirm(chrome.i18n.getMessage("doYouWantRestoreSettings"))) { // Confirmation prompt
+      twpConfig.restoreToDefault(); // Reset config
     }
   };
 
-  $("#showPopupMobile").onchange = (e) => { // 移动端弹窗显示方式变更
+  $("#showPopupMobile").onchange = (e) => { // Mobile popup display mode change
     twpConfig.set("showPopupMobile", e.target.value);
   };
-  $("#showPopupMobile").value = twpConfig.get("showPopupMobile"); // 初始化移动端弹窗设置
+  $("#showPopupMobile").value = twpConfig.get("showPopupMobile"); // Initialize mobile popup settings
 
-  $("#showFloatingBtn").onchange = (e) => { // 是否显示悬浮按钮
+  $("#showFloatingBtn").onchange = (e) => { // Whether to show floating button
     twpConfig.set("showFloatingBtn", e.target.value);
   };
-  $("#showFloatingBtn").value = twpConfig.get("showFloatingBtn"); // 初始化
+  $("#showFloatingBtn").value = twpConfig.get("showFloatingBtn"); // Initialize
   
-  $("#showTranslatePageContextMenu").onchange = (e) => { // 页面翻译右键菜单开关
+  $("#showTranslatePageContextMenu").onchange = (e) => { // Page translation context menu toggle
     twpConfig.set("showTranslatePageContextMenu", e.target.value);
   };
   $("#showTranslatePageContextMenu").value = twpConfig.get(
     "showTranslatePageContextMenu"
-  ); // 初始化
+  ); // Initialize
 
-  $("#showTranslateSelectedContextMenu").onchange = (e) => { // 选中文本翻译右键菜单开关
+  $("#showTranslateSelectedContextMenu").onchange = (e) => { // Selected text translation context menu toggle
     twpConfig.set("showTranslateSelectedContextMenu", e.target.value);
   };
   $("#showTranslateSelectedContextMenu").value = twpConfig.get(
     "showTranslateSelectedContextMenu"
-  ); // 初始化
+  ); // Initialize
 
-  $("#showButtonInTheAddressBar").onchange = (e) => { // 地址栏按钮显示开关
+  $("#showButtonInTheAddressBar").onchange = (e) => { // Address bar button display toggle
     twpConfig.set("showButtonInTheAddressBar", e.target.value);
   };
   $("#showButtonInTheAddressBar").value = twpConfig.get(
     "showButtonInTheAddressBar"
-  ); // 初始化
+  ); // Initialize
 
-  $("#translateClickingOnce").onchange = (e) => { // 单击一次即翻译开关
+  $("#translateClickingOnce").onchange = (e) => { // Single-click translate toggle
     twpConfig.set("translateClickingOnce", e.target.value);
   };
-  $("#translateClickingOnce").value = twpConfig.get("translateClickingOnce"); // 初始化
+  $("#translateClickingOnce").value = twpConfig.get("translateClickingOnce"); // Initialize
 
-  // ── Provider Registry 初始化 ──
-  migrateProviderConfig(twpConfig); // 运行一次性迁移
+  // ── Provider Registry Initialization ──
+  migrateProviderConfig(twpConfig); // Run one-time migration
 
   // Populate the AI provider dropdown from the registry
   const providerRegistry = createProviderRegistry(BUILT_IN_PROVIDERS);
-  // 优先使用当前仍在读写的 aiProvider；旧的 activeProviderId 仅作为兼容回退，避免历史值抢占用户新选择。
+  // Prioritize the currently active aiProvider; the old activeProviderId is only a compatibility fallback to prevent historical values from overriding user's new selection.
   const activeId = twpConfig.get("aiProvider") || twpConfig.get("activeProviderId") || "openai";
 
   const _aiProviderDropdown = document.querySelector("#aiProvider");
   if (_aiProviderDropdown) {
     const builtInProviders = providerRegistry.listProviders();
 
-    /** 从 models.dev 数据构建 provider 定义 */
+    /** Build provider definitions from models.dev data */
     function _buildDevProviderDefs(devData) {
       const defs = [];
       for (const [devId, devInfo] of Object.entries(devData)) {
         const npm = devInfo.npm || "@ai-sdk/openai-compatible";
-        // 包含 ${VAR} 模板变量 → 视为无 api（用户必须手动输入）
+        // Contains ${VAR} template variables → treat as no api (user must enter manually)
         const rawApi = devInfo.api || "";
         const apiBase = (rawApi && !rawApi.includes("${")) ? rawApi : lookupKnownApiBase(devId);
         defs.push({
@@ -2083,7 +2083,7 @@ twpConfig.onReady(function () {
       return defs;
     }
 
-    /** 提供商 ID → i18n 消息键映射 */
+    /** Provider ID → i18n message key mapping */
     const PROVIDER_I18N_MAP = {
       "openai": "aiProviderOpenAI",
       "anthropic": "aiProviderAnthropic",
@@ -2109,10 +2109,10 @@ twpConfig.onReady(function () {
     };
 
     /**
-     * 获取提供商的本地化名称
-     * @param {string} providerId 提供商 ID
-     * @param {string} fallbackName 原始名称（回退）
-     * @returns {string} 本地化名称
+     * Get localized name for a provider
+     * @param {string} providerId Provider ID
+     * @param {string} fallbackName Original name (fallback)
+     * @returns {string} Localized name
      */
     function _getProviderLocalizedName(providerId, fallbackName) {
       const i18nKey = PROVIDER_I18N_MAP[providerId];
@@ -2123,7 +2123,7 @@ twpConfig.onReady(function () {
       return fallbackName;
     }
 
-    /** 渲染下拉列表 */
+    /** Render dropdown list */
     function _renderProviderDropdown(providers) {
       /** @type {Array<Object>} */
       const normalizedProviders = Array.isArray(providers) ? providers : [];
@@ -2146,18 +2146,18 @@ twpConfig.onReady(function () {
       for (const p of mergedProviders) {
         const opt = document.createElement("option");
         opt.value = p.id;
-        // 使用 i18n 本地化名称，如果没有对应翻译则使用原始名称
+        // Use i18n localized name; fall back to original name if no translation exists
         opt.textContent = _getProviderLocalizedName(p.id, p.name);
         if (p.id === activeId) opt.selected = true;
         _aiProviderDropdown.appendChild(opt);
       }
     }
 
-    /** 显示/隐藏 "加载中" */
+    /** Show/hide "Loading" indicator */
     const _providerLoadingSpan = document.createElement("span");
     _providerLoadingSpan.className = "model-loading-msg";
     _providerLoadingSpan.setAttribute("data-i18n", "msgLoadingModels");
-    _providerLoadingSpan.textContent = "加载中...";
+    _providerLoadingSpan.textContent = "Loading...";
     _providerLoadingSpan.style.display = "none";
     _aiProviderDropdown.parentNode?.insertBefore(_providerLoadingSpan, _aiProviderDropdown.nextSibling);
 
@@ -2165,9 +2165,9 @@ twpConfig.onReady(function () {
       _providerLoadingSpan.style.display = show ? "" : "none";
     }
 
-    /** 主加载逻辑 */
+    /** Main loading logic */
     async function _loadProviderDropdown() {
-      // 尝试读 models.dev 缓存
+      // Try to read models.dev cache
       let devData = null;
       if (typeof chrome !== "undefined" && chrome.storage?.local) {
         try {
@@ -2179,17 +2179,17 @@ twpConfig.onReady(function () {
       const isValid = devData && typeof devData === "object" && Object.keys(devData).length > 10;
 
       if (isValid) {
-        // ① 缓存正常 → 合并 models.dev 数据 + 缺失的 built-in 提供商
+        // ① Cache valid → merge models.dev data + missing built-in providers
         const devDefs = _buildDevProviderDefs(devData);
         const devIds = new Set(devDefs.map((d) => d.id));
         for (const bp of builtInProviders) {
-          if (!devIds.has(bp.id)) devDefs.push(bp);  // 补充 models.dev 中缺失的提供商
+          if (!devIds.has(bp.id)) devDefs.push(bp);  // Supplement providers missing from models.dev
         }
         _renderProviderDropdown(devDefs);
       } else {
-        // ② 缓存异常 → 显示内置供应商
+        // ② Cache invalid → show built-in providers
         _renderProviderDropdown(builtInProviders);
-        // 如果完全没有缓存，显示加载中并等待
+        // If no cache at all, show loading and wait
         if (!devData && typeof chrome !== "undefined" && chrome.storage?.local) {
           _showProviderLoading(true);
         }
@@ -2199,7 +2199,7 @@ twpConfig.onReady(function () {
 
     _loadProviderDropdown();
 
-    // ③ 监听 storage 变更，数据到达后自动刷新下拉列表
+    // ③ Listen for storage changes, auto-refresh dropdown when data arrives
     if (typeof chrome !== "undefined" && chrome.storage?.onChanged) {
       chrome.storage.onChanged.addListener((changes) => {
         if (changes["modelsdev:providers"]) {
@@ -2255,7 +2255,7 @@ twpConfig.onReady(function () {
       const apiBaseInput = document.querySelector("#genericApiBase");
       const modelSelect = document.querySelector("#genericModel");
 
-      // 动态更新面板标签（优先 registry，fallback models.dev 缓存）
+      // Dynamically update panel labels (prefer registry, fallback to models.dev cache)
       let providerDef = providerRegistry.getProvider(providerId);
       function _updatePanelLabels(def) {
         const name = def?.name || providerId || "";
@@ -2281,7 +2281,7 @@ twpConfig.onReady(function () {
         }
       }
       _updatePanelLabels(providerDef);
-      // registry 中没有时，异步从 models.dev 补充标签
+      // When not in registry, async supplement labels from models.dev
       if (!providerDef && typeof chrome !== "undefined" && chrome.storage?.local) {
         chrome.storage.local.get("modelsdev:providers", (cacheRes) => {
           const devData = cacheRes?.["modelsdev:providers"]?.data?.[providerId];
@@ -2304,7 +2304,7 @@ twpConfig.onReady(function () {
         }
         apiBaseInput.value = stored.apiBase || "";
         apiBaseInput.placeholder = _endpointPlaceholder(providerDef?.apiBase || lookupKnownApiBase(providerId));
-        // registry 中没有时，异步从 models.dev 缓存补充 placeholder
+        // When not in registry, async supplement placeholder from models.dev cache
         if (!providerDef && typeof chrome !== "undefined" && chrome.storage?.local) {
           chrome.storage.local.get("modelsdev:providers", (cacheRes) => {
             const devData = cacheRes?.["modelsdev:providers"]?.data?.[providerId];
@@ -2337,7 +2337,7 @@ twpConfig.onReady(function () {
         const hasModelApi = providerDef?.modelListUrl || providerDef?.id === "google-gemini" || canLoadCustomProviderModels;
         const storedModel = stored.model || "";
 
-        // Helper: hide the "加载中" span above the select
+        // Helper: hide the "Loading" span above the select
         function _hideLoading() {
           const labelP = modelSelect?.previousElementSibling;
           if (!labelP) return;
@@ -2373,7 +2373,7 @@ twpConfig.onReady(function () {
             if (storedModel) modelSelect.value = storedModel;
             _hideLoading();
           }).catch(() => {
-            // API Key 拉取失败 → 先加载预览模型，再在前面插入提示
+            // API Key fetch failed → load preview models first, then insert notice at top
             _loadPreviewModelsFallback(true);
           });
         } else {
@@ -2387,7 +2387,7 @@ twpConfig.onReady(function () {
           modelSelect.innerHTML = '<option value="" disabled>Loading...</option>';
           loadPreviewModels({ provider: providerId }).then(models => {
             modelSelect.innerHTML = "";
-            // API Key 拉取失败时，在第一行插入提示
+            // When API Key fetch fails, insert a notice at the first row
             if (showErrorNotice) {
               const notice = chrome.i18n.getMessage("msgModelListFetchFailed") || "Failed to fetch model list with API key. Available models:";
               const noticeOpt = document.createElement("option");
@@ -2408,7 +2408,7 @@ twpConfig.onReady(function () {
               opt.textContent = storedModel;
               modelSelect.appendChild(opt);
             }
-            // 加载用户之前添加的自定义模型
+            // Load custom models previously added by user
             const customModels = stored.customModels || [];
             for (const cm of customModels) {
               if (!models.some(m => m.value === cm)) {
@@ -2458,17 +2458,17 @@ twpConfig.onReady(function () {
       _saveGenericProviderConfig(_aiProviderDropdown.value);
     });
 
-    // 所有供应商统一走 generic 面板
+    // All providers use the generic panel uniformly
     _aiProviderDropdown.addEventListener("change", () => {
       _loadGenericProviderConfig(_aiProviderDropdown.value);
     });
 
-    // 初始化：等 dropdown 填充完毕后，读取实际选中的值加载配置
+    // Initialize: after dropdown is populated, load config for the actually selected value
     _loadProviderDropdown().then(() => {
       _loadGenericProviderConfig(_aiProviderDropdown.value || activeId);
     });
 
-    // ── "新建自定义提供商" 按钮 ──
+    // ── "Add Custom Provider" Button ──
     const _btnAddCustomProvider = document.querySelector("#btnAddCustomProvider");
     if (_btnAddCustomProvider) {
       _btnAddCustomProvider.addEventListener("click", () => {
@@ -2477,7 +2477,7 @@ twpConfig.onReady(function () {
         const id = "_custom_" + name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
         const apiBase = (prompt("Enter API Endpoint URL (optional, press OK to skip):") || "").trim();
 
-        // 添加到下拉列表
+        // Add to dropdown list
         const opt = document.createElement("option");
         opt.value = id;
         opt.textContent = name;
@@ -2485,7 +2485,7 @@ twpConfig.onReady(function () {
         _aiProviderDropdown.appendChild(opt);
         _aiProviderDropdown.value = id;
 
-        // 保存到 providerConfigs
+        // Save to providerConfigs
         const providerConfigs = twpConfig.get("providerConfigs") || {};
         providerConfigs[id] = { name, apiBase, model: "", apiKey: "" };
         twpConfig.set("providerConfigs", providerConfigs);
@@ -2494,7 +2494,7 @@ twpConfig.onReady(function () {
       });
     }
 
-    // ── "新增自定义模型" 按钮 ──
+    // ── "Add Custom Model" Button ──
     const _btnAddCustomModel = document.querySelector("#btnAddCustomModel");
     if (_btnAddCustomModel) {
       _btnAddCustomModel.addEventListener("click", () => {
@@ -2510,7 +2510,7 @@ twpConfig.onReady(function () {
         modelSelect.appendChild(opt);
         modelSelect.value = modelName;
 
-        // 持久化
+        // Persist
         const providerId = _aiProviderDropdown.value;
         const providerConfigs = twpConfig.get("providerConfigs") || {};
         if (!providerConfigs[providerId]) providerConfigs[providerId] = {};
@@ -2525,23 +2525,23 @@ twpConfig.onReady(function () {
   }
 
 
-  $("#btnCalculateStorage").style.display = "inline-block"; // 显示"计算存储"按钮
-  $("#storageUsed").style.display = "none"; // 初始隐藏存储信息
-  $("#btnCalculateStorage").onclick = (e) => { // 计算缓存使用大小按钮
-    $("#btnCalculateStorage").style.display = "none"; // 隐藏按钮避免重复点击
+  $("#btnCalculateStorage").style.display = "inline-block"; // Show "Calculate Storage" button
+  $("#storageUsed").style.display = "none"; // Initially hide storage info
+  $("#btnCalculateStorage").onclick = (e) => { // Calculate cache usage button
+    $("#btnCalculateStorage").style.display = "none"; // Hide button to prevent repeated clicks
 
-    chrome.runtime.sendMessage( // 请求后台返回缓存大小
+    chrome.runtime.sendMessage( // Request background to return cache size
       {
         action: "getCacheSize",
       },
-      (result) => { // 回调显示结果
-        $("#storageUsed").textContent = result; // 显示数值
-        $("#storageUsed").style.display = "inline-block"; // 展现
+      (result) => { // Callback to display result
+        $("#storageUsed").textContent = result; // Display value
+        $("#storageUsed").style.display = "inline-block"; // Show
       }
     );
   };
 });
 
-window.scrollTo({ // 确保页面加载后滚动到顶部
+window.scrollTo({ // Ensure page scrolls to top after loading
   top: 0,
 });

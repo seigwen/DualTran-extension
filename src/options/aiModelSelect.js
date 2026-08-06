@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * 显示/隐藏 select 上方的"加载中"文字
+ * Show/hide "Loading" text above the select element
  */
 function setLoadingVisible(select, visible) {
   try {
@@ -9,7 +9,7 @@ function setLoadingVisible(select, visible) {
     if (!labelP) return;
     const span = labelP.querySelector(".model-loading-msg");
     if (span) span.style.display = visible ? "" : "none";
-  } catch (_) { /* 静默 */ }
+  } catch (_) { /* silent */ }
 }
 
 export function renderLoadingState(select, loadingText = "Loading...") {
@@ -64,7 +64,7 @@ export function renderFallbackState(select, { notice, fallbackOptions = [], stor
  * @param {Object} opts
  * @param {Array<{value:string,text:string}>} opts.models
  * @param {string} [opts.storedValue=""]
- * @param {string} [opts.smartDefault] - 智能默认模型 value，仅在无 storedValue 时使用
+ * @param {string} [opts.smartDefault] - Smart default model value, used only when no storedValue exists
  * @param {Function} [opts.getValue]
  * @param {Function} [opts.getLabel]
  * @returns {Array<{value:string,text:string}>} normalized
@@ -105,7 +105,7 @@ export function renderModelOptions(select, { models = [], storedValue = "", smar
   } else if (smartDefault && normalized.some((item) => item.value === smartDefault)) {
     select.value = smartDefault;
   }
-  // 否则不选中（selectedIndex 保持 -1）
+  // Otherwise don't select (selectedIndex stays -1)
 
   setLoadingVisible(select, false);
   return normalized;

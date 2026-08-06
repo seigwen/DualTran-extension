@@ -147,6 +147,6 @@ Messages are store in \src\_locales.
 Dynamic import() is prohibited on ServiceWorkerGlobalScope by the HTML specification. Do not use dynamic import in service worker.
 
 ### Extension Usage
- 扩展的翻译流程是这样的：
- 1. 当我点击页面悬浮按钮组的“Google”时，使用谷歌翻译原文，然后根据“译文显示位置”配置项，用谷歌译文替换原文，或者在原文下方显示谷歌译文；
- 2. 当我点击页面悬浮按钮组的“AI”按钮时，分两种情况：1）如果已经使用谷歌翻译了原文，那么就继续使用AI翻译原文，然后用AI译文替换掉谷歌译文；2） 如果还没使用谷歌翻译原文，则先调用谷歌翻译原文，然后用谷歌译文替换原文，或者在原文下方显示谷歌译文，再然后使用AI翻译原文（注意：AI是翻译原文，不是翻译谷歌译文），再用AI译文替换掉谷歌译文。
+The extension's translation flow works as follows:
+1. When the user clicks the “Google” button in the floating button group, Google Translate translates the original text. Then, depending on the “translation display position” setting, the Google translation either replaces the original text or is displayed below it.
+2. When the user clicks the “AI” button in the floating button group, there are two cases: (a) If Google Translate has already been applied, AI translates the original text and replaces the Google translation with the AI translation. (b) If Google Translate has not been applied yet, Google Translate runs first (either replacing the original or displaying below it), then AI translates the original text (note: AI translates the original, NOT the Google translation), and finally the AI translation replaces the Google translation.
