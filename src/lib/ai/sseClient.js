@@ -128,7 +128,7 @@ export async function fetchSSE(options) {
     }
   }
 
-  // Fallback: 非 Chrome 环境，直接 fetch（使用 OpenAI 兼容端点）
+  // Fallback: non-Chrome environment, direct fetch (OpenAI-compatible endpoint)
   try {
     resetTimer();
     // Get apiBase from registry as fallback
