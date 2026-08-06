@@ -4,86 +4,86 @@ DualTran test directory. Uses **Vitest + jsdom** for unit/integration tests, **P
 
 ---
 
-## 运行测试
+## Running Tests
 
 ```bash
-npm test                                        # 运行全部 vitest 测试
-npx vitest run tests/ai/                        # 运行某个子目录
-npx vitest run tests/ai/sseClient.test.js       # 运行单个文件
-npx vitest run --coverage                       # 带覆盖率
-npm run test:browser-e2e                        # 浏览器 E2E（aimock mock，端口 8788）
-npm run test:browser-e2e:aimock                 # 同上（向后兼容别名）
+npm test                                        # run all vitest tests
+npx vitest run tests/ai/                        # run a specific subdirectory
+npx vitest run tests/ai/sseClient.test.js       # run a single file
+npx vitest run --coverage                       # with coverage
+npm run test:browser-e2e                        # browser E2E (aimock mock, port 8788)
+npm run test:browser-e2e:aimock                 # same as above (backward-compatible alias)
 ```
 
 ---
 
-## 目录结构与测试范围
+## Directory Structure & Test Scope
 
 ```
 tests/
-├── ai/                  # AI 相关模块：sseClient、mock 服务器、provider 注册/迁移/适配
-├── background/          # Service Worker 后台逻辑（≈75 个测试文件，四层分解，见下文）
-├── contentScript/       # 内容脚本 UI：翻译按钮状态、SSE 消息解析、页面翻译器
-├── options/             # 选项页 UI：AI 模型选择/刷新、provider 同步/切换、暗黑模式
-├── popup/               # 弹出页：PDF 检测、语言切换、文本翻译
-├── lib/                 # 核心库：config、i18n、languages、platformInfo
-├── services/            # 翻译服务：翻译缓存、Google Translate API
-├── integration/         # 跨模块集成：config 变更流、消息传递、popup↔background、存储同步、翻译管线
-├── manifest/            # 静态校验：manifest.json 结构、构建产物完整性
-├── static/              # 静态校验：i18n 完整性、package.json 健全性
-├── scripts/             # 脚本配置测试：browser-e2e-config 解析
-├── util/                # 工具函数：语言检测、词数统计
-├── mock-server/         # Mock LLM 服务器（详见 mock-server/CLAUDE.md）
-├── mcp-e2e/             # MCP E2E 测试辅助脚本（详见下文 §MCP E2E）
-├── fixtures/            # 测试数据（详见下文 §Fixtures）
-└── shared/              # 共享测试基础设施（test-server-manager.mjs）
+├── ai/                  # AI-related modules: sseClient, mock server, provider registration/migration/adapter
+├── background/          # Service Worker background logic (~75 test files, four-layer decomposition, see below)
+├── contentScript/       # Content script UI: translation button states, SSE message parsing, page translator
+├── options/             # Options page UI: AI model selection/refresh, provider sync/switch, dark mode
+├── popup/               # Popup page: PDF detection, language switching, text translation
+├── lib/                 # Core library: config, i18n, languages, platformInfo
+├── services/            # Translation services: translation cache, Google Translate API
+├── integration/         # Cross-module integration: config change flow, messaging, popup↔background, storage sync, translation pipeline
+├── manifest/            # Static validation: manifest.json structure, build artifact integrity
+├── static/              # Static validation: i18n completeness, package.json sanity
+├── scripts/             # Script config tests: browser-e2e-config parsing
+├── util/                # Utility functions: language detection, word count
+├── mock-server/         # Mock LLM server (see mock-server/CLAUDE.md)
+├── mcp-e2e/             # MCP E2E test helper scripts (see §MCP E2E below)
+├── fixtures/            # Test data (see §Fixtures below)
+└── shared/              # Shared test infrastructure (test-server-manager.mjs)
 ```
 
 ---
 
-## 测试命名约定
+## Test Naming Conventions
 
-### 单元测试 vs 集成测试
+### Unit Tests vs Integration Tests
 
-| 后缀 | 类型 | 特征 |
+| Suffix | Type | Characteristics |
 |------|------|------|
-| `*.test.js` | 单元测试 | 导入**单个**源模块，测试其函数的输入/输出。纯函数测试通常零 mock。 |
-| `*.integration.test.js` | 集成测试 | 导入**多个**源模块，测试它们的**组合行为**——模块间的接缝是否正确。 |
-| `*.aimock.integration.test.js` | aimock 集成测试 | 需要启动真实 aimock HTTP 服务器的集成测试（`beforeAll`/`afterAll` 管理生命周期）。 |
+| `*.test.js` | Unit test | Imports a **single** source module, tests its function input/output. Pure function tests typically use zero mocks. | |
+| `*.integration.test.js` | Integration test | Imports **multiple** source modules, tests their **combined behavior** — whether the seams between modules are correct. | |
+| `*.aimock.integration.test.js` | aimock integration test | Integration tests that require a real aimock HTTP server (`beforeAll`/`afterAll` manages lifecycle). | |
 
-### background/ 四层分解模式
+### background/ Four-Layer Decomposition Pattern
 
-`tests/background/` 对每个功能域（actionClick、autoTranslate、command、contextMenu、icon、install 等）按四层命名：
+`tests/background/` uses four-layer naming for each functional domain (actionClick, autoTranslate, command, contextMenu, icon, install, etc.):
 
-| 后缀 | 源模块 | 测试内容 | Mock 需求 |
+| Suffix | Source Module | Test Content | Mock Requirements |
 |------|--------|----------|-----------|
-| `*Helpers.test.js` | `xxxHelpers.js` | **纯决策函数**：返回消息对象、状态字符串或 null。 | 无（纯函数） |
-| `*ExecutionHelpers.test.js` | `xxxExecutionHelpers.js` | **效果构建器**：将决策转为类型化效果描述符 `{ type, tabId, ... }`，通过注入回调执行。 | 无或仅 `vi.fn()` 回调 |
-| `*Flow.integration.test.js` | Helpers + ExecutionHelpers | **数据流验证**：Helper 输出能否正确作为 ExecutionHelper 输入。 | 无（仍是数据层） |
-| `*DispatchLoop.integration.test.js` | Helpers + ExecutionHelpers + Executor | **完整调度循环**：创建真实 executor + `vi.fn()` 副作用处理器，验证端到端调用链。 | `vi.fn()` 注入 |
+| `*Helpers.test.js` | `xxxHelpers.js` | **Pure decision functions**: return message objects, status strings, or null. | None (pure functions) | |
+| `*ExecutionHelpers.test.js` | `xxxExecutionHelpers.js` | **Effect builders**: convert decisions into typed effect descriptors `{ type, tabId, ... }`, executed via injected callbacks. | None or `vi.fn()` callbacks only | |
+| `*Flow.integration.test.js` | Helpers + ExecutionHelpers | **Data flow verification**: whether Helper output correctly serves as ExecutionHelper input. | None (still data layer) | |
+| `*DispatchLoop.integration.test.js` | Helpers + ExecutionHelpers + Executor | **Full dispatch loop**: creates real executor + `vi.fn()` side-effect handlers, verifies end-to-end call chain. | `vi.fn()` injection | |
 
-这体现了 **functional core / imperative shell** 架构：决策逻辑（Helpers）是纯函数，副作用执行（ExecutionHelpers）通过依赖注入隔离。
+This embodies the **functional core / imperative shell** architecture: decision logic (Helpers) are pure functions, side-effect execution (ExecutionHelpers) is isolated via dependency injection.
 
 ---
 
-## Vitest 环境配置
+## Vitest Environment Configuration
 
-在 `vitest.config.js` 中通过 `environmentMatchGlobs` 按目录指定运行环境：
+Environment is specified per directory in `vitest.config.js` via `environmentMatchGlobs`:
 
-| 目录 | 环境 | 原因 |
+| Directory | Environment | Reason |
 |------|------|------|
-| `tests/popup/**` | `jsdom` | 需要 DOM API（document、window） |
-| `tests/contentScript/**` | `jsdom` | 需要 DOM API |
-| `tests/options/**` | `jsdom` | 需要 DOM API |
-| 其他所有 | `node` | 不需要 DOM |
+| `tests/popup/**` | `jsdom` | Requires DOM API (document, window) |
+| `tests/contentScript/**` | `jsdom` | Requires DOM API |
+| `tests/options/**` | `jsdom` | Requires DOM API |
+| All others | `node` | No DOM needed |
 
-覆盖率阈值：lines 85%, functions 85%, branches 80%, statements 85%。
+Coverage thresholds: lines 85%, functions 85%, branches 80%, statements 85%.
 
 ---
 
-## Chrome API Mock 模式
+## Chrome API Mock Patterns
 
-### 模式 A：共享工厂（推荐用于需要完整 chrome.* 的测试）
+### Pattern A: Shared Factory (recommended for tests needing full chrome.*)
 
 ```js
 import { createMockChrome } from "../fixtures/chrome/mockChrome.js";
@@ -92,9 +92,9 @@ beforeEach(() => { globalThis.chrome = createMockChrome(); });
 afterEach(() => { delete globalThis.chrome; });
 ```
 
-`createMockChrome()` 提供完整的 `chrome.storage`（含 local/sync/session 三个区域 + onChanged 监听）、`chrome.runtime`（sendMessage + onMessage._emit）、`chrome.tabs`、`chrome.action`、`chrome.contextMenus`、`chrome.i18n`、`chrome.commands`。
+`createMockChrome()` provides full `chrome.storage` (local/sync/session areas + onChanged listener), `chrome.runtime` (sendMessage + onMessage._emit), `chrome.tabs`, `chrome.action`, `chrome.contextMenus`, `chrome.i18n`, `chrome.commands`.
 
-支持 `overrides` 参数深度合并自定义行为：
+Supports `overrides` parameter for deep-merge custom behavior:
 
 ```js
 globalThis.chrome = createMockChrome({
@@ -103,16 +103,16 @@ globalThis.chrome = createMockChrome({
 });
 ```
 
-### 模式 B：vi.stubGlobal（轻量，仅 stub 需要的 API）
+### Pattern B: vi.stubGlobal (lightweight, stub only needed APIs)
 
 ```js
 vi.stubGlobal('chrome', { runtime: { connect: vi.fn(() => mockPort) } });
 afterEach(() => { vi.unstubAllGlobals(); });
 ```
 
-适用于只需少量 Chrome API 的测试（如 sseClient 只需 `runtime.connect`）。
+Suitable for tests needing only a few Chrome APIs (e.g., sseClient only needs `runtime.connect`).
 
-### 模式 C：vi.hoisted + vi.mock（重度 mock）
+### Pattern C: vi.hoisted + vi.mock (heavy mocking)
 
 ```js
 const mockState = vi.hoisted(() => ({
@@ -125,13 +125,13 @@ vi.mock("../../src/lib/config.js", () => ({
 }));
 ```
 
-`vi.hoisted` 确保 mock 状态对象在 `vi.mock` 工厂执行前创建。适用于翻译服务等需要 mock 多个模块依赖的测试。
+`vi.hoisted` ensures mock state objects are created before `vi.mock` factory execution. Suitable for tests like translation services that need to mock multiple module dependencies.
 
 ---
 
-## DOM 测试模式
+## DOM Testing Pattern
 
-内容脚本和选项页测试使用 JSDOM 构建独立 DOM：
+Content script and options page tests use JSDOM to build standalone DOM:
 
 ```js
 import { JSDOM } from "jsdom";
@@ -143,53 +143,53 @@ function createButton() {
   return btn;
 }
 
-test("applyAiSuccessState 应设置成功样式", () => {
+test("applyAiSuccessState should set success style", () => {
   const btn = createButton();
   applyAiSuccessState(btn);
   expect(btn.classList.contains("dualtran-ai-success")).toBe(true);
 });
 ```
 
-每个测试文件自带 DOM 工厂函数，避免共享全局 document 状态。
+Each test file defines its own DOM factory function, avoiding shared global document state.
 
 ---
 
-## Fixtures 目录
+## Fixtures Directory
 
 ```
 tests/fixtures/
 ├── chrome/
-│   └── mockChrome.js          # Chrome API mock 工厂（详见上文）
+│   └── mockChrome.js          # Chrome API mock factory (see above)
 ├── dom/
-│   ├── samplePage.html        # 翻译测试用的示例 HTML 页面
-│   └── translatedPage.html    # 翻译后的 HTML 页面（对照用）
+│   ├── samplePage.html        # Sample HTML page for translation testing
+│   └── translatedPage.html    # Translated HTML page (for comparison)
 ├── ai/
-│   ├── openai-success.sse.txt # OpenAI SSE 响应样本（data: {choices:[...]} + [DONE]）
-│   └── gemini-success.json    # Gemini generateContent 响应样本
+│   ├── openai-success.sse.txt # OpenAI SSE response sample (data: {choices:[...]} + [DONE])
+│   └── gemini-success.json    # Gemini generateContent response sample
 └── aimock/
-    └── llm.json               # LLMock fixture 数据（详见 mock-server/CLAUDE.md §5）
+    └── llm.json               # LLMock fixture data (see mock-server/CLAUDE.md §5)
 ```
 
-### fixture 文件用途
+### Fixture File Purposes
 
-- **`mockChrome.js`** — 所有需要 `chrome.*` API 的测试的共享基础设施。每次调用返回全新实例，确保测试隔离。
-- **`dom/*.html`** — 内容脚本测试中用于模拟真实网页结构。
-- **`ai/*.sse.txt / *.json`** — AI 响应解析测试的静态输入数据。
-- **`aimock/llm.json`** — aimock 服务器的请求匹配规则和预定义响应（详见 `mock-server/CLAUDE.md`）。
+- **`mockChrome.js`** — Shared infrastructure for all tests needing `chrome.*` APIs. Each call returns a fresh instance, ensuring test isolation.
+- **`dom/*.html`** — Used in content script tests to simulate real web page structures.
+- **`ai/*.sse.txt / *.json`** — Static input data for AI response parsing tests.
+- **`aimock/llm.json`** — Request matching rules and predefined responses for the aimock server (see `mock-server/CLAUDE.md`).
 
 ---
 
-## Mock 服务器（tests/mock-server/）
+## Mock Server (tests/mock-server/)
 
-`tests/mock-server/` 目录包含可在测试中程序化启动的 LLM mock 服务器。
+`tests/mock-server/` contains LLM mock servers that can be programmatically started in tests.
 
-| 文件 | 端口 | 用途 |
+| File | Port | Purpose |
 |------|------|------|
-| `mock-llm-server-aimock.js` | 8788 | 基于 @copilotkit/aimock，支持 7 个提供商 + 场景切换 + fixture 驱动 |
-| `mock-anthropic.js` | — | Koa，模拟 Anthropic SSE（解析 `<译泽>` 标签） |
-| `mock-gemini.js` | — | Koa，模拟 Gemini API（解析 `<译泽>` 标签） |
+| `mock-llm-server-aimock.js` | 8788 | Based on @copilotkit/aimock, supports 7 providers + scenario switching + fixture-driven |
+| `mock-anthropic.js` | — | Koa, simulates Anthropic SSE (parses `<译泽>` tags) |
+| `mock-gemini.js` | — | Koa, simulates Gemini API (parses `<译泽>` tags) |
 
-在 vitest 测试中的用法：
+Usage in vitest tests:
 
 ```js
 import { startAimockLlmServer, stopAimockLlmServer } from "../mock-server/mock-llm-server-aimock.js";
@@ -199,195 +199,195 @@ beforeAll(async () => { server = await startAimockLlmServer(8788); });
 afterAll(async () => { await stopAimockLlmServer(server); });
 ```
 
-详细文档见 `mock-server/CLAUDE.md`。
+See `mock-server/CLAUDE.md` for detailed documentation.
 
 ---
 
-## 浏览器 E2E 测试
+## Browser E2E Tests
 
-`tests/browser-e2e/` 是模块化的 **Playwright** E2E 套件（非 vitest），用真实 Chromium 加载构建后的扩展。每个场景是独立 `.mjs` 文件，通过 `run-all.mjs` 编排。
+`tests/browser-e2e/` is a modular **Playwright** E2E suite (not vitest) that loads the built extension in real Chromium. Each scenario is an independent `.mjs` file, orchestrated by `run-all.mjs`.
 
-### 运行方式
+### How to Run
 
 ```bash
-npm run test:e2e:all                          # 运行所有场景
-npm run test:e2e:translation                  # 仅翻译场景
-npm run test:e2e:popup                        # 仅弹窗页面场景
-npm run test:e2e:settings-translation         # 仅语言+翻译+AI提供商设置场景
-npm run test:e2e:settings-appearance          # 仅样式设置场景
-npm run test:e2e:settings-advanced            # 仅高级设置场景
-npm run test:e2e:error-edge                   # 仅错误恢复场景
-npm run test:e2e:install                      # 仅首次运行场景
-node tests/browser-e2e/run-all.mjs --scenario=popup-behavior    # 弹窗页行为验证
-node tests/browser-e2e/run-all.mjs --scenario=options-behavior  # 选项页行为验证
-npm run test:browser-e2e:aimock               # 向后兼容（重导出 run-all.mjs）
-node tests/browser-e2e/run-all.mjs --scenario=popup   # 直接运行单个场景
-node tests/browser-e2e/run-all.mjs --scenario=settings --grep=translation  # 按名称筛选
+npm run test:e2e:all                          # run all scenarios
+npm run test:e2e:translation                  # translation scenario only
+npm run test:e2e:popup                        # popup page scenario only
+npm run test:e2e:settings-translation         # language + translation + AI provider settings scenario only
+npm run test:e2e:settings-appearance          # appearance settings scenario only
+npm run test:e2e:settings-advanced            # advanced settings scenario only
+npm run test:e2e:error-edge                   # error recovery scenario only
+npm run test:e2e:install                      # first-run scenario only
+node tests/browser-e2e/run-all.mjs --scenario=popup-behavior    # popup page behavior verification
+node tests/browser-e2e/run-all.mjs --scenario=options-behavior  # options page behavior verification
+npm run test:browser-e2e:aimock               # backward compatible (re-exports run-all.mjs)
+node tests/browser-e2e/run-all.mjs --scenario=popup   # run a single scenario directly
+node tests/browser-e2e/run-all.mjs --scenario=settings --grep=translation  # filter by name
 ```
 
-### 前置条件
+### Prerequisites
 
-1. 必须先 `npm run build`（Playwright 加载 `dist/chrome/`）
-2. 需要 mock 服务器的场景（`needsMock: true`）自动启动 aimock 子进程;不需要的场景使用 `setupBasic()` 跳过 mock
+1. Must run `npm run build` first (Playwright loads `dist/chrome/`)
+2. Scenarios needing mock servers (`needsMock: true`) auto-start aimock subprocess; others use `setupBasic()` to skip mock
 
-### 目录结构
+### Directory Structure
 
 ```
 tests/browser-e2e/
-├── setup.mjs                         # 共享 harness：两层启动（setupBasic/setupFull）+ ErrorCollector + 工具函数
-├── run-all.mjs                       # 场景编排器：--scenario / --grep 筛选，容错（setupFull 失败仍运行 basic 场景）
-├── translation.mjs                   # 翻译功能（13 步，从 browser-e2e.mjs 迁移）
-├── install-firstrun.mjs              # 安装 & 首次运行验证（4 步）
-├── settings-translation.mjs          # 语言 + 翻译 + AI 提供商设置（10 步）
-├── settings-appearance.mjs           # 样式设置（5 步）
-├── settings-advanced.mjs             # 高级设置：快捷键 + 存储 + 其他（6 步）
-├── popup-controls.mjs                # 弹窗页面交互控件（6 步，11 个控件）
-├── popup-behavior.mjs                # 弹窗页行为验证（4 步：translateSelected 按钮、悬停翻译、语言检测等）
-├── options-behavior.mjs              # 选项页行为验证（9 步：translateSelected、悬停原文、链接翻译、pre 标签、Ctrl×2 快捷键等）
-└── error-edge.mjs                    # 错误恢复 & 边缘场景（6 步）
+├── setup.mjs                         # Shared harness: two-layer startup (setupBasic/setupFull) + ErrorCollector + utility functions
+├── run-all.mjs                       # Scenario orchestrator: --scenario / --grep filtering, fault-tolerant (setupFull failure still runs basic scenarios)
+├── translation.mjs                   # Translation features (13 steps, migrated from browser-e2e.mjs)
+├── install-firstrun.mjs              # Installation & first-run verification (4 steps)
+├── settings-translation.mjs          # Language + translation + AI provider settings (10 steps)
+├── settings-appearance.mjs           # Appearance settings (5 steps)
+├── settings-advanced.mjs             # Advanced settings: keyboard shortcuts + storage + other (6 steps)
+├── popup-controls.mjs                # Popup page interactive controls (6 steps, 11 controls)
+├── popup-behavior.mjs                # Popup page behavior verification (4 steps: translateSelected button, hover translation, language detection, etc.)
+├── options-behavior.mjs              # Options page behavior verification (9 steps: translateSelected, hover original text, link translation, pre tags, Ctrl×2 shortcuts, etc.)
+└── error-edge.mjs                    # Error recovery & edge cases (6 steps)
 ```
 
-`launchExtensionBrowser()` 通过 `addInitScript` 注入猴子补丁，将所有页面的 `attachShadow({ mode: "closed" })` 强制改为 `mode: "open"`，确保 Playwright 的 `evaluate()` 可以穿透所有 shadow DOM 进行行为验证。
+`launchExtensionBrowser()` injects a monkey patch via `addInitScript` to force all pages' `attachShadow({ mode: "closed" })` to `mode: "open"`, ensuring Playwright's `evaluate()` can penetrate all shadow DOMs for behavior verification.
 
-### 模块合约
+### Module Contract
 
-每个场景文件导出：
+Each scenario file exports:
 
 ```js
-export const name = "settings-appearance";   // 场景名称
+export const name = "settings-appearance";   // scenario name
 export const needsMock = false;             // true → setupFull(), false → setupBasic()
-export const smoke = true;                  // true → 纳入 --smoke 快速回归子集
-export async function run(scope) {           // scope 含 context/page/extensionId/serviceWorker/testPageUrl/verifyPageUrl/longPageUrl/dynamicContentPageUrl/frPageUrl/linkSourceUrl/linkTargetUrl/collector/mockServerConfig
-  // 场景逻辑
+export const smoke = true;                  // true → included in --smoke quick regression subset
+export async function run(scope) {           // scope contains context/page/extensionId/serviceWorker/testPageUrl/verifyPageUrl/longPageUrl/dynamicContentPageUrl/frPageUrl/linkSourceUrl/linkTargetUrl/collector/mockServerConfig
+  // scenario logic
 }
 ```
 
-### Smoke 快速回归子集
+### Smoke Quick Regression Subset
 
-`--smoke` 参数仅运行标记为 `smoke = true` 的场景（不需要 Mock 服务器、步骤少、纯 UI 交互），适合 CI 快速门禁：
+`--smoke` flag only runs scenarios marked `smoke = true` (no Mock server needed, few steps, pure UI interaction), suitable for CI quick gates:
 
 ```bash
-npm run test:e2e:smoke   # 3-5 分钟内完成，约 6 个场景
+npm run test:e2e:smoke   # completes in 3-5 minutes, about 6 scenarios
 ```
 
-Smoke 场景选择标准：`needsMock: false` + 验证核心路径 + 步骤数少。当前 smoke 场景：
+Smoke scenario selection criteria: `needsMock: false` + validates core paths + few steps. Current smoke scenarios:
 
-| 场景 | 步骤数 | 说明 |
+| Scenario | Steps | Description |
 |------|--------|------|
-| install-firstrun | 4 | 安装基本流程 |
-| settings-appearance | 5 | 暗黑模式 + 颜色 + 弹出页样式 |
-| settings-advanced | 6 | 快捷键 + 存储 + 其他 |
-| popup-controls | 6 | 弹窗页 11 个控件 |
-| popup-behavior | 4 | 弹窗页行为验证 |
-| options-behavior | 9 | 选项页行为验证 |
+| install-firstrun | 4 | Basic installation flow |
+| settings-appearance | 5 | Dark mode + colors + popup styles |
+| settings-advanced | 6 | Keyboard shortcuts + storage + other |
+| popup-controls | 6 | Popup page 11 controls |
+| popup-behavior | 4 | Popup page behavior verification |
+| options-behavior | 9 | Options page behavior verification |
 
-### Mock 模式配置
+### Mock Mode Configuration
 
-`tests/browser-e2e/browser-e2e-config.mjs` 始终使用 aimock 服务器：
+`tests/browser-e2e/browser-e2e-config.mjs` always uses aimock server:
 
-| 模式 | 端口 | 预期 AI 响应片段 | Mock 服务器脚本 |
+| Mode | Port | Expected AI Response Fragment | Mock Server Script |
 |------|------|-----------------|----------------|
 | `aimock` | 8788 | `"🌐[aimock]"` | `mock-llm-server-aimock.js` |
 
 ### ErrorCollector
 
-共享错误收集器（`scope.collector`），API：
-- `collector.record(source, text, url)` — 记录错误
-- `collector.attachPage(page, label)` — 绑定页面 console/异常监听
-- `collector.attachServiceWorker(sw)` — 绑定 SW console 监听
-- `collector.collectExtensionErrors(page, extId)` — 检查 chrome://extensions
-- `collector.printSummary()` — 打印 actionable/benign/fatal 分类汇总
+Shared error collector (`scope.collector`), API:
+- `collector.record(source, text, url)` — record error
+- `collector.attachPage(page, label)` — attach page console/exception listener
+- `collector.attachServiceWorker(sw)` — attach SW console listener
+- `collector.collectExtensionErrors(page, extId)` — check chrome://extensions
+- `collector.printSummary()` — print actionable/benign/fatal classified summary
 
 ---
 
-## MCP E2E 调试辅助（tests/mcp-e2e/）
+## MCP E2E Debug Helper (tests/mcp-e2e/)
 
-> ⚠️ **MCP E2E 是开发时调试辅助工具，非 CI 门禁。**
-> CI 快速回归：`npm run test:e2e:smoke`（3-5 分钟）
-> 完整回归：`npm run test:e2e:all`
+> ⚠️ **MCP E2E is a development-time debug helper tool, not a CI gate.**
+> CI quick regression: `npm run test:e2e:smoke` (3-5 minutes)
+> Full regression: `npm run test:e2e:all`
 
-`tests/mcp-e2e/` 包含通过 Chrome DevTools MCP 在 Claude Code 中直接运行的 E2E 组件测试。
+`tests/mcp-e2e/` contains E2E component tests that run directly in Claude Code via Chrome DevTools MCP.
 
-### 为什么在已有 Playwright E2E 的情况下添加 MCP E2E？
+### Why add MCP E2E when Playwright E2E already exists?
 
-Playwright E2E（`browser-e2e/` 模块化套件）是完整的端到端回归测试，适合 CI/CD 和发版前验证。但在日常开发中有两个不便：
+Playwright E2E (`browser-e2e/` modular suite) is a complete end-to-end regression test suite, suitable for CI/CD and pre-release verification. But it has two inconveniences in daily development:
 
-1. **无法在 Claude Code 对话中直接运行**——Playwright 是独立 Node.js 脚本，需要在终端单独执行 `npm run test:browser-e2e:aimock`，Claude Code 无法观察中间状态或动态调整测试
-2. **每次运行完整 13 步耗时较长**——改了一个 AI 翻译相关的函数，只想快速验证 Mock 服务器响应是否正确，不需要跑 Google 翻译、暗黑模式、选项页持久化等无关步骤
+1. **Cannot run directly in Claude Code conversation** — Playwright is an independent Node.js script requiring separate terminal execution of `npm run test:browser-e2e:aimock`; Claude Code cannot observe intermediate states or dynamically adjust tests
+2. **Running the full 13 steps takes a long time each time** — after changing an AI translation-related function, you just want to quickly verify Mock server response correctness, without running Google translation, dark mode, options page persistence and other irrelevant steps
 
-MCP E2E 解决这两个问题：在 Claude Code 中输入 `/run-e2e-mcp`，Claude Code 通过 MCP 工具直接操控 Chrome（加载扩展、导航页面、执行 JS、验证结果），开发者可以实时看到每个组件的测试结果，也可以只运行其中一个测试。修改代码后秒级反馈，不离开 Claude Code。
+MCP E2E solves both problems: type `/run-e2e-mcp` in Claude Code, and Claude Code directly controls Chrome via MCP tools (loading extension, navigating pages, executing JS, verifying results). Developers can see each component's test results in real time and can run just one test. Feedback in seconds after code changes, without leaving Claude Code.
 
-**三者是互补关系，不是替代**：
-- **Playwright E2E（完整）**：完整管线回归（content script → port → SW → API → DOM），发版前必跑。命令：`npm run test:e2e:all`
-- **Playwright E2E（Smoke）**：快速回归子集（3-5 分钟），适合 CI 门禁。命令：`npm run test:e2e:smoke`
-- **MCP E2E**：开发时调试辅助，组件级快速验证，不纳入 CI。在 Claude Code 中输入 `/run-e2e-mcp`
+**The three are complementary, not replacements**:
+- **Playwright E2E (full)**: complete pipeline regression (content script → port → SW → API → DOM), must run before release. Command: `npm run test:e2e:all`
+- **Playwright E2E (Smoke)**: quick regression subset (3-5 minutes), suitable for CI gates. Command: `npm run test:e2e:smoke`
+- **MCP E2E**: development-time debug helper, component-level quick verification, not included in CI. Type `/run-e2e-mcp` in Claude Code
 
-### 与 Playwright E2E 的区别
+### Differences from Playwright E2E
 
 | | Playwright (`browser-e2e/`) | MCP (`mcp-e2e/`) |
 |---|---|---|
-| **运行方式** | `npm run test:browser-e2e:aimock` | Claude Code 中 `/run-e2e-mcp` |
-| **测试引擎** | Playwright + Node.js 脚本 | Chrome DevTools MCP 工具调用 |
-| **浏览器管理** | Playwright 自启 Chromium | MCP 自启系统 Chrome |
-| **扩展加载** | `--load-extension` 命令行标志 | MCP `install_extension` 工具 |
-| **测试范围** | 完整管线（Content Script → port → SW → API → DOM） | 组件级独立验证（Google翻译、按钮UI、SW→Mock、多提供商、配置） |
-| **AI 翻译验证** | 完整端到端：自动改进→逐节点 `🌐[aimock]` 检查 | SW 直接 fetch Mock 服务器验证响应 |
-| **适用场景** | CI/CD、发版前完整回归 | 开发时快速验证、无显示器环境调试 |
-| **需要显示器** | 是（`headless: false`，Chrome 扩展限制） | 是（MCP 启动的 Chrome 也需要显示） |
-| **已知限制** | 无 | `chrome.runtime.connect` 端口消息在 CDP 控制下不工作 |
+| **Execution** | `npm run test:browser-e2e:aimock` | `/run-e2e-mcp` in Claude Code |
+| **Test engine** | Playwright + Node.js scripts | Chrome DevTools MCP tool calls |
+| **Browser management** | Playwright auto-starts Chromium | MCP auto-starts system Chrome |
+| **Extension loading** | `--load-extension` CLI flag | MCP `install_extension` tool |
+| **Test scope** | Full pipeline (Content Script → port → SW → API → DOM) | Component-level independent verification (Google Translate, button UI, SW→Mock, multi-provider, config) |
+| **AI translation verification** | Full end-to-end: auto-improvement → per-node `🌐[aimock]` check | SW directly fetches Mock server to verify response |
+| **Suitable scenarios** | CI/CD, pre-release full regression | Development-time quick verification, headless environment debugging |
+| **Display required** | Yes (`headless: false`, Chrome extension limitation) | Yes (MCP-launched Chrome also needs display) |
+| **Known limitations** | None | `chrome.runtime.connect` port messages don't work under CDP control |
 
-### 测试清单（9 个）
+### Test Checklist (9 tests)
 
-| 测试 | 验证内容 |
+| Test | Verification |
 |------|----------|
-| Test A | Google 翻译：触发翻译 → `<translated>` 节点出现 |
-| Test B | 按钮 UI：内联按钮组 + AI 按钮存在且可见 |
-| Test C | SW→Mock 直连：SW fetch Mock 服务器 → `🌐[aimock]` 响应正确 |
-| Test D | 多提供商：OpenRouter + Anthropic + Gemini + 通配路由 + 401 错误场景 |
-| Test E | 扩展配置：`chrome.storage.local` 读写 + 嵌套对象 + 恢复 |
-| Test F | 提供商下拉框：`#aiProvider` ≥ 5 个选项且含 OpenAI/Anthropic/Gemini |
-| Test G | 通用面板字段：切换提供商 → `#genericApiKeyLabel` 等标签更新 |
-| Test I | 模型选择加载状态：`#genericModel` 从 disabled 到 enabled 并填充 |
-| Test J | 弹窗页语言→storage 往返：改语言 → 读 `chrome.storage.local` |
+| Test A | Google Translate: trigger translation → `<translated>` node appears |
+| Test B | Button UI: inline button group + AI button exists and visible |
+| Test C | SW→Mock direct: SW fetch Mock server → `🌐[aimock]` response correct |
+| Test D | Multi-provider: OpenRouter + Anthropic + Gemini + wildcard routing + 401 error scenarios |
+| Test E | Extension config: `chrome.storage.local` read/write + nested objects + recovery |
+| Test F | Provider dropdown: `#aiProvider` ≥ 5 options including OpenAI/Anthropic/Gemini |
+| Test G | Generic panel fields: switch provider → `#genericApiKeyLabel` and other labels update |
+| Test I | Model selection loading state: `#genericModel` from disabled to enabled and populated |
+| Test J | Popup page language→storage round-trip: change language → read `chrome.storage.local` |
 
-> **注意**：Test H（API Key 密码框可见性切换）已移除——该功能尚未实现（`apiKeyGeneric` 为纯文本输入，无 `type="password"` 也无切换按钮）。
+> **Note**: Test H (API Key password field visibility toggle) has been removed — this feature is not yet implemented (`apiKeyGeneric` is a plain text input, no `type="password"` and no toggle button).
 
-### 文件结构
+### File Structure
 
 ```
 tests/mcp-e2e/
-└── start-test-servers.js   # 启动 mock LLM（端口 8788）+ 静态测试页面服务器（随机端口）
+└── start-test-servers.js   # Start mock LLM (port 8788) + static test page server (random port)
 .claude/skills/
-└── run-e2e-mcp.md          # MCP E2E 测试指令（9 个测试，A-G + I-J）
+└── run-e2e-mcp.md          # MCP E2E test instructions (9 tests, A-G + I-J)
 ```
 
-### 运行方式
+### How to Run
 
-在 Claude Code 中输入 `/run-e2e-mcp`，自动执行 9 个组件测试：
+Type `/run-e2e-mcp` in Claude Code to automatically execute 9 component tests:
 
-| 测试 | 验证内容 |
+| Test | Verification |
 |------|----------|
-| Test A | Google 翻译：触发翻译 → `<translated>` 节点出现 |
-| Test B | 按钮 UI：内联按钮组 + AI 按钮存在且可见 |
-| Test C | SW→Mock 直连：SW fetch Mock 服务器 → `🌐[aimock]` 响应正确 |
-| Test D | 多提供商：OpenRouter + Anthropic + Gemini + 通配路由 + 401 错误场景 |
-| Test E | 扩展配置：`chrome.storage.local` 读写 + 嵌套对象 + 恢复 |
-| Test F | 提供商下拉框：`#aiProvider` ≥ 5 个选项且含 OpenAI/Anthropic/Gemini |
-| Test G | 通用面板字段：切换提供商 → `#genericApiKeyLabel` 等标签更新 |
-| Test I | 模型选择加载状态：`#genericModel` 从 disabled 到 enabled 并填充 |
-| Test J | 弹窗页语言→storage 往返：改语言 → 读 `chrome.storage.local` |
+| Test A | Google Translate: trigger translation → `<translated>` node appears |
+| Test B | Button UI: inline button group + AI button exists and visible |
+| Test C | SW→Mock direct: SW fetch Mock server → `🌐[aimock]` response correct |
+| Test D | Multi-provider: OpenRouter + Anthropic + Gemini + wildcard routing + 401 error scenarios |
+| Test E | Extension config: `chrome.storage.local` read/write + nested objects + recovery |
+| Test F | Provider dropdown: `#aiProvider` ≥ 5 options including OpenAI/Anthropic/Gemini |
+| Test G | Generic panel fields: switch provider → `#genericApiKeyLabel` and other labels update |
+| Test I | Model selection loading state: `#genericModel` from disabled to enabled and populated |
+| Test J | Popup page language→storage round-trip: change language → read `chrome.storage.local` |
 
-### MCP 配置
+### MCP Configuration
 
-在 `.mcp.json` 中配置 `chrome-devtools-mcp`（官方 Google Chrome DevTools MCP v1.3.0）并启用 `--category-extensions`。Skill 定义在 `.claude/skills/run-e2e-mcp.md`。
+Configure `chrome-devtools-mcp` in `.mcp.json` (official Google Chrome DevTools MCP v1.3.0) and enable `--category-extensions`. Skill definition is in `.claude/skills/run-e2e-mcp.md`.
 
 ---
 
-## 编写新测试的惯例
+## Conventions for Writing New Tests
 
-### 1. 文件位置
+### 1. File Location
 
-测试文件放在与 `src/` 对应的子目录中：
+Test files are placed in subdirectories corresponding to `src/`:
 
 ```
 src/contentScript/aiUiState.js   →  tests/contentScript/aiUiState.test.js
@@ -395,14 +395,14 @@ src/lib/ai/providerRegistry.js   →  tests/ai/providerRegistry.test.js
 src/background/actionClick*.js   →  tests/background/actionClick*.test.js
 ```
 
-### 2. 纯函数优先
+### 2. Pure Functions First
 
-如果被测模块是纯函数（无副作用、无 Chrome API 依赖），直接导入并断言返回值，**不需要任何 mock**：
+If the module under test is a pure function (no side effects, no Chrome API dependency), directly import and assert return values, **no mocks needed**:
 
 ```js
 import { resolveDesktopToggleTranslationMessage } from "../../src/background/actionClickHelpers.js";
 
-test("tab 未翻译时应返回 translateThisPage", () => {
+test("should return translateThisPage when tab is not translated", () => {
   const msg = resolveDesktopToggleTranslationMessage({
     pageIsTranslated: false,
     targetLang: "zh",
@@ -411,9 +411,9 @@ test("tab 未翻译时应返回 translateThisPage", () => {
 });
 ```
 
-### 3. Mock Chrome API 时使用共享工厂
+### 3. Use Shared Factory for Mock Chrome API
 
-不要手写 chrome mock。使用 `createMockChrome()`：
+Don't hand-write chrome mock. Use `createMockChrome()`:
 
 ```js
 import { createMockChrome } from "../fixtures/chrome/mockChrome.js";
@@ -422,29 +422,29 @@ beforeEach(() => { globalThis.chrome = createMockChrome(); });
 afterEach(() => { delete globalThis.chrome; });
 ```
 
-### 4. 集成测试命名
+### 4. Integration Test Naming
 
-跨模块测试文件名必须包含 `.integration.`：
+Cross-module test filenames must include `.integration.`:
 
 ```
 goodName.integration.test.js   ✓
-goodName.test.js               ✓（单元测试）
-goodName.spec.js               ✗（vitest 不包含 .spec）
+goodName.test.js               ✓ (unit test)
+goodName.spec.js               ✗ (vitest does not include .spec)
 ```
 
-### 5. 需要真实 HTTP 的测试
+### 5. Tests Needing Real HTTP
 
-使用 `beforeAll`/`afterAll` 管理服务器生命周期，不要在每个 test 中启停：
+Use `beforeAll`/`afterAll` to manage server lifecycle, don't start/stop in each test:
 
 ```js
 let server;
-beforeAll(async () => { server = await startAimockLlmServer(0); }); // port 0 = 随机端口
+beforeAll(async () => { server = await startAimockLlmServer(0); }); // port 0 = random port
 afterAll(async () => { await stopAimockLlmServer(server); });
 ```
 
-### 6. DOM 测试的本地工厂
+### 6. Local Factory for DOM Tests
 
-每个测试文件定义自己的 DOM 工厂函数，不要共享全局 document：
+Each test file defines its own DOM factory function, don't share global document:
 
 ```js
 function createDom() {
@@ -452,7 +452,7 @@ function createDom() {
 }
 ```
 
-### 7. Vitest 配置已启用
+### 7. Vitest Configuration Enabled
 
-- `globals: true` — `describe`/`test`/`expect`/`vi` 等无需 import
-- `restoreMocks: true` — 每个测试后自动恢复所有 mock
+- `globals: true` — `describe`/`test`/`expect`/`vi` etc. don't need import
+- `restoreMocks: true` — automatically restores all mocks after each test

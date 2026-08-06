@@ -1,5 +1,5 @@
 /**
- * 本文件是请求编排层
+ * Request orchestration layer
  */
 
 import twpConfig from "../lib/config.js"
@@ -61,34 +61,34 @@ function _resolveProviderSettings(providerId, ensureConfigString) {
 
   // Build extra
   const extra = {};
-  // 读取用户自定义的 API Base URL（优先于 provider 内置默认值）
+  // Read user-customized API Base URL (takes priority over provider built-in defaults)
   const userApiBase = (providerConfigsForModel[providerId]?.apiBase || "").trim();
   const isUserCustom = !!userApiBase;
 
-  // 计算有效的 baseURL
-  // - 用户自定义：去除端点后缀（/chat/completions、/messages），自动补全版本路径（/v1、/v1beta）
-  // - 内置默认：提取 base 路径（Google 保留 /v1beta，其他取 origin + /v1）
+  // Compute the effective base URL
+  // - User-customized: strip endpoint suffixes (/chat/completions, /messages), auto-append version path (/v1, /v1beta)
+  // - Built-in default: extract base path (Google keeps /v1beta, others use origin + /v1)
   let effectiveBaseURL = "";
   if (isUserCustom) {
-    // ① 去除已知的端点后缀和尾部斜杠
+    // ① Strip known endpoint suffixes and trailing slashes
     effectiveBaseURL = userApiBase
       .replace(/\/(chat\/completions|messages)\/?$/, "")
       .replace(/\/+$/, "");
 
-    // ② 检测是否已包含非根路径（如 /v1、/v1beta、/api 等）
+    // ② Check if the URL already contains a non-root path (e.g. /v1, /v1beta, /api, etc.)
     const url = new URL(effectiveBaseURL);
     const hasPath = url.pathname !== "/" && url.pathname !== "";
 
-    // ③ 如未包含路径，根据 provider 类型追加默认版本路径
+    // ③ If no path present, append a default version path based on provider type
     if (!hasPath) {
-      // 判断是否为 Google 系 provider（gemini-json 响应格式）
+      // Check if this is a Google-family provider (gemini-json response format)
       const isGoogle = providerId === "google-gemini" || providerId === "google"
         || providerDef?.responseFormat === "gemini-json";
-      // Google 使用 /v1beta，其余 provider 使用 /v1
+      // Google uses /v1beta, other providers use /v1
       effectiveBaseURL += isGoogle ? "/v1beta" : "/v1";
     }
   } else if (providerDef?.apiBase) {
-    // Google 内置 apiBase 已含 /v1beta，直接使用；其他 provider 取 origin + /v1
+    // Google built-in apiBase already contains /v1beta, use as-is; other providers use origin + /v1
     if (providerId === "google-gemini" || providerDef?.responseFormat === "gemini-json") {
       effectiveBaseURL = providerDef.apiBase;
     } else {
@@ -97,12 +97,12 @@ function _resolveProviderSettings(providerId, ensureConfigString) {
   }
 
   if (effectiveBaseURL) {
-    // 用户自定义了 API Base URL → 始终传递给所有 provider 的 SDK
-    // 所有 SDK_MAP 中的 createXxx 函数均接受 baseURL 参数
+    // User customized API Base URL → always pass to all provider SDKs
+    // All createXxx functions in SDK_MAP accept a baseURL parameter
     if (isUserCustom) {
       extra.baseURL = effectiveBaseURL;
     } else {
-      // 非自定义：仅对 OpenAI-compatible 格式和特定 provider 设置 baseURL
+      // Non-custom: only set baseURL for OpenAI-compatible formats and specific providers
       if (providerDef?.responseFormat === "openai-sse" || providerDef?.responseFormat === "openai-json") {
         extra.baseURL = effectiveBaseURL;
       }
@@ -115,7 +115,7 @@ function _resolveProviderSettings(providerId, ensureConfigString) {
 
   // OpenRouter special handling
   if (providerId === "openrouter") {
-    // 仅在用户通过 legacy key 设置时才覆盖；否则保留 providerConfigs 或内置默认值
+    // Only override when user set via legacy key; otherwise keep providerConfigs or built-in default
     const openRouterApiBase = (twpConfig.get("openRouterApiBase") || "").trim();
     if (openRouterApiBase) {
       extra.baseURL = openRouterApiBase;
@@ -141,16 +141,16 @@ function _resolveProviderSettings(providerId, ensureConfigString) {
 }
 
 const baseRequestBody = {
-  model: "", // 将从配置中动态获取
-  // 采样温度，介于0和2之间, 控制结果的随机性。 数值越高越随机。
+  model: "", // Dynamically retrieved from config
+  // Sampling temperature, between 0 and 2, controls randomness of results. Higher values = more random.
   temperature: 0.1,
-  // 温度采样的替代方案. 介于0-1之间. 控制输出单词的多样性. 数值越高越随机。
+  // Alternative to temperature sampling. Between 0-1. Controls output token diversity. Higher values = more random.
   top_p: 0.1,
-  // frequency_penalty这个参数是在生成句子的时候加入惩罚项减少总体上使用频率较高的单词/短语的概率，增加使用频率较低的单词/短语的可能性。
-  // 0表示没有惩罚，1表示使用频率高的单词/短语完全不允许出现。
+  // frequency_penalty adds a penalty during generation to reduce the probability of high-frequency tokens/phrases and increase the likelihood of low-frequency ones.
+  // 0 means no penalty, 1 means high-frequency tokens/phrases are completely forbidden.
   frequency_penalty: 0,
-  // presence_penalty这个参数是在生成句子的时候加入惩罚项来限制重复单词的，如果输出的文章不能包含与输入段落中已有的单词相同的单词，则会影响最终的输出。
-  // 它的值可以是 0 到 1，其中 0 表示没有惩罚，1 表示完全禁止模型复制输入段落中出现的单词或短语。
+  // presence_penalty adds a penalty during generation to discourage repeated tokens. If the output cannot contain tokens already present in the input, it affects the final output.
+  // Its value ranges from 0 to 1, where 0 means no penalty and 1 completely forbids the model from copying tokens or phrases from the input.
   presence_penalty: 0,
   stream: true,
   messages: [
@@ -177,11 +177,11 @@ const baseRequestBody = {
  * @returns 
  */
 
-// ── 提取到模块级别的纯函数助手（便于测试） ──
+// ── Extracted module-level pure function helpers (for testing) ──
 
 /**
- * 判断错误是否应被忽略（用户主动取消或 abort）
- * @internal — 从 translateWithAI 提取，供测试使用
+ * Determine whether the error should be ignored (user-initiated cancel or abort)
+ * @internal — extracted from translateWithAI for testing
  */
 export function shouldIgnoreTransportError(err) {
   const errorName = err?.name || err?.error?.name;
@@ -189,8 +189,8 @@ export function shouldIgnoreTransportError(err) {
 }
 
 /**
- * 将 AI 响应 payload 转换为文本并传递给 onMessage
- * @internal — 从 translateWithAI 提取，供测试使用
+ * Convert AI response payload to text and deliver to onMessage
+ * @internal — extracted from translateWithAI for testing
  */
 export function deliverTransformed(payload, onMessage) {
   if (payload == null) return;
@@ -204,8 +204,8 @@ export function deliverTransformed(payload, onMessage) {
 }
 
 /**
- * 判断原始流 chunk 是否为可投递的有效 JSON 或 [DONE]
- * @internal — 从 translateWithAI 提取，供测试使用
+ * Determine whether a raw stream chunk is deliverable valid JSON or [DONE]
+ * @internal — extracted from translateWithAI for testing
  */
 export function isDeliverableRawStreamChunk(payload) {
   if (typeof payload !== 'string') return true;
@@ -223,7 +223,7 @@ export function isDeliverableRawStreamChunk(payload) {
 export async function translateWithAI(content, onMessage, onError, onFinished, signal, isSingleWord = false, overrideTargetLanguageCode = undefined) {
   const requestBody = JSON.parse(JSON.stringify(baseRequestBody))
 
-  // ① 读取配置
+  // ① Read configuration
   const provider = twpConfig.get("aiProvider") || "openai"
 
   const ensureConfigString = (configKey, promptKey, promptFallback, options) => {
@@ -289,7 +289,7 @@ export async function translateWithAI(content, onMessage, onError, onFinished, s
 
   let targetLangConfig = twpLang.otherConfigs[targetLanguageCode] 
 
-  // ② 构建翻译 prompt
+  // ② Build translation prompt
   let sysPromptTranslation = isSingleWord
     ? `${oneLine`
       please act as a professional
@@ -332,7 +332,7 @@ export async function translateWithAI(content, onMessage, onError, onFinished, s
   requestBody.messages[2].content = content
   console.log("user prompt to be sent:", requestBody.messages[2].content)
 
-  // ③ 读取 apiKey + model（Vercel AI SDK 统一处理各 provider，通过 registry 驱动）
+  // ③ Read apiKey + model (Vercel AI SDK handles all providers uniformly, driven by registry)
   const resolved = _resolveProviderSettings(provider, ensureConfigString, twpConfig);
   if (!resolved) return;
   let { apiKey, model, extra } = resolved;
@@ -361,7 +361,7 @@ export async function translateWithAI(content, onMessage, onError, onFinished, s
     extra = { resourceName: new URL(endpoint).hostname.split(".")[0] };
   }
 
-  // ④ 发送结构化请求（Vercel AI SDK 在后台 Service Worker 中处理）
+  // ④ Send structured request (Vercel AI SDK processes in background Service Worker)
   await fetchSSE({
     provider,
     apiKey,
@@ -395,5 +395,5 @@ export async function translateWithAI(content, onMessage, onError, onFinished, s
   });
 }
 
-// 暴露内部函数供测试使用（遵循 pageTranslator 中的先例）
+// Expose internal functions for testing (following the precedent in pageTranslator)
 export { _resolveProviderSettings }
