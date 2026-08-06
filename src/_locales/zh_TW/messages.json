@@ -1,0 +1,763 @@
+{
+  "aiProviderAnthropic": {
+    "message": "Anthropic (Claude)"
+  },
+  "aiProviderAzureOpenAI": {
+    "message": "Azure OpenAI"
+  },
+  "aiProviderBaidu": {
+    "message": "百度文心"
+  },
+  "aiProviderBytedance": {
+    "message": "字節豆包"
+  },
+  "aiProviderCerebras": {
+    "message": "Cerebras"
+  },
+  "aiProviderCohere": {
+    "message": "Cohere"
+  },
+  "aiProviderDeepInfra": {
+    "message": "Deep Infra"
+  },
+  "aiProviderDeepSeek": {
+    "message": "DeepSeek"
+  },
+  "aiProviderGoogleGemini": {
+    "message": "Google Gemini"
+  },
+  "aiProviderGrok": {
+    "message": "xAI (Grok)"
+  },
+  "aiProviderGroq": {
+    "message": "Groq"
+  },
+  "aiProviderIflytek": {
+    "message": "訊飛星火"
+  },
+  "aiProviderMistral": {
+    "message": "Mistral AI"
+  },
+  "aiProviderMoonshot": {
+    "message": "月之暗面 (Kimi)"
+  },
+  "aiProviderOpenAI": {
+    "message": "OpenAI"
+  },
+  "aiProviderOpenRouter": {
+    "message": "OpenRouter"
+  },
+  "aiProviderPerplexity": {
+    "message": "Perplexity"
+  },
+  "aiProviderQwen": {
+    "message": "阿里通義千問"
+  },
+  "aiProviderTogether": {
+    "message": "Together AI"
+  },
+  "aiProviderVercel": {
+    "message": "Vercel AI Gateway"
+  },
+  "aiProviderZhipu": {
+    "message": "智譜AI (GLM)"
+  },
+  "alertSpecifyTargetLanguage": {
+    "message": "請先指定目標語言。"
+  },
+  "backupToFile": {
+    "message": "備份至檔案"
+  },
+  "btnAlwaysTranslate": {
+    "message": "始終翻譯此網站"
+  },
+  "btnAlwaysTranslateThisLanguage": {
+    "message": "始終翻譯此語言"
+  },
+  "btnApply": {
+    "message": "套用"
+  },
+  "btnListen": {
+    "message": "聆聽"
+  },
+  "btnMobileDonate": {
+    "message": "資助"
+  },
+  "btnMobileNeverTranslate": {
+    "message": "永不翻譯此網站"
+  },
+  "btnMobileOriginal": {
+    "message": "原文"
+  },
+  "btnMobileTranslated": {
+    "message": "已翻譯"
+  },
+  "btnMoreOptions": {
+    "message": "更多選項"
+  },
+  "btnNeverTranslate": {
+    "message": "永不翻譯此網站"
+  },
+  "btnNeverTranslateThisLanguage": {
+    "message": "永不翻譯此語言"
+  },
+  "btnOptions": {
+    "message": "Options"
+  },
+  "btnReplace": {
+    "message": "取代"
+  },
+  "btnReset": {
+    "message": "Reset"
+  },
+  "btnRestore": {
+    "message": "Show original"
+  },
+  "btnShowPopup": {
+    "message": "顯示彈出式視窗"
+  },
+  "btnStopListening": {
+    "message": "停止聆聽"
+  },
+  "btnSubmit": {
+    "message": "提交"
+  },
+  "btnTranslate": {
+    "message": "翻譯"
+  },
+  "btncopy": {
+    "message": "複製"
+  },
+  "calculatestorage": {
+    "message": "計算"
+  },
+  "confirmAutoTranslateWithAI": {
+    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
+  },
+  "confirmSetApiKeyNow": {
+    "message": "尚未設定 API 金鑰。您想現在前往設定嗎？"
+  },
+  "deleteTranslationCache": {
+    "message": "清除翻譯快取"
+  },
+  "displayTranslatedTextInNewLine": {
+    "message": "在新行顯示譯文"
+  },
+  "doYouWantOverwriteAllSettings": {
+    "message": "您要使用備份資料覆蓋所有目前的設定嗎？"
+  },
+  "doYouWantRestoreSettings": {
+    "message": "您要將擴充套件重設回預設嗎？"
+  },
+  "doYouWantToDeleteTranslationCache": {
+    "message": "您要刪除翻譯快取嗎？"
+  },
+  "donatewithpaypal": {
+    "message": "透過 PayPal 資助我"
+  },
+  "dontShowIfPageLangIsTargetLang": {
+    "message": "在頁面語言是要翻譯的目標語言時不顯示"
+  },
+  "dontShowIfPageLangIsUnknown": {
+    "message": "在未知頁面語言時不顯示"
+  },
+  "dontShowIfSelectedTextIsTargetLang": {
+    "message": "在選取的文字語言是目標語言時不顯示"
+  },
+  "dontShowIfSelectedTextIsUnknown": {
+    "message": "在未知選取的文字語言時不顯示"
+  },
+  "enterShortcut": {
+    "message": "輸入快捷鍵"
+  },
+  "errorApiKeyNotFound": {
+    "message": "API key not found!"
+  },
+  "errorCopyFailed": {
+    "message": "複製失敗。"
+  },
+  "errorCopyFailedInsecure": {
+    "message": "複製文字失敗。可能是因為頁面 URL 協定不安全（HTTP 而非 HTTPS）。"
+  },
+  "errorTranslationUnknown": {
+    "message": "翻譯錯誤：未知錯誤。"
+  },
+  "errorTranslationWithMessage": {
+    "message": "翻譯錯誤：$ERROR_MESSAGE$",
+    "placeholders": {
+      "ERROR_MESSAGE": {
+        "content": "$1",
+        "example": "網路錯誤"
+      }
+    }
+  },
+  "extensionDescription": {
+    "message": "使用 Google 或 OpenAI 即時翻譯您的網頁。"
+  },
+  "extensionName": {
+    "message": "網頁翻譯器"
+  },
+  "fileIsCorrupted": {
+    "message": "這個檔案似乎毀損了"
+  },
+  "floatingButtonAiTranslateTooltip": {
+    "message": "使用 AI 翻譯頁面"
+  },
+  "floatingButtonGoogleTranslateTooltip": {
+    "message": "使用 Google 翻譯頁面"
+  },
+  "floatingButtonTooltip": {
+    "message": "點擊可切換翻譯狀態；拖曳可變更此按鈕位置"
+  },
+  "hideOriginalText": {
+    "message": "隱藏原文"
+  },
+  "hotkeyError_ctrlOrAlt": {
+    "message": "需包含 Ctrl 鍵或 Alt 鍵"
+  },
+  "hotkeyError_invalid": {
+    "message": "無效組合"
+  },
+  "hotkeyError_letter": {
+    "message": "請輸入字母"
+  },
+  "lblAdd": {
+    "message": "新增"
+  },
+  "lblAiFeatures": {
+    "message": "AI Features"
+  },
+  "lblAiImproveForLongerThan": {
+    "message": "僅針對字數超過此值的文字使用 AI 自動優化",
+    "description": "Label for the minimum number of words required to trigger AI improvement"
+  },
+  "lblAiProvider": {
+    "message": "AI 提供者"
+  },
+  "lblAiTranslatedStyle": {
+    "message": "Color of AI translated text "
+  },
+  "lblAlwaysTranslate": {
+    "message": "始終翻譯$LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblAlwaysTranslateSites": {
+    "message": "始終翻譯這些網站"
+  },
+  "lblApiKeyOpenAI": {
+    "message": "OpenAI API 金鑰"
+  },
+  "lblApiKeyOpenRouter": {
+    "message": "OpenRouter API 金鑰"
+  },
+  "lblAutoImproveByAi": {
+    "message": "自動使用 AI 改進翻譯"
+  },
+  "lblAutoTranslateWhenClickingALink": {
+    "message": "當點到一個將您帶到與目前網站相同網域的連結時，自動進行翻譯"
+  },
+  "lblButtonInTheAddressBar": {
+    "message": "在網址列顯示按鈕"
+  },
+  "lblDarkMode": {
+    "message": "黑暗模式"
+  },
+  "lblEnableDeepL": {
+    "message": "啟用 DeepL 作為文字翻譯服務"
+  },
+  "lblEnterApiKey": {
+    "message": "輸入 API Key"
+  },
+  "lblError": {
+    "message": "無法翻譯此頁面"
+  },
+  "lblFavoriteLanguage": {
+    "message": "優先目標語言 $FAVORITE_LANGUAGE_NUM$",
+    "placeholders": {
+      "FAVORITE_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblFreeTranslationEngine": {
+    "message": "免費翻譯引擎"
+  },
+  "lblHotTranslatedSelectedText": {
+    "message": "立即將所選文字取代為譯文"
+  },
+  "lblKeyboardShortcuts": {
+    "message": "鍵盤快捷鍵"
+  },
+  "lblKeyboardShortcutsSpecial": {
+    "message": "特殊快捷鍵"
+  },
+  "lblMakeDonation": {
+    "message": "捐款"
+  },
+  "lblNeverTranslateLangs": {
+    "message": "永不翻譯這些語言"
+  },
+  "lblOpenAiModel": {
+    "message": "OpenAI 模型"
+  },
+  "lblOpenRouterBaseUrl": {
+    "message": "OpenRouter API 基底位址（選填）"
+  },
+  "lblOpenRouterModel": {
+    "message": "OpenRouter 模型"
+  },
+  "lblOpenRouterReferer": {
+    "message": "HTTP Referer 標頭（選填）"
+  },
+  "lblOpenRouterTitle": {
+    "message": "X-Title 標頭（選填）"
+  },
+  "lblOthers": {
+    "message": "其他"
+  },
+  "lblPageTranslateInto": {
+    "message": "頁面已翻譯為 $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblPageTranslationService": {
+    "message": "網頁翻譯伺服器"
+  },
+  "lblPersonalSettings": {
+    "message": "個人設定"
+  },
+  "lblPlsDonate": {
+    "message": "資助開發者"
+  },
+  "lblReleaseNotes": {
+    "message": "版本資訊"
+  },
+  "lblReplaceSelectedTextWithTranslatedText": {
+    "message": "按 $SHORTCUT_KEY$ 兩次時用譯文取代所選文字",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblReport": {
+    "message": "回報問題"
+  },
+  "lblReset": {
+    "message": "重設"
+  },
+  "lblRestorePageToOriginal": {
+    "message": "將頁面恢復到原始狀態"
+  },
+  "lblSelectPopupInterfaceStyle": {
+    "message": "選擇彈出界面樣式"
+  },
+  "lblSettings": {
+    "message": "設定"
+  },
+  "lblShowContextMenu": {
+    "message": "在選單中顯示翻譯頁面的選項"
+  },
+  "lblShowOriginalTextWhenHovering": {
+    "message": "停留時顯示原文"
+  },
+  "lblShowReleaseNotes": {
+    "message": "更新時顯示更新日誌"
+  },
+  "lblShowTranslateSelectedButton": {
+    "message": "在選取的文字旁顯示翻譯按鈕"
+  },
+  "lblShowTranslateSelectedContextMenu": {
+    "message": "在選單中顯示翻譯選取文字的選項"
+  },
+  "lblShowTranslatedHoveringLangs": {
+    "message": "停留在使用這些語言的網站上時顯示譯文。"
+  },
+  "lblShowTranslatedHoveringSites": {
+    "message": "停留在這些網站上時顯示譯文"
+  },
+  "lblShowTranslatedWhenHovering": {
+    "message": "停留時顯示譯文"
+  },
+  "lblShowTranslatedWhenHoveringThisLang": {
+    "message": "停留在$LANGUAGE_NAME$網站上時顯示翻譯",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblShowTranslatedWhenHoveringThisSite": {
+    "message": "停留在此網站上時顯示翻譯"
+  },
+  "lblStorageUsed": {
+    "message": "已使用的儲存空間："
+  },
+  "lblSwitchTranslatedAndOriginal": {
+    "message": "在翻譯後的頁面和原始頁面之間進行切換"
+  },
+  "lblTargetLanguage": {
+    "message": "目標語言 $TARGET_LANGUAGE_NUM$",
+    "placeholders": {
+      "TARGET_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblTargetLanguageGroup": {
+    "message": "目標語言"
+  },
+  "lblTextTranslationService": {
+    "message": "文字翻譯伺服器"
+  },
+  "lblTranslate": {
+    "message": "翻譯此頁面？"
+  },
+  "lblTranslateInterface": {
+    "message": "協助翻譯此擴充套件"
+  },
+  "lblTranslateLongerThan": {
+    "message": "僅翻譯單詞數超過此值的文本",
+    "description": "觸發翻譯所需的最小單詞數標籤"
+  },
+  "lblTranslatePageInto": {
+    "message": "將頁面翻譯成 $LANGUAGE_NAME$？",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblTranslatePageToTargetLanguage": {
+    "message": "將頁面翻譯成目標語言"
+  },
+  "lblTranslateSelectedWhenPressTwice": {
+    "message": "按兩下 $SHORTCUT_KEY$ 時翻譯所選文字",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslateTag_pre": {
+    "message": "為 $HTML_TAG_NAME$ 標籤啟用翻譯",
+    "placeholders": {
+      "HTML_TAG_NAME": {
+        "content": "<PRE>"
+      }
+    }
+  },
+  "lblTranslateTextOverMouseWhenPressTwice": {
+    "message": "按兩下 $SHORTCUT_KEY$ 時翻譯滑鼠游標所指的文字",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslated": {
+    "message": "已翻譯"
+  },
+  "lblTranslatedStyle": {
+    "message": "谷歌翻譯文本的顏色"
+  },
+  "lblTranslating": {
+    "message": "翻譯中……"
+  },
+  "lblTranslationCache": {
+    "message": "翻譯快取"
+  },
+  "lblTranslationService": {
+    "message": "翻譯伺服器"
+  },
+  "lblTtsSpeed": {
+    "message": "文字轉語音速度"
+  },
+  "lblUseNewAlgorithm": {
+    "message": "使用新的翻譯演算法？"
+  },
+  "lblWhereToDisplayTranslatedText": {
+    "message": "譯文顯示位置"
+  },
+  "lbldontsortresults": {
+    "message": "不要對 Google 翻譯的結果進行排序"
+  },
+  "lbltranslatedynamicallycreatedcontent": {
+    "message": "翻譯動態內容"
+  },
+  "less": {
+    "message": "更少"
+  },
+  "more": {
+    "message": "更多"
+  },
+  "msgAi": {
+    "message": "AI"
+  },
+  "msgAll": {
+    "message": "全選"
+  },
+  "msgAutomatic": {
+    "message": "自動"
+  },
+  "msgAzureEnterKeyAndEndpoint": {
+    "message": "請先輸入 Azure 的 endpoint 和 API key 以取得 Azure OpenAI 的可用模型列表"
+  },
+  "msgCannotLoadDeepSeekModelsHttp": {
+    "message": "無法載入 DeepSeek 模型 (HTTP $1)",
+    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDonateWithPaypal": {
+    "message": "用 PayPal 資助"
+  },
+  "msgDownloadingDocument": {
+    "message": "下載文件中……"
+  },
+  "msgEmptyListAlwaysTranslateLanguages": {
+    "message": "您尚未新增任何語言至此清單。"
+  },
+  "msgEmptyListNeverTranslateSites": {
+    "message": "您尚未新增任何網站至此清單。"
+  },
+  "msgEnterApiKeyForModels": {
+    "message": "請先輸入API key以取得該提供者的可用模型列表"
+  },
+  "msgErrorDownloadingDocument": {
+    "message": "下載文件時發生錯誤"
+  },
+  "msgFavoriteLanguages": {
+    "message": "優先選擇目標語言"
+  },
+  "msgFileLargerThan": {
+    "message": "這個翻譯伺服器不支援檔案長度超過 $FILE_SIZE$ 的檔案",
+    "placeholders": {
+      "FILE_SIZE": {
+        "content": "$1",
+        "example": "10 MB"
+      }
+    }
+  },
+  "msgHotkeys": {
+    "message": "快捷鍵"
+  },
+  "msgHowToGetOpenAIKey": {
+    "message": "如何取得 OpenAI API 金鑰？"
+  },
+  "msgHowToGetOpenRouterKey": {
+    "message": "如何取得 OpenRouter API Key？"
+  },
+  "msgIWillBeGrateful": {
+    "message": "如果您有能力捐款，我將感激不盡。"
+  },
+  "msgInterfaceComplex": {
+    "message": "進階"
+  },
+  "msgInterfaceSimple": {
+    "message": "簡潔"
+  },
+  "msgLanguages": {
+    "message": "語言"
+  },
+  "msgLoadingModels": {
+    "message": "載入中..."
+  },
+  "msgModelListFetchFailed": {
+    "message": "根據API Key獲取模型列表失敗，以下為可用模型列表"
+  },
+  "msgNo": {
+    "message": "否"
+  },
+  "msgNoTranslateSelectedText": {
+    "message": "不要翻譯選取的文字"
+  },
+  "msgNoUseWidgets": {
+    "message": "否（使用小工具）"
+  },
+  "msgOpenOnYandexTranslator": {
+    "message": "在 Yandex 翻譯中打開"
+  },
+  "msgOpenTranslated": {
+    "message": "開啟已翻譯的 PDF"
+  },
+  "msgPDFtoHTML": {
+    "message": "PDF 轉 HTML"
+  },
+  "msgPleaseWait": {
+    "message": "請稍候……"
+  },
+  "msgRecents": {
+    "message": "最近記錄"
+  },
+  "msgSelectServiceConversion": {
+    "message": "選擇一個翻譯伺服器來轉換"
+  },
+  "msgSelectTargetLanguage": {
+    "message": "將網站翻譯成該目標語言"
+  },
+  "msgSelectTargetLanguageForText": {
+    "message": "將所選文本翻譯成該目標語言"
+  },
+  "msgSendDocument": {
+    "message": "傳送文件"
+  },
+  "msgSites": {
+    "message": "網站"
+  },
+  "msgStorage": {
+    "message": "儲存空間"
+  },
+  "msgStyle": {
+    "message": "樣式"
+  },
+  "msgThanksForUseExtension": {
+    "message": "感謝您使用這個擴充套件"
+  },
+  "msgToTranslateSites": {
+    "message": "翻譯這個網站"
+  },
+  "msgToTranslateThisDocument": {
+    "message": "如要翻譯此文件類型 $DOC_TYPE$ 需要先轉換為 HTML 格式",
+    "placeholders": {
+      "DOC_TYPE": {
+        "content": "$1",
+        "example": "(.pdf)"
+      }
+    }
+  },
+  "msgTranslateFor": {
+    "message": "翻譯成$LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateSelectedText": {
+    "message": "翻譯選取文字"
+  },
+  "msgTranslations": {
+    "message": "翻譯"
+  },
+  "msgUnknownLanguage": {
+    "message": "未知"
+  },
+  "msgYes": {
+    "message": "是"
+  },
+  "msgYesRecommended": {
+    "message": "是（推薦）"
+  },
+  "openNativeShortcutManager": {
+    "message": "開啟原生快捷鍵管理器"
+  },
+  "optionFloatingConfig": {
+    "message": "顯示浮動按鈕"
+  },
+  "optionPopupAuto": {
+    "message": "自動"
+  },
+  "optionPopupConfig": {
+    "message": "顯示行動裝置彈出視窗"
+  },
+  "optionPopupThreeFingers": {
+    "message": "當我以三隻手指觸控時。"
+  },
+  "optionPopupjustWhenIClickTranlateThisSite": {
+    "message": "當我選擇「翻譯此網站」時"
+  },
+  "optionsAddToCustomDictionary": {
+    "message": "新增至自訂的字典（這能讓您在網頁翻譯期間跳過特定的字詞）"
+  },
+  "optionsAlwaysTranslate": {
+    "message": "始終翻譯這些語言"
+  },
+  "optionsNeverTranslate": {
+    "message": "永不翻譯這些網站"
+  },
+  "optionsPageTitle": {
+    "message": "網頁翻譯器 - 選項"
+  },
+  "pageActionTitle": {
+    "message": "翻譯此頁面"
+  },
+  "placeholderOpenRouterBase": {
+    "message": "https://openrouter.ai/api/v1/chat/completions"
+  },
+  "placeholderOpenRouterModel": {
+    "message": "openai/gpt-4o-mini"
+  },
+  "placeholderOpenRouterReferer": {
+    "message": "https://your-site.example"
+  },
+  "placeholderOpenRouterTitle": {
+    "message": "DualTran"
+  },
+  "popupBlueWhenSiteIsTranslated": {
+    "message": "當網站翻譯完成時讓彈出圖示變為藍色"
+  },
+  "promptInputOpenAIKey": {
+    "message": "Please input your OpenAI API Key:"
+  },
+  "promptInputOpenRouterKey": {
+    "message": "請輸入您的 OpenRouter API 金鑰："
+  },
+  "replaceOriginalTextWithTranslatedText": {
+    "message": "以譯文取代原文"
+  },
+  "resetToDefault": {
+    "message": "還原至預設設定"
+  },
+  "restoreFromFile": {
+    "message": "從檔案還原"
+  },
+  "serviceBing": {
+    "message": "Bing"
+  },
+  "serviceDeepL": {
+    "message": "DeepL"
+  },
+  "serviceGoogle": {
+    "message": "Google"
+  },
+  "serviceGoogleTranslate": {
+    "message": "Google 翻譯"
+  },
+  "serviceMicrosoftTranslate": {
+    "message": "微軟翻譯"
+  },
+  "serviceTranslateWebPages": {
+    "message": "DualTran"
+  },
+  "serviceYandex": {
+    "message": "Yandex"
+  },
+  "showOriginalText": {
+    "message": "顯示原文"
+  },
+  "swapPopup": {
+    "message": "在簡易與進階介面之間切換"
+  },
+  "swapTranslationService": {
+    "message": "在翻譯伺服器之間切換"
+  },
+  "tooltipImproveTranslationByAI": {
+    "message": "點擊以透過 AI 改善翻譯"
+  },
+  "translateClickingOnce": {
+    "message": "點一下網址列中的按鈕來翻譯網頁。（要顯示彈出視窗則點擊右鍵）"
+  }
+}

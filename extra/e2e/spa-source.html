@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPA Source Page</title>
+  <style>
+    body { font-family: Georgia, serif; line-height: 1.8; margin: 40px auto; max-width: 860px; color: #222; }
+    h1 { font-size: 1.6em; }
+    a { color: #0066cc; font-size: 1.2em; }
+    .turbo-progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: #0066cc; width: 0; }
+  </style>
+</head>
+<body>
+  <h1>SPA Source Page</h1>
+  <p>This is the source page for testing AI translation restore after SPA navigation.</p>
+  <p>Artificial intelligence has made significant advances in recent years. Machine learning models can now understand natural language, recognize images, and generate creative content.</p>
+  <p>The development of large language models has been particularly transformative. These models are trained on vast amounts of text data and can perform a wide range of language tasks.</p>
+  <p><a id="test-link" href="spa-target.html">Go to SPA Target Page</a></p>
+
+  <!--
+    模拟 Turbo Drive 的 SPA 导航脚本。
+
+    Turbo Drive 核心行为：
+      1. 拦截同域链接点击事件
+      2. fetch 获取目标页面的 HTML
+      3. 解析 HTML，提取 <body> 内容
+      4. 替换当前页面的 <body> 内容（保留 <script> 不执行）
+      5. history.pushState 改变 URL
+      6. 回退时 popstate 事件 → fetch 原页面 → 替换 <body>
+
+    这与 GitHub 的 Turbo Drive + turbo-cache-control=no-cache 行为一致：
+    回退时从服务器重新获取页面内容（而非从缓存恢复），DOM 是全新的原始 HTML。
+  -->
+  <script>
+    (function () {
+      "use strict";
+
+      // 拦截同域链接点击
+      document.addEventListener("click", function (e) {
+        var link = e.target.closest("a[href]");
+        if (!link) return;
+        var href = link.getAttribute("href");
+        if (!href || href.startsWith("#") || href.startsWith("http")) return;
+
+        e.preventDefault();
+        navigateTo(href);
+      });
+
+      // SPA 导航：fetch → 替换 body → pushState
+      function navigateTo(url) {
+        fetch(url)
+          .then(function (res) { return res.text(); })
+          .then(function (html) {
+            var doc = new DOMParser().parseFromString(html, "text/html");
+            // 替换 body 内容（模拟 Turbo Drive 的 body 替换）
+            document.body.innerHTML = doc.body.innerHTML;
+            // 更新标题
+            document.title = doc.title;
+            // pushState 改变 URL（不触发完整页面加载）
+            history.pushState({ spaUrl: url }, "", url);
+            // 重新绑定链接拦截（因为 body 内容被替换了）
+            rebindLinks();
+          })
+          .catch(function (err) { console.error("[SPA] navigateTo error:", err); });
+      }
+
+      // 重新绑定链接拦截
+      function rebindLinks() {
+        // 事件委托已经在 document 上，不需要重新绑定
+        // 但为了兼容性，确保新链接也能被拦截
+      }
+
+      // popstate 事件：浏览器回退/前进 → fetch 原页面 → 替换 body
+      window.addEventListener("popstate", function (e) {
+        var url = location.pathname.split("/").pop() || "spa-source.html";
+        console.log("[SPA] popstate → fetching " + url);
+        fetch(url)
+          .then(function (res) { return res.text(); })
+          .then(function (html) {
+            var doc = new DOMParser().parseFromString(html, "text/html");
+            // 替换 body 内容（全新的原始 HTML，不含任何翻译）
+            document.body.innerHTML = doc.body.innerHTML;
+            document.title = doc.title;
+            console.log("[SPA] body replaced with fresh content from " + url);
+          })
+          .catch(function (err) { console.error("[SPA] popstate fetch error:", err); });
+      });
+
+      console.log("[SPA] SPA navigation script loaded on " + location.pathname);
+    })();
+  </script>
+</body>
+</html>

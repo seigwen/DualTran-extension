@@ -1,0 +1,144 @@
+{
+  "fixtures": [
+    {
+      "match": {
+        "userMessage": "weather"
+      },
+      "response": {
+        "toolCalls": [
+          {
+            "name": "get_weather",
+            "arguments": {
+              "city": "SF"
+            }
+          }
+        ]
+      },
+      "chunkSize": 12
+    },
+    {
+      "match": {
+        "userMessage": "fixture auth error"
+      },
+      "response": {
+        "error": {
+          "message": "Fixture auth error"
+        },
+        "status": 401
+      }
+    },
+    {
+      "match": {
+        "userMessage": "fixture rate limit"
+      },
+      "response": {
+        "error": {
+          "message": "Fixture rate limit"
+        },
+        "status": 429
+      }
+    },
+    {
+      "match": {
+        "userMessage": "hello from openrouter"
+      },
+      "response": {
+        "content": "aimock mock result"
+      },
+      "chunkSize": 12
+    },
+    {
+      "match": {
+        "userMessage": "hello anthropic"
+      },
+      "response": {
+        "content": "aimock mock result"
+      },
+      "chunkSize": 12
+    },
+    {
+      "match": {
+        "userMessage": "hello gemini"
+      },
+      "response": {
+        "content": "aimock mock result"
+      }
+    },
+    {
+      "match": {
+        "userMessage": "hello azure"
+      },
+      "response": {
+        "content": "aimock mock result"
+      }
+    },
+    {
+      "match": {
+        "userMessage": "hello"
+      },
+      "response": {
+        "content": "aimock mock result"
+      },
+      "chunkSize": 12
+    },
+    {
+      "match": {
+        "userMessage": "slow stream test"
+      },
+      "response": {
+        "content": "this is a slow streamed response from aimock"
+      },
+      "streamingProfile": { "tps": 5, "ttft": 200 },
+      "chunkSize": 8
+    },
+    {
+      "match": {
+        "userMessage": "latency test"
+      },
+      "response": {
+        "content": "response with added latency"
+      },
+      "latency": 200
+    },
+    {
+      "match": {
+        "userMessage": "truncated stream test"
+      },
+      "response": {
+        "content": "this long response will be truncated after just one chunk"
+      },
+      "truncateAfterChunks": 1,
+      "chunkSize": 8
+    },
+    {
+      "match": {
+        "userMessage": "disconnect stream test"
+      },
+      "response": {
+        "content": "this response will disconnect abruptly mid-stream because the server cuts the connection after a short delay"
+      },
+      "disconnectAfterMs": 100,
+      "streamingProfile": { "tps": 5 },
+      "chunkSize": 4
+    },
+    {
+      "match": {
+        "userMessage": "译泽"
+      },
+      "response": {
+        "content": "🌐[aimock]LLMock streaming test result"
+      },
+      "chunkSize": 20
+    },
+    {
+      "match": {
+        "userMessage": "chaos malformed test"
+      },
+      "response": {
+        "content": "this response has per-fixture chaos"
+      },
+      "chaos": { "malformedRate": 1.0 },
+      "chunkSize": 8
+    }
+  ]
+}

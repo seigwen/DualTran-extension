@@ -1,0 +1,700 @@
+{
+  "aiProviderOpenAI": {
+    "message": "OpenAI"
+  },
+  "aiProviderOpenRouter": {
+    "message": "OpenRouter"
+  },
+  "alertSpecifyTargetLanguage": {
+    "message": "Please specify target language first."
+  },
+  "backupToFile": {
+    "message": "Резервна копија у датотеку"
+  },
+  "btnAlwaysTranslate": {
+    "message": "Увек преводи овај сајт"
+  },
+  "btnAlwaysTranslateThisLanguage": {
+    "message": "Увек преводите овај језик"
+  },
+  "btnApply": {
+    "message": "Применити"
+  },
+  "btnListen": {
+    "message": "Слушај"
+  },
+  "btnMobileDonate": {
+    "message": "Донирајте"
+  },
+  "btnMobileNeverTranslate": {
+    "message": "Никада не преводи овај сајт"
+  },
+  "btnMobileOriginal": {
+    "message": "Оригинал"
+  },
+  "btnMobileTranslated": {
+    "message": "Преведено"
+  },
+  "btnMoreOptions": {
+    "message": "Више опција"
+  },
+  "btnNeverTranslate": {
+    "message": "Никад не преводи овај сајт"
+  },
+  "btnNeverTranslateThisLanguage": {
+    "message": "Никада немојте преводити овај језик"
+  },
+  "btnOptions": {
+    "message": "Опције"
+  },
+  "btnReplace": {
+    "message": "Заменити"
+  },
+  "btnReset": {
+    "message": "Ресетовање"
+  },
+  "btnRestore": {
+    "message": "Прикажи оригинал"
+  },
+  "btnShowPopup": {
+    "message": "Прикажи искачући прозор"
+  },
+  "btnStopListening": {
+    "message": "Престани да слушаш"
+  },
+  "btnSubmit": {
+    "message": "Пошаљи"
+  },
+  "btnTranslate": {
+    "message": "превести"
+  },
+  "btncopy": {
+    "message": "Копирај"
+  },
+  "calculatestorage": {
+    "message": "Израчунај"
+  },
+  "confirmAutoTranslateWithAI": {
+    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
+  },
+  "confirmSetApiKeyNow": {
+    "message": "API ključ nije podešen. Da li želite da ga sada podesite?"
+  },
+  "deleteTranslationCache": {
+    "message": "Избришите кеш превода"
+  },
+  "displayTranslatedTextInNewLine": {
+    "message": "Прикажи преведени текст у новом реду"
+  },
+  "doYouWantOverwriteAllSettings": {
+    "message": "Да ли желите да замените сва постојећа подешавања користећи резервне податке?"
+  },
+  "doYouWantRestoreSettings": {
+    "message": "Да ли желите да вратите екстензију на подразумевана подешавања?"
+  },
+  "doYouWantToDeleteTranslationCache": {
+    "message": "Да ли желите да избришете кеш превода?"
+  },
+  "donatewithpaypal": {
+    "message": "Донирајте помоћу ПаиПал-а"
+  },
+  "dontShowIfPageLangIsTargetLang": {
+    "message": "Не приказуј да ли је језик странице циљни језик"
+  },
+  "dontShowIfPageLangIsUnknown": {
+    "message": "Не приказуј ако је језик странице непознат"
+  },
+  "dontShowIfSelectedTextIsTargetLang": {
+    "message": "Не приказуј да ли је изабрани језик текста циљни језик"
+  },
+  "dontShowIfSelectedTextIsUnknown": {
+    "message": "Не приказуј ако је изабрани језик текста непознат"
+  },
+  "enterShortcut": {
+    "message": "Унесите пречицу"
+  },
+  "errorApiKeyNotFound": {
+    "message": "API key not found!"
+  },
+  "errorCopyFailed": {
+    "message": "Копирање није успело."
+  },
+  "errorCopyFailedInsecure": {
+    "message": "Копирање текста није успело. Вероватно зато што је протокол URL странице несигуран HTTP, а не HTTPS."
+  },
+  "errorTranslationUnknown": {
+    "message": "Грешка превода: непозната грешка."
+  },
+  "errorTranslationWithMessage": {
+    "message": "Грешка превода: $ERROR_MESSAGE$",
+    "placeholders": {
+      "ERROR_MESSAGE": {
+        "content": "$1",
+        "example": "Мрежна грешка"
+      }
+    }
+  },
+  "extensionDescription": {
+    "message": "Преведите своју страницу у реалном времену користећи Гоогле или OpenAI."
+  },
+  "extensionName": {
+    "message": "Преведите веб странице"
+  },
+  "fileIsCorrupted": {
+    "message": "Чини се да је датотека оштећена"
+  },
+  "floatingButtonTooltip": {
+    "message": "Click to toggle translation state; drag to move this button"
+  },
+  "hideOriginalText": {
+    "message": "Сакриј оригинални текст"
+  },
+  "hotkeyError_ctrlOrAlt": {
+    "message": "Укључите Цтрл или Алт"
+  },
+  "hotkeyError_invalid": {
+    "message": "Неважећа комбинација"
+  },
+  "hotkeyError_letter": {
+    "message": "Унесите писмо"
+  },
+  "lblAdd": {
+    "message": "Додати"
+  },
+  "lblAiFeatures": {
+    "message": "AI Features"
+  },
+  "lblAiImproveForLongerThan": {
+    "message": "Побољшавај преводе помоћу ВИ само за текстове са више од",
+    "description": "Label for the minimum number of words required to trigger AI improvement"
+  },
+  "lblAiProvider": {
+    "message": "AI dobavljač"
+  },
+  "lblAiTranslatedStyle": {
+    "message": "Color of AI translated text "
+  },
+  "lblAlwaysTranslate": {
+    "message": "Увек преводи са $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblAlwaysTranslateSites": {
+    "message": "Увек преводите ове сајтове"
+  },
+  "lblApiKeyOpenAI": {
+    "message": "OpenAI API кључ"
+  },
+  "lblApiKeyOpenRouter": {
+    "message": "OpenRouter API ključ"
+  },
+  "lblAutoImproveByAi": {
+    "message": "Аутоматски побољшавај преводе помоћу ВИ"
+  },
+  "lblAutoTranslateWhenClickingALink": {
+    "message": "Аутоматски преводи када кликнете на везу која вас води на исти домен као тренутни сајт"
+  },
+  "lblButtonInTheAddressBar": {
+    "message": "Прикажи дугме на траци за адресу"
+  },
+  "lblDarkMode": {
+    "message": "Дарк Моде"
+  },
+  "lblEnableDeepL": {
+    "message": "Омогућите ДеепЛ као услугу превођења текста"
+  },
+  "lblEnterApiKey": {
+    "message": "Enter API key"
+  },
+  "lblError": {
+    "message": "Није могуће превести ову страницу"
+  },
+  "lblFavoriteLanguage": {
+    "message": "Омиљени језик $FAVORITE_LANGUAGE_NUM$",
+    "placeholders": {
+      "FAVORITE_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblFreeTranslationEngine": {
+    "message": "Free translation engine"
+  },
+  "lblHotTranslatedSelectedText": {
+    "message": "Одмах замените изабрани текст преведеним текстом"
+  },
+  "lblKeyboardShortcuts": {
+    "message": "Пречице на тастатури"
+  },
+  "lblKeyboardShortcutsSpecial": {
+    "message": "Посебне пречице на тастатури"
+  },
+  "lblMakeDonation": {
+    "message": "Донирати"
+  },
+  "lblNeverTranslateLangs": {
+    "message": "Никада немојте преводити ове језике"
+  },
+  "lblOpenAiModel": {
+    "message": "OpenAI Модел"
+  },
+  "lblOpenRouterBaseUrl": {
+    "message": "Baza OpenRouter API-ja (opciono)"
+  },
+  "lblOpenRouterModel": {
+    "message": "OpenRouter model"
+  },
+  "lblOpenRouterReferer": {
+    "message": "HTTP Referer zaglavlje (opciono)"
+  },
+  "lblOpenRouterTitle": {
+    "message": "X-Title zaglavlje (opciono)"
+  },
+  "lblOthers": {
+    "message": "Други"
+  },
+  "lblPageTranslateInto": {
+    "message": "Страница преведена на $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblPageTranslationService": {
+    "message": "Услуга превођења страница"
+  },
+  "lblPersonalSettings": {
+    "message": "Лична подешавања"
+  },
+  "lblPlsDonate": {
+    "message": "Помозите програмеру донацијом"
+  },
+  "lblReleaseNotes": {
+    "message": "Белешке о издању"
+  },
+  "lblReplaceSelectedTextWithTranslatedText": {
+    "message": "Замените изабрани текст преведеним када двапут притиснете $SHORTCUT_KEY$",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblReport": {
+    "message": "Пријавите проблем"
+  },
+  "lblReset": {
+    "message": "Ресетуј"
+  },
+  "lblRestorePageToOriginal": {
+    "message": "Вратите страницу на оригинал"
+  },
+  "lblSelectPopupInterfaceStyle": {
+    "message": "Изаберите стил искачућег интерфејса"
+  },
+  "lblSettings": {
+    "message": "Подешавања"
+  },
+  "lblShowContextMenu": {
+    "message": "Прикажите опцију за превођење странице у контекстуалном менију"
+  },
+  "lblShowOriginalTextWhenHovering": {
+    "message": "Прикажи оригинални текст када лебдите"
+  },
+  "lblShowReleaseNotes": {
+    "message": "Прикажи напомене о издању приликом ажурирања"
+  },
+  "lblShowTranslateSelectedButton": {
+    "message": "Прикажи дугме за превод изабраног текста"
+  },
+  "lblShowTranslateSelectedContextMenu": {
+    "message": "Прикажите опцију за превод изабраног текста у контекстуалном менију"
+  },
+  "lblShowTranslatedHoveringLangs": {
+    "message": "Прикажи преведени текст када пређете курсором преко сајтова на овим језицима"
+  },
+  "lblShowTranslatedHoveringSites": {
+    "message": "Прикажи преведени текст када лебдите мишем на овим сајтовима"
+  },
+  "lblShowTranslatedWhenHovering": {
+    "message": "Прикажи преведени текст када се лебди"
+  },
+  "lblShowTranslatedWhenHoveringThisLang": {
+    "message": "Прикажи превод када пређете курсором преко веб локација у $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblShowTranslatedWhenHoveringThisSite": {
+    "message": "Прикажи превод када пређете курсором преко овог сајта"
+  },
+  "lblStorageUsed": {
+    "message": "Коришћено складиште:"
+  },
+  "lblSwitchTranslatedAndOriginal": {
+    "message": "Пребацивање између преведене и оригиналне странице"
+  },
+  "lblTargetLanguage": {
+    "message": "Циљни језик $TARGET_LANGUAGE_NUM$",
+    "placeholders": {
+      "TARGET_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblTargetLanguageGroup": {
+    "message": "Циљни језик"
+  },
+  "lblTextTranslationService": {
+    "message": "Служба за превођење текста"
+  },
+  "lblTranslate": {
+    "message": "Превести ову страницу?"
+  },
+  "lblTranslateInterface": {
+    "message": "Преведите интерфејс"
+  },
+  "lblTranslateLongerThan": {
+    "message": "Prevodi samo tekst koji ima više reči od ove vrednosti",
+    "description": "Label for the minimum number of words required to trigger translation"
+  },
+  "lblTranslatePageInto": {
+    "message": "Превести страницу на $LANGUAGE_NAME$?",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblTranslatePageToTargetLanguage": {
+    "message": "Преведите страницу на циљни језик"
+  },
+  "lblTranslateSelectedWhenPressTwice": {
+    "message": "Преведите изабрани текст када двапут притиснете $SHORTCUT_KEY$",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslateTag_pre": {
+    "message": "Омогући превод за ознаку $HTML_TAG_NAME$",
+    "placeholders": {
+      "HTML_TAG_NAME": {
+        "content": "<PRE>"
+      }
+    }
+  },
+  "lblTranslateTextOverMouseWhenPressTwice": {
+    "message": "Преведите текст преко курсора миша када двапут притиснете $SHORTCUT_KEY$",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslated": {
+    "message": "Преведено"
+  },
+  "lblTranslatedStyle": {
+    "message": "Boja Google prevedenog teksta"
+  },
+  "lblTranslating": {
+    "message": "Превођење..."
+  },
+  "lblTranslationCache": {
+    "message": "Кеш за превођење"
+  },
+  "lblTranslationService": {
+    "message": "Преводилачка служба"
+  },
+  "lblTtsSpeed": {
+    "message": "Брзина звука претварања текста у говор"
+  },
+  "lblUseNewAlgorithm": {
+    "message": "Користите нови алгоритам за превођење?"
+  },
+  "lblWhereToDisplayTranslatedText": {
+    "message": "Где приказати преведени текст"
+  },
+  "lbldontsortresults": {
+    "message": "Не сортирајте резултате Гоогле преводиоца"
+  },
+  "lbltranslatedynamicallycreatedcontent": {
+    "message": "Преведите динамички креиран садржај"
+  },
+  "less": {
+    "message": "Мање"
+  },
+  "more": {
+    "message": "Више"
+  },
+  "msgAi": {
+    "message": "AI"
+  },
+  "msgAll": {
+    "message": "Све"
+  },
+  "msgAutomatic": {
+    "message": "Аутоматски"
+  },
+  "msgAzureEnterKeyAndEndpoint": {
+    "message": "Molimo unesite Azure endpoint i API ključ da biste dobili dostupne modele za Azure OpenAI"
+  },
+  "msgCannotLoadDeepSeekModelsHttp": {
+    "message": "Nije bilo moguće učitati DeepSeek modele (HTTP $1)",
+    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDonateWithPaypal": {
+    "message": "Донирајте преко ПаиПал-а"
+  },
+  "msgDownloadingDocument": {
+    "message": "Преузимање документа..."
+  },
+  "msgEmptyListAlwaysTranslateLanguages": {
+    "message": "Нисте додали ниједан језик на ову листу."
+  },
+  "msgEmptyListNeverTranslateSites": {
+    "message": "Нисте додали ниједну локацију на ову листу."
+  },
+  "msgEnterApiKeyForModels": {
+    "message": "Molimo unesite API ključ da biste dobili dostupne modele za ovog provajdera"
+  },
+  "msgErrorDownloadingDocument": {
+    "message": "Грешка при преузимању документа"
+  },
+  "msgFavoriteLanguages": {
+    "message": "Омиљени језици"
+  },
+  "msgFileLargerThan": {
+    "message": "Ова услуга не подржава датотеке веће од $FILE_SIZE$",
+    "placeholders": {
+      "FILE_SIZE": {
+        "content": "$1",
+        "example": "10 MB"
+      }
+    }
+  },
+  "msgHotkeys": {
+    "message": "Хоткеис"
+  },
+  "msgHowToGetOpenAIKey": {
+    "message": "Како добити OpenAI API кључ?"
+  },
+  "msgHowToGetOpenRouterKey": {
+    "message": "Kako da dobijem OpenRouter API ključ?"
+  },
+  "msgIWillBeGrateful": {
+    "message": "Бићу вам захвалан ако можете да дате донацију."
+  },
+  "msgInterfaceComplex": {
+    "message": "Напредно"
+  },
+  "msgInterfaceSimple": {
+    "message": "Једноставно"
+  },
+  "msgLanguages": {
+    "message": "Језици"
+  },
+  "msgLoadingModels": {
+    "message": "Учитавање..."
+  },
+  "msgModelListFetchFailed": {
+    "message": "Failed to fetch model list with API key. Available models:"
+  },
+  "msgNo": {
+    "message": "Не"
+  },
+  "msgNoTranslateSelectedText": {
+    "message": "Немојте преводити изабрани текст"
+  },
+  "msgNoUseWidgets": {
+    "message": "Не (користите виџете)"
+  },
+  "msgOpenOnYandexTranslator": {
+    "message": "Отворите у Иандек преводу"
+  },
+  "msgOpenTranslated": {
+    "message": "Отвори преведени PDF"
+  },
+  "msgPDFtoHTML": {
+    "message": "ПДФ у ХТМЛ"
+  },
+  "msgPleaseWait": {
+    "message": "Сачекајте..."
+  },
+  "msgRecents": {
+    "message": "Недавно"
+  },
+  "msgSelectServiceConversion": {
+    "message": "Изаберите услугу за ову конверзију"
+  },
+  "msgSelectTargetLanguage": {
+    "message": "Преведите веб странице на овај циљни језик"
+  },
+  "msgSelectTargetLanguageForText": {
+    "message": "Преведите изабрани текст на овај циљни језик"
+  },
+  "msgSendDocument": {
+    "message": "Пошаљите документ"
+  },
+  "msgSites": {
+    "message": "Сајтови"
+  },
+  "msgStorage": {
+    "message": "Складиште"
+  },
+  "msgStyle": {
+    "message": "Стиле"
+  },
+  "msgThanksForUseExtension": {
+    "message": "Хвала вам што користите ово проширење."
+  },
+  "msgToTranslateSites": {
+    "message": "Да преведем сајт"
+  },
+  "msgToTranslateThisDocument": {
+    "message": "Да бисте превели овај документ $DOC_TYPE$ потребно је да га конвертујете у ХТМЛ",
+    "placeholders": {
+      "DOC_TYPE": {
+        "content": "$1",
+        "example": "(.pdf)"
+      }
+    }
+  },
+  "msgTranslateFor": {
+    "message": "Преведи на $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateSelectedText": {
+    "message": "Преведите изабрани текст"
+  },
+  "msgTranslations": {
+    "message": "Преводи"
+  },
+  "msgUnknownLanguage": {
+    "message": "Непознат"
+  },
+  "msgYes": {
+    "message": "да"
+  },
+  "msgYesRecommended": {
+    "message": "Да (препоручено)"
+  },
+  "openNativeShortcutManager": {
+    "message": "Отворите изворни менаџер тастерских пречица"
+  },
+  "optionFloatingConfig": {
+    "message": "прикажи плутајуће дугме"
+  },
+  "optionPopupAuto": {
+    "message": "Аутоматски"
+  },
+  "optionPopupConfig": {
+    "message": "Прикажи искачући прозор за мобилни"
+  },
+  "optionPopupThreeFingers": {
+    "message": "Када додирнем три прста на екрану"
+  },
+  "optionPopupjustWhenIClickTranlateThisSite": {
+    "message": "Само када кликнем на „Преведи овај сајт“"
+  },
+  "optionsAddToCustomDictionary": {
+    "message": "Додај у прилагођени речник (ово вам омогућава да прескочите одређене речи током превода веб странице)"
+  },
+  "optionsAlwaysTranslate": {
+    "message": "Увек преводите ове језике"
+  },
+  "optionsNeverTranslate": {
+    "message": "Никада немојте преводити ове сајтове"
+  },
+  "optionsPageTitle": {
+    "message": "Преведи веб странице - Опције"
+  },
+  "pageActionTitle": {
+    "message": "Преведи ову страницу"
+  },
+  "placeholderOpenRouterBase": {
+    "message": "https://openrouter.ai/api/v1/chat/completions"
+  },
+  "placeholderOpenRouterModel": {
+    "message": "openai/gpt-4o-mini"
+  },
+  "placeholderOpenRouterReferer": {
+    "message": "https://your-site.example"
+  },
+  "placeholderOpenRouterTitle": {
+    "message": "DualTran"
+  },
+  "popupBlueWhenSiteIsTranslated": {
+    "message": "Нека искачућа икона буде плава када се сајт преведе"
+  },
+  "promptInputOpenAIKey": {
+    "message": "Please input your OpenAI API Key:"
+  },
+  "promptInputOpenRouterKey": {
+    "message": "Unesite svoj OpenRouter API ključ:"
+  },
+  "replaceOriginalTextWithTranslatedText": {
+    "message": "Замени оригинални текст преведеним текстом"
+  },
+  "resetToDefault": {
+    "message": "Вратити подразумеване поставке"
+  },
+  "restoreFromFile": {
+    "message": "Врати из датотеке"
+  },
+  "serviceBing": {
+    "message": "Bing"
+  },
+  "serviceDeepL": {
+    "message": "DeepL"
+  },
+  "serviceGoogle": {
+    "message": "Google"
+  },
+  "serviceGoogleTranslate": {
+    "message": "Google Translate"
+  },
+  "serviceMicrosoftTranslate": {
+    "message": "Microsoft Translator"
+  },
+  "serviceTranslateWebPages": {
+    "message": "DualTran"
+  },
+  "serviceYandex": {
+    "message": "Yandex"
+  },
+  "showOriginalText": {
+    "message": "Прикажи оригинални текст"
+  },
+  "swapPopup": {
+    "message": "Пребаци између једноставног и напредног интерфејса"
+  },
+  "swapTranslationService": {
+    "message": "Пребацивање између услуга превођења"
+  },
+  "tooltipImproveTranslationByAI": {
+    "message": "кликните да побољшате превод уз AI"
+  },
+  "translateClickingOnce": {
+    "message": "Преведите страницу тако што ћете једном кликнути на дугме у адресној траци. (Да бисте видели искачући прозор, кликните десним тастером миша)"
+  }
+}

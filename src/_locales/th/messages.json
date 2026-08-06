@@ -1,0 +1,700 @@
+{
+  "aiProviderOpenAI": {
+    "message": "OpenAI"
+  },
+  "aiProviderOpenRouter": {
+    "message": "OpenRouter"
+  },
+  "alertSpecifyTargetLanguage": {
+    "message": "โปรดระบุภาษาเป้าหมายก่อน"
+  },
+  "backupToFile": {
+    "message": "สำรองข้อมูลไปยังไฟล์"
+  },
+  "btnAlwaysTranslate": {
+    "message": "แปลไซต์นี้เสมอ"
+  },
+  "btnAlwaysTranslateThisLanguage": {
+    "message": "แปลภาษานี้เสมอ"
+  },
+  "btnApply": {
+    "message": "นำมาใช้"
+  },
+  "btnListen": {
+    "message": "ฟัง"
+  },
+  "btnMobileDonate": {
+    "message": "บริจาค"
+  },
+  "btnMobileNeverTranslate": {
+    "message": "ไม่เคยแปลไซต์นี้"
+  },
+  "btnMobileOriginal": {
+    "message": "ต้นฉบับ"
+  },
+  "btnMobileTranslated": {
+    "message": "แปลแล้ว"
+  },
+  "btnMoreOptions": {
+    "message": "ตัวเลือกเพิ่มเติม"
+  },
+  "btnNeverTranslate": {
+    "message": "ไม่ต้องแปลไซต์นี้"
+  },
+  "btnNeverTranslateThisLanguage": {
+    "message": "ไม่เคยแปลภาษานี้"
+  },
+  "btnOptions": {
+    "message": "การตั้งค่า"
+  },
+  "btnReplace": {
+    "message": "แทนที่"
+  },
+  "btnReset": {
+    "message": "รีเซ็ต"
+  },
+  "btnRestore": {
+    "message": "แสดงดั้งเดิม"
+  },
+  "btnShowPopup": {
+    "message": "แสดงป๊อปอัป"
+  },
+  "btnStopListening": {
+    "message": "หยุดฟัง"
+  },
+  "btnSubmit": {
+    "message": "ส่ง"
+  },
+  "btnTranslate": {
+    "message": "แปลภาษา"
+  },
+  "btncopy": {
+    "message": "สำเนา"
+  },
+  "calculatestorage": {
+    "message": "คำนวณ"
+  },
+  "confirmAutoTranslateWithAI": {
+    "message": "คุณต้องการให้ Dualtran แปลด้วย AI โดยอัตโนมัติในอนาคตหรือไม่?"
+  },
+  "confirmSetApiKeyNow": {
+    "message": "ยังไม่ได้ตั้งค่า API key คุณต้องการตั้งค่าตอนนี้หรือไม่?"
+  },
+  "deleteTranslationCache": {
+    "message": "ลบแคชการแปล"
+  },
+  "displayTranslatedTextInNewLine": {
+    "message": "แสดงข้อความที่แปลแล้วในบรรทัดใหม่"
+  },
+  "doYouWantOverwriteAllSettings": {
+    "message": "คุณต้องการเขียนทับการตั้งค่าที่มีอยู่ทั้งหมดโดยใช้ข้อมูลสำรองหรือไม่"
+  },
+  "doYouWantRestoreSettings": {
+    "message": "คุณต้องการกู้คืนส่วนขยายเป็นการตั้งค่าเริ่มต้นหรือไม่"
+  },
+  "doYouWantToDeleteTranslationCache": {
+    "message": "คุณต้องการลบแคชการแปลหรือไม่?"
+  },
+  "donatewithpaypal": {
+    "message": "บริจาคด้วย PayPal"
+  },
+  "dontShowIfPageLangIsTargetLang": {
+    "message": "ไม่แสดงหากภาษาของเพจเป็นภาษาเป้าหมาย"
+  },
+  "dontShowIfPageLangIsUnknown": {
+    "message": "ไม่แสดงหากไม่รู้จักภาษาของเพจ"
+  },
+  "dontShowIfSelectedTextIsTargetLang": {
+    "message": "ไม่แสดงว่าภาษาข้อความที่เลือกเป็นภาษาเป้าหมายหรือไม่"
+  },
+  "dontShowIfSelectedTextIsUnknown": {
+    "message": "ไม่แสดงหากไม่รู้จักภาษาของข้อความที่เลือก"
+  },
+  "enterShortcut": {
+    "message": "พิมพ์ทางลัด"
+  },
+  "errorApiKeyNotFound": {
+    "message": "ไม่พบคีย์ API!"
+  },
+  "errorCopyFailed": {
+    "message": "การคัดลอกล้มเหลว"
+  },
+  "errorCopyFailedInsecure": {
+    "message": "การคัดลอกข้อความล้มเหลว อาจเป็นเพราะโปรโตคอล URL ของหน้าเป็น HTTP ที่ไม่ปลอดภัย ไม่ใช่ HTTPS"
+  },
+  "errorTranslationUnknown": {
+    "message": "ข้อผิดพลาดในการแปล: ข้อผิดพลาดที่ไม่ทราบสาเหตุ"
+  },
+  "errorTranslationWithMessage": {
+    "message": "ข้อผิดพลาดในการแปล: $ERROR_MESSAGE$",
+    "placeholders": {
+      "ERROR_MESSAGE": {
+        "content": "$1",
+        "example": "ข้อผิดพลาดเครือข่าย"
+      }
+    }
+  },
+  "extensionDescription": {
+    "message": "แปลหน้าเว็บแบบเรียลไทม์โดยใช้ Google หรือ OpenAI"
+  },
+  "extensionName": {
+    "message": "DualTran"
+  },
+  "fileIsCorrupted": {
+    "message": "ดูเหมือนว่าไฟล์จะเสียหาย"
+  },
+  "floatingButtonTooltip": {
+    "message": "Click to toggle translation state; drag to move this button"
+  },
+  "hideOriginalText": {
+    "message": "ซ่อนข้อความต้นฉบับ"
+  },
+  "hotkeyError_ctrlOrAlt": {
+    "message": "รวม Ctrl หรือ Alt"
+  },
+  "hotkeyError_invalid": {
+    "message": "ชุดค่าผสมไม่ถูกต้อง"
+  },
+  "hotkeyError_letter": {
+    "message": "พิมพ์ตัวอักษร"
+  },
+  "lblAdd": {
+    "message": "เพิ่ม"
+  },
+  "lblAiFeatures": {
+    "message": "AI Features"
+  },
+  "lblAiImproveForLongerThan": {
+    "message": "ปรับปรุงคำแปลด้วย AI เฉพาะเมื่อมีจำนวนคำมากกว่า",
+    "description": "Label for the minimum number of words required to trigger AI improvement"
+  },
+  "lblAiProvider": {
+    "message": "ผู้ให้บริการ AI"
+  },
+  "lblAiTranslatedStyle": {
+    "message": "Color of AI translated text "
+  },
+  "lblAlwaysTranslate": {
+    "message": "แปลจาก $LANGUAGE_NAME$เสมอ",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblAlwaysTranslateSites": {
+    "message": "แปลเว็บไซต์เหล่านี้เสมอ"
+  },
+  "lblApiKeyOpenAI": {
+    "message": "คีย์ API ของ OpenAI"
+  },
+  "lblApiKeyOpenRouter": {
+    "message": "คีย์ API ของ OpenRouter"
+  },
+  "lblAutoImproveByAi": {
+    "message": "ปรับปรุงคำแปลอัตโนมัติด้วย AI"
+  },
+  "lblAutoTranslateWhenClickingALink": {
+    "message": "แปลโดยอัตโนมัติเมื่อคลิกลิงก์ที่นำคุณไปยังโดเมนเดียวกันกับไซต์ปัจจุบัน"
+  },
+  "lblButtonInTheAddressBar": {
+    "message": "แสดงปุ่มในแถบที่อยู่"
+  },
+  "lblDarkMode": {
+    "message": "โหมดมืด"
+  },
+  "lblEnableDeepL": {
+    "message": "เปิดใช้งาน DeepL เป็นบริการแปลข้อความ"
+  },
+  "lblEnterApiKey": {
+    "message": "Enter API key"
+  },
+  "lblError": {
+    "message": "ไม่สามารถแปลหน้านี้"
+  },
+  "lblFavoriteLanguage": {
+    "message": "ภาษาที่ชอบ $FAVORITE_LANGUAGE_NUM$",
+    "placeholders": {
+      "FAVORITE_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblFreeTranslationEngine": {
+    "message": "Free translation engine"
+  },
+  "lblHotTranslatedSelectedText": {
+    "message": "แทนที่ข้อความที่เลือกด้วยข้อความที่แปลทันที"
+  },
+  "lblKeyboardShortcuts": {
+    "message": "แป้นพิมพ์ลัด"
+  },
+  "lblKeyboardShortcutsSpecial": {
+    "message": "แป้นพิมพ์ลัดพิเศษ"
+  },
+  "lblMakeDonation": {
+    "message": "บริจาค"
+  },
+  "lblNeverTranslateLangs": {
+    "message": "อย่าแปลภาษาเหล่านี้"
+  },
+  "lblOpenAiModel": {
+    "message": "โมเดล OpenAI"
+  },
+  "lblOpenRouterBaseUrl": {
+    "message": "ฐาน API ของ OpenRouter (ไม่บังคับ)"
+  },
+  "lblOpenRouterModel": {
+    "message": "โมเดล OpenRouter"
+  },
+  "lblOpenRouterReferer": {
+    "message": "ส่วนหัว HTTP Referer (ไม่บังคับ)"
+  },
+  "lblOpenRouterTitle": {
+    "message": "ส่วนหัว X-Title (ไม่บังคับ)"
+  },
+  "lblOthers": {
+    "message": "คนอื่น"
+  },
+  "lblPageTranslateInto": {
+    "message": "หน้านี้ถูกแปลเป็น $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblPageTranslationService": {
+    "message": "บริการแปลเพจ"
+  },
+  "lblPersonalSettings": {
+    "message": "การตั้งค่าส่วนบุคคล"
+  },
+  "lblPlsDonate": {
+    "message": "ช่วยนักพัฒนาด้วยการบริจาค"
+  },
+  "lblReleaseNotes": {
+    "message": "บันทึกประจำรุ่น"
+  },
+  "lblReplaceSelectedTextWithTranslatedText": {
+    "message": "แทนที่ข้อความที่เลือกด้วยข้อความที่แปลเมื่อกด $SHORTCUT_KEY$ สองครั้ง",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblReport": {
+    "message": "รายงานปัญหา"
+  },
+  "lblReset": {
+    "message": "รีเซ็ต"
+  },
+  "lblRestorePageToOriginal": {
+    "message": "คืนค่าหน้าเป็นต้นฉบับ"
+  },
+  "lblSelectPopupInterfaceStyle": {
+    "message": "เลือกรูปแบบอินเทอร์เฟซป๊อปอัป"
+  },
+  "lblSettings": {
+    "message": "การตั้งค่า"
+  },
+  "lblShowContextMenu": {
+    "message": "แสดงตัวเลือกในการแปลหน้าในเมนูบริบท"
+  },
+  "lblShowOriginalTextWhenHovering": {
+    "message": "แสดงข้อความต้นฉบับเมื่อวางเมาส์เหนือ"
+  },
+  "lblShowReleaseNotes": {
+    "message": "แสดงบันทึกประจำรุ่นเมื่ออัปเดต"
+  },
+  "lblShowTranslateSelectedButton": {
+    "message": "แสดงปุ่มเพื่อแปลข้อความที่เลือก"
+  },
+  "lblShowTranslateSelectedContextMenu": {
+    "message": "แสดงตัวเลือกในการแปลข้อความที่เลือกในเมนูบริบท"
+  },
+  "lblShowTranslatedHoveringLangs": {
+    "message": "แสดงข้อความที่แปลเมื่อวางเมาส์เหนือไซต์ที่มีภาษาเหล่านี้"
+  },
+  "lblShowTranslatedHoveringSites": {
+    "message": "แสดงข้อความที่แปลแล้วเมื่อวางเมาส์เหนือไซต์เหล่านี้"
+  },
+  "lblShowTranslatedWhenHovering": {
+    "message": "แสดงข้อความที่แปลเมื่อวางเมาส์เหนือ"
+  },
+  "lblShowTranslatedWhenHoveringThisLang": {
+    "message": "แสดงคำแปลเมื่อวางเมาส์เหนือเว็บไซต์ใน $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblShowTranslatedWhenHoveringThisSite": {
+    "message": "แสดงคำแปลเมื่อวางเมาส์เหนือไซต์นี้"
+  },
+  "lblStorageUsed": {
+    "message": "พื้นที่เก็บข้อมูลที่ใช้:"
+  },
+  "lblSwitchTranslatedAndOriginal": {
+    "message": "สลับไปมาระหว่างหน้าที่แปลและหน้าต้นฉบับ"
+  },
+  "lblTargetLanguage": {
+    "message": "ภาษาเป้าหมาย $TARGET_LANGUAGE_NUM$",
+    "placeholders": {
+      "TARGET_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblTargetLanguageGroup": {
+    "message": "ภาษาปลายทาง"
+  },
+  "lblTextTranslationService": {
+    "message": "บริการแปลข้อความ"
+  },
+  "lblTranslate": {
+    "message": "แปลหน้านี้ไหม?"
+  },
+  "lblTranslateInterface": {
+    "message": "แปลอินเทอร์เฟซ"
+  },
+  "lblTranslateLongerThan": {
+    "message": "แปลเฉพาะข้อความที่มีจำนวนคำมากกว่าค่านี้",
+    "description": "Label for the minimum number of words required to trigger translation"
+  },
+  "lblTranslatePageInto": {
+    "message": "แปลหน้านี้เป็น $LANGUAGE_NAME$?",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblTranslatePageToTargetLanguage": {
+    "message": "แปลหน้าเว็บเป็นภาษาเป้าหมาย"
+  },
+  "lblTranslateSelectedWhenPressTwice": {
+    "message": "แปลข้อความที่เลือกเมื่อกด $SHORTCUT_KEY$ สองครั้ง",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslateTag_pre": {
+    "message": "เปิดใช้งานการแปลสำหรับแท็ก $HTML_TAG_NAME$",
+    "placeholders": {
+      "HTML_TAG_NAME": {
+        "content": "<PRE>"
+      }
+    }
+  },
+  "lblTranslateTextOverMouseWhenPressTwice": {
+    "message": "แปลข้อความบนเคอร์เซอร์ของเมาส์เมื่อกด $SHORTCUT_KEY$ สองครั้ง",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslated": {
+    "message": "แปลแล้ว"
+  },
+  "lblTranslatedStyle": {
+    "message": "สีข้อความที่แปลโดย Google"
+  },
+  "lblTranslating": {
+    "message": "แปลแล้ว ..."
+  },
+  "lblTranslationCache": {
+    "message": "แคชการแปล"
+  },
+  "lblTranslationService": {
+    "message": "บริการแปลภาษา"
+  },
+  "lblTtsSpeed": {
+    "message": "ความเร็วเสียงอ่านออกเสียงข้อความ"
+  },
+  "lblUseNewAlgorithm": {
+    "message": "ใช้อัลกอริธึมการแปลใหม่หรือไม่"
+  },
+  "lblWhereToDisplayTranslatedText": {
+    "message": "ตำแหน่งที่จะแสดงข้อความที่แปลแล้ว"
+  },
+  "lbldontsortresults": {
+    "message": "อย่าจัดเรียงผลลัพธ์การแปลของ Google"
+  },
+  "lbltranslatedynamicallycreatedcontent": {
+    "message": "แปลเนื้อหาที่สร้างขึ้นแบบไดนามิก"
+  },
+  "less": {
+    "message": "น้อย"
+  },
+  "more": {
+    "message": "มากกว่า"
+  },
+  "msgAi": {
+    "message": "AI"
+  },
+  "msgAll": {
+    "message": "ทั้งหมด"
+  },
+  "msgAutomatic": {
+    "message": "อัตโนมัติ"
+  },
+  "msgAzureEnterKeyAndEndpoint": {
+    "message": "โปรดป้อน Azure endpoint และ API key เพื่อรับรายการโมเดลที่ใช้ได้สำหรับ Azure OpenAI"
+  },
+  "msgCannotLoadDeepSeekModelsHttp": {
+    "message": "ไม่สามารถโหลดโมเดล DeepSeek ได้ (HTTP $1)",
+    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDonateWithPaypal": {
+    "message": "บริจาคด้วย PayPal"
+  },
+  "msgDownloadingDocument": {
+    "message": "กำลังดาวน์โหลดเอกสาร..."
+  },
+  "msgEmptyListAlwaysTranslateLanguages": {
+    "message": "คุณยังไม่ได้เพิ่มภาษาใด ๆ ในรายการนี้"
+  },
+  "msgEmptyListNeverTranslateSites": {
+    "message": "คุณยังไม่ได้เพิ่มไซต์ใด ๆ ในรายการนี้"
+  },
+  "msgEnterApiKeyForModels": {
+    "message": "โปรดป้อนคีย์ API เพื่อรับรายการโมเดลที่ใช้ได้สำหรับผู้ให้บริการนี้"
+  },
+  "msgErrorDownloadingDocument": {
+    "message": "เกิดข้อผิดพลาดในการดาวน์โหลดเอกสาร"
+  },
+  "msgFavoriteLanguages": {
+    "message": "ภาษาที่ชอบ"
+  },
+  "msgFileLargerThan": {
+    "message": "บริการนี้ไม่รองรับไฟล์ที่มีขนาดใหญ่กว่า $FILE_SIZE$",
+    "placeholders": {
+      "FILE_SIZE": {
+        "content": "$1",
+        "example": "10 MB"
+      }
+    }
+  },
+  "msgHotkeys": {
+    "message": "ปุ่มลัด"
+  },
+  "msgHowToGetOpenAIKey": {
+    "message": "จะขอคีย์ API ของ OpenAI ได้อย่างไร?"
+  },
+  "msgHowToGetOpenRouterKey": {
+    "message": "จะขอรับคีย์ API ของ OpenRouter ได้อย่างไร?"
+  },
+  "msgIWillBeGrateful": {
+    "message": "ฉันจะขอบคุณถ้าคุณสามารถบริจาคได้"
+  },
+  "msgInterfaceComplex": {
+    "message": "ขั้นสูง"
+  },
+  "msgInterfaceSimple": {
+    "message": "เรียบง่าย"
+  },
+  "msgLanguages": {
+    "message": "ภาษา"
+  },
+  "msgLoadingModels": {
+    "message": "กำลังโหลด..."
+  },
+  "msgModelListFetchFailed": {
+    "message": "Failed to fetch model list with API key. Available models:"
+  },
+  "msgNo": {
+    "message": "ไม่"
+  },
+  "msgNoTranslateSelectedText": {
+    "message": "อย่าแปลข้อความที่เลือก"
+  },
+  "msgNoUseWidgets": {
+    "message": "ไม่ (ใช้วิดเจ็ต)"
+  },
+  "msgOpenOnYandexTranslator": {
+    "message": "เปิดในยานเดกซ์แปล"
+  },
+  "msgOpenTranslated": {
+    "message": "เปิด PDF ที่แปลแล้ว"
+  },
+  "msgPDFtoHTML": {
+    "message": "PDF เป็น HTML"
+  },
+  "msgPleaseWait": {
+    "message": "โปรดรอ..."
+  },
+  "msgRecents": {
+    "message": "ล่าสุด"
+  },
+  "msgSelectServiceConversion": {
+    "message": "เลือกบริการเพื่อทำการแปลงนี้"
+  },
+  "msgSelectTargetLanguage": {
+    "message": "แปลเว็บไซต์เป็นภาษาเป้าหมายนี้"
+  },
+  "msgSelectTargetLanguageForText": {
+    "message": "แปลข้อความที่เลือกเป็นภาษาเป้าหมายนี้"
+  },
+  "msgSendDocument": {
+    "message": "ส่งเอกสาร"
+  },
+  "msgSites": {
+    "message": "เว็บไซต์"
+  },
+  "msgStorage": {
+    "message": "พื้นที่จัดเก็บ"
+  },
+  "msgStyle": {
+    "message": "สไตล์"
+  },
+  "msgThanksForUseExtension": {
+    "message": "ขอขอบคุณที่ใช้ส่วนขยายนี้"
+  },
+  "msgToTranslateSites": {
+    "message": "เพื่อแปลเว็บไซต์"
+  },
+  "msgToTranslateThisDocument": {
+    "message": "ในการแปลเอกสารนี้ $DOC_TYPE$ จำเป็นต้องแปลงเป็น HTML",
+    "placeholders": {
+      "DOC_TYPE": {
+        "content": "$1",
+        "example": "(.pdf)"
+      }
+    }
+  },
+  "msgTranslateFor": {
+    "message": "แปลเป็น $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateSelectedText": {
+    "message": "แปลข้อความที่เลือก"
+  },
+  "msgTranslations": {
+    "message": "การแปล"
+  },
+  "msgUnknownLanguage": {
+    "message": "ไม่ทราบ"
+  },
+  "msgYes": {
+    "message": "ใช่"
+  },
+  "msgYesRecommended": {
+    "message": "ใช่ (แนะนำ)"
+  },
+  "openNativeShortcutManager": {
+    "message": "เปิดตัวจัดการคีย์ลัดเนทีฟ"
+  },
+  "optionFloatingConfig": {
+    "message": "แสดงปุ่มลอย"
+  },
+  "optionPopupAuto": {
+    "message": "โดยอัตโนมัติ"
+  },
+  "optionPopupConfig": {
+    "message": "แสดงป๊อปอัปมือถือ"
+  },
+  "optionPopupThreeFingers": {
+    "message": "เมื่อฉันแตะสามนิ้วบนหน้าจอ"
+  },
+  "optionPopupjustWhenIClickTranlateThisSite": {
+    "message": "เมื่อฉันคลิก \"แปลไซต์นี้\" เท่านั้น"
+  },
+  "optionsAddToCustomDictionary": {
+    "message": "เพิ่มในพจนานุกรมแบบกำหนดเอง (ทำให้คุณสามารถข้ามคำบางคำระหว่างการแปลหน้าเว็บ)"
+  },
+  "optionsAlwaysTranslate": {
+    "message": "แปลภาษาเหล่านี้เสมอ"
+  },
+  "optionsNeverTranslate": {
+    "message": "อย่าแปลเว็บไซต์เหล่านี้"
+  },
+  "optionsPageTitle": {
+    "message": "แปลหน้าเว็บ - ตัวเลือก"
+  },
+  "pageActionTitle": {
+    "message": "แปลหน้านี้ไหม"
+  },
+  "placeholderOpenRouterBase": {
+    "message": "https://openrouter.ai/api/v1/chat/completions"
+  },
+  "placeholderOpenRouterModel": {
+    "message": "openai/gpt-4o-mini"
+  },
+  "placeholderOpenRouterReferer": {
+    "message": "https://your-site.example"
+  },
+  "placeholderOpenRouterTitle": {
+    "message": "DualTran"
+  },
+  "popupBlueWhenSiteIsTranslated": {
+    "message": "ทำให้ไอคอนป๊อปอัปเป็นสีน้ำเงินเมื่อแปลไซต์แล้ว"
+  },
+  "promptInputOpenAIKey": {
+    "message": "โปรดป้อนคีย์ OpenAI API ของคุณ:"
+  },
+  "promptInputOpenRouterKey": {
+    "message": "กรุณาใส่คีย์ API ของ OpenRouter:"
+  },
+  "replaceOriginalTextWithTranslatedText": {
+    "message": "แทนที่ข้อความต้นฉบับด้วยข้อความที่แปลแล้ว"
+  },
+  "resetToDefault": {
+    "message": "คืนค่าการตั้งค่าเริ่มต้น"
+  },
+  "restoreFromFile": {
+    "message": "กู้คืนจากไฟล์"
+  },
+  "serviceBing": {
+    "message": "Bing"
+  },
+  "serviceDeepL": {
+    "message": "DeepL"
+  },
+  "serviceGoogle": {
+    "message": "Google"
+  },
+  "serviceGoogleTranslate": {
+    "message": "Google Translate"
+  },
+  "serviceMicrosoftTranslate": {
+    "message": "Microsoft Translator"
+  },
+  "serviceTranslateWebPages": {
+    "message": "DualTran"
+  },
+  "serviceYandex": {
+    "message": "Yandex"
+  },
+  "showOriginalText": {
+    "message": "แสดงข้อความต้นฉบับ"
+  },
+  "swapPopup": {
+    "message": "สลับระหว่างอินเทอร์เฟซแบบเรียบง่ายและขั้นสูง"
+  },
+  "swapTranslationService": {
+    "message": "สลับระหว่างบริการแปลภาษา"
+  },
+  "tooltipImproveTranslationByAI": {
+    "message": "คลิกเพื่อปรับปรุงคำแปลด้วย AI"
+  },
+  "translateClickingOnce": {
+    "message": "แปลหน้าโดยคลิกหนึ่งครั้งที่ปุ่มในแถบที่อยู่ (หากต้องการดูป๊อปอัป ให้คลิกขวา)"
+  }
+}

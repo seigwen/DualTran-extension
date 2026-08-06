@@ -1,0 +1,96 @@
+<!--复杂模式的popup-->
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/w3css/4/w3.css">
+    <link rel="stylesheet" href="popup.css">
+
+    <script src="detect-pdf.js"></script>
+</head>
+
+<body style="width: 360px;">
+    <!--目标语言选择（下拉框）-->
+    <div class="w3-container" style="padding-left:16px; padding-right:0;">
+        <label for="selectTargetLanguage" data-i18n="lblTargetLanguageGroup" style="font-weight:600; margin-bottom:6px;">Target language</label>
+        <select id="selectTargetLanguage" class="w3-select w3-border w3-round" style="width:100%; margin-top:4px;"></select>
+    </div>
+    <div>
+        <hr>
+    </div>
+
+    <!--复杂模式下的复选框-->
+    <div class="w3-container w3-margin-top" style="font-weight: 500">
+        <div>
+            <input type="checkbox" class="w3-check" id="cbAlwaysTranslateThisLanguage">
+            <label for="cbAlwaysTranslateThisLanguage" data-i18n="btnAlwaysTranslateThisLanguage">Always translate this language</label>
+        </div>
+        <div>
+            <input type="checkbox" class="w3-check" id="cbNeverTranslateThisLanguage">
+            <label for="cbNeverTranslateThisLanguage" data-i18n="btnNeverTranslateThisLanguage">Never translate this language</label>
+        </div>
+        <div>
+            <hr>
+        </div>
+
+        <div>
+            <input type="checkbox" class="w3-check" id="cbAlwaysTranslateThisSite">
+            <label for="cbAlwaysTranslateThisSite" data-i18n="btnAlwaysTranslate">Always translate this site</label>
+        </div>
+        <div>
+            <input type="checkbox" class="w3-check" id="cbNeverTranslateThisSite">
+            <label for="cbNeverTranslateThisSite" data-i18n="btnNeverTranslate">Never translate this site</label>
+        </div>
+        <div>
+            <hr>
+        </div>
+
+        <div>
+            <input type="checkbox" class="w3-check" id="cbShowTranslateSelectedButton">
+            <label for="cbShowTranslateSelectedButton" data-i18n="lblShowTranslateSelectedButton">Show the button to
+                translate the selected text</label>
+        </div>
+        <div>
+            <hr>
+        </div>
+
+        <div>
+            <input type="checkbox" class="w3-check" id="cbAutoImproveByAi">
+            <label for="cbAutoImproveByAi" data-i18n="lblAutoImproveByAi">Automatically improve translations by AI</label>
+        </div>
+        <div>
+            <hr>
+        </div>
+
+        <div id="containerShowOriginalWhenHovering">
+            <input type="checkbox" class="w3-check" id="cbShowOriginalWhenHovering">
+            <label for="cbShowOriginalWhenHovering" data-i18n="lblShowOriginalTextWhenHovering">Show original text when
+                hovering</label>
+        </div>
+        <div id="containerShowTranslatedWhenHoveringThisSite">
+            <input type="checkbox" class="w3-check" id="cbShowTranslatedWhenHoveringThisSite">
+            <label for="cbShowTranslatedWhenHoveringThisSite" data-i18n="lblShowTranslatedWhenHoveringThisSite">Show
+                translation when hovering over this site</label>
+        </div>
+        <div id="containerShowTranslatedWhenHoveringThisLang">
+            <div id="divShowTranslatedWhenHoveringThisLang">
+                <input type="checkbox" class="w3-check" id="cbShowTranslatedWhenHoveringThisLang">
+                <label id="lblShowTranslatedWhenHoveringThisLang" for="cbShowTranslatedWhenHoveringThisLang"
+                    data-i18n="lblShowTranslatedWhenHoveringThisLang">Show translation when hovering over websites
+                    in</label>
+            </div>
+        </div>
+        <div id="hrOfLastItem">
+            <hr>
+        </div>
+
+        <div id="cbMoreOptions" data-i18n="btnMoreOptions" style="text-align: right; text-decoration: underline; padding: 15px; cursor: pointer;">More options</div>
+    </div>
+
+    <script src="popup.js" type="module"></script>
+</body>
+
+</html>

@@ -1,0 +1,773 @@
+{
+  "aiProviderAnthropic": {
+    "message": "Anthropic"
+  },
+  "aiProviderAzureOpenAI": {
+    "message": "Azure OpenAI"
+  },
+  "aiProviderBaidu": {
+    "message": "Baidu ERNIE"
+  },
+  "aiProviderBytedance": {
+    "message": "ByteDance Doubao"
+  },
+  "aiProviderCerebras": {
+    "message": "Cerebras"
+  },
+  "aiProviderCohere": {
+    "message": "Cohere"
+  },
+  "aiProviderDeepInfra": {
+    "message": "Deep Infra"
+  },
+  "aiProviderDeepSeek": {
+    "message": "DeepSeek"
+  },
+  "aiProviderGoogleGemini": {
+    "message": "Google Gemini"
+  },
+  "aiProviderGrok": {
+    "message": "xAI (Grok)"
+  },
+  "aiProviderGroq": {
+    "message": "Groq"
+  },
+  "aiProviderIflytek": {
+    "message": "iFlytek Spark"
+  },
+  "aiProviderMistral": {
+    "message": "Mistral AI"
+  },
+  "aiProviderMoonshot": {
+    "message": "Moonshot (Kimi)"
+  },
+  "aiProviderOpenAI": {
+    "message": "OpenAI"
+  },
+  "aiProviderOpenRouter": {
+    "message": "OpenRouter"
+  },
+  "aiProviderPerplexity": {
+    "message": "Perplexity"
+  },
+  "aiProviderQwen": {
+    "message": "Alibaba Qwen"
+  },
+  "aiProviderTogether": {
+    "message": "Together AI"
+  },
+  "aiProviderVercel": {
+    "message": "Vercel AI Gateway"
+  },
+  "aiProviderZhipu": {
+    "message": "Zhipu AI (GLM)"
+  },
+  "alertSpecifyTargetLanguage": {
+    "message": "Please specify target language first."
+  },
+  "backupToFile": {
+    "message": "Backup to file"
+  },
+  "btnAlwaysTranslate": {
+    "message": "Always translate this site"
+  },
+  "btnAlwaysTranslateThisLanguage": {
+    "message": "Always translate this language"
+  },
+  "btnApply": {
+    "message": "Apply"
+  },
+  "btnListen": {
+    "message": "Listen"
+  },
+  "btnMobileDonate": {
+    "message": "Donate"
+  },
+  "btnMobileNeverTranslate": {
+    "message": "Never translate this site"
+  },
+  "btnMobileOriginal": {
+    "message": "Original"
+  },
+  "btnMobileTranslated": {
+    "message": "Translated"
+  },
+  "btnMoreOptions": {
+    "message": "More options"
+  },
+  "btnNeverTranslate": {
+    "message": "Never translate this site"
+  },
+  "btnNeverTranslateThisLanguage": {
+    "message": "Never translate this language"
+  },
+  "btnOptions": {
+    "message": "Options"
+  },
+  "btnReplace": {
+    "message": "Replace"
+  },
+  "btnReset": {
+    "message": "Reset"
+  },
+  "btnRestore": {
+    "message": "Show original"
+  },
+  "btnShowPopup": {
+    "message": "Show popup"
+  },
+  "btnStopListening": {
+    "message": "Stop listening"
+  },
+  "btnSubmit": {
+    "message": "Submit"
+  },
+  "btnTranslate": {
+    "message": "Translate"
+  },
+  "btncopy": {
+    "message": "Copy"
+  },
+  "calculatestorage": {
+    "message": "Calculate"
+  },
+  "confirmAutoTranslateWithAI": {
+    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
+  },
+  "confirmSetApiKeyNow": {
+    "message": "API key is not set. Do you want to set it now?"
+  },
+  "deleteTranslationCache": {
+    "message": "Delete translation cache"
+  },
+  "displayTranslatedTextInNewLine": {
+    "message": "Display translated text in a new line"
+  },
+  "doYouWantOverwriteAllSettings": {
+    "message": "Do you want to overwrite all existing settings using the backup data?"
+  },
+  "doYouWantRestoreSettings": {
+    "message": "Do you want to restore the extension to its default settings?"
+  },
+  "doYouWantToDeleteTranslationCache": {
+    "message": "Do you want to delete the translation cache?"
+  },
+  "donatewithpaypal": {
+    "message": "Donate With PayPal"
+  },
+  "dontShowIfPageLangIsTargetLang": {
+    "message": "Do not show if the page language is the target language"
+  },
+  "dontShowIfPageLangIsUnknown": {
+    "message": "Do not show if the page language is unknown"
+  },
+  "dontShowIfSelectedTextIsTargetLang": {
+    "message": "Do not show if the selected text language is the target language"
+  },
+  "dontShowIfSelectedTextIsUnknown": {
+    "message": "Do not show if the selected text language is unknown"
+  },
+  "enterShortcut": {
+    "message": "Type a shortcut"
+  },
+  "errorAiNoResponse": {
+    "message": "No response from AI provider. Please verify your API key and model name."
+  },
+  "errorAiResponseNoTranslationTags": {
+    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+  },
+  "errorApiKeyNotFound": {
+    "message": "API key not found!"
+  },
+  "errorCopyFailed": {
+    "message": "Failed to copy."
+  },
+  "errorCopyFailedInsecure": {
+    "message": "Failed to copy text. Probably because the page URL protocol is insecure HTTP, not HTTPS."
+  },
+  "errorTranslationUnknown": {
+    "message": "Translation error: unknown error."
+  },
+  "errorTranslationWithMessage": {
+    "message": "Translation error: $ERROR_MESSAGE$",
+    "placeholders": {
+      "ERROR_MESSAGE": {
+        "content": "$1",
+        "example": "Network error"
+      }
+    }
+  },
+  "extensionDescription": {
+    "message": "Translate your page in real time using Google or AI."
+  },
+  "extensionName": {
+    "message": "DualTran"
+  },
+  "fileIsCorrupted": {
+    "message": "The file appears to be corrupted"
+  },
+  "floatingButtonAiTranslateTooltip": {
+    "message": "Use AI to translate this page"
+  },
+  "floatingButtonGoogleTranslateTooltip": {
+    "message": "Use Google to translate this page"
+  },
+  "floatingButtonTooltip": {
+    "message": "Click to toggle translation state; drag to move this button"
+  },
+  "hideOriginalText": {
+    "message": "Hide original text"
+  },
+  "hotkeyError_ctrlOrAlt": {
+    "message": "Include Ctrl or Alt"
+  },
+  "hotkeyError_invalid": {
+    "message": "Invalid combination"
+  },
+  "hotkeyError_letter": {
+    "message": "Type a letter"
+  },
+  "lblAdd": {
+    "message": "Add"
+  },
+  "lblAiFeatures": {
+    "message": "AI Features"
+  },
+  "lblAiImproveForLongerThan": {
+    "message": "Only improve translations by AI that have words more than",
+    "description": "Label for the minimum number of words required to trigger AI improvement"
+  },
+  "lblAiProvider": {
+    "message": "AI provider"
+  },
+  "lblAiTranslatedStyle": {
+    "message": "Color of AI translated text "
+  },
+  "lblAlwaysTranslate": {
+    "message": "Always translate from $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblAlwaysTranslateSites": {
+    "message": "Always translate these sites"
+  },
+  "lblApiKeyOpenAI": {
+    "message": "OpenAI API Key"
+  },
+  "lblApiKeyOpenRouter": {
+    "message": "OpenRouter API Key"
+  },
+  "lblAutoImproveByAi": {
+    "message": "Automatically improve translations by AI"
+  },
+  "lblAutoTranslateWhenClickingALink": {
+    "message": "Automatically translate when clicking on a link that takes you to the same domain as the current site"
+  },
+  "lblButtonInTheAddressBar": {
+    "message": "Show button in the address bar"
+  },
+  "lblDarkMode": {
+    "message": "Dark Mode"
+  },
+  "lblEnableAiTranslationCache": {
+    "message": "Enable AI translation cache",
+    "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
+  },
+  "lblEnableDeepL": {
+    "message": "Enable DeepL as a text translation service"
+  },
+  "lblEnterApiKey": {
+    "message": "Enter API key"
+  },
+  "lblError": {
+    "message": "This page could not be translated"
+  },
+  "lblFavoriteLanguage": {
+    "message": "Favorite language $FAVORITE_LANGUAGE_NUM$",
+    "placeholders": {
+      "FAVORITE_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblFreeTranslationEngine": {
+    "message": "Free translation engine"
+  },
+  "lblHotTranslatedSelectedText": {
+    "message": "Replace selected text with translated text instantly"
+  },
+  "lblKeyboardShortcuts": {
+    "message": "Keyboard shortcuts"
+  },
+  "lblKeyboardShortcutsSpecial": {
+    "message": "Special keyboard shortcuts"
+  },
+  "lblMakeDonation": {
+    "message": "Make a donation"
+  },
+  "lblNeverTranslateLangs": {
+    "message": "Never translate these languages"
+  },
+  "lblOpenAiModel": {
+    "message": "OpenAI Model"
+  },
+  "lblOpenRouterBaseUrl": {
+    "message": "OpenRouter API base (optional)"
+  },
+  "lblOpenRouterModel": {
+    "message": "OpenRouter model"
+  },
+  "lblOpenRouterReferer": {
+    "message": "HTTP Referer header (optional)"
+  },
+  "lblOpenRouterTitle": {
+    "message": "X-Title header (optional)"
+  },
+  "lblOthers": {
+    "message": "Others"
+  },
+  "lblPageTranslateInto": {
+    "message": "Page translated into $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblPageTranslationService": {
+    "message": "Page translation service"
+  },
+  "lblPersonalSettings": {
+    "message": "Personal settings"
+  },
+  "lblPlsDonate": {
+    "message": "Help the developer with a donation"
+  },
+  "lblReleaseNotes": {
+    "message": "Release Notes"
+  },
+  "lblReplaceSelectedTextWithTranslatedText": {
+    "message": "Replace selected text with translated text when pressing $SHORTCUT_KEY$ twice",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblReport": {
+    "message": "Report a problem"
+  },
+  "lblReset": {
+    "message": "Reset"
+  },
+  "lblRestorePageToOriginal": {
+    "message": "Restore page to original"
+  },
+  "lblSelectPopupInterfaceStyle": {
+    "message": "Select popup interface style"
+  },
+  "lblSettings": {
+    "message": "Settings"
+  },
+  "lblShowContextMenu": {
+    "message": "Show the option to translate the page in the context menu"
+  },
+  "lblShowOriginalTextWhenHovering": {
+    "message": "Show original text when hovering"
+  },
+  "lblShowReleaseNotes": {
+    "message": "Show release notes when updating"
+  },
+  "lblShowTranslateSelectedButton": {
+    "message": "Show the button to translate the selected text"
+  },
+  "lblShowTranslateSelectedContextMenu": {
+    "message": "Show the option to translate the selected text in the context menu"
+  },
+  "lblShowTranslatedHoveringLangs": {
+    "message": "Show translated text when hovering over sites with these languages"
+  },
+  "lblShowTranslatedHoveringSites": {
+    "message": "Show translated text when hovering on these sites"
+  },
+  "lblShowTranslatedWhenHovering": {
+    "message": "Show translated text when hovering"
+  },
+  "lblShowTranslatedWhenHoveringThisLang": {
+    "message": "Show translation when hovering over websites in $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblShowTranslatedWhenHoveringThisSite": {
+    "message": "Show translation when hovering over this site"
+  },
+  "lblStorageUsed": {
+    "message": "Storage used:"
+  },
+  "lblSwitchTranslatedAndOriginal": {
+    "message": "Switch between the translated and the original page"
+  },
+  "lblTargetLanguage": {
+    "message": "Target language $TARGET_LANGUAGE_NUM$",
+    "placeholders": {
+      "TARGET_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblTargetLanguageGroup": {
+    "message": "Target language"
+  },
+  "lblTextTranslationService": {
+    "message": "Text Translation Service"
+  },
+  "lblTranslate": {
+    "message": "Translate this page?"
+  },
+  "lblTranslateInterface": {
+    "message": "Translate the interface"
+  },
+  "lblTranslateLongerThan": {
+    "message": "Only translate the text that has words more than",
+    "description": "Label for the minimum number of words required to trigger translation"
+  },
+  "lblTranslatePageInto": {
+    "message": "Translate page into $LANGUAGE_NAME$?",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblTranslatePageToTargetLanguage": {
+    "message": "Translate the page to the target language"
+  },
+  "lblTranslateSelectedWhenPressTwice": {
+    "message": "Translate selected text when pressing $SHORTCUT_KEY$ twice",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslateTag_pre": {
+    "message": "Enable translation for the tag $HTML_TAG_NAME$",
+    "placeholders": {
+      "HTML_TAG_NAME": {
+        "content": "<PRE>"
+      }
+    }
+  },
+  "lblTranslateTextOverMouseWhenPressTwice": {
+    "message": "Translate the text over the mouse cursor when pressing $SHORTCUT_KEY$ twice",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslated": {
+    "message": "Translated"
+  },
+  "lblTranslatedStyle": {
+    "message": "Color of Google translated text "
+  },
+  "lblTranslating": {
+    "message": "Translating ..."
+  },
+  "lblTranslationCache": {
+    "message": "Translation cache"
+  },
+  "lblTranslationService": {
+    "message": "Translation service"
+  },
+  "lblTtsSpeed": {
+    "message": "Text-to-speech audio speed"
+  },
+  "lblUseNewAlgorithm": {
+    "message": "Use the new translation algorithm?"
+  },
+  "lblWhereToDisplayTranslatedText": {
+    "message": "Where to display translated text"
+  },
+  "lbldontsortresults": {
+    "message": "Do not sort the google translate results"
+  },
+  "lbltranslatedynamicallycreatedcontent": {
+    "message": "Translate dynamically created content"
+  },
+  "less": {
+    "message": "Less"
+  },
+  "more": {
+    "message": "More"
+  },
+  "msgAi": {
+    "message": "AI"
+  },
+  "msgAll": {
+    "message": "All"
+  },
+  "msgAutomatic": {
+    "message": "Automatic"
+  },
+  "msgAzureEnterKeyAndEndpoint": {
+    "message": "Please enter Azure OpenAI API Key and Endpoint to load model list"
+  },
+  "msgCannotLoadDeepSeekModelsHttp": {
+    "message": "Unable to load DeepSeek models (HTTP $1)",
+    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDonateWithPaypal": {
+    "message": "Donate with PayPal"
+  },
+  "msgDownloadingDocument": {
+    "message": "Downloading the document..."
+  },
+  "msgEmptyListAlwaysTranslateLanguages": {
+    "message": "You have not added any languages to this list yet."
+  },
+  "msgEmptyListNeverTranslateSites": {
+    "message": "You have not added any sites to this list yet."
+  },
+  "msgEnterApiKeyForModels": {
+    "message": "Please enter an API key to get the available models for this provider"
+  },
+  "msgErrorDownloadingDocument": {
+    "message": "Error downloading document"
+  },
+  "msgFavoriteLanguages": {
+    "message": "Favorite languages"
+  },
+  "msgFileLargerThan": {
+    "message": "This service does not support files larger than $FILE_SIZE$",
+    "placeholders": {
+      "FILE_SIZE": {
+        "content": "$1",
+        "example": "10 MB"
+      }
+    }
+  },
+  "msgHotkeys": {
+    "message": "Hotkeys"
+  },
+  "msgHowToGetOpenAIKey": {
+    "message": "how to get openAI api key?"
+  },
+  "msgHowToGetOpenRouterKey": {
+    "message": "how to get OpenRouter api key?"
+  },
+  "msgIWillBeGrateful": {
+    "message": "I will be grateful if you can make a donation."
+  },
+  "msgInterfaceComplex": {
+    "message": "Complex"
+  },
+  "msgInterfaceSimple": {
+    "message": "Simple"
+  },
+  "msgLanguages": {
+    "message": "Languages"
+  },
+  "msgLoadingModels": {
+    "message": "Loading..."
+  },
+  "msgModelListFetchFailed": {
+    "message": "Failed to fetch model list with API key. Available models:"
+  },
+  "msgNo": {
+    "message": "No"
+  },
+  "msgNoTranslateSelectedText": {
+    "message": "Do not translate selected text"
+  },
+  "msgNoUseWidgets": {
+    "message": "No (use widgets)"
+  },
+  "msgOpenOnYandexTranslator": {
+    "message": "Open in OpenAI translate"
+  },
+  "msgOpenTranslated": {
+    "message": "Open translated PDF"
+  },
+  "msgPDFtoHTML": {
+    "message": "PDF to HTML"
+  },
+  "msgPleaseWait": {
+    "message": "Please wait..."
+  },
+  "msgRecents": {
+    "message": "Recents"
+  },
+  "msgSelectServiceConversion": {
+    "message": "Select a service to do this conversion"
+  },
+  "msgSelectTargetLanguage": {
+    "message": "Translate websites into this target language"
+  },
+  "msgSelectTargetLanguageForText": {
+    "message": "Translate selected text into this target language"
+  },
+  "msgSendDocument": {
+    "message": "Send document"
+  },
+  "msgSites": {
+    "message": "Sites"
+  },
+  "msgStorage": {
+    "message": "Storage"
+  },
+  "msgStyle": {
+    "message": "Style"
+  },
+  "msgThanksForUseExtension": {
+    "message": "Thank you for using this extension."
+  },
+  "msgToTranslateSites": {
+    "message": "Translate this site"
+  },
+  "msgToTranslateThisDocument": {
+    "message": "To translate this document $DOC_TYPE$ it is necessary to convert it to HTML",
+    "placeholders": {
+      "DOC_TYPE": {
+        "content": "$1",
+        "example": "(.pdf)"
+      }
+    }
+  },
+  "msgTranslateFor": {
+    "message": "Translate to $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateSelectedText": {
+    "message": "Translate selected text"
+  },
+  "msgTranslations": {
+    "message": "Translations"
+  },
+  "msgUnknownLanguage": {
+    "message": "Unknown"
+  },
+  "msgYes": {
+    "message": "Yes"
+  },
+  "msgYesRecommended": {
+    "message": "Yes (recommended)"
+  },
+  "openNativeShortcutManager": {
+    "message": "Open native shortcut key manager"
+  },
+  "optionFloatingConfig": {
+    "message": "show the floating button"
+  },
+  "optionPopupAuto": {
+    "message": "Automatic"
+  },
+  "optionPopupConfig": {
+    "message": "Show the mobile popup"
+  },
+  "optionPopupThreeFingers": {
+    "message": "When I touch three fingers on the screen"
+  },
+  "optionPopupjustWhenIClickTranlateThisSite": {
+    "message": "When I click \"Translate this site\""
+  },
+  "optionsAddToCustomDictionary": {
+    "message": "Add to custom dictionary (This allows you to skip certain words during web page translation)"
+  },
+  "optionsAlwaysTranslate": {
+    "message": "Always translate these languages"
+  },
+  "optionsNeverTranslate": {
+    "message": "Never translate these sites"
+  },
+  "optionsPageTitle": {
+    "message": "DualTran - Options"
+  },
+  "pageActionTitle": {
+    "message": "Translate this page"
+  },
+  "placeholderOpenRouterBase": {
+    "message": "https://openrouter.ai/api/v1/chat/completions"
+  },
+  "placeholderOpenRouterModel": {
+    "message": "openai/gpt-4o-mini"
+  },
+  "placeholderOpenRouterReferer": {
+    "message": "https://your-site.example"
+  },
+  "placeholderOpenRouterTitle": {
+    "message": "DualTran"
+  },
+  "popupBlueWhenSiteIsTranslated": {
+    "message": "Make the pop-up icon blue when the site is translated"
+  },
+  "promptInputOpenAIKey": {
+    "message": "Please input your OpenAI API Key:"
+  },
+  "promptInputOpenRouterKey": {
+    "message": "Please input your OpenRouter API Key:"
+  },
+  "replaceOriginalTextWithTranslatedText": {
+    "message": "Replace original text with translated text"
+  },
+  "resetToDefault": {
+    "message": "Restore default settings"
+  },
+  "restoreFromFile": {
+    "message": "Restore from file"
+  },
+  "serviceBing": {
+    "message": "Bing"
+  },
+  "serviceDeepL": {
+    "message": "DeepL"
+  },
+  "serviceGoogle": {
+    "message": "Google"
+  },
+  "serviceGoogleTranslate": {
+    "message": "Google Translate"
+  },
+  "serviceMicrosoftTranslate": {
+    "message": "Microsoft Translator"
+  },
+  "serviceTranslateWebPages": {
+    "message": "DualTran"
+  },
+  "serviceYandex": {
+    "message": "Yandex"
+  },
+  "showOriginalText": {
+    "message": "Show original text"
+  },
+  "swapPopup": {
+    "message": "Switch between simple and complex interface"
+  },
+  "swapTranslationService": {
+    "message": "Switch between translation services"
+  },
+  "tooltipImproveTranslationByAI": {
+    "message": "click to improve the translation by AI"
+  },
+  "translateClickingOnce": {
+    "message": "Translate the page by clicking once on the button in the address bar. (To see the popup, right-click)"
+  }
+}

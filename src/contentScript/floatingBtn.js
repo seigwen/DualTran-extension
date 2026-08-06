@@ -1,0 +1,860 @@
+
+/**
+ * 浮动按钮
+ */
+
+console.log("floatingBtn.js is running")
+
+import twpConfig from "../lib/config.js"
+import { pageTranslator } from "./pageTranslator.js"
+import {
+  getFloatingButtonAiTooltipText,
+  getFloatingButtonGoogleTooltipText,
+  getFloatingButtonMoreOptionsText,
+} from "./i18n.js"
+
+var floatingBtn = {};
+
+/**
+ * 获取tab的主机名
+ * @returns 
+ */
+function getTabHostName() {
+  return new Promise((resolve) =>
+    chrome.runtime.sendMessage({ action: "getTabHostName" }, (result) =>
+      resolve(result)
+    )
+  );
+}
+
+// 仅在顶层窗口显示悬浮按钮，iframe 中不创建
+if (window.self !== window.top) {
+  console.log("floatingBtn.js: skip iframe, only top window shows floating button");
+} else {
+  Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
+    console.log("floatingBtn.js is still running")
+    const tabHostName = _[1];
+
+  const htmlMobile = `
+    <style>
+      @keyframes dualtranFloatingBtnSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      #floatingBtnBody {
+        position: relative;
+        padding-top: 38px;
+      }
+
+      #floatingBtnLayer.dualtran-options-shortcut-below #floatingBtnBody {
+        padding-top: 0;
+        padding-bottom: 38px;
+      }
+
+      .dualtran-floating-btn-label {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        white-space: nowrap;
+      }
+
+      .dualtran-floating-btn-spinner {
+        width: 12px;
+        height: 12px;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 999px;
+        animation: dualtranFloatingBtnSpin 0.7s linear infinite;
+        box-sizing: border-box;
+        flex: 0 0 auto;
+      }
+
+      .dualtran-floating-btn-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    </style>
+    <div id="floatingBtnLayer" style="position: fixed; top: 50%; right: 0px; transform: translateY(-50%); z-index: 2147483647;">
+      <div id="floatingBtnBody">
+        <button id="btnOptionsShortcut" type="button" style="position: absolute; right: 0px; top: 0; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%); border-radius: 999px; box-shadow: 0 10px 22px rgba(37,99,235,0.32); color: #ffffff; cursor: pointer; opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(4px) scale(0.96); transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease; line-height: 1; z-index: 3; padding: 0; outline: none;">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" style="display: block; fill: currentColor;">
+            <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.14 7.14 0 0 0-1.63-.94l-.36-2.54a.5.5 0 0 0-.49-.42h-3.84a.5.5 0 0 0-.49.42l-.36 2.54c-.58.23-1.12.54-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.39 1.05.71 1.63.94l.36 2.54a.5.5 0 0 0 .49.42h3.84a.5.5 0 0 0 .49-.42l.36-2.54c.58-.23 1.12-.54 1.63-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"></path>
+          </svg>
+        </button>
+        <div id="floatingBtnContainer" style="position: relative; display: flex; flex-direction: column; align-items: stretch; background: white; border: 1px solid #d1d5db; border-radius: 12px; padding: 6px; box-shadow: 0 10px 24px rgba(15,23,42,0.18); width: 92px; min-width: 48px; gap: 6px; font-family: Arial, sans-serif; box-sizing: border-box;">
+          <div id="resizeHandle" style="position: absolute; left: -6px; top: 18px; bottom: 6px; width: 12px; display: flex; align-items: center; justify-content: center; cursor: ew-resize; touch-action: none;">
+            <div style="width: 3px; height: 26px; border-radius: 999px; background: #cbd5e1;"></div>
+          </div>
+          <div id="dragHandle" style="height: 12px; cursor: grab; background: #f3f4f6; border-radius: 999px; display: flex; justify-content: center; align-items: center;">
+          <div style="width: 22px; height: 2px; background: #9ca3af; border-radius: 999px;"></div>
+          </div>
+          <button id="btnGoogle" type="button" style="cursor: pointer; border: 1px solid #bfdbfe; background: #eff6ff; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; color: #1d4ed8; transition: all 0.2s ease; width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Google</button>
+          <button id="btnAi" type="button" style="cursor: pointer; border: 1px solid #ddd6fe; background: #f5f3ff; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; color: #7c3aed; transition: all 0.2s ease; width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">AI</button>
+        </div>
+      </div>
+    </div>
+    `;
+
+  let originalTabLanguage = "und";
+  let currentTargetLanguage = twpConfig.get("targetLanguage");
+  let currentPageTranslatorService = twpConfig.get("pageTranslatorService");
+  let alwaysTranslateThisSite =
+    twpConfig.get("alwaysTranslateSites").indexOf(tabHostName) !== -1;
+  let translateThisSite =
+    twpConfig.get("neverTranslateSites").indexOf(tabHostName) === -1;
+  let translateThisLanguage = false;
+  let showFloatingBtn = twpConfig.get("showFloatingBtn");
+
+  // 监听配置变更事件
+  twpConfig.onChanged(function (name, newValue) {
+    switch (name) {
+      // 总是翻译的网站
+      case "alwaysTranslateSites":
+        alwaysTranslateThisSite = newValue.indexOf(tabHostName) !== -1;
+        console.log("will show floating button, 1111111")
+        floatingBtn.show();
+        break;
+      // 从不翻译的网站
+      case "neverTranslateSites":
+        translateThisSite = newValue.indexOf(tabHostName) === -1;
+        console.log("will show floating button, 2222222")
+        floatingBtn.show();
+        break;
+      // 从不翻译的语言
+      case "neverTranslateLangs":
+        translateThisLanguage =
+          originalTabLanguage === "und" ||
+          (currentTargetLanguage !== originalTabLanguage &&
+            newValue.indexOf(originalTabLanguage) === -1);
+        console.log("will show floating button, 3333333")
+        floatingBtn.show();
+        break;
+      // 显示浮动按钮
+      case "showFloatingBtn":
+        showFloatingBtn = newValue;
+        console.log("will show floating button, 4444444")
+        floatingBtn.show();
+        break;
+    }
+  });
+
+  let divElement;
+  let getElemById;
+  let pageLanguageState = "original";
+  let detachViewportListeners = null;
+  let shortcutRevealTimer = null;
+  let lastViewportWidth = window.innerWidth;
+  const MIN_FLOATING_BTN_WIDTH = 48;
+
+  /**
+   * 隐藏浮动按钮
+   * @returns 
+   */
+  floatingBtn.hide = function () {
+    if (!divElement) return;
+
+    if (detachViewportListeners) {
+      detachViewportListeners();
+      detachViewportListeners = null;
+    }
+
+    if (shortcutRevealTimer) {
+      clearTimeout(shortcutRevealTimer);
+      shortcutRevealTimer = null;
+    }
+
+    divElement.remove();
+    divElement = getElemById = null;
+  };
+
+  /**
+   * 显示浮动按钮
+   * @param {*} forceShow 
+   * @returns 
+   */
+  floatingBtn.show = function (forceShow = false) {
+    console.log("floatingBtn.show() is called")
+
+    floatingBtn.hide();
+
+    if (
+      !forceShow && showFloatingBtn !== "yes"
+    ){
+      console.log("floatingBtn.show() going to return in short")
+      return;
+    }
+    console.log("floatingBtn.show() is called 2222")
+
+    divElement = document.createElement("div");
+    divElement.id = "dualtran-floating-btn-host";
+    divElement.style = "all: initial";
+    divElement.classList.add("notranslate");
+
+    // 使用 open shadow root，保留样式隔离的同时，为自动化测试和调试提供稳定的只读观察入口。
+    const shadowRoot = divElement.attachShadow({
+      mode: "open",
+    });
+  shadowRoot.innerHTML = htmlMobile;
+
+    document.body.appendChild(divElement);
+
+    // 国际化该按钮
+    chrome.i18n.translateDocument(shadowRoot);
+
+
+
+    /**
+     * 开启暗黑模式
+     */
+    function enableDarkMode() {
+      // TODO
+    }
+
+    /**
+     * 关闭暗黑模式
+     */
+    function disableDarkMode() {
+      // TODO
+    }
+
+    // 根据配置决定是否开启暗黑模式
+    switch (twpConfig.get("darkMode")) {
+      case "auto":
+        if (matchMedia("(prefers-color-scheme: dark)").matches) {
+          enableDarkMode();
+        } else {
+          disableDarkMode();
+        }
+        break;
+      case "yes":
+        enableDarkMode();
+        break;
+      case "no":
+        disableDarkMode();
+        break;
+      default:
+        break;
+    }
+
+    getElemById = shadowRoot.getElementById.bind(shadowRoot);
+
+    const layerEl = getElemById("floatingBtnLayer");
+    const containerEl = getElemById("floatingBtnContainer");
+    const resizeHandleEl = getElemById("resizeHandle");
+    const dragHandleEl = getElemById("dragHandle");
+    const btnGoogleEl = getElemById("btnGoogle");
+    const btnAiEl = getElemById("btnAi");
+    const btnOptionsShortcutEl = getElemById("btnOptionsShortcut");
+    lastViewportWidth = window.innerWidth;
+
+    let googleRenderState = "idle";
+    let aiRenderState = "idle";
+    let currentFloatingBtnWidth = twpConfig.get("floatingBtnWidth");
+    let suppressNextClick = false;
+
+    const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
+
+    function setShortcutVisible(visible) {
+      btnOptionsShortcutEl.classList.toggle("dualtran-visible", !!visible);
+      btnOptionsShortcutEl.style.opacity = visible ? "1" : "0";
+      btnOptionsShortcutEl.style.visibility = visible ? "visible" : "hidden";
+      btnOptionsShortcutEl.style.pointerEvents = visible ? "auto" : "none";
+      btnOptionsShortcutEl.style.transform = visible
+        ? "translateY(0) scale(1)"
+        : (layerEl.classList.contains("dualtran-options-shortcut-below")
+          ? "translateY(-4px) scale(0.96)"
+          : "translateY(4px) scale(0.96)");
+      
+      if (layerEl.classList.contains("dualtran-options-shortcut-below")) {
+          btnOptionsShortcutEl.style.top = "auto";
+          btnOptionsShortcutEl.style.bottom = "0px";
+      } else {
+          btnOptionsShortcutEl.style.top = "0px";
+          btnOptionsShortcutEl.style.bottom = "auto";
+      }
+    }
+
+    function revealShortcutBriefly() {
+      if (shortcutRevealTimer) {
+        clearTimeout(shortcutRevealTimer);
+        shortcutRevealTimer = null;
+      }
+      setShortcutVisible(true);
+      shortcutRevealTimer = setTimeout(() => {
+        if (!layerEl.matches(':hover')) {
+          setShortcutVisible(false);
+        }
+      }, 2000);
+    }
+
+    function getMaxFloatingBtnWidth() {
+      return Math.max(MIN_FLOATING_BTN_WIDTH, window.innerWidth - 12);
+    }
+
+    function updateShortcutPlacement() {
+      const rect = containerEl.getBoundingClientRect();
+      layerEl.classList.toggle("dualtran-options-shortcut-below", rect.top < 64);
+      setShortcutVisible(btnOptionsShortcutEl.style.visibility === "visible");
+    }
+
+    function persistFloatingBtnWidth(width) {
+      try {
+        twpConfig.set("floatingBtnWidth", width);
+      } catch (e) {
+        console.warn("save floating button width failed", e);
+      }
+    }
+
+    function applyFloatingBtnWidth(nextWidth, saveAfterChange = false) {
+      const normalizedWidth = clamp(
+        typeof nextWidth === "number" ? nextWidth : 92,
+        MIN_FLOATING_BTN_WIDTH,
+        getMaxFloatingBtnWidth()
+      );
+      currentFloatingBtnWidth = normalizedWidth;
+      containerEl.style.width = normalizedWidth + "px";
+      updateShortcutPlacement();
+      updateButtons(googleRenderState, aiRenderState);
+      if (saveAfterChange) {
+        persistFloatingBtnWidth(normalizedWidth);
+      }
+      return normalizedWidth;
+    }
+
+    function clampContainerToViewport(saveAfterClamp = false) {
+      if (layerEl.style.bottom || layerEl.style.right) {
+        updateShortcutPlacement();
+        lastViewportWidth = window.innerWidth;
+        return;
+      }
+
+      const rect = layerEl.getBoundingClientRect();
+      const width = containerEl.offsetWidth || rect.width || 92;
+      const height = containerEl.offsetHeight || rect.height || 90;
+      const previousMaxLeft = Math.max(0, lastViewportWidth - width);
+      const maxLeft = Math.max(0, window.innerWidth - width);
+      const maxTop = Math.max(0, window.innerHeight - height);
+
+      const currentLeft = parseFloat(layerEl.style.left || String(rect.left || 0)) || 0;
+      const currentTop = parseFloat(layerEl.style.top || String(rect.top || 0)) || 0;
+      const wasPinnedToRight = Math.abs(currentLeft - previousMaxLeft) <= 1;
+      const nextLeft = wasPinnedToRight ? maxLeft : clamp(currentLeft, 0, maxLeft);
+      const nextTop = clamp(currentTop, 0, maxTop);
+
+      layerEl.style.left = nextLeft + "px";
+      layerEl.style.top = nextTop + "px";
+      lastViewportWidth = window.innerWidth;
+      updateShortcutPlacement();
+
+      if (!saveAfterClamp) {
+        return;
+      }
+      try {
+        twpConfig.set("floatingBtnPosition", { left: nextLeft, top: nextTop });
+      } catch (e) {
+        console.warn("save floating button position failed", e);
+      }
+    }
+
+    const handleViewportChange = () => {
+      applyFloatingBtnWidth(currentFloatingBtnWidth, false);
+      clampContainerToViewport(true);
+    };
+    window.addEventListener("resize", handleViewportChange, { passive: true });
+    detachViewportListeners = () => {
+      window.removeEventListener("resize", handleViewportChange);
+    };
+
+    dragHandleEl.style.touchAction = "none";
+    dragHandleEl.draggable = false;
+    resizeHandleEl.style.touchAction = "none";
+    btnGoogleEl.title = getFloatingButtonGoogleTooltipText();
+    btnGoogleEl.setAttribute("aria-label", btnGoogleEl.title);
+    btnAiEl.title = getFloatingButtonAiTooltipText();
+    btnAiEl.setAttribute("aria-label", btnAiEl.title);
+    btnOptionsShortcutEl.title = getFloatingButtonMoreOptionsText();
+    btnOptionsShortcutEl.setAttribute("aria-label", btnOptionsShortcutEl.title);
+
+    layerEl.addEventListener("mouseenter", () => {
+      if (shortcutRevealTimer) {
+        clearTimeout(shortcutRevealTimer);
+        shortcutRevealTimer = null;
+      }
+      setShortcutVisible(true);
+    }, { passive: true });
+    layerEl.addEventListener("mouseleave", () => setShortcutVisible(false), { passive: true });
+    layerEl.addEventListener("focusin", () => setShortcutVisible(true));
+    layerEl.addEventListener("focusout", (e) => {
+      // If focus is leaving the layer, hide the shortcut
+      if (!layerEl.contains(e.relatedTarget)) {
+        setShortcutVisible(false);
+      }
+    });
+
+    btnOptionsShortcutEl.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      setShortcutVisible(true);
+      chrome.runtime?.sendMessage?.({
+        action: "openOptionsPage",
+        hash: "#translations",
+      });
+    });
+
+    try {
+      const savedPos = twpConfig.get("floatingBtnPosition");
+      if (savedPos && typeof savedPos.left === "number" && typeof savedPos.top === "number") {
+        layerEl.style.bottom = "";
+        layerEl.style.right = "";
+        layerEl.style.transform = "";
+        layerEl.style.left = savedPos.left + "px";
+        layerEl.style.top = savedPos.top + "px";
+      }
+      applyFloatingBtnWidth(currentFloatingBtnWidth, false);
+      clampContainerToViewport(false);
+      revealShortcutBriefly();
+    } catch (e) {
+      console.warn("restore floating button state failed", e);
+    }
+
+    // 开启拖拽以改变位置，并在松开时保存
+    (function enableDragging() {
+      let dragging = false;
+      let startX = 0;
+      let startY = 0;
+      let startLeft = 0;
+      let startTop = 0;
+      let pointerMovedBeyondThreshold = false;
+
+      const dragThresholdPx = 3;
+
+      function getElSize() {
+        const w = containerEl.offsetWidth || 60;
+        const h = containerEl.offsetHeight || 80;
+        return { w, h };
+      }
+
+      function toTopLeftIfNeeded() {
+        if (layerEl.style.bottom || layerEl.style.right || layerEl.style.transform) {
+          const rect = layerEl.getBoundingClientRect();
+          layerEl.style.bottom = "";
+          layerEl.style.right = "";
+          layerEl.style.transform = "";
+          layerEl.style.top = rect.top + "px";
+          layerEl.style.left = rect.left + "px";
+        }
+      }
+
+      function onPointerDown(clientX, clientY) {
+        toTopLeftIfNeeded();
+        dragging = true;
+        startX = clientX;
+        startY = clientY;
+        startLeft = parseFloat(layerEl.style.left || "0") || 0;
+        startTop = parseFloat(layerEl.style.top || "0") || 0;
+        pointerMovedBeyondThreshold = false;
+        
+        dragHandleEl.style.cursor = "grabbing";
+        window.addEventListener("mousemove", onMouseMove, { passive: false });
+        window.addEventListener("mouseup", onMouseUp, { passive: true });
+        window.addEventListener("touchmove", onTouchMove, { passive: false });
+        window.addEventListener("touchend", onTouchEnd, { passive: true });
+      }
+
+      function onMouseDown(e) {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        onPointerDown(e.clientX, e.clientY);
+      }
+
+      function onTouchStart(e) {
+        if (!e.touches || e.touches.length === 0) return;
+        const t = e.touches[0];
+        e.preventDefault();
+        onPointerDown(t.clientX, t.clientY);
+      }
+
+      function onPointerMove(clientX, clientY) {
+        if (!dragging) return;
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+        if (!pointerMovedBeyondThreshold) {
+          pointerMovedBeyondThreshold =
+            Math.abs(dx) > dragThresholdPx || Math.abs(dy) > dragThresholdPx;
+          if (!pointerMovedBeyondThreshold) {
+            return;
+          }
+        }
+        const { w, h } = getElSize();
+        const maxLeft = Math.max(0, window.innerWidth - w);
+        const maxTop = Math.max(0, window.innerHeight - h);
+        const newLeft = clamp(startLeft + dx, 0, maxLeft);
+        const newTop = clamp(startTop + dy, 0, maxTop);
+        layerEl.style.left = newLeft + "px";
+        layerEl.style.top = newTop + "px";
+        updateShortcutPlacement();
+      }
+
+      function onMouseMove(e) {
+        e.preventDefault();
+        onPointerMove(e.clientX, e.clientY);
+      }
+
+      function onTouchMove(e) {
+        if (!e.touches || e.touches.length === 0) return;
+        const t = e.touches[0];
+        e.preventDefault();
+        onPointerMove(t.clientX, t.clientY);
+      }
+
+      function savePosition() {
+        clampContainerToViewport(false);
+        const left = parseFloat(layerEl.style.left || "0") || 0;
+        const top = parseFloat(layerEl.style.top || "0") || 0;
+        try {
+          twpConfig.set("floatingBtnPosition", { left, top });
+        } catch (e) {
+          console.warn("save floating button position failed", e);
+        }
+      }
+
+      function onPointerUp() {
+        if (!dragging) return;
+        dragging = false;
+        dragHandleEl.style.cursor = "grab";
+        window.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", onMouseUp);
+        window.removeEventListener("touchmove", onTouchMove);
+        window.removeEventListener("touchend", onTouchEnd);
+        if (pointerMovedBeyondThreshold) {
+          savePosition();
+          suppressNextClick = true;
+          setTimeout(() => {
+            suppressNextClick = false;
+          }, 0);
+        }
+        pointerMovedBeyondThreshold = false;
+      }
+
+      function onMouseUp() { onPointerUp(); }
+      function onTouchEnd() { onPointerUp(); }
+
+      dragHandleEl.addEventListener("mousedown", onMouseDown, { passive: false });
+      dragHandleEl.addEventListener("touchstart", onTouchStart, { passive: false });
+
+      (function enableWidthResizing() {
+        let resizing = false;
+        let resizeStartX = 0;
+        let resizeStartWidth = 0;
+        let resizeStartLeft = 0;
+
+        function onResizePointerDown(clientX) {
+          toTopLeftIfNeeded();
+          resizing = true;
+          resizeStartX = clientX;
+          resizeStartWidth = containerEl.offsetWidth || currentFloatingBtnWidth || 92;
+          resizeStartLeft = parseFloat(layerEl.style.left || "0") || 0;
+          window.addEventListener("mousemove", onResizeMouseMove, { passive: false });
+          window.addEventListener("mouseup", onResizePointerUp, { passive: true });
+          window.addEventListener("touchmove", onResizeTouchMove, { passive: false });
+          window.addEventListener("touchend", onResizePointerUp, { passive: true });
+        }
+
+        function onResizeMouseDown(e) {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          onResizePointerDown(e.clientX);
+        }
+
+        function onResizeTouchStart(e) {
+          if (!e.touches || e.touches.length === 0) return;
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          onResizePointerDown(e.touches[0].clientX);
+        }
+
+        function onResizePointerMove(clientX) {
+          if (!resizing) return;
+          const deltaX = clientX - resizeStartX;
+          const nextWidth = applyFloatingBtnWidth(resizeStartWidth - deltaX, false);
+          const rightEdge = resizeStartLeft + resizeStartWidth;
+          const maxLeft = Math.max(0, window.innerWidth - nextWidth);
+          const nextLeft = clamp(rightEdge - nextWidth, 0, maxLeft);
+          layerEl.style.left = nextLeft + "px";
+          layerEl.style.top = (parseFloat(layerEl.style.top || "0") || 0) + "px";
+          updateShortcutPlacement();
+        }
+
+        function onResizeMouseMove(e) {
+          e.preventDefault();
+          onResizePointerMove(e.clientX);
+        }
+
+        function onResizeTouchMove(e) {
+          if (!e.touches || e.touches.length === 0) return;
+          e.preventDefault();
+          onResizePointerMove(e.touches[0].clientX);
+        }
+
+        function onResizePointerUp() {
+          if (!resizing) return;
+          resizing = false;
+          window.removeEventListener("mousemove", onResizeMouseMove);
+          window.removeEventListener("mouseup", onResizePointerUp);
+          window.removeEventListener("touchmove", onResizeTouchMove);
+          window.removeEventListener("touchend", onResizePointerUp);
+          clampContainerToViewport(false);
+          persistFloatingBtnWidth(currentFloatingBtnWidth);
+          try {
+            twpConfig.set("floatingBtnPosition", {
+              left: parseFloat(layerEl.style.left || "0") || 0,
+              top: parseFloat(layerEl.style.top || "0") || 0,
+            });
+          } catch (e) {
+            console.warn("save floating button position failed", e);
+          }
+          suppressNextClick = true;
+          setTimeout(() => {
+            suppressNextClick = false;
+          }, 0);
+        }
+
+        resizeHandleEl.addEventListener("mousedown", onResizeMouseDown, { passive: false });
+        resizeHandleEl.addEventListener("touchstart", onResizeTouchStart, { passive: false });
+      })();
+    })();
+
+    function translatePage() {
+      pageTranslator.translatePage();
+    }
+
+    btnGoogleEl.addEventListener("click", (e) => {
+      if (suppressNextClick) {
+        suppressNextClick = false;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+      console.log("Google 翻译按钮被点击");
+      if (pageLanguageState === "original") {
+        // 原始状态 → 翻译整页
+        googleRenderState = "loading";
+        updateButtons(googleRenderState, aiRenderState);
+        translatePage();
+      } else {
+        // 已翻译状态 → 返回原始，然后检查 AI 是否已翻译
+        if (aiRenderState === "success") {
+          // AI 已翻译 → 切换到 AI 译文
+          googleRenderState = "idle";
+          updateButtons(googleRenderState, aiRenderState);
+          pageTranslator.translatePageAi();
+        } else {
+          // AI 未翻译 → 隐藏译文
+          pageTranslator.restorePage();
+        }
+      }
+    });
+
+    btnAiEl.addEventListener("click", (e) => {
+      if (suppressNextClick) {
+        suppressNextClick = false;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
+      console.log("AI 翻译按钮被点击");
+      if (aiRenderState === "loading") {
+        return;
+      }
+      if (aiRenderState === "success") {
+        // 已翻译状态 → 返回原始，然后检查 Google 是否已翻译
+        if (googleRenderState === "success") {
+          // Google 已翻译 → 切换到 Google 译文
+          // 用户主动从 AI 切换到 Google，停止 AI 自动翻译模式，
+          // 避免后续动态加载的新内容继续被 AI 翻译。
+          // 注意：translatePage() 内部会保留 shouldForceAiAfterPageTranslation，
+          // 故必须在此处显式调用 stopAiAutoTranslate() 才能正确重置。
+          aiRenderState = "idle";
+          updateButtons(googleRenderState, aiRenderState);
+          pageTranslator.stopAiAutoTranslate();
+          pageTranslator.translatePage();
+        } else {
+          // Google 未翻译 → 隐藏译文
+          pageTranslator.restorePage();
+        }
+      } else if (pageLanguageState === "original" || googleRenderState === "success" || googleRenderState === "loading") {
+        // 原始状态 → 翻译整页
+        aiRenderState = "loading";
+        updateButtons(googleRenderState, aiRenderState);
+        const started = pageTranslator.translatePageAi();
+        if (started === false) {
+          aiRenderState = "idle";
+          updateButtons(googleRenderState, aiRenderState);
+        }
+      } else {
+        pageTranslator.restorePage();
+      }
+    });
+
+    console.log("updating buttons");
+
+    function updateButtons(googleState, aiState) {
+      console.log("updateButtons() called with", googleState, aiState);
+
+      const applyButtonState = (button, state, labels) => {
+        const isCompact = button.clientWidth < labels.compactWidth;
+        if (state === "loading") {
+          if (button.clientWidth < labels.loadingMinWidth) {
+            button.innerHTML = `<span class="dualtran-floating-btn-label"><span class="dualtran-floating-btn-spinner" aria-hidden="true"></span></span>`;
+          } else {
+            button.innerHTML = `<span class="dualtran-floating-btn-label"><span class="dualtran-floating-btn-spinner" aria-hidden="true"></span><span class="dualtran-floating-btn-text">${labels.loading}</span></span>`;
+          }
+          button.style.color = "#6b7280";
+          button.style.background = "#f3f4f6";
+          button.style.borderColor = "#d1d5db";
+          return;
+        }
+
+        if (state === "success") {
+          button.textContent = isCompact ? labels.compactIdle : labels.success;
+          button.style.color = "#15803d";
+          button.style.background = "#f0fdf4";
+          button.style.borderColor = "#86efac";
+          return;
+        }
+
+        if (state === "error") {
+          button.textContent = isCompact ? labels.compactIdle : (labels.error || "AI ✗");
+          button.style.color = "#991b1b";
+          button.style.background = "#fef2f2";
+          button.style.borderColor = "#fca5a5";
+          return;
+        }
+
+        button.textContent = isCompact ? labels.compactIdle : labels.idle;
+        button.style.color = labels.idleColor;
+        button.style.background = labels.idleBackground;
+        button.style.borderColor = labels.idleBorder;
+      };
+
+      applyButtonState(btnGoogleEl, googleState, {
+        idle: "Google",
+        compactIdle: "Go",
+        loading: "Google…",
+        success: "Google ✓",
+        compactWidth: 58,
+        loadingMinWidth: 74,
+        idleColor: "#1d4ed8",
+        idleBackground: "#eff6ff",
+        idleBorder: "#bfdbfe",
+      });
+
+      applyButtonState(btnAiEl, aiState, {
+        idle: "AI",
+        compactIdle: "AI",
+        loading: "AI…",
+        success: "AI ✓",
+        error: "AI ✗",
+        compactWidth: 58,
+        loadingMinWidth: 62,
+        idleColor: "#7c3aed",
+        idleBackground: "#f5f3ff",
+        idleBorder: "#ddd6fe",
+      });
+    }
+
+    updateButtons(googleRenderState, aiRenderState);
+
+    // 监听页面翻译状态
+    pageTranslator.onPageLanguageStateChange((_pageLanguageState) => {
+      pageLanguageState = _pageLanguageState;
+      if (pageLanguageState === "original") {
+        googleRenderState = "idle";
+        aiRenderState = "idle";
+        updateButtons(googleRenderState, aiRenderState);
+      }
+    });
+
+    if (pageTranslator.onPageRenderStateChange) {
+      pageTranslator.onPageRenderStateChange((state) => {
+        googleRenderState = state;
+        updateButtons(googleRenderState, aiRenderState);
+      });
+    }
+
+    if (pageTranslator.onAiRenderStateChange) {
+      pageTranslator.onAiRenderStateChange((state) => {
+        aiRenderState = state;
+        updateButtons(googleRenderState, aiRenderState);
+      });
+    }
+  };
+
+    console.log("will show floating button, 88888888111111")
+    floatingBtn.show();
+
+    // 监听浏览器前进/后退导航（popstate），在 SPA（如 GitHub Turbo）导航后重新创建悬浮按钮
+    // 当 Turbo/pjax 等框架替换 DOM 时，浮动按钮的 host 元素会随旧 body 被移除，
+    // 而浮动按钮仅在初始加载时创建一次，不会自动重建。
+    let floatingBtnPopstateTimer = null;
+    window.addEventListener("popstate", () => {
+      if (floatingBtnPopstateTimer) clearTimeout(floatingBtnPopstateTimer);
+      floatingBtnPopstateTimer = setTimeout(() => {
+        const host = document.getElementById("dualtran-floating-btn-host");
+        if (!host || !document.body.contains(host)) {
+          console.log("[floatingBtn] host missing after popstate, recreating");
+          floatingBtn.show();
+        }
+      }, 200);
+    });
+
+    // 使用 MutationObserver 监听 body 的 DOM 替换，作为 popstate 的补充覆盖：
+    // 1. SPA 链接导航（非回退，仅 pushState）不会触发 popstate
+    // 2. SPA 框架异步加载缓慢时，popstate 的 200ms 延迟可能不够
+    // Observer 会检测 host 被移除并自动重建，debounce 300ms 防止循环触发。
+    // 通过检查 divElement 来区分主动 hide() 和被动 DOM 替换：hide() 会将
+    // divElement 置为 null，此时 Observer 跳过重建。
+    let floatingBtnObserver = null;
+    let floatingBtnObserverTimer = null;
+    function setupFloatingBtnObserver() {
+      if (floatingBtnObserver) floatingBtnObserver.disconnect();
+      floatingBtnObserver = new MutationObserver(() => {
+        if (floatingBtnObserverTimer) return; // debounce
+        floatingBtnObserverTimer = setTimeout(() => {
+          floatingBtnObserverTimer = null;
+          // divElement 为 null 表示 hide() 已主动移除，不重建
+          if (!divElement) return;
+          const host = document.getElementById("dualtran-floating-btn-host");
+          if (!host || !document.body.contains(host)) {
+            console.log("[floatingBtn] host removed from DOM, recreating");
+            floatingBtnObserver.disconnect();
+            floatingBtn.show();
+            setupFloatingBtnObserver();
+          }
+        }, 300);
+      });
+      floatingBtnObserver.observe(document.body, { childList: true });
+    }
+    setupFloatingBtnObserver();
+
+    // 处理 bfcache 恢复：bfcache 保留完整 DOM，正常情况下不需要重建。
+    // 但当 bfcache 不可用（页面被 evict）时，浏览器会完全重新加载页面，
+    // 此时 content script 会重新注入 —— 所以这里只处理那些 bfcache 下
+    // DOM 被部分替换的边缘情况。
+    window.addEventListener("pageshow", (e) => {
+      if (e.persisted) {
+        // bfcache 恢复：检查 host 是否仍然存在
+        const host = document.getElementById("dualtran-floating-btn-host");
+        if (!host || !document.body.contains(host)) {
+          console.log("[floatingBtn] host missing after bfcache restore, recreating");
+          floatingBtn.show();
+        }
+      }
+    });
+  });
+}
+
+export default floatingBtn

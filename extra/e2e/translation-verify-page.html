@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DualTran Translation Verification Page</title>
+  <style>
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      line-height: 1.8;
+      margin: 40px auto;
+      max-width: 860px;
+      color: #222;
+    }
+    h1 { font-size: 1.6em; border-bottom: 2px solid #333; padding-bottom: 8px; }
+    h2 { font-size: 1.25em; margin-top: 28px; }
+    article { margin-bottom: 32px; }
+    table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+    th, td { border: 1px solid #999; padding: 8px 12px; text-align: left; }
+    th { background: #f0f0f0; }
+    ul, ol { padding-left: 24px; }
+    blockquote {
+      border-left: 4px solid #ccc;
+      margin: 16px 0;
+      padding: 8px 16px;
+      color: #555;
+    }
+    code { background: #f5f5f5; padding: 2px 4px; font-size: 0.9em; }
+    pre { background: #f5f5f5; padding: 12px; overflow-x: auto; }
+    .selection-target {
+      border: 2px dashed #666;
+      padding: 16px;
+      margin-top: 20px;
+      user-select: text;
+      background: #fffbe6;
+    }
+    footer { margin-top: 40px; font-size: 0.85em; color: #888; }
+  </style>
+</head>
+<body>
+
+  <h1>The History and Science of Coffee</h1>
+
+  <article id="article-intro">
+    <p id="p-intro">Coffee is one of the most popular beverages in the world. Every day, billions of cups are consumed across every continent. The story of coffee begins in the ancient highlands of Ethiopia, where legend says a goat herder named Kaldi first noticed the energizing effects of the beans.</p>
+  </article>
+
+  <article id="article-origin">
+    <h2>Origins and Spread</h2>
+    <p id="p-origin-1">From Ethiopia, coffee traveled to the Arabian Peninsula, where it was first cultivated and traded. By the 15th century, coffee was being grown in the Yemeni district of Arabia, and by the 16th century it was known in Persia, Egypt, Syria, and Turkey.</p>
+    <p id="p-origin-2">Coffee houses quickly became important centers of social activity and communication in major cities. People frequented them not only to enjoy coffee but also to listen to music, watch performers, play chess, and discuss the news of the day.</p>
+  </article>
+
+  <article id="article-science">
+    <h2>The Science Behind Coffee</h2>
+    <p id="p-science-1">The primary active ingredient in coffee is caffeine, a natural stimulant that affects the central nervous system. Caffeine works by blocking the action of adenosine, a neurotransmitter that promotes sleep and relaxation.</p>
+    <p id="p-science-2">Research has shown that moderate coffee consumption may offer several health benefits, including reduced risk of certain diseases such as Parkinson's disease, type 2 diabetes, and liver conditions.</p>
+  </article>
+
+  <article id="article-types">
+    <h2>Types of Coffee Beans</h2>
+    <table id="table-beans">
+      <thead>
+        <tr>
+          <th>Variety</th>
+          <th>Flavor Profile</th>
+          <th>Caffeine Content</th>
+          <th>Growing Region</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Arabica</td>
+          <td>Smooth, sweet, with hints of fruit and sugar</td>
+          <td>Lower</td>
+          <td>Latin America, East Africa, Asia</td>
+        </tr>
+        <tr>
+          <td>Robusta</td>
+          <td>Strong, harsh, with a grain-like overtone</td>
+          <td>Higher</td>
+          <td>Africa, Indonesia, Vietnam</td>
+        </tr>
+        <tr>
+          <td>Liberica</td>
+          <td>Smoky, fruity, with a floral aroma</td>
+          <td>Moderate</td>
+          <td>Philippines, Malaysia</td>
+        </tr>
+      </tbody>
+    </table>
+  </article>
+
+  <article id="article-brewing">
+    <h2>Brewing Methods</h2>
+    <ol id="list-brewing">
+      <li>Drip brewing is the most common method used in North American households.</li>
+      <li>Espresso machines force hot water through finely ground coffee under high pressure.</li>
+      <li>French press steeps coarse ground coffee in boiling water for several minutes.</li>
+      <li>Cold brew involves steeping coffee grounds in cold water for twelve to twenty-four hours.</li>
+      <li>Pour-over is a manual method that gives the brewer complete control over water flow and timing.</li>
+    </ol>
+  </article>
+
+  <article id="article-culture">
+    <h2>Coffee Culture Around the World</h2>
+    <ul id="list-culture">
+      <li>In Italy, espresso is a way of life and is typically enjoyed standing at a bar.</li>
+      <li>Turkish coffee is prepared in a special pot called a cezve and served unfiltered.</li>
+      <li>In Japan, coffee culture blends traditional aesthetics with modern specialty techniques.</li>
+      <li>Ethiopian coffee ceremonies are elaborate social rituals that can last several hours.</li>
+    </ul>
+    <blockquote id="quote-1">
+      "Coffee is a lot more than just a drink; it is something happening. Not as in hip, but as in occurring." — Gertrude Stein
+    </blockquote>
+  </article>
+
+  <article id="article-environment">
+    <h2>Environmental Impact</h2>
+    <p id="p-env">The global demand for coffee has significant environmental implications. Deforestation to create coffee plantations has led to habitat loss in tropical regions. However, shade-grown coffee practices and fair trade certifications are helping to promote more sustainable farming methods. Consumers can make a difference by choosing beans that are responsibly sourced.</p>
+  </article>
+
+  <div class="selection-target" id="selection-target">
+    Select this paragraph to test the selected-text translation feature. This text discusses how artificial intelligence is transforming the coffee industry, from predicting optimal harvest times using weather data to automating quality control in roasting facilities. Machine learning algorithms can now identify defective beans with greater accuracy than human inspectors.
+  </div>
+
+  <pre id="code-block">
+function greet(name) {
+  return "Hello, " + name + "!";
+}
+
+// This is a sample code block for E2E testing
+// It verifies that translateTag_pre controls translation of &lt;pre&gt; elements
+const message = greet("World");
+console.log(message);
+  </pre>
+
+  <footer>
+    <p>This page is used for automated E2E translation verification. Content is for testing purposes only.</p>
+  </footer>
+
+</body>
+</html>

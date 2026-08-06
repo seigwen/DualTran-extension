@@ -1,0 +1,700 @@
+{
+  "aiProviderOpenAI": {
+    "message": "OpenAI"
+  },
+  "aiProviderOpenRouter": {
+    "message": "OpenRouter"
+  },
+  "alertSpecifyTargetLanguage": {
+    "message": "Specificeer eerst de doeltaal."
+  },
+  "backupToFile": {
+    "message": "Back-up naar bestand"
+  },
+  "btnAlwaysTranslate": {
+    "message": "Vertaal deze site altijd"
+  },
+  "btnAlwaysTranslateThisLanguage": {
+    "message": "Vertaal deze taal altijd"
+  },
+  "btnApply": {
+    "message": "Van toepassing zijn"
+  },
+  "btnListen": {
+    "message": "Luister"
+  },
+  "btnMobileDonate": {
+    "message": "Alleen maar"
+  },
+  "btnMobileNeverTranslate": {
+    "message": "Deze site nooit vertalen"
+  },
+  "btnMobileOriginal": {
+    "message": "Origineel"
+  },
+  "btnMobileTranslated": {
+    "message": "Vertaald"
+  },
+  "btnMoreOptions": {
+    "message": "Meer opties"
+  },
+  "btnNeverTranslate": {
+    "message": "Vertaal deze site nooit"
+  },
+  "btnNeverTranslateThisLanguage": {
+    "message": "Vertaal deze taal nooit"
+  },
+  "btnOptions": {
+    "message": "opties"
+  },
+  "btnReplace": {
+    "message": "Vervangen"
+  },
+  "btnReset": {
+    "message": "Resetten"
+  },
+  "btnRestore": {
+    "message": "Toon origineel"
+  },
+  "btnShowPopup": {
+    "message": "Geef pop-up weer"
+  },
+  "btnStopListening": {
+    "message": "Stop met luisteren"
+  },
+  "btnSubmit": {
+    "message": "Versturen"
+  },
+  "btnTranslate": {
+    "message": "Vertalen"
+  },
+  "btncopy": {
+    "message": "Kopiëren"
+  },
+  "calculatestorage": {
+    "message": "Bereken"
+  },
+  "confirmAutoTranslateWithAI": {
+    "message": "Wilt u dat Dualtran in de toekomst automatisch vertaalt met AI?"
+  },
+  "confirmSetApiKeyNow": {
+    "message": "API-sleutel is niet ingesteld. Wil je die nu instellen?"
+  },
+  "deleteTranslationCache": {
+    "message": "Verwijder vertaling cache"
+  },
+  "displayTranslatedTextInNewLine": {
+    "message": "Vertaalde tekst op een nieuwe regel weergeven"
+  },
+  "doYouWantOverwriteAllSettings": {
+    "message": "Wilt u alle bestaande instellingen overschrijven met de back-upgegevens?"
+  },
+  "doYouWantRestoreSettings": {
+    "message": "Wilt u de extensie herstellen naar de standaardinstellingen?"
+  },
+  "doYouWantToDeleteTranslationCache": {
+    "message": "Wilt u de vertaling cache verwijderen?"
+  },
+  "donatewithpaypal": {
+    "message": "Doneer Met PayPal"
+  },
+  "dontShowIfPageLangIsTargetLang": {
+    "message": "Laat niet zien of de paginataal de doeltaal is"
+  },
+  "dontShowIfPageLangIsUnknown": {
+    "message": "Niet weergeven als de paginataal onbekend is"
+  },
+  "dontShowIfSelectedTextIsTargetLang": {
+    "message": "Laat niet zien of de geselecteerde teksttaal de doeltaal is"
+  },
+  "dontShowIfSelectedTextIsUnknown": {
+    "message": "Niet weergeven als de geselecteerde teksttaal onbekend is"
+  },
+  "enterShortcut": {
+    "message": "Typ een sneltoets"
+  },
+  "errorApiKeyNotFound": {
+    "message": "API-sleutel niet gevonden!"
+  },
+  "errorCopyFailed": {
+    "message": "Kopiëren mislukt."
+  },
+  "errorCopyFailedInsecure": {
+    "message": "Tekst kopiëren mislukt. Waarschijnlijk omdat het URL-protocol van de pagina onveilig HTTP is, niet HTTPS."
+  },
+  "errorTranslationUnknown": {
+    "message": "Vertaalfout: onbekende fout."
+  },
+  "errorTranslationWithMessage": {
+    "message": "Vertaalfout: $ERROR_MESSAGE$",
+    "placeholders": {
+      "ERROR_MESSAGE": {
+        "content": "$1",
+        "example": "Netwerkfout"
+      }
+    }
+  },
+  "extensionDescription": {
+    "message": "Vertaal uw pagina in realtime met Google of OpenAI."
+  },
+  "extensionName": {
+    "message": "Webpagina's vertalen"
+  },
+  "fileIsCorrupted": {
+    "message": "Het bestand lijkt corrupt te zijn"
+  },
+  "floatingButtonTooltip": {
+    "message": "Click to toggle translation state; drag to move this button"
+  },
+  "hideOriginalText": {
+    "message": "Oorspronkelijke tekst verbergen"
+  },
+  "hotkeyError_ctrlOrAlt": {
+    "message": "Voeg Ctrl of Alt toe"
+  },
+  "hotkeyError_invalid": {
+    "message": "Ongeldige combinatie"
+  },
+  "hotkeyError_letter": {
+    "message": "Typ een letter"
+  },
+  "lblAdd": {
+    "message": "Toevoegen"
+  },
+  "lblAiFeatures": {
+    "message": "AI Features"
+  },
+  "lblAiImproveForLongerThan": {
+    "message": "Alleen vertalingen met AI verbeteren als ze meer woorden hebben dan",
+    "description": "Label for the minimum number of words required to trigger AI improvement"
+  },
+  "lblAiProvider": {
+    "message": "AI-provider"
+  },
+  "lblAiTranslatedStyle": {
+    "message": "Color of AI translated text "
+  },
+  "lblAlwaysTranslate": {
+    "message": "Altijd vertalen vanuit $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblAlwaysTranslateSites": {
+    "message": "Vertaal deze sites altijd"
+  },
+  "lblApiKeyOpenAI": {
+    "message": "OpenAI API-sleutel"
+  },
+  "lblApiKeyOpenRouter": {
+    "message": "OpenRouter API-sleutel"
+  },
+  "lblAutoImproveByAi": {
+    "message": "Vertalingen automatisch verbeteren met AI"
+  },
+  "lblAutoTranslateWhenClickingALink": {
+    "message": "Automatisch vertalen wanneer u op een link klikt die u naar hetzelfde domein brengt als de huidige site"
+  },
+  "lblButtonInTheAddressBar": {
+    "message": "Toon knop in de adresbalk"
+  },
+  "lblDarkMode": {
+    "message": "Donkere modus"
+  },
+  "lblEnableDeepL": {
+    "message": "Schakel DeepL in als een tekst vertaaldienst"
+  },
+  "lblEnterApiKey": {
+    "message": "Enter API key"
+  },
+  "lblError": {
+    "message": "Deze pagina kon niet worden vertaald"
+  },
+  "lblFavoriteLanguage": {
+    "message": "Favoriete taal $FAVORITE_LANGUAGE_NUM$",
+    "placeholders": {
+      "FAVORITE_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblFreeTranslationEngine": {
+    "message": "Free translation engine"
+  },
+  "lblHotTranslatedSelectedText": {
+    "message": "Vervang geselecteerde tekst direct door vertaalde tekst"
+  },
+  "lblKeyboardShortcuts": {
+    "message": "Toetsenbord sneltoetsen"
+  },
+  "lblKeyboardShortcutsSpecial": {
+    "message": "Speciale sneltoetsen"
+  },
+  "lblMakeDonation": {
+    "message": "Doe een gift"
+  },
+  "lblNeverTranslateLangs": {
+    "message": "Vertaal deze talen nooit"
+  },
+  "lblOpenAiModel": {
+    "message": "OpenAI Model"
+  },
+  "lblOpenRouterBaseUrl": {
+    "message": "OpenRouter API-basis (optioneel)"
+  },
+  "lblOpenRouterModel": {
+    "message": "OpenRouter-model"
+  },
+  "lblOpenRouterReferer": {
+    "message": "HTTP Referer-header (optioneel)"
+  },
+  "lblOpenRouterTitle": {
+    "message": "X-Title-header (optioneel)"
+  },
+  "lblOthers": {
+    "message": "Anderen"
+  },
+  "lblPageTranslateInto": {
+    "message": "Pagina vertaald naar $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblPageTranslationService": {
+    "message": "Pagina vertaaldienst"
+  },
+  "lblPersonalSettings": {
+    "message": "Persoonlijke instellingen"
+  },
+  "lblPlsDonate": {
+    "message": "Help de ontwikkelaar met een donatie"
+  },
+  "lblReleaseNotes": {
+    "message": "Release-opmerkingen"
+  },
+  "lblReplaceSelectedTextWithTranslatedText": {
+    "message": "Vervang geselecteerde tekst door vertaalde tekst door twee keer op $SHORTCUT_KEY$ te drukken",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblReport": {
+    "message": "Meld een probleem"
+  },
+  "lblReset": {
+    "message": "Resetten"
+  },
+  "lblRestorePageToOriginal": {
+    "message": "Pagina herstellen naar origineel"
+  },
+  "lblSelectPopupInterfaceStyle": {
+    "message": "Selecteer de stijl van de pop-upinterface"
+  },
+  "lblSettings": {
+    "message": "Instellingen"
+  },
+  "lblShowContextMenu": {
+    "message": "Geef de optie weer om de pagina te vertalen in het contextmenu"
+  },
+  "lblShowOriginalTextWhenHovering": {
+    "message": "Toon originele tekst bij zweven"
+  },
+  "lblShowReleaseNotes": {
+    "message": "Toon release notities tijdens het bijwerken"
+  },
+  "lblShowTranslateSelectedButton": {
+    "message": "Toon de knop om de geselecteerde tekst te vertalen"
+  },
+  "lblShowTranslateSelectedContextMenu": {
+    "message": "Geef de optie weer om de pagina te vertalen in het contextmenu"
+  },
+  "lblShowTranslatedHoveringLangs": {
+    "message": "Toon vertaalde tekst wanneer u de muisaanwijzer over sites met deze talen beweegt"
+  },
+  "lblShowTranslatedHoveringSites": {
+    "message": "Toon vertaalde tekst wanneer u op deze sites zweeft"
+  },
+  "lblShowTranslatedWhenHovering": {
+    "message": "Toon vertaalde tekst bij zweven"
+  },
+  "lblShowTranslatedWhenHoveringThisLang": {
+    "message": "Toon vertaling bij het hoveren over websites in $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblShowTranslatedWhenHoveringThisSite": {
+    "message": "Toon vertaling wanneer u met de muis over deze site beweegt"
+  },
+  "lblStorageUsed": {
+    "message": "Gebruikte opslag:"
+  },
+  "lblSwitchTranslatedAndOriginal": {
+    "message": "Schakel tussen de vertaalde en de originele pagina"
+  },
+  "lblTargetLanguage": {
+    "message": "Doeltaal $TARGET_LANGUAGE_NUM$",
+    "placeholders": {
+      "TARGET_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblTargetLanguageGroup": {
+    "message": "Doeltaal"
+  },
+  "lblTextTranslationService": {
+    "message": "Tekst vertaaldienst"
+  },
+  "lblTranslate": {
+    "message": "Vertaal deze pagina?"
+  },
+  "lblTranslateInterface": {
+    "message": "Vertaal de interface"
+  },
+  "lblTranslateLongerThan": {
+    "message": "Alleen tekst vertalen met meer woorden dan deze waarde",
+    "description": "Label for the minimum number of words required to trigger translation"
+  },
+  "lblTranslatePageInto": {
+    "message": "Pagina vertalen naar $LANGUAGE_NAME$?",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblTranslatePageToTargetLanguage": {
+    "message": "Vertaal de pagina naar de doeltaal"
+  },
+  "lblTranslateSelectedWhenPressTwice": {
+    "message": "Vertaal geselecteerde tekst wanneer u tweemaal op $SHORTCUT_KEY$ drukt",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslateTag_pre": {
+    "message": "Vertaling inschakelen voor de tag $HTML_TAG_NAME$",
+    "placeholders": {
+      "HTML_TAG_NAME": {
+        "content": "<PRE>"
+      }
+    }
+  },
+  "lblTranslateTextOverMouseWhenPressTwice": {
+    "message": "Vertaal de tekst bij de muiscursor wanneer u tweemaal op $SHORTCUT_KEY$ drukt",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslated": {
+    "message": "Vertaald"
+  },
+  "lblTranslatedStyle": {
+    "message": "Kleur van Google vertaalde tekst"
+  },
+  "lblTranslating": {
+    "message": "Vertalen ..."
+  },
+  "lblTranslationCache": {
+    "message": "Vertaling cache"
+  },
+  "lblTranslationService": {
+    "message": "Vertaaldienst"
+  },
+  "lblTtsSpeed": {
+    "message": "Tekst-naar-spraak audiosnelheid"
+  },
+  "lblUseNewAlgorithm": {
+    "message": "Het nieuwe vertaalalgoritme gebruiken?"
+  },
+  "lblWhereToDisplayTranslatedText": {
+    "message": "Waar vertaalde tekst weer te geven"
+  },
+  "lbldontsortresults": {
+    "message": "De google translate resultaten niet sorteren"
+  },
+  "lbltranslatedynamicallycreatedcontent": {
+    "message": "Vertaal dynamisch gecreëerde inhoud"
+  },
+  "less": {
+    "message": "Minder"
+  },
+  "more": {
+    "message": "Meer"
+  },
+  "msgAi": {
+    "message": "AI"
+  },
+  "msgAll": {
+    "message": "Alles"
+  },
+  "msgAutomatic": {
+    "message": "Automatisch"
+  },
+  "msgAzureEnterKeyAndEndpoint": {
+    "message": "Voer alstublieft het Azure-endpoint en de API-sleutel in om beschikbare modellen voor Azure OpenAI te krijgen"
+  },
+  "msgCannotLoadDeepSeekModelsHttp": {
+    "message": "Kan DeepSeek-modellen niet laden (HTTP $1)",
+    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDonateWithPaypal": {
+    "message": "Doneer met PayPal"
+  },
+  "msgDownloadingDocument": {
+    "message": "Het document downloaden..."
+  },
+  "msgEmptyListAlwaysTranslateLanguages": {
+    "message": "U heeft geen sites toegevoegd aan deze lijst."
+  },
+  "msgEmptyListNeverTranslateSites": {
+    "message": "U heeft geen sites toegevoegd aan deze lijst."
+  },
+  "msgEnterApiKeyForModels": {
+    "message": "Voer alstublieft de API-sleutel in om beschikbare modellen voor deze provider te krijgen"
+  },
+  "msgErrorDownloadingDocument": {
+    "message": "Fout bij het downloaden van het document"
+  },
+  "msgFavoriteLanguages": {
+    "message": "Favorittspråk"
+  },
+  "msgFileLargerThan": {
+    "message": "Deze dienst ondersteunt geen bestanden groter dan $FILE_SIZE$",
+    "placeholders": {
+      "FILE_SIZE": {
+        "content": "$1",
+        "example": "10 MB"
+      }
+    }
+  },
+  "msgHotkeys": {
+    "message": "Sneltoetsen"
+  },
+  "msgHowToGetOpenAIKey": {
+    "message": "Hoe krijg ik een OpenAI API-sleutel?"
+  },
+  "msgHowToGetOpenRouterKey": {
+    "message": "Hoe krijg ik een OpenRouter API-sleutel?"
+  },
+  "msgIWillBeGrateful": {
+    "message": "Ik zal u dankbaar zijn als u een donatie kunt doen."
+  },
+  "msgInterfaceComplex": {
+    "message": "Geavanceerd"
+  },
+  "msgInterfaceSimple": {
+    "message": "Eenvoudig"
+  },
+  "msgLanguages": {
+    "message": "Talen"
+  },
+  "msgLoadingModels": {
+    "message": "Laden..."
+  },
+  "msgModelListFetchFailed": {
+    "message": "Failed to fetch model list with API key. Available models:"
+  },
+  "msgNo": {
+    "message": "Nee"
+  },
+  "msgNoTranslateSelectedText": {
+    "message": "Vertaal geselecteerde tekst niet"
+  },
+  "msgNoUseWidgets": {
+    "message": "Nee (gebruik widgets)"
+  },
+  "msgOpenOnYandexTranslator": {
+    "message": "Openen in yandex vertalen"
+  },
+  "msgOpenTranslated": {
+    "message": "Vertaald PDF openen"
+  },
+  "msgPDFtoHTML": {
+    "message": "PDF naar HTML"
+  },
+  "msgPleaseWait": {
+    "message": "Gelieve te wachten..."
+  },
+  "msgRecents": {
+    "message": "Recentelijk"
+  },
+  "msgSelectServiceConversion": {
+    "message": "Selecteer een dienst voor het omzetten"
+  },
+  "msgSelectTargetLanguage": {
+    "message": "Vertaal websites naar deze doeltaal"
+  },
+  "msgSelectTargetLanguageForText": {
+    "message": "Vertaal geselecteerde tekst naar deze doeltaal"
+  },
+  "msgSendDocument": {
+    "message": "Document zenden"
+  },
+  "msgSites": {
+    "message": "Sites"
+  },
+  "msgStorage": {
+    "message": "Opslag"
+  },
+  "msgStyle": {
+    "message": "Stijl"
+  },
+  "msgThanksForUseExtension": {
+    "message": "Bedankt voor het gebruik van deze extensie."
+  },
+  "msgToTranslateSites": {
+    "message": "Om de site te vertalen"
+  },
+  "msgToTranslateThisDocument": {
+    "message": "Om dit document $DOC_TYPE$ te vertalen, moet het naar HTML worden geconverteerd",
+    "placeholders": {
+      "DOC_TYPE": {
+        "content": "$1",
+        "example": "(.pdf)"
+      }
+    }
+  },
+  "msgTranslateFor": {
+    "message": "Vertaal naar $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateSelectedText": {
+    "message": "Vertaal de geselecteerde tekst"
+  },
+  "msgTranslations": {
+    "message": "Vertalingen"
+  },
+  "msgUnknownLanguage": {
+    "message": "Onbekend"
+  },
+  "msgYes": {
+    "message": "Ja"
+  },
+  "msgYesRecommended": {
+    "message": "Ja (aanbevolen)"
+  },
+  "openNativeShortcutManager": {
+    "message": "Open sneltoetsen beheer"
+  },
+  "optionFloatingConfig": {
+    "message": "laat de zwevende knop zien"
+  },
+  "optionPopupAuto": {
+    "message": "Automatisch"
+  },
+  "optionPopupConfig": {
+    "message": "Toon de mobiele pop-up"
+  },
+  "optionPopupThreeFingers": {
+    "message": "Als ik drie vingers op het scherm aanraak"
+  },
+  "optionPopupjustWhenIClickTranlateThisSite": {
+    "message": "Alleen als ik op \"Vertaal deze site\" klik"
+  },
+  "optionsAddToCustomDictionary": {
+    "message": "Toevoegen aan aangepast woordenboek (hiermee kunt u bepaalde woorden overslaan tijdens de vertaling van webpagina's)"
+  },
+  "optionsAlwaysTranslate": {
+    "message": "Vertaal deze talen altijd"
+  },
+  "optionsNeverTranslate": {
+    "message": "Vertaal deze sites nooit"
+  },
+  "optionsPageTitle": {
+    "message": "Webpagina's vertalen - Opties"
+  },
+  "pageActionTitle": {
+    "message": "Vertaal deze pagina"
+  },
+  "placeholderOpenRouterBase": {
+    "message": "https://openrouter.ai/api/v1/chat/completions"
+  },
+  "placeholderOpenRouterModel": {
+    "message": "openai/gpt-4o-mini"
+  },
+  "placeholderOpenRouterReferer": {
+    "message": "https://your-site.example"
+  },
+  "placeholderOpenRouterTitle": {
+    "message": "DualTran"
+  },
+  "popupBlueWhenSiteIsTranslated": {
+    "message": "Maak het pop-uppictogram blauw wanneer de site wordt vertaald"
+  },
+  "promptInputOpenAIKey": {
+    "message": "Voer uw OpenAI API-sleutel in:"
+  },
+  "promptInputOpenRouterKey": {
+    "message": "Voer je OpenRouter API-sleutel in:"
+  },
+  "replaceOriginalTextWithTranslatedText": {
+    "message": "Oorspronkelijke tekst vervangen door vertaalde tekst"
+  },
+  "resetToDefault": {
+    "message": "Herstel standaardinstellingen"
+  },
+  "restoreFromFile": {
+    "message": "Herstellen vanuit bestand"
+  },
+  "serviceBing": {
+    "message": "Bing"
+  },
+  "serviceDeepL": {
+    "message": "DeepL"
+  },
+  "serviceGoogle": {
+    "message": "Google"
+  },
+  "serviceGoogleTranslate": {
+    "message": "Google Translate"
+  },
+  "serviceMicrosoftTranslate": {
+    "message": "Microsoft Translator"
+  },
+  "serviceTranslateWebPages": {
+    "message": "DualTran"
+  },
+  "serviceYandex": {
+    "message": "Yandex"
+  },
+  "showOriginalText": {
+    "message": "Oorspronkelijke tekst weergeven"
+  },
+  "swapPopup": {
+    "message": "Wisselen tussen eenvoudige en geavanceerde interface"
+  },
+  "swapTranslationService": {
+    "message": "Schakel tussen vertaaldiensten"
+  },
+  "tooltipImproveTranslationByAI": {
+    "message": "klik om de vertaling met AI te verbeteren"
+  },
+  "translateClickingOnce": {
+    "message": "Vertaal de pagina door eenmaal op de knop in de adresbalk te klikken. (Klik met de rechtermuisknop om de pop-up te zien)"
+  }
+}

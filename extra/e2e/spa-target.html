@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPA Target Page</title>
+  <style>
+    body { font-family: Georgia, serif; line-height: 1.8; margin: 40px auto; max-width: 860px; color: #222; }
+    h1 { font-size: 1.6em; }
+    a { color: #0066cc; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <h1>SPA Target Page</h1>
+  <p>This is the target page for SPA navigation test. After clicking back, the source page should restore its AI translation.</p>
+  <p>Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience without being explicitly programmed.</p>
+  <p>Natural language processing is a field of computer science and linguistics concerned with the interactions between computers and human language.</p>
+  <p><a id="back-link" href="spa-source.html">Go back to SPA Source Page</a></p>
+
+  <!--
+    SPA 导航脚本（与 spa-source.html 相同的拦截逻辑）。
+    当用户从 target 页面点击链接回到 source 页面时，
+    也通过 fetch + body 替换 + pushState 的方式导航。
+  -->
+  <script>
+    (function () {
+      "use strict";
+
+      document.addEventListener("click", function (e) {
+        var link = e.target.closest("a[href]");
+        if (!link) return;
+        var href = link.getAttribute("href");
+        if (!href || href.startsWith("#") || href.startsWith("http")) return;
+
+        e.preventDefault();
+        fetch(href)
+          .then(function (res) { return res.text(); })
+          .then(function (html) {
+            var doc = new DOMParser().parseFromString(html, "text/html");
+            document.body.innerHTML = doc.body.innerHTML;
+            document.title = doc.title;
+            history.pushState({ spaUrl: href }, "", href);
+          })
+          .catch(function (err) { console.error("[SPA] navigateTo error:", err); });
+      });
+
+      window.addEventListener("popstate", function (e) {
+        var url = location.pathname.split("/").pop() || "spa-source.html";
+        console.log("[SPA] popstate → fetching " + url);
+        fetch(url)
+          .then(function (res) { return res.text(); })
+          .then(function (html) {
+            var doc = new DOMParser().parseFromString(html, "text/html");
+            document.body.innerHTML = doc.body.innerHTML;
+            document.title = doc.title;
+            console.log("[SPA] body replaced with fresh content from " + url);
+          })
+          .catch(function (err) { console.error("[SPA] popstate fetch error:", err); });
+      });
+
+      console.log("[SPA] SPA navigation script loaded on " + location.pathname);
+    })();
+  </script>
+</body>
+</html>

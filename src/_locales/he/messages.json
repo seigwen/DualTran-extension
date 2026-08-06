@@ -1,0 +1,700 @@
+{
+  "aiProviderOpenAI": {
+    "message": "OpenAI"
+  },
+  "aiProviderOpenRouter": {
+    "message": "OpenRouter"
+  },
+  "alertSpecifyTargetLanguage": {
+    "message": "Please specify target language first."
+  },
+  "backupToFile": {
+    "message": "גבה לקובץ"
+  },
+  "btnAlwaysTranslate": {
+    "message": "תרגם תמיד אתר זה"
+  },
+  "btnAlwaysTranslateThisLanguage": {
+    "message": "תרגם תמיד את השפה הזו"
+  },
+  "btnApply": {
+    "message": "להגיש מועמדות"
+  },
+  "btnListen": {
+    "message": "להקשיב"
+  },
+  "btnMobileDonate": {
+    "message": "תרומה"
+  },
+  "btnMobileNeverTranslate": {
+    "message": "לעולם אל תתרגם דף זה"
+  },
+  "btnMobileOriginal": {
+    "message": "מקורי"
+  },
+  "btnMobileTranslated": {
+    "message": "תורגם"
+  },
+  "btnMoreOptions": {
+    "message": "אפשרויות נוספות"
+  },
+  "btnNeverTranslate": {
+    "message": "לעולם אל תתרגם אתר זה"
+  },
+  "btnNeverTranslateThisLanguage": {
+    "message": "לעולם אל תתרגם דפים אלו"
+  },
+  "btnOptions": {
+    "message": "אפשרויות"
+  },
+  "btnReplace": {
+    "message": "החלף"
+  },
+  "btnReset": {
+    "message": "איפוס"
+  },
+  "btnRestore": {
+    "message": "הצג את המקור"
+  },
+  "btnShowPopup": {
+    "message": "הצג קופץ"
+  },
+  "btnStopListening": {
+    "message": "תפסיק להקשיב"
+  },
+  "btnSubmit": {
+    "message": "שליחה"
+  },
+  "btnTranslate": {
+    "message": "תרגם"
+  },
+  "btncopy": {
+    "message": "עותק"
+  },
+  "calculatestorage": {
+    "message": "חשב"
+  },
+  "confirmAutoTranslateWithAI": {
+    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
+  },
+  "confirmSetApiKeyNow": {
+    "message": "מפתח ה-API לא הוגדר. האם ברצונך להגדיר אותו עכשיו?"
+  },
+  "deleteTranslationCache": {
+    "message": "מחק תרגום מוטמן"
+  },
+  "displayTranslatedTextInNewLine": {
+    "message": "שורה חדשה"
+  },
+  "doYouWantOverwriteAllSettings": {
+    "message": "האם ברצונך לכתוב על כל ההגדרות הקיימים דרך הגיבוי מידע?"
+  },
+  "doYouWantRestoreSettings": {
+    "message": "האם ברצונך לשחזר את התוסף להגדרת ברירת מחדל?"
+  },
+  "doYouWantToDeleteTranslationCache": {
+    "message": "האם ברצונך למחוק התרגום המטומן?"
+  },
+  "donatewithpaypal": {
+    "message": "תרומה דרך PayPal"
+  },
+  "dontShowIfPageLangIsTargetLang": {
+    "message": "אל תראה אם ​​שפת העמוד היא שפת היעד"
+  },
+  "dontShowIfPageLangIsUnknown": {
+    "message": "אל תציג אם שפת העמוד אינה ידועה"
+  },
+  "dontShowIfSelectedTextIsTargetLang": {
+    "message": "אל תציג אם שפת הטקסט שנבחרה היא שפת היעד"
+  },
+  "dontShowIfSelectedTextIsUnknown": {
+    "message": "אל תציג אם שפת הטקסט שנבחרה אינה ידועה"
+  },
+  "enterShortcut": {
+    "message": "הקלד קיצור דרך"
+  },
+  "errorApiKeyNotFound": {
+    "message": "API key not found!"
+  },
+  "errorCopyFailed": {
+    "message": "ההעתקה נכשלה."
+  },
+  "errorCopyFailedInsecure": {
+    "message": "העתקת הטקסט נכשלה. כנראה בגלל שפרוטוקול כתובת הדף הוא HTTP לא מאובטח, לא HTTPS."
+  },
+  "errorTranslationUnknown": {
+    "message": "שגיאת תרגום: שגיאה לא ידועה."
+  },
+  "errorTranslationWithMessage": {
+    "message": "שגיאת תרגום: $ERROR_MESSAGE$",
+    "placeholders": {
+      "ERROR_MESSAGE": {
+        "content": "$1",
+        "example": "שגיאת רשת"
+      }
+    }
+  },
+  "extensionDescription": {
+    "message": "תרגום דפי האינטרנט בזמן אמת באמצעות גוגל או OpenAI."
+  },
+  "extensionName": {
+    "message": "תרגום דפי אינטרנט"
+  },
+  "fileIsCorrupted": {
+    "message": "הקובץ נראה כקובץ תקול"
+  },
+  "floatingButtonTooltip": {
+    "message": "Click to toggle translation state; drag to move this button"
+  },
+  "hideOriginalText": {
+    "message": "הסתר טקסט מקורי"
+  },
+  "hotkeyError_ctrlOrAlt": {
+    "message": "הוסף/לחץ Ctrl או Alt"
+  },
+  "hotkeyError_invalid": {
+    "message": "צירוף לא חוקי"
+  },
+  "hotkeyError_letter": {
+    "message": "כתוב מכתב"
+  },
+  "lblAdd": {
+    "message": "לְהוֹסִיף"
+  },
+  "lblAiFeatures": {
+    "message": "AI Features"
+  },
+  "lblAiImproveForLongerThan": {
+    "message": "שיפור תרגומים בעזרת בינה מלאכותית רק עבור טקסטים עם יותר מ־",
+    "description": "Label for the minimum number of words required to trigger AI improvement"
+  },
+  "lblAiProvider": {
+    "message": "ספק בינה מלאכותית"
+  },
+  "lblAiTranslatedStyle": {
+    "message": "Color of AI translated text "
+  },
+  "lblAlwaysTranslate": {
+    "message": "תמיד תתרגם מ- $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblAlwaysTranslateSites": {
+    "message": "תרגם תמיד אתרים אלה"
+  },
+  "lblApiKeyOpenAI": {
+    "message": "מפתח API של OpenAI"
+  },
+  "lblApiKeyOpenRouter": {
+    "message": "מפתח API של OpenRouter"
+  },
+  "lblAutoImproveByAi": {
+    "message": "שיפור אוטומטי של תרגומים בעזרת בינה מלאכותית"
+  },
+  "lblAutoTranslateWhenClickingALink": {
+    "message": "תרגם באופן אוטומטי ברגע שאתה לוחץ על קישור ונפתח לך דף זהה"
+  },
+  "lblButtonInTheAddressBar": {
+    "message": "הצג כפתור בשורת הכתובה"
+  },
+  "lblDarkMode": {
+    "message": "מצב כהה"
+  },
+  "lblEnableDeepL": {
+    "message": "אפשר DeepL כמנוע תרגום לטקסט"
+  },
+  "lblEnterApiKey": {
+    "message": "Enter API key"
+  },
+  "lblError": {
+    "message": "לא ניתן לתרגם דף זה"
+  },
+  "lblFavoriteLanguage": {
+    "message": "שפה מועדפת $FAVORITE_LANGUAGE_NUM$",
+    "placeholders": {
+      "FAVORITE_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblFreeTranslationEngine": {
+    "message": "Free translation engine"
+  },
+  "lblHotTranslatedSelectedText": {
+    "message": "החלף טקסט נבחר בטקסט מתורגם באופן מיידי"
+  },
+  "lblKeyboardShortcuts": {
+    "message": "קיצורי דרך במקלדת"
+  },
+  "lblKeyboardShortcutsSpecial": {
+    "message": "קיצורי מקשים מיוחדים"
+  },
+  "lblMakeDonation": {
+    "message": "לתרום"
+  },
+  "lblNeverTranslateLangs": {
+    "message": "לעולם אל תתרגם דפים אלו"
+  },
+  "lblOpenAiModel": {
+    "message": "מודל OpenAI"
+  },
+  "lblOpenRouterBaseUrl": {
+    "message": "כתובת בסיס OpenRouter API (אופציונלי)"
+  },
+  "lblOpenRouterModel": {
+    "message": "דגם OpenRouter"
+  },
+  "lblOpenRouterReferer": {
+    "message": "כותרת HTTP Referer (אופציונלי)"
+  },
+  "lblOpenRouterTitle": {
+    "message": "כותרת X-Title (אופציונלי)"
+  },
+  "lblOthers": {
+    "message": "שונות"
+  },
+  "lblPageTranslateInto": {
+    "message": "הדף תורגם ל־$LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblPageTranslationService": {
+    "message": "שירותי תרגום לדף"
+  },
+  "lblPersonalSettings": {
+    "message": "הגדרות אישיות"
+  },
+  "lblPlsDonate": {
+    "message": "תרמו ועזרו למפתח"
+  },
+  "lblReleaseNotes": {
+    "message": "מכתבי שחרור"
+  },
+  "lblReplaceSelectedTextWithTranslatedText": {
+    "message": "החלף טקסט שנבחר בטקסט מתורגם בעת לחיצה על $SHORTCUT_KEY$ פעמיים",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblReport": {
+    "message": "לדווח על בעיה"
+  },
+  "lblReset": {
+    "message": "איפוס"
+  },
+  "lblRestorePageToOriginal": {
+    "message": "שחזר דף זה אל המקור"
+  },
+  "lblSelectPopupInterfaceStyle": {
+    "message": "בחר סגנון ממשק קופץ"
+  },
+  "lblSettings": {
+    "message": "הגדרות"
+  },
+  "lblShowContextMenu": {
+    "message": "הראה את האפשרות לתרגם את הדף בתפריט ההקשר"
+  },
+  "lblShowOriginalTextWhenHovering": {
+    "message": "הראה טקסט מקורי בעת ריחוף"
+  },
+  "lblShowReleaseNotes": {
+    "message": "הראה הערות שחרור בעת העדכון"
+  },
+  "lblShowTranslateSelectedButton": {
+    "message": "הראה את הלחצן לתרגום הטקסט שנבחר"
+  },
+  "lblShowTranslateSelectedContextMenu": {
+    "message": "הראה את האפשרות לתרגם את הדף בתפריט ההקשר"
+  },
+  "lblShowTranslatedHoveringLangs": {
+    "message": "הראה טקסט מתורגם כשאתה מרחף מעל אתרים עם שפות אלה"
+  },
+  "lblShowTranslatedHoveringSites": {
+    "message": "הראה טקסט מתורגם בעת ריחוף באתרים אלה"
+  },
+  "lblShowTranslatedWhenHovering": {
+    "message": "הראה טקסט מתורגם בעת ריחוף"
+  },
+  "lblShowTranslatedWhenHoveringThisLang": {
+    "message": "הצג תרגום כאשר אני מרחף עם העכבר מעל אתרים ב: $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblShowTranslatedWhenHoveringThisSite": {
+    "message": "הראה תרגום בעת ריחוף מעל אתר זה"
+  },
+  "lblStorageUsed": {
+    "message": "אחסון בשימוש:"
+  },
+  "lblSwitchTranslatedAndOriginal": {
+    "message": "החלף בין תרגום אל השפה המקורית"
+  },
+  "lblTargetLanguage": {
+    "message": "השפה שנבחרה היא: $TARGET_LANGUAGE_NUM$",
+    "placeholders": {
+      "TARGET_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblTargetLanguageGroup": {
+    "message": "שפת יעד"
+  },
+  "lblTextTranslationService": {
+    "message": "שירותי תרגום לטקסט"
+  },
+  "lblTranslate": {
+    "message": "לתרגם את הדף הזה?"
+  },
+  "lblTranslateInterface": {
+    "message": "תתרגם את הממשק"
+  },
+  "lblTranslateLongerThan": {
+    "message": "תרגם רק טקסט שמספר המילים בו גדול מערך זה",
+    "description": "Label for the minimum number of words required to trigger translation"
+  },
+  "lblTranslatePageInto": {
+    "message": "לתרגם את הדף ל־$LANGUAGE_NAME$?",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblTranslatePageToTargetLanguage": {
+    "message": "תרגם דף זה לשפה הנבחרת"
+  },
+  "lblTranslateSelectedWhenPressTwice": {
+    "message": "תרגם טקסט נבחר בעת לחיצה על $SHORTCUT_KEY$ פעמיים",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslateTag_pre": {
+    "message": "אפשר תרגום עבור $HTML_TAG_NAME$",
+    "placeholders": {
+      "HTML_TAG_NAME": {
+        "content": "<PRE>"
+      }
+    }
+  },
+  "lblTranslateTextOverMouseWhenPressTwice": {
+    "message": "תרגם את הטקסט מעל סמן העכבר בעת לחיצה על $SHORTCUT_KEY$ פעמיים",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslated": {
+    "message": "תורגם"
+  },
+  "lblTranslatedStyle": {
+    "message": "צבע טקסט מתורגם של Google"
+  },
+  "lblTranslating": {
+    "message": "מתרגם ..."
+  },
+  "lblTranslationCache": {
+    "message": "תרגום מוטמן"
+  },
+  "lblTranslationService": {
+    "message": "שירות תרגום"
+  },
+  "lblTtsSpeed": {
+    "message": "טקסט-אל-קול מהירות קול"
+  },
+  "lblUseNewAlgorithm": {
+    "message": "להשתמש באלגוריתם תרגום החדש?"
+  },
+  "lblWhereToDisplayTranslatedText": {
+    "message": "איפה להציג את התרגום"
+  },
+  "lbldontsortresults": {
+    "message": "אל תציג תוצאות תרגום מאת google"
+  },
+  "lbltranslatedynamicallycreatedcontent": {
+    "message": "תרגום בצורה דינאמית יוצרת תוכן"
+  },
+  "less": {
+    "message": "פָּחוּת"
+  },
+  "more": {
+    "message": "יותר"
+  },
+  "msgAi": {
+    "message": "AI"
+  },
+  "msgAll": {
+    "message": "את כל"
+  },
+  "msgAutomatic": {
+    "message": "אוֹטוֹמָטִי"
+  },
+  "msgAzureEnterKeyAndEndpoint": {
+    "message": "אנא הזן את נקודת הקצה של Azure ואת מפתח ה-API כדי לקבל את המודלים הזמינים עבור Azure OpenAI"
+  },
+  "msgCannotLoadDeepSeekModelsHttp": {
+    "message": "לא ניתן לטעון את מודלי DeepSeek (HTTP $1)",
+    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDonateWithPaypal": {
+    "message": "תרום באמצעות PayPal"
+  },
+  "msgDownloadingDocument": {
+    "message": "מוריד את המסמך..."
+  },
+  "msgEmptyListAlwaysTranslateLanguages": {
+    "message": "לא הוספת שפות לרשימה זו."
+  },
+  "msgEmptyListNeverTranslateSites": {
+    "message": "לא הוספת אתרים לרשימה זו."
+  },
+  "msgEnterApiKeyForModels": {
+    "message": "אנא הזן את מפתח ה-API כדי לקבל את המודלים הזמינים עבור ספק זה"
+  },
+  "msgErrorDownloadingDocument": {
+    "message": "שגיאה בהורדת המסמך"
+  },
+  "msgFavoriteLanguages": {
+    "message": "שפות אהובות"
+  },
+  "msgFileLargerThan": {
+    "message": "שירות זה אינו תומך בקבצים גדולים מ $FILE_SIZE$",
+    "placeholders": {
+      "FILE_SIZE": {
+        "content": "$1",
+        "example": "10 MB"
+      }
+    }
+  },
+  "msgHotkeys": {
+    "message": "מקשי קיצור"
+  },
+  "msgHowToGetOpenAIKey": {
+    "message": "איך מקבלים מפתח API של OpenAI?"
+  },
+  "msgHowToGetOpenRouterKey": {
+    "message": "איך לקבל מפתח API של OpenRouter?"
+  },
+  "msgIWillBeGrateful": {
+    "message": "אני אהיה אסיר תודה אם תוכל להתרום."
+  },
+  "msgInterfaceComplex": {
+    "message": "מתקדם"
+  },
+  "msgInterfaceSimple": {
+    "message": "פשוט"
+  },
+  "msgLanguages": {
+    "message": "שפות"
+  },
+  "msgLoadingModels": {
+    "message": "טוען..."
+  },
+  "msgModelListFetchFailed": {
+    "message": "Failed to fetch model list with API key. Available models:"
+  },
+  "msgNo": {
+    "message": "לא"
+  },
+  "msgNoTranslateSelectedText": {
+    "message": "אל תתרגם את הטקסט שנבחר"
+  },
+  "msgNoUseWidgets": {
+    "message": "לא (השתמש ביישומונים)"
+  },
+  "msgOpenOnYandexTranslator": {
+    "message": "פתח ביאנדקס תרגום"
+  },
+  "msgOpenTranslated": {
+    "message": "פתיחת PDF מתורגם"
+  },
+  "msgPDFtoHTML": {
+    "message": "PDF ל-HTML"
+  },
+  "msgPleaseWait": {
+    "message": "המתן בבקשה..."
+  },
+  "msgRecents": {
+    "message": "אחרונים"
+  },
+  "msgSelectServiceConversion": {
+    "message": "בחר שירות לביצוע המרה זו"
+  },
+  "msgSelectTargetLanguage": {
+    "message": "תרגם אתרים לשפת יעד זו"
+  },
+  "msgSelectTargetLanguageForText": {
+    "message": "תרגם טקסט נבחר לשפת יעד זו"
+  },
+  "msgSendDocument": {
+    "message": "שלח מסמך"
+  },
+  "msgSites": {
+    "message": "אתרים"
+  },
+  "msgStorage": {
+    "message": "אחסון"
+  },
+  "msgStyle": {
+    "message": "סִגְנוֹן"
+  },
+  "msgThanksForUseExtension": {
+    "message": "תודה על השימוש בתוסף זה."
+  },
+  "msgToTranslateSites": {
+    "message": "לתרגום האתר"
+  },
+  "msgToTranslateThisDocument": {
+    "message": "כדי לתרגם מסמך זה $DOC_TYPE$ יש צורך להמיר אותו ל-HTML",
+    "placeholders": {
+      "DOC_TYPE": {
+        "content": "$1",
+        "example": "(.pdf)"
+      }
+    }
+  },
+  "msgTranslateFor": {
+    "message": "תרגם ל: $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateSelectedText": {
+    "message": "תרגם טקסט נבחר"
+  },
+  "msgTranslations": {
+    "message": "תרגומים"
+  },
+  "msgUnknownLanguage": {
+    "message": "לא ידוע"
+  },
+  "msgYes": {
+    "message": "כן"
+  },
+  "msgYesRecommended": {
+    "message": "כן (מומלץ)"
+  },
+  "openNativeShortcutManager": {
+    "message": "פתח את מנהל מקשי הקיצור המקורי"
+  },
+  "optionFloatingConfig": {
+    "message": "הצג את הכפתור הצף"
+  },
+  "optionPopupAuto": {
+    "message": "אוטומטית"
+  },
+  "optionPopupConfig": {
+    "message": "הראה את חלון הקופץ לנייד"
+  },
+  "optionPopupThreeFingers": {
+    "message": "בלחיצה על המסך עם שלוש אצבעות"
+  },
+  "optionPopupjustWhenIClickTranlateThisSite": {
+    "message": "רק כשאני לוחץ על \"תרגם אתר זה\""
+  },
+  "optionsAddToCustomDictionary": {
+    "message": "הוסף למילון מותאם אישית (זה מאפשר לך לדלג על מילים מסוימות במהלך תרגום דפי אינטרנט)"
+  },
+  "optionsAlwaysTranslate": {
+    "message": "תרגם תמיד את השפה הזו"
+  },
+  "optionsNeverTranslate": {
+    "message": "לעולם אל תתרגם דפים אלו"
+  },
+  "optionsPageTitle": {
+    "message": "תרגם דפי אינטרנט - אפשרויות"
+  },
+  "pageActionTitle": {
+    "message": "תרגם דף זה"
+  },
+  "placeholderOpenRouterBase": {
+    "message": "https://openrouter.ai/api/v1/chat/completions"
+  },
+  "placeholderOpenRouterModel": {
+    "message": "openai/gpt-4o-mini"
+  },
+  "placeholderOpenRouterReferer": {
+    "message": "https://your-site.example"
+  },
+  "placeholderOpenRouterTitle": {
+    "message": "DualTran"
+  },
+  "popupBlueWhenSiteIsTranslated": {
+    "message": "הפוך את סמל הקופץ לכחול כאשר האתר מתורגם"
+  },
+  "promptInputOpenAIKey": {
+    "message": "Please input your OpenAI API Key:"
+  },
+  "promptInputOpenRouterKey": {
+    "message": "אנא הזן את מפתח ה-API של OpenRouter:"
+  },
+  "replaceOriginalTextWithTranslatedText": {
+    "message": "החלף את הטקסט המקורי בטקסט מתורגם"
+  },
+  "resetToDefault": {
+    "message": "שחזר הגדרות ברירת מחדל"
+  },
+  "restoreFromFile": {
+    "message": "שחזר מקובץ"
+  },
+  "serviceBing": {
+    "message": "Bing"
+  },
+  "serviceDeepL": {
+    "message": "DeepL"
+  },
+  "serviceGoogle": {
+    "message": "Google"
+  },
+  "serviceGoogleTranslate": {
+    "message": "Google Translate"
+  },
+  "serviceMicrosoftTranslate": {
+    "message": "Microsoft Translator"
+  },
+  "serviceTranslateWebPages": {
+    "message": "DualTran"
+  },
+  "serviceYandex": {
+    "message": "Yandex"
+  },
+  "showOriginalText": {
+    "message": "הצג טקסט מקורי"
+  },
+  "swapPopup": {
+    "message": "החלפה בין ממשק פשוט למתקדם"
+  },
+  "swapTranslationService": {
+    "message": "מעבר בין שירותי תרגום"
+  },
+  "tooltipImproveTranslationByAI": {
+    "message": "לחץ כדי לשפר את התרגום באמצעות בינה מלאכותית"
+  },
+  "translateClickingOnce": {
+    "message": "תרגם את הדף על ידי לחיצה אחת על הכפתור בשורת הכתובת. (כדי לראות את החלון הקופץ, לחץ לחיצה ימנית)"
+  }
+}

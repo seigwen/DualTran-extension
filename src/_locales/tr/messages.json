@@ -1,0 +1,700 @@
+{
+  "aiProviderOpenAI": {
+    "message": "OpenAI"
+  },
+  "aiProviderOpenRouter": {
+    "message": "OpenRouter"
+  },
+  "alertSpecifyTargetLanguage": {
+    "message": "Lütfen önce hedef dili belirtin."
+  },
+  "backupToFile": {
+    "message": "Dosyaya yedekle"
+  },
+  "btnAlwaysTranslate": {
+    "message": "Bu siteyi her zaman çevir"
+  },
+  "btnAlwaysTranslateThisLanguage": {
+    "message": "Bu dili her zaman çevir"
+  },
+  "btnApply": {
+    "message": "Uygula"
+  },
+  "btnListen": {
+    "message": "Dinle"
+  },
+  "btnMobileDonate": {
+    "message": "Bağış yap"
+  },
+  "btnMobileNeverTranslate": {
+    "message": "Bu siteyi hiçbir zaman çevirme"
+  },
+  "btnMobileOriginal": {
+    "message": "Orijinal"
+  },
+  "btnMobileTranslated": {
+    "message": "Çevrildi"
+  },
+  "btnMoreOptions": {
+    "message": "Daha fazla seçenek"
+  },
+  "btnNeverTranslate": {
+    "message": "Bu siteyi asla çevirme"
+  },
+  "btnNeverTranslateThisLanguage": {
+    "message": "Bu dili hiçbir zaman çevirme"
+  },
+  "btnOptions": {
+    "message": "Seçenekler"
+  },
+  "btnReplace": {
+    "message": "Değiştir"
+  },
+  "btnReset": {
+    "message": "Sıfırla"
+  },
+  "btnRestore": {
+    "message": "Orijinalini göster"
+  },
+  "btnShowPopup": {
+    "message": "Açılır pencereyi göster"
+  },
+  "btnStopListening": {
+    "message": "Dinlemeyi durdur"
+  },
+  "btnSubmit": {
+    "message": "Gönder"
+  },
+  "btnTranslate": {
+    "message": "Çevir"
+  },
+  "btncopy": {
+    "message": "Kopyala"
+  },
+  "calculatestorage": {
+    "message": "Hesapla"
+  },
+  "confirmAutoTranslateWithAI": {
+    "message": "Dualtran'ın gelecekte AI ile otomatik olarak çeviri yapmasını istiyor musunuz?"
+  },
+  "confirmSetApiKeyNow": {
+    "message": "API anahtarı ayarlanmamış. Şimdi ayarlamak ister misiniz?"
+  },
+  "deleteTranslationCache": {
+    "message": "Çeviri önbelleğini sil"
+  },
+  "displayTranslatedTextInNewLine": {
+    "message": "Çevrilmiş metni yeni bir satırda görüntüle"
+  },
+  "doYouWantOverwriteAllSettings": {
+    "message": "Yedekleme verilerini kullanarak mevcut tüm ayarların üzerine yazmak istiyor musunuz?"
+  },
+  "doYouWantRestoreSettings": {
+    "message": "Uzantıyı varsayılan ayarlarına geri yüklemek istiyor musunuz?"
+  },
+  "doYouWantToDeleteTranslationCache": {
+    "message": "Çeviri önbelleğini silmek istiyor musunuz?"
+  },
+  "donatewithpaypal": {
+    "message": "PayPal ile Bağış Yap"
+  },
+  "dontShowIfPageLangIsTargetLang": {
+    "message": "Sayfa dili hedef dil ise gösterme"
+  },
+  "dontShowIfPageLangIsUnknown": {
+    "message": "Sayfa dili bilinmiyorsa gösterme"
+  },
+  "dontShowIfSelectedTextIsTargetLang": {
+    "message": "Seçili metin dili hedef dil ise gösterme"
+  },
+  "dontShowIfSelectedTextIsUnknown": {
+    "message": "Seçili metin dili bilinmiyorsa gösterme"
+  },
+  "enterShortcut": {
+    "message": "Kısayol yazın"
+  },
+  "errorApiKeyNotFound": {
+    "message": "API anahtarı bulunamadı!"
+  },
+  "errorCopyFailed": {
+    "message": "Kopyalama başarısız."
+  },
+  "errorCopyFailedInsecure": {
+    "message": "Metin kopyalama başarısız. Muhtemelen sayfanın URL protokolü güvenli olmayan HTTP, HTTPS değil."
+  },
+  "errorTranslationUnknown": {
+    "message": "Çeviri hatası: bilinmeyen hata."
+  },
+  "errorTranslationWithMessage": {
+    "message": "Çeviri hatası: $ERROR_MESSAGE$",
+    "placeholders": {
+      "ERROR_MESSAGE": {
+        "content": "$1",
+        "example": "Ağ hatası"
+      }
+    }
+  },
+  "extensionDescription": {
+    "message": "Google veya OpenAI kullanarak sayfanızı gerçek zamanlı olarak çevirin."
+  },
+  "extensionName": {
+    "message": "Web Sayfalarını Çevir"
+  },
+  "fileIsCorrupted": {
+    "message": "Dosya bozuk görünüyor"
+  },
+  "floatingButtonTooltip": {
+    "message": "Click to toggle translation state; drag to move this button"
+  },
+  "hideOriginalText": {
+    "message": "Orijinal metni gizle"
+  },
+  "hotkeyError_ctrlOrAlt": {
+    "message": "Ctrl veya Alt tuşunu dahil edin"
+  },
+  "hotkeyError_invalid": {
+    "message": "Geçersiz kombinasyon"
+  },
+  "hotkeyError_letter": {
+    "message": "Harf yazın"
+  },
+  "lblAdd": {
+    "message": "Ekle"
+  },
+  "lblAiFeatures": {
+    "message": "AI Features"
+  },
+  "lblAiImproveForLongerThan": {
+    "message": "Yalnızca kelime sayısı şundan fazla olan çevirileri Yapay Zeka ile iyileştir",
+    "description": "Label for the minimum number of words required to trigger AI improvement"
+  },
+  "lblAiProvider": {
+    "message": "Yapay zekâ sağlayıcısı"
+  },
+  "lblAiTranslatedStyle": {
+    "message": "Color of AI translated text "
+  },
+  "lblAlwaysTranslate": {
+    "message": "$LANGUAGE_NAME$ dilini her zaman çevir",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblAlwaysTranslateSites": {
+    "message": "Bu siteleri her zaman çevir"
+  },
+  "lblApiKeyOpenAI": {
+    "message": "OpenAI API Anahtarı"
+  },
+  "lblApiKeyOpenRouter": {
+    "message": "OpenRouter API anahtarı"
+  },
+  "lblAutoImproveByAi": {
+    "message": "Çevirileri yapay zeka ile otomatik iyileştir"
+  },
+  "lblAutoTranslateWhenClickingALink": {
+    "message": "Mevcut siteden aynı siteye götüren bir bağlantıya tıkladığınızda otomatik olarak çevir"
+  },
+  "lblButtonInTheAddressBar": {
+    "message": "Adres çubuğunda düğmeyi göster"
+  },
+  "lblDarkMode": {
+    "message": "Koyu Tema"
+  },
+  "lblEnableDeepL": {
+    "message": "DeepL'yi bir metin çeviri hizmeti olarak etkinleştir"
+  },
+  "lblEnterApiKey": {
+    "message": "Enter API key"
+  },
+  "lblError": {
+    "message": "Bu sayfa çevrilemedi"
+  },
+  "lblFavoriteLanguage": {
+    "message": "Favori dil $FAVORITE_LANGUAGE_NUM$",
+    "placeholders": {
+      "FAVORITE_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblFreeTranslationEngine": {
+    "message": "Free translation engine"
+  },
+  "lblHotTranslatedSelectedText": {
+    "message": "Seçili metni anında çevrilmiş metinle değiştir"
+  },
+  "lblKeyboardShortcuts": {
+    "message": "Klavye kısayolları"
+  },
+  "lblKeyboardShortcutsSpecial": {
+    "message": "Özel klavye kısayolları"
+  },
+  "lblMakeDonation": {
+    "message": "Bağış yap"
+  },
+  "lblNeverTranslateLangs": {
+    "message": "Bu dilleri hiçbir zaman çevirme"
+  },
+  "lblOpenAiModel": {
+    "message": "OpenAI Modeli"
+  },
+  "lblOpenRouterBaseUrl": {
+    "message": "OpenRouter API temeli (isteğe bağlı)"
+  },
+  "lblOpenRouterModel": {
+    "message": "OpenRouter modeli"
+  },
+  "lblOpenRouterReferer": {
+    "message": "HTTP Referer başlığı (isteğe bağlı)"
+  },
+  "lblOpenRouterTitle": {
+    "message": "X-Title başlığı (isteğe bağlı)"
+  },
+  "lblOthers": {
+    "message": "Diğerleri"
+  },
+  "lblPageTranslateInto": {
+    "message": "Sayfa $LANGUAGE_NAME$ diline çevrildi",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblPageTranslationService": {
+    "message": "Sayfa çeviri hizmeti"
+  },
+  "lblPersonalSettings": {
+    "message": "Kişisel ayarlar"
+  },
+  "lblPlsDonate": {
+    "message": "Geliştiriciye bağış yaparak yardımcı ol"
+  },
+  "lblReleaseNotes": {
+    "message": "Sürüm Notları"
+  },
+  "lblReplaceSelectedTextWithTranslatedText": {
+    "message": "Seçili metni $SHORTCUT_KEY$ tuşuna iki kez basıldığında çevrilmiş metinle değiştir",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblReport": {
+    "message": "Bir sorun bildir"
+  },
+  "lblReset": {
+    "message": "Sıfırla"
+  },
+  "lblRestorePageToOriginal": {
+    "message": "Orjinal sayfayı geri yükle"
+  },
+  "lblSelectPopupInterfaceStyle": {
+    "message": "Açılır arayüz stilini seçin"
+  },
+  "lblSettings": {
+    "message": "Ayarlar"
+  },
+  "lblShowContextMenu": {
+    "message": "Sağ tık menüsünde sayfayı çevirme seçeneğini göster"
+  },
+  "lblShowOriginalTextWhenHovering": {
+    "message": "Üzerine gelindiğinde orijinal metni göster"
+  },
+  "lblShowReleaseNotes": {
+    "message": "Güncelleme yaparken sürüm notlarını göster"
+  },
+  "lblShowTranslateSelectedButton": {
+    "message": "Seçili metni çevirmek için düğmeyi göster"
+  },
+  "lblShowTranslateSelectedContextMenu": {
+    "message": "Sağ tık menüsünde seçili metni çevirme seçeneğini göster"
+  },
+  "lblShowTranslatedHoveringLangs": {
+    "message": "Bu dillere sahip sitelerin üzerine gelindiğinde çevrilmiş metni göster"
+  },
+  "lblShowTranslatedHoveringSites": {
+    "message": "Bu sitelerin üzerine gelindiğinde çevrilmiş metni göster"
+  },
+  "lblShowTranslatedWhenHovering": {
+    "message": "Üzerine gelindiğinde çevrilmiş metni göster"
+  },
+  "lblShowTranslatedWhenHoveringThisLang": {
+    "message": "$LANGUAGE_NAME$ dilindeki sitelerinin üzerine gelindiğinde çeviriyi göster",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblShowTranslatedWhenHoveringThisSite": {
+    "message": "Bu sitenin üzerine gelindiğinde çeviriyi göster"
+  },
+  "lblStorageUsed": {
+    "message": "Kullanılan depolama alanı:"
+  },
+  "lblSwitchTranslatedAndOriginal": {
+    "message": "Çevrilmiş sayfa ile orijinal sayfa arasında geçiş yap"
+  },
+  "lblTargetLanguage": {
+    "message": "Hedef dil $TARGET_LANGUAGE_NUM$",
+    "placeholders": {
+      "TARGET_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblTargetLanguageGroup": {
+    "message": "Hedef dil"
+  },
+  "lblTextTranslationService": {
+    "message": "Metin Çeviri Hizmeti"
+  },
+  "lblTranslate": {
+    "message": "Bu sayfa çevrilsin mi?"
+  },
+  "lblTranslateInterface": {
+    "message": "Arayüzü çevir"
+  },
+  "lblTranslateLongerThan": {
+    "message": "Yalnızca kelime sayısı bu değerden fazla olan metni çevir",
+    "description": "Label for the minimum number of words required to trigger translation"
+  },
+  "lblTranslatePageInto": {
+    "message": "Sayfa $LANGUAGE_NAME$ diline çevrilsin mi?",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblTranslatePageToTargetLanguage": {
+    "message": "Sayfayı hedef dile çevir"
+  },
+  "lblTranslateSelectedWhenPressTwice": {
+    "message": "$SHORTCUT_KEY$ tuşuna iki kez basıldığında seçili metni çevir",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslateTag_pre": {
+    "message": "$HTML_TAG_NAME$ etiketi için çeviriyi etkinleştir",
+    "placeholders": {
+      "HTML_TAG_NAME": {
+        "content": "<PRE>"
+      }
+    }
+  },
+  "lblTranslateTextOverMouseWhenPressTwice": {
+    "message": "$SHORTCUT_KEY$ tuşuna iki kez basıldığında fare imlecinin üzerindeki metni çevir",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslated": {
+    "message": "Çevrildi"
+  },
+  "lblTranslatedStyle": {
+    "message": "Google çevrilmiş metin rengi"
+  },
+  "lblTranslating": {
+    "message": "Çevriliyor ..."
+  },
+  "lblTranslationCache": {
+    "message": "Çeviri önbelleği"
+  },
+  "lblTranslationService": {
+    "message": "Çeviri hizmeti"
+  },
+  "lblTtsSpeed": {
+    "message": "Metin okuma ses hızı"
+  },
+  "lblUseNewAlgorithm": {
+    "message": "Yeni çeviri algoritması kullanılsın mı?"
+  },
+  "lblWhereToDisplayTranslatedText": {
+    "message": "Çevrilmiş metnin nerede görüntüleneceği"
+  },
+  "lbldontsortresults": {
+    "message": "Google Çeviri sonuçlarını asla sıralama"
+  },
+  "lbltranslatedynamicallycreatedcontent": {
+    "message": "Dinamik olarak oluşturulan içeriği çevir"
+  },
+  "less": {
+    "message": "Daha az"
+  },
+  "more": {
+    "message": "Daha fazla"
+  },
+  "msgAi": {
+    "message": "AI"
+  },
+  "msgAll": {
+    "message": "Tümü"
+  },
+  "msgAutomatic": {
+    "message": "Otomatik"
+  },
+  "msgAzureEnterKeyAndEndpoint": {
+    "message": "Lütfen Azure OpenAI için mevcut modelleri almak üzere Azure uç noktasını ve API anahtarını girin"
+  },
+  "msgCannotLoadDeepSeekModelsHttp": {
+    "message": "DeepSeek modelleri yüklenemedi (HTTP $1)",
+    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDonateWithPaypal": {
+    "message": "PayPal ile bağış yap"
+  },
+  "msgDownloadingDocument": {
+    "message": "Belge indiriliyor..."
+  },
+  "msgEmptyListAlwaysTranslateLanguages": {
+    "message": "Bu listeye herhangi bir dil eklemediniz."
+  },
+  "msgEmptyListNeverTranslateSites": {
+    "message": "Bu listeye herhangi bir site eklemediniz."
+  },
+  "msgEnterApiKeyForModels": {
+    "message": "Lütfen bu sağlayıcı için mevcut modelleri almak üzere API anahtarını girin"
+  },
+  "msgErrorDownloadingDocument": {
+    "message": "Belge indirilirken hata oluştu"
+  },
+  "msgFavoriteLanguages": {
+    "message": "favori diller"
+  },
+  "msgFileLargerThan": {
+    "message": "Bu hizmet $FILE_SIZE$ değerinden büyük dosyaları desteklemiyor",
+    "placeholders": {
+      "FILE_SIZE": {
+        "content": "$1",
+        "example": "10 MB"
+      }
+    }
+  },
+  "msgHotkeys": {
+    "message": "Kısayol Tuşları"
+  },
+  "msgHowToGetOpenAIKey": {
+    "message": "OpenAI API anahtarı nasıl alınır?"
+  },
+  "msgHowToGetOpenRouterKey": {
+    "message": "OpenRouter API anahtarı nasıl alınır?"
+  },
+  "msgIWillBeGrateful": {
+    "message": "Bağış yapabilirseniz minnettar olacağım."
+  },
+  "msgInterfaceComplex": {
+    "message": "Gelişmiş"
+  },
+  "msgInterfaceSimple": {
+    "message": "Basit"
+  },
+  "msgLanguages": {
+    "message": "Diller"
+  },
+  "msgLoadingModels": {
+    "message": "Yükleniyor..."
+  },
+  "msgModelListFetchFailed": {
+    "message": "Failed to fetch model list with API key. Available models:"
+  },
+  "msgNo": {
+    "message": "Hayır"
+  },
+  "msgNoTranslateSelectedText": {
+    "message": "Seçili metni çevirme"
+  },
+  "msgNoUseWidgets": {
+    "message": "Hayır (widgetleri kullan)"
+  },
+  "msgOpenOnYandexTranslator": {
+    "message": "Yandex Çeviri'de aç"
+  },
+  "msgOpenTranslated": {
+    "message": "Çevrilmiş PDF\u001fyi aç"
+  },
+  "msgPDFtoHTML": {
+    "message": "PDF'den HTML'e"
+  },
+  "msgPleaseWait": {
+    "message": "Lütfen bekleyin..."
+  },
+  "msgRecents": {
+    "message": "Son işlemler"
+  },
+  "msgSelectServiceConversion": {
+    "message": "Bu dönüştürmeyi yapmak için bir hizmet seçin"
+  },
+  "msgSelectTargetLanguage": {
+    "message": "Web sitelerini bu hedef dile çevirin"
+  },
+  "msgSelectTargetLanguageForText": {
+    "message": "Seçili metni bu hedef dile çevir"
+  },
+  "msgSendDocument": {
+    "message": "Belge gönder"
+  },
+  "msgSites": {
+    "message": "Siteler"
+  },
+  "msgStorage": {
+    "message": "Depolama"
+  },
+  "msgStyle": {
+    "message": "Görünüm"
+  },
+  "msgThanksForUseExtension": {
+    "message": "Bu uzantıyı kullandığınız için teşekkür ederiz."
+  },
+  "msgToTranslateSites": {
+    "message": "Siteyi çevirmek için"
+  },
+  "msgToTranslateThisDocument": {
+    "message": "Bu belgeyi $DOC_TYPE$ türüne çevirmek için HTML'e dönüştürmek gerekiyor",
+    "placeholders": {
+      "DOC_TYPE": {
+        "content": "$1",
+        "example": "(.pdf)"
+      }
+    }
+  },
+  "msgTranslateFor": {
+    "message": "$LANGUAGE_NAME$ diline çevir",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateSelectedText": {
+    "message": "Seçili metni çevir"
+  },
+  "msgTranslations": {
+    "message": "Çeviriler"
+  },
+  "msgUnknownLanguage": {
+    "message": "Bilinmiyor"
+  },
+  "msgYes": {
+    "message": "Evet"
+  },
+  "msgYesRecommended": {
+    "message": "Evet (önerilen)"
+  },
+  "openNativeShortcutManager": {
+    "message": "Yerel kısayol tuş yöneticisini aç"
+  },
+  "optionFloatingConfig": {
+    "message": "kayan düğmeyi göster"
+  },
+  "optionPopupAuto": {
+    "message": "Otomatikman"
+  },
+  "optionPopupConfig": {
+    "message": "Mobil açılır pencereyi göster"
+  },
+  "optionPopupThreeFingers": {
+    "message": "Ekrana üç parmağımla dokunduğumda"
+  },
+  "optionPopupjustWhenIClickTranlateThisSite": {
+    "message": "Sadece \"Bu siteyi çevir\" butonuna tıkladığımda"
+  },
+  "optionsAddToCustomDictionary": {
+    "message": "Özel sözlüğe ekle (Bu, web sayfası çevirisi sırasında belirli kelimeleri atlamanızı sağlar)"
+  },
+  "optionsAlwaysTranslate": {
+    "message": "Bu dilleri her zaman çevir"
+  },
+  "optionsNeverTranslate": {
+    "message": "Bu siteleri hiçbir zaman çevirme"
+  },
+  "optionsPageTitle": {
+    "message": "Web Sayfalarını Çevir - Seçenekler"
+  },
+  "pageActionTitle": {
+    "message": "Bu sayfayı çevir"
+  },
+  "placeholderOpenRouterBase": {
+    "message": "https://openrouter.ai/api/v1/chat/completions"
+  },
+  "placeholderOpenRouterModel": {
+    "message": "openai/gpt-4o-mini"
+  },
+  "placeholderOpenRouterReferer": {
+    "message": "https://your-site.example"
+  },
+  "placeholderOpenRouterTitle": {
+    "message": "DualTran"
+  },
+  "popupBlueWhenSiteIsTranslated": {
+    "message": "Site çevrildiğinde açılır pencere simgesini mavi yap"
+  },
+  "promptInputOpenAIKey": {
+    "message": "Lütfen OpenAI API anahtarınızı girin:"
+  },
+  "promptInputOpenRouterKey": {
+    "message": "Lütfen OpenRouter API anahtarınızı girin:"
+  },
+  "replaceOriginalTextWithTranslatedText": {
+    "message": "Orijinal metni çevrilmiş metinle değiştir"
+  },
+  "resetToDefault": {
+    "message": "Varsayılan ayarları yükle"
+  },
+  "restoreFromFile": {
+    "message": "Dosyadan geri yükle"
+  },
+  "serviceBing": {
+    "message": "Bing"
+  },
+  "serviceDeepL": {
+    "message": "DeepL"
+  },
+  "serviceGoogle": {
+    "message": "Google"
+  },
+  "serviceGoogleTranslate": {
+    "message": "Google Translate"
+  },
+  "serviceMicrosoftTranslate": {
+    "message": "Microsoft Translator"
+  },
+  "serviceTranslateWebPages": {
+    "message": "DualTran"
+  },
+  "serviceYandex": {
+    "message": "Yandex"
+  },
+  "showOriginalText": {
+    "message": "Orijinal metni göster"
+  },
+  "swapPopup": {
+    "message": "Basit ve gelişmiş arayüz arasında geçiş yap"
+  },
+  "swapTranslationService": {
+    "message": "Çeviri hizmetleri arasında geçiş yapın"
+  },
+  "tooltipImproveTranslationByAI": {
+    "message": "çeviriyi AI ile iyileştirmek için tıklayın"
+  },
+  "translateClickingOnce": {
+    "message": "Sayfayı çevirmek için adres çubuğundaki düğmeye bir kez tıklayın. (Açılır pencereyi görmek için sağ tıklayın)"
+  }
+}

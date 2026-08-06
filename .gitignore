@@ -1,0 +1,11 @@
+node_modules
+package-lock.json
+extra/package-lock.json
+dist
+test
+meta.txt
+result
+*.zip" " 
+/screenshots
+/.codegraph
+/.mcp.json

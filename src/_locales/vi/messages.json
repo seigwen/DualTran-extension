@@ -1,0 +1,757 @@
+{
+  "aiProviderAnthropic": {
+    "message": "Anthropic (Claude)"
+  },
+  "aiProviderAzureOpenAI": {
+    "message": "Azure OpenAI"
+  },
+  "aiProviderBaidu": {
+    "message": "Baidu ERNIE"
+  },
+  "aiProviderBytedance": {
+    "message": "ByteDance Doubao"
+  },
+  "aiProviderCerebras": {
+    "message": "Cerebras"
+  },
+  "aiProviderCohere": {
+    "message": "Cohere"
+  },
+  "aiProviderDeepInfra": {
+    "message": "Deep Infra"
+  },
+  "aiProviderDeepSeek": {
+    "message": "DeepSeek"
+  },
+  "aiProviderGoogleGemini": {
+    "message": "Google Gemini"
+  },
+  "aiProviderGrok": {
+    "message": "xAI (Grok)"
+  },
+  "aiProviderGroq": {
+    "message": "Groq"
+  },
+  "aiProviderIflytek": {
+    "message": "iFlytek Spark"
+  },
+  "aiProviderMistral": {
+    "message": "Mistral AI"
+  },
+  "aiProviderMoonshot": {
+    "message": "Moonshot (Kimi)"
+  },
+  "aiProviderOpenAI": {
+    "message": "OpenAI"
+  },
+  "aiProviderOpenRouter": {
+    "message": "OpenRouter"
+  },
+  "aiProviderPerplexity": {
+    "message": "Perplexity"
+  },
+  "aiProviderQwen": {
+    "message": "Alibaba Qwen"
+  },
+  "aiProviderTogether": {
+    "message": "Together AI"
+  },
+  "aiProviderVercel": {
+    "message": "Vercel AI Gateway"
+  },
+  "aiProviderZhipu": {
+    "message": "Zhipu AI (GLM)"
+  },
+  "alertSpecifyTargetLanguage": {
+    "message": "Vui lòng chỉ định ngôn ngữ đích trước."
+  },
+  "backupToFile": {
+    "message": "Sao lưu vào tệp"
+  },
+  "btnAlwaysTranslate": {
+    "message": "Luôn dịch trang này"
+  },
+  "btnAlwaysTranslateThisLanguage": {
+    "message": "Luôn dịch trang web này"
+  },
+  "btnApply": {
+    "message": "Áp dụng"
+  },
+  "btnListen": {
+    "message": "Nghe"
+  },
+  "btnMobileDonate": {
+    "message": "Ủng hộ"
+  },
+  "btnMobileNeverTranslate": {
+    "message": "Không bao giờ dịch trang này"
+  },
+  "btnMobileOriginal": {
+    "message": "Gốc"
+  },
+  "btnMobileTranslated": {
+    "message": "Đã dịch"
+  },
+  "btnMoreOptions": {
+    "message": "Tùy chọn khác"
+  },
+  "btnNeverTranslate": {
+    "message": "Không bao giờ dịch trang này"
+  },
+  "btnNeverTranslateThisLanguage": {
+    "message": "Không bao giờ dịch ngôn ngữ này"
+  },
+  "btnOptions": {
+    "message": "Tùy chọn "
+  },
+  "btnReplace": {
+    "message": "Thay thế"
+  },
+  "btnReset": {
+    "message": "Đặt lại "
+  },
+  "btnRestore": {
+    "message": "Hiển thị bản gốc "
+  },
+  "btnShowPopup": {
+    "message": "Hiển thị cửa sổ bật lên"
+  },
+  "btnStopListening": {
+    "message": "Dừng nghe"
+  },
+  "btnSubmit": {
+    "message": "Gửi"
+  },
+  "btnTranslate": {
+    "message": "Dịch "
+  },
+  "btncopy": {
+    "message": "Sao Chép"
+  },
+  "calculatestorage": {
+    "message": "Tính toán"
+  },
+  "confirmAutoTranslateWithAI": {
+    "message": "Bạn có muốn Dualtran tự động dịch bằng AI trong tương lai không?"
+  },
+  "confirmSetApiKeyNow": {
+    "message": "Khóa API chưa được thiết lập. Bạn có muốn thiết lập ngay bây giờ không?"
+  },
+  "deleteTranslationCache": {
+    "message": "Xóa bộ nhớ dịch đệm"
+  },
+  "displayTranslatedTextInNewLine": {
+    "message": "Hiển thị văn bản đã dịch trên dòng mới"
+  },
+  "doYouWantOverwriteAllSettings": {
+    "message": "Bạn có muốn ghi đè tất cả các cài đặt hiện có bằng cách sử dụng dữ liệu sao lưu không?"
+  },
+  "doYouWantRestoreSettings": {
+    "message": "Bạn có muốn khôi phục cài đặt về mặc định không?"
+  },
+  "doYouWantToDeleteTranslationCache": {
+    "message": "Bạn có muốn xóa bộ nhớ đệm dịch không?"
+  },
+  "donatewithpaypal": {
+    "message": "Ủng hộ qua PayPal"
+  },
+  "dontShowIfPageLangIsTargetLang": {
+    "message": "Không hiển thị nếu ngôn ngữ trang là ngôn ngữ đích"
+  },
+  "dontShowIfPageLangIsUnknown": {
+    "message": "Không hiển thị nếu ngôn ngữ trang không xác định"
+  },
+  "dontShowIfSelectedTextIsTargetLang": {
+    "message": "Không hiển thị nếu ngôn ngữ văn bản đã chọn là ngôn ngữ đích"
+  },
+  "dontShowIfSelectedTextIsUnknown": {
+    "message": "Không hiển thị nếu ngôn ngữ văn bản đã chọn không xác định"
+  },
+  "enterShortcut": {
+    "message": "Nhập một phím tắt"
+  },
+  "errorApiKeyNotFound": {
+    "message": "Không tìm thấy khóa API!"
+  },
+  "errorCopyFailed": {
+    "message": "Sao chép thất bại."
+  },
+  "errorCopyFailedInsecure": {
+    "message": "Sao chép văn bản thất bại. Có thể do giao thức URL của trang là HTTP không an toàn, không phải HTTPS."
+  },
+  "errorTranslationUnknown": {
+    "message": "Lỗi dịch: lỗi không xác định."
+  },
+  "errorTranslationWithMessage": {
+    "message": "Lỗi dịch: $ERROR_MESSAGE$",
+    "placeholders": {
+      "ERROR_MESSAGE": {
+        "content": "$1",
+        "example": "Lỗi mạng"
+      }
+    }
+  },
+  "extensionDescription": {
+    "message": "Dịch trang của bạn trong thời gian thực sử dụng Google hoặc OpenAI. "
+  },
+  "extensionName": {
+    "message": "DualTran"
+  },
+  "fileIsCorrupted": {
+    "message": "Tệp có vẻ bị hỏng"
+  },
+  "floatingButtonTooltip": {
+    "message": "Click to toggle translation state; drag to move this button"
+  },
+  "hideOriginalText": {
+    "message": "Ẩn văn bản gốc"
+  },
+  "hotkeyError_ctrlOrAlt": {
+    "message": "Bao gồm phím Ctrl hoặc Alt"
+  },
+  "hotkeyError_invalid": {
+    "message": "Phím tắt kết hợp không hợp lệ"
+  },
+  "hotkeyError_letter": {
+    "message": "Nhập một chữ"
+  },
+  "lblAdd": {
+    "message": "Thêm"
+  },
+  "lblAiFeatures": {
+    "message": "AI Features"
+  },
+  "lblAiImproveForLongerThan": {
+    "message": "Chỉ cải thiện bằng AI các bản dịch có số từ lớn hơn",
+    "description": "Label for the minimum number of words required to trigger AI improvement"
+  },
+  "lblAiProvider": {
+    "message": "Nhà cung cấp AI"
+  },
+  "lblAiTranslatedStyle": {
+    "message": "Color of AI translated text "
+  },
+  "lblAlwaysTranslate": {
+    "message": "Always translate from $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblAlwaysTranslateSites": {
+    "message": "Luôn dịch những trang này"
+  },
+  "lblApiKeyOpenAI": {
+    "message": "Khóa API OpenAI"
+  },
+  "lblApiKeyOpenRouter": {
+    "message": "Khóa API OpenRouter"
+  },
+  "lblAutoImproveByAi": {
+    "message": "Tự động cải thiện bản dịch bằng AI"
+  },
+  "lblAutoTranslateWhenClickingALink": {
+    "message": "Tự động dịch khi nhấp vào liên kết đến cùng một tên miền với trang web hiện tại"
+  },
+  "lblButtonInTheAddressBar": {
+    "message": "Hiển thị nút trên thanh địa chỉ"
+  },
+  "lblDarkMode": {
+    "message": "Chế độ tối"
+  },
+  "lblEnableDeepL": {
+    "message": "Bật DeepL làm dịch vụ dịch văn bản"
+  },
+  "lblEnterApiKey": {
+    "message": "Enter API key"
+  },
+  "lblError": {
+    "message": "This page could not be translated"
+  },
+  "lblFavoriteLanguage": {
+    "message": "Ngôn ngữ ưa thích $FAVORITE_LANGUAGE_NUM$",
+    "placeholders": {
+      "FAVORITE_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblFreeTranslationEngine": {
+    "message": "Free translation engine"
+  },
+  "lblHotTranslatedSelectedText": {
+    "message": "Thay Thay thế văn bản đã chọn thành văn bản đã dịch ngay lập tức"
+  },
+  "lblKeyboardShortcuts": {
+    "message": "Phím tắt bàn phím"
+  },
+  "lblKeyboardShortcutsSpecial": {
+    "message": "Các phím tắt đặc biệt"
+  },
+  "lblMakeDonation": {
+    "message": "Ủng hộ"
+  },
+  "lblNeverTranslateLangs": {
+    "message": "Không bao giờ dịch các ngôn ngữ này"
+  },
+  "lblOpenAiModel": {
+    "message": "Mô hình OpenAI"
+  },
+  "lblOpenRouterBaseUrl": {
+    "message": "Cơ sở API OpenRouter (tùy chọn)"
+  },
+  "lblOpenRouterModel": {
+    "message": "Mô hình OpenRouter"
+  },
+  "lblOpenRouterReferer": {
+    "message": "Header HTTP Referer (tùy chọn)"
+  },
+  "lblOpenRouterTitle": {
+    "message": "Header X-Title (tùy chọn)"
+  },
+  "lblOthers": {
+    "message": "Khác"
+  },
+  "lblPageTranslateInto": {
+    "message": "Trang đã được dịch sang $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblPageTranslationService": {
+    "message": "Dịch vụ dịch trang"
+  },
+  "lblPersonalSettings": {
+    "message": "Thiết lập cá nhân"
+  },
+  "lblPlsDonate": {
+    "message": "Giúp đỡ nhà phát triển bằng cách ủng hộ"
+  },
+  "lblReleaseNotes": {
+    "message": "Ghi chú phát hành"
+  },
+  "lblReplaceSelectedTextWithTranslatedText": {
+    "message": "Thay thế văn bản đã chọn thành văn bản đã dịch khi nhấn phím $SHORTCUT_KEY$ hai lần",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblReport": {
+    "message": "Báo cáo sự cố"
+  },
+  "lblReset": {
+    "message": "Đặt lại"
+  },
+  "lblRestorePageToOriginal": {
+    "message": "Khôi phục trang về ban đầu"
+  },
+  "lblSelectPopupInterfaceStyle": {
+    "message": "Chọn kiểu giao diện popup"
+  },
+  "lblSettings": {
+    "message": "Cài đặt"
+  },
+  "lblShowContextMenu": {
+    "message": "Hiển thị tùy chọn dịch trang trong menu ngữ cảnh"
+  },
+  "lblShowOriginalTextWhenHovering": {
+    "message": "Hiển thị văn bản gốc khi di chuột đến nó"
+  },
+  "lblShowReleaseNotes": {
+    "message": "Hiển thị ghi chú phát hành khi cập nhật"
+  },
+  "lblShowTranslateSelectedButton": {
+    "message": "Hiển thị nút để dịch văn bản được chọn"
+  },
+  "lblShowTranslateSelectedContextMenu": {
+    "message": "Hiển thị tùy chọn để dịch văn bản được chọn trong menu ngữ cảnh"
+  },
+  "lblShowTranslatedHoveringLangs": {
+    "message": "Hiển thị văn bản đã dịch khi di chuột qua các trang web có ngôn ngữ này"
+  },
+  "lblShowTranslatedHoveringSites": {
+    "message": "Hiển thị văn bản đã dịch khi di chuột qua các trang web này"
+  },
+  "lblShowTranslatedWhenHovering": {
+    "message": "Hiển thị văn bản đã dịch khi di chuột đến nó"
+  },
+  "lblShowTranslatedWhenHoveringThisLang": {
+    "message": "Hiển thị bản dịch khi di chuột qua các trang web bằng $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblShowTranslatedWhenHoveringThisSite": {
+    "message": "Hiển thị bản dịch khi di chuột qua trang web này"
+  },
+  "lblStorageUsed": {
+    "message": "Bộ nhớ đã sử dụng:"
+  },
+  "lblSwitchTranslatedAndOriginal": {
+    "message": "Chuyển đổi giữa trang đã dịch và trang gốc"
+  },
+  "lblTargetLanguage": {
+    "message": "Ngôn ngữ đích $TARGET_LANGUAGE_NUM$",
+    "placeholders": {
+      "TARGET_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblTargetLanguageGroup": {
+    "message": "Ngôn ngữ đích"
+  },
+  "lblTextTranslationService": {
+    "message": "Dịch vụ dịch văn bản"
+  },
+  "lblTranslate": {
+    "message": "Dịch trang này? "
+  },
+  "lblTranslateInterface": {
+    "message": "Dịch giao diện"
+  },
+  "lblTranslateLongerThan": {
+    "message": "Chỉ dịch đoạn văn bản có số từ lớn hơn giá trị này",
+    "description": "Label for the minimum number of words required to trigger translation"
+  },
+  "lblTranslatePageInto": {
+    "message": "Dịch trang sang $LANGUAGE_NAME$?",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblTranslatePageToTargetLanguage": {
+    "message": "Dịch trang sang ngôn ngữ đích"
+  },
+  "lblTranslateSelectedWhenPressTwice": {
+    "message": "Dịch văn bản đã chọn khi nhấn $SHORTCUT_KEY$ hai lần",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslateTag_pre": {
+    "message": "Bật dịch cho thẻ $HTML_TAG_NAME$",
+    "placeholders": {
+      "HTML_TAG_NAME": {
+        "content": "<PRE>"
+      }
+    }
+  },
+  "lblTranslateTextOverMouseWhenPressTwice": {
+    "message": "Dịch văn bản ở sau con trỏ chuột khi nhấn $SHORTCUT_KEY$ hai lần",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslated": {
+    "message": "Đã dịch "
+  },
+  "lblTranslatedStyle": {
+    "message": "Màu văn bản dịch của Google"
+  },
+  "lblTranslating": {
+    "message": "Đang dịch... "
+  },
+  "lblTranslationCache": {
+    "message": "Bộ nhớ đệm dịch"
+  },
+  "lblTranslationService": {
+    "message": "Dịch vụ dịch thuật"
+  },
+  "lblTtsSpeed": {
+    "message": "Tốc độ âm thanh chuyển văn bản thành giọng nói"
+  },
+  "lblUseNewAlgorithm": {
+    "message": "Sử dụng thuật toán dịch mới?"
+  },
+  "lblWhereToDisplayTranslatedText": {
+    "message": "Nơi hiển thị văn bản đã dịch"
+  },
+  "lbldontsortresults": {
+    "message": "Không sắp xếp các kết quả của Google Dịch"
+  },
+  "lbltranslatedynamicallycreatedcontent": {
+    "message": "Dịch các nội dung động"
+  },
+  "less": {
+    "message": "Ít hơn"
+  },
+  "more": {
+    "message": "Nhiều hơn"
+  },
+  "msgAi": {
+    "message": "AI"
+  },
+  "msgAll": {
+    "message": "Tất cả"
+  },
+  "msgAutomatic": {
+    "message": "Tự động"
+  },
+  "msgAzureEnterKeyAndEndpoint": {
+    "message": "Vui lòng nhập endpoint Azure và API key để nhận các mô hình có sẵn cho Azure OpenAI"
+  },
+  "msgCannotLoadDeepSeekModelsHttp": {
+    "message": "Không thể tải các mô hình DeepSeek (HTTP $1)",
+    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDonateWithPaypal": {
+    "message": "Ủng hộ qua PayPal"
+  },
+  "msgDownloadingDocument": {
+    "message": "Đang tải về tài liệu..."
+  },
+  "msgEmptyListAlwaysTranslateLanguages": {
+    "message": "Bạn chưa thêm bất kỳ ngôn ngữ nào vào danh sách này."
+  },
+  "msgEmptyListNeverTranslateSites": {
+    "message": "Bạn chưa thêm bất kỳ trang web nào vào danh sách này. "
+  },
+  "msgEnterApiKeyForModels": {
+    "message": "Vui lòng nhập API key để nhận các mô hình có sẵn cho nhà cung cấp này"
+  },
+  "msgErrorDownloadingDocument": {
+    "message": "Lỗi khi tải tài liệu"
+  },
+  "msgFavoriteLanguages": {
+    "message": "ngôn ngữ yêu thích"
+  },
+  "msgFileLargerThan": {
+    "message": "Dịch vụ này không hỗ trợ tập tin lớn hơn $FILE_SIZE$",
+    "placeholders": {
+      "FILE_SIZE": {
+        "content": "$1",
+        "example": "10 MB"
+      }
+    }
+  },
+  "msgHotkeys": {
+    "message": "Phím tắt"
+  },
+  "msgHowToGetOpenAIKey": {
+    "message": "Làm thế nào để lấy khóa API OpenAI?"
+  },
+  "msgHowToGetOpenRouterKey": {
+    "message": "Cách lấy khóa API OpenRouter?"
+  },
+  "msgIWillBeGrateful": {
+    "message": "Tôi sẽ biết ơn nếu bạn có thể đóng góp."
+  },
+  "msgInterfaceComplex": {
+    "message": "Nâng cao"
+  },
+  "msgInterfaceSimple": {
+    "message": "Đơn giản"
+  },
+  "msgLanguages": {
+    "message": "Ngôn ngữ"
+  },
+  "msgLoadingModels": {
+    "message": "Đang tải..."
+  },
+  "msgModelListFetchFailed": {
+    "message": "Failed to fetch model list with API key. Available models:"
+  },
+  "msgNo": {
+    "message": "Không"
+  },
+  "msgNoTranslateSelectedText": {
+    "message": "Không dịch văn bản đã chọn"
+  },
+  "msgNoUseWidgets": {
+    "message": "Không (sử dụng widget) "
+  },
+  "msgOpenOnYandexTranslator": {
+    "message": "Mở trong Yandex Translate"
+  },
+  "msgOpenTranslated": {
+    "message": "Mở PDF đã dịch"
+  },
+  "msgPDFtoHTML": {
+    "message": "PDF sang HTML"
+  },
+  "msgPleaseWait": {
+    "message": "Xin chờ..."
+  },
+  "msgRecents": {
+    "message": "Gần đây"
+  },
+  "msgSelectServiceConversion": {
+    "message": "Chọn một dịch vụ để thực hiện chuyển đổi"
+  },
+  "msgSelectTargetLanguage": {
+    "message": "Dịch các trang web sang ngôn ngữ mục tiêu này"
+  },
+  "msgSelectTargetLanguageForText": {
+    "message": "Dịch văn bản đã chọn sang ngôn ngữ đích này"
+  },
+  "msgSendDocument": {
+    "message": "Gửi tài liệu"
+  },
+  "msgSites": {
+    "message": "Trang web"
+  },
+  "msgStorage": {
+    "message": "Lưu trữ"
+  },
+  "msgStyle": {
+    "message": "Hiển thị"
+  },
+  "msgThanksForUseExtension": {
+    "message": "Cảm ơn bạn đã sử dụng tiện ích này."
+  },
+  "msgToTranslateSites": {
+    "message": "Để dịch trang web"
+  },
+  "msgToTranslateThisDocument": {
+    "message": "Để dịch tài liệu $DOC_TYPE$, cần phải chuyển đổi nó sang HTML",
+    "placeholders": {
+      "DOC_TYPE": {
+        "content": "$1",
+        "example": "(.pdf)"
+      }
+    }
+  },
+  "msgTranslateFor": {
+    "message": "Dịch từ $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateSelectedText": {
+    "message": "Dịch văn bản đã chọn"
+  },
+  "msgTranslations": {
+    "message": "Dịch"
+  },
+  "msgUnknownLanguage": {
+    "message": "Không rõ"
+  },
+  "msgYes": {
+    "message": "Đồng ý"
+  },
+  "msgYesRecommended": {
+    "message": "Đồng ý (khuyến nghị)"
+  },
+  "openNativeShortcutManager": {
+    "message": "Mở trình quản lý phím tắt riêng"
+  },
+  "optionFloatingConfig": {
+    "message": "hiển thị nút nổi"
+  },
+  "optionPopupAuto": {
+    "message": "Tự động"
+  },
+  "optionPopupConfig": {
+    "message": "Hiển thị cửa sổ bật lên trên di động"
+  },
+  "optionPopupThreeFingers": {
+    "message": "Khi tôi chạm 3 ngón tay trên màn hình"
+  },
+  "optionPopupjustWhenIClickTranlateThisSite": {
+    "message": "Chỉ khi tôi nhấn \"Dịch trang này\" "
+  },
+  "optionsAddToCustomDictionary": {
+    "message": "Thêm vào từ điển tùy chỉnh (Điều này cho phép bạn bỏ qua một số từ nhất định trong khi dịch trang web)"
+  },
+  "optionsAlwaysTranslate": {
+    "message": "Luôn dịch các ngôn ngữ này"
+  },
+  "optionsNeverTranslate": {
+    "message": "Không bao giờ dịch các trang này"
+  },
+  "optionsPageTitle": {
+    "message": "Dịch trang Web - Tùy chọn "
+  },
+  "pageActionTitle": {
+    "message": "Dịch trang này "
+  },
+  "placeholderOpenRouterBase": {
+    "message": "https://openrouter.ai/api/v1/chat/completions"
+  },
+  "placeholderOpenRouterModel": {
+    "message": "openai/gpt-4o-mini"
+  },
+  "placeholderOpenRouterReferer": {
+    "message": "https://your-site.example"
+  },
+  "placeholderOpenRouterTitle": {
+    "message": "DualTran"
+  },
+  "popupBlueWhenSiteIsTranslated": {
+    "message": "Chuyển biểu tượng sang màu xanh lam khi trang web được dịch"
+  },
+  "promptInputOpenAIKey": {
+    "message": "Vui lòng nhập khóa API OpenAI của bạn:"
+  },
+  "promptInputOpenRouterKey": {
+    "message": "Vui lòng nhập khóa API OpenRouter của bạn:"
+  },
+  "replaceOriginalTextWithTranslatedText": {
+    "message": "Thay thế văn bản gốc bằng văn bản đã dịch"
+  },
+  "resetToDefault": {
+    "message": "Khôi phục cài đặt gốc"
+  },
+  "restoreFromFile": {
+    "message": "Khôi phục từ tệp"
+  },
+  "serviceBing": {
+    "message": "Bing"
+  },
+  "serviceDeepL": {
+    "message": "DeepL"
+  },
+  "serviceGoogle": {
+    "message": "Google"
+  },
+  "serviceGoogleTranslate": {
+    "message": "Google Translate"
+  },
+  "serviceMicrosoftTranslate": {
+    "message": "Microsoft Translator"
+  },
+  "serviceTranslateWebPages": {
+    "message": "DualTran"
+  },
+  "serviceYandex": {
+    "message": "Yandex"
+  },
+  "showOriginalText": {
+    "message": "Hiện văn bản gốc"
+  },
+  "swapPopup": {
+    "message": "Chuyển đổi giữa giao diện đơn giản và nâng cao"
+  },
+  "swapTranslationService": {
+    "message": "Chuyển đổi giữa các dịch vụ dịch thuật"
+  },
+  "tooltipImproveTranslationByAI": {
+    "message": "nhấp để cải thiện bản dịch bằng AI"
+  },
+  "translateClickingOnce": {
+    "message": "Dịch trang web bằng cách nhấp một lần vào nút trên thanh địa chỉ. (Để xem cửa sổ bật lên, nhấp chuột phải)"
+  }
+}

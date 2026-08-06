@@ -1,0 +1,700 @@
+{
+  "aiProviderOpenAI": {
+    "message": "OpenAI"
+  },
+  "aiProviderOpenRouter": {
+    "message": "OpenRouter"
+  },
+  "alertSpecifyTargetLanguage": {
+    "message": "Nejprve prosím zadejte cílový jazyk."
+  },
+  "backupToFile": {
+    "message": "Zálohovat do souboru"
+  },
+  "btnAlwaysTranslate": {
+    "message": "Vždy překládat tuto stránku"
+  },
+  "btnAlwaysTranslateThisLanguage": {
+    "message": "Tento jazyk vždy překládejte"
+  },
+  "btnApply": {
+    "message": "Aplikovat"
+  },
+  "btnListen": {
+    "message": "Poslouchat"
+  },
+  "btnMobileDonate": {
+    "message": "Přispět"
+  },
+  "btnMobileNeverTranslate": {
+    "message": "Nikdy nepřekládat tento web"
+  },
+  "btnMobileOriginal": {
+    "message": "Originál"
+  },
+  "btnMobileTranslated": {
+    "message": "Přeloženo"
+  },
+  "btnMoreOptions": {
+    "message": "Více možností"
+  },
+  "btnNeverTranslate": {
+    "message": "Nikdy nepřekládat tuto stránku"
+  },
+  "btnNeverTranslateThisLanguage": {
+    "message": "Tyto jazyky nikdy nepřekládat"
+  },
+  "btnOptions": {
+    "message": "Možnosti"
+  },
+  "btnReplace": {
+    "message": "Nahradit"
+  },
+  "btnReset": {
+    "message": "Resetovat"
+  },
+  "btnRestore": {
+    "message": "Ukázat originál"
+  },
+  "btnShowPopup": {
+    "message": "Zobrazit vyskakovací okno"
+  },
+  "btnStopListening": {
+    "message": "Přestaň poslouchat"
+  },
+  "btnSubmit": {
+    "message": "Odeslat"
+  },
+  "btnTranslate": {
+    "message": "Přeložit"
+  },
+  "btncopy": {
+    "message": "Kopírovat"
+  },
+  "calculatestorage": {
+    "message": "Spočítat"
+  },
+  "confirmAutoTranslateWithAI": {
+    "message": "Chcete, aby Dualtran v budoucnu automaticky překládal pomocí AI?"
+  },
+  "confirmSetApiKeyNow": {
+    "message": "Klíč API není nastaven. Chcete jej nastavit nyní?"
+  },
+  "deleteTranslationCache": {
+    "message": "Vymazat vyrovnávací paměť"
+  },
+  "displayTranslatedTextInNewLine": {
+    "message": "nový řádek pod původním textem"
+  },
+  "doYouWantOverwriteAllSettings": {
+    "message": "Chcete přepsat všechna existující nastavení pomocí záložních dat?"
+  },
+  "doYouWantRestoreSettings": {
+    "message": "Chcete obnovit rozšíření do výchozího nastavení?"
+  },
+  "doYouWantToDeleteTranslationCache": {
+    "message": "Chcete vymazat vyrovnávací paměť překladače?"
+  },
+  "donatewithpaypal": {
+    "message": "Podpořit přes PayPal"
+  },
+  "dontShowIfPageLangIsTargetLang": {
+    "message": "Nezobrazovat, pokud je jazyk stránky cílovým jazykem"
+  },
+  "dontShowIfPageLangIsUnknown": {
+    "message": "Nezobrazovat, pokud je neznámý jazyk stránky"
+  },
+  "dontShowIfSelectedTextIsTargetLang": {
+    "message": "Nezobrazovat, pokud je vybraný jazyk textu cílovým jazykem"
+  },
+  "dontShowIfSelectedTextIsUnknown": {
+    "message": "Nezobrazovat, pokud je vybraný jazyk textu neznámý"
+  },
+  "enterShortcut": {
+    "message": "Stiskněte zkratku"
+  },
+  "errorApiKeyNotFound": {
+    "message": "API klíč nebyl nalezen!"
+  },
+  "errorCopyFailed": {
+    "message": "Kopírování se nezdařilo."
+  },
+  "errorCopyFailedInsecure": {
+    "message": "Kopírování textu se nezdařilo. Pravděpodobně proto, že protokol URL stránky je nezabezpečený HTTP, ne HTTPS."
+  },
+  "errorTranslationUnknown": {
+    "message": "Chyba překladu: neznámá chyba."
+  },
+  "errorTranslationWithMessage": {
+    "message": "Chyba překladu: $ERROR_MESSAGE$",
+    "placeholders": {
+      "ERROR_MESSAGE": {
+        "content": "$1",
+        "example": "Síťová chyba"
+      }
+    }
+  },
+  "extensionDescription": {
+    "message": "Přeložte svou stránku v reálném čase pomocí Google nebo OpenAI."
+  },
+  "extensionName": {
+    "message": "Přeložit webové stránky"
+  },
+  "fileIsCorrupted": {
+    "message": "Soubor se zdá být poškozen"
+  },
+  "floatingButtonTooltip": {
+    "message": "Click to toggle translation state; drag to move this button"
+  },
+  "hideOriginalText": {
+    "message": "Skrýt původní text"
+  },
+  "hotkeyError_ctrlOrAlt": {
+    "message": "Zahrnout Ctrl nebo Alt"
+  },
+  "hotkeyError_invalid": {
+    "message": "Neplatná kombinace"
+  },
+  "hotkeyError_letter": {
+    "message": "Zadejte písmeno"
+  },
+  "lblAdd": {
+    "message": "Přidat"
+  },
+  "lblAiFeatures": {
+    "message": "AI Features"
+  },
+  "lblAiImproveForLongerThan": {
+    "message": "Zlepšovat překlady pomocí AI pouze pro texty s více než",
+    "description": "Label for the minimum number of words required to trigger AI improvement"
+  },
+  "lblAiProvider": {
+    "message": "Poskytovatel AI"
+  },
+  "lblAiTranslatedStyle": {
+    "message": "Color of AI translated text "
+  },
+  "lblAlwaysTranslate": {
+    "message": "Vždy přeložit z $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblAlwaysTranslateSites": {
+    "message": "Tyto stránky vždy překládejte"
+  },
+  "lblApiKeyOpenAI": {
+    "message": "OpenAI API klíč"
+  },
+  "lblApiKeyOpenRouter": {
+    "message": "Klíč OpenRouter API"
+  },
+  "lblAutoImproveByAi": {
+    "message": "Automaticky vylepšovat překlady pomocí AI"
+  },
+  "lblAutoTranslateWhenClickingALink": {
+    "message": "Automaticky přeložit při kliknutí na odkaz, který vás přesune na stejnou doménu jako aktuální web"
+  },
+  "lblButtonInTheAddressBar": {
+    "message": "Zobrazit tlačítko v adresním řádku"
+  },
+  "lblDarkMode": {
+    "message": "Tmavý režim"
+  },
+  "lblEnableDeepL": {
+    "message": "Povolit DeepL jako textovou překladatelskou službu"
+  },
+  "lblEnterApiKey": {
+    "message": "Enter API key"
+  },
+  "lblError": {
+    "message": "Tuto stránku nelze přeložit"
+  },
+  "lblFavoriteLanguage": {
+    "message": "Oblíbený jazyk $FAVORITE_LANGUAGE_NUM$",
+    "placeholders": {
+      "FAVORITE_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblFreeTranslationEngine": {
+    "message": "Free translation engine"
+  },
+  "lblHotTranslatedSelectedText": {
+    "message": "Okamžitě nahraďte vybraný text přeloženým textem"
+  },
+  "lblKeyboardShortcuts": {
+    "message": "Klávesové zkratky"
+  },
+  "lblKeyboardShortcutsSpecial": {
+    "message": "Speciální klávesové zkratky"
+  },
+  "lblMakeDonation": {
+    "message": "Přispět"
+  },
+  "lblNeverTranslateLangs": {
+    "message": "Tento jazyk nikdy nepřekládat"
+  },
+  "lblOpenAiModel": {
+    "message": "OpenAI Model"
+  },
+  "lblOpenRouterBaseUrl": {
+    "message": "Základna rozhraní OpenRouter API (volitelné)"
+  },
+  "lblOpenRouterModel": {
+    "message": "Model OpenRouter"
+  },
+  "lblOpenRouterReferer": {
+    "message": "Záhlaví HTTP Referer (volitelné)"
+  },
+  "lblOpenRouterTitle": {
+    "message": "Záhlaví X-Title (volitelné)"
+  },
+  "lblOthers": {
+    "message": "Ostatní"
+  },
+  "lblPageTranslateInto": {
+    "message": "Stránka přeložena do $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblPageTranslationService": {
+    "message": "Služba na překlad stránek"
+  },
+  "lblPersonalSettings": {
+    "message": "Osobní nastavení"
+  },
+  "lblPlsDonate": {
+    "message": "Pomozte vývojáři darem"
+  },
+  "lblReleaseNotes": {
+    "message": "Poznámky k vydání"
+  },
+  "lblReplaceSelectedTextWithTranslatedText": {
+    "message": "Nahraďte vybraný text přeloženým textem při dvojím stisknutí $SHORTCUT_KEY$",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblReport": {
+    "message": "Nahlásit problém"
+  },
+  "lblReset": {
+    "message": "Obnovit"
+  },
+  "lblRestorePageToOriginal": {
+    "message": "Obnovit stránku na původní"
+  },
+  "lblSelectPopupInterfaceStyle": {
+    "message": "Select popup interface style"
+  },
+  "lblSettings": {
+    "message": "Nastavení"
+  },
+  "lblShowContextMenu": {
+    "message": "V místní nabídce se zobrazí možnost překladu stránky"
+  },
+  "lblShowOriginalTextWhenHovering": {
+    "message": "Zobrazit původní text při najetí"
+  },
+  "lblShowReleaseNotes": {
+    "message": "Zobrazit poznámky k vydání při aktualizaci"
+  },
+  "lblShowTranslateSelectedButton": {
+    "message": "Zobrazit tlačítko pro překlad vybraného textu"
+  },
+  "lblShowTranslateSelectedContextMenu": {
+    "message": "V místní nabídce se zobrazí možnost překladu stránky"
+  },
+  "lblShowTranslatedHoveringLangs": {
+    "message": "Zobrazovat přeložený text, když najedete myší nad weby v těchto jazycích"
+  },
+  "lblShowTranslatedHoveringSites": {
+    "message": "Když na těchto webech najedete myší, zobrazí se přeložený text"
+  },
+  "lblShowTranslatedWhenHovering": {
+    "message": "Při umístění kurzoru zobrazit přeložený text"
+  },
+  "lblShowTranslatedWhenHoveringThisLang": {
+    "message": "Zobrazit překlad při přejetí myší přes webové stránky v $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblShowTranslatedWhenHoveringThisSite": {
+    "message": "Zobrazit překlad, když umístíte ukazatel myši na tento web"
+  },
+  "lblStorageUsed": {
+    "message": "Využití úložiště:"
+  },
+  "lblSwitchTranslatedAndOriginal": {
+    "message": "Přepínání mezi přeloženou a původní stránkou"
+  },
+  "lblTargetLanguage": {
+    "message": "Cílový jazyk $TARGET_LANGUAGE_NUM$",
+    "placeholders": {
+      "TARGET_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblTargetLanguageGroup": {
+    "message": "Cílový jazyk"
+  },
+  "lblTextTranslationService": {
+    "message": "Služba na překlad textu"
+  },
+  "lblTranslate": {
+    "message": "Přeložit tuto stránku?"
+  },
+  "lblTranslateInterface": {
+    "message": "Přeložte rozhraní"
+  },
+  "lblTranslateLongerThan": {
+    "message": "Překládat pouze text s počtem slov větším než tato hodnota",
+    "description": "Label for the minimum number of words required to trigger translation"
+  },
+  "lblTranslatePageInto": {
+    "message": "Přeložit stránku do $LANGUAGE_NAME$?",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblTranslatePageToTargetLanguage": {
+    "message": "Přeložit stránku do cílového jazyka"
+  },
+  "lblTranslateSelectedWhenPressTwice": {
+    "message": "Přeložit vybraný text dvojím stisknutím $SHORTCUT_KEY$",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslateTag_pre": {
+    "message": "Povolit překlad pro tag $HTML_TAG_NAME$",
+    "placeholders": {
+      "HTML_TAG_NAME": {
+        "content": "<PRE>"
+      }
+    }
+  },
+  "lblTranslateTextOverMouseWhenPressTwice": {
+    "message": "Přeložit text přes kurzor myši po dvojím stisknutí $SHORTCUT_KEY$",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslated": {
+    "message": "Přeloženo"
+  },
+  "lblTranslatedStyle": {
+    "message": "Barva přeloženého textu Google"
+  },
+  "lblTranslating": {
+    "message": "Překlady ..."
+  },
+  "lblTranslationCache": {
+    "message": "Vyrovnávací paměť překladače"
+  },
+  "lblTranslationService": {
+    "message": "Překladatelská služba"
+  },
+  "lblTtsSpeed": {
+    "message": "Rychlost audia textu na řeč"
+  },
+  "lblUseNewAlgorithm": {
+    "message": "Použít nový překladový algoritmus?"
+  },
+  "lblWhereToDisplayTranslatedText": {
+    "message": "Kde zobrazit přeložený text"
+  },
+  "lbldontsortresults": {
+    "message": "Netřídit výsledky překladu Google"
+  },
+  "lbltranslatedynamicallycreatedcontent": {
+    "message": "Přeložit dynamicky vytvořený obsah"
+  },
+  "less": {
+    "message": "Méně"
+  },
+  "more": {
+    "message": "Více"
+  },
+  "msgAi": {
+    "message": "AI"
+  },
+  "msgAll": {
+    "message": "Všechno"
+  },
+  "msgAutomatic": {
+    "message": "Automatický"
+  },
+  "msgAzureEnterKeyAndEndpoint": {
+    "message": "Zadejte prosím Azure endpoint a API klíč pro získání dostupných modelů pro Azure OpenAI"
+  },
+  "msgCannotLoadDeepSeekModelsHttp": {
+    "message": "Nepodařilo se načíst modely DeepSeek (HTTP $1)",
+    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDonateWithPaypal": {
+    "message": "Podpořit přes PayPal"
+  },
+  "msgDownloadingDocument": {
+    "message": "Stahuji dokument..."
+  },
+  "msgEmptyListAlwaysTranslateLanguages": {
+    "message": "Do tohoto seznamu jste nepřidali žádný úkol."
+  },
+  "msgEmptyListNeverTranslateSites": {
+    "message": "Do tohoto seznamu jste nepřidali žádný úkol."
+  },
+  "msgEnterApiKeyForModels": {
+    "message": "Zadejte prosím API klíč pro získání dostupných modelů pro tohoto poskytovatele"
+  },
+  "msgErrorDownloadingDocument": {
+    "message": "Chyba při stahování dokumentu"
+  },
+  "msgFavoriteLanguages": {
+    "message": "Oblíbené jazyky"
+  },
+  "msgFileLargerThan": {
+    "message": "Tato služba nepodporuje soubory větší než $FILE_SIZE$",
+    "placeholders": {
+      "FILE_SIZE": {
+        "content": "$1",
+        "example": "10 MB"
+      }
+    }
+  },
+  "msgHotkeys": {
+    "message": "Klávesové zkratky"
+  },
+  "msgHowToGetOpenAIKey": {
+    "message": "Jak získat klíč OpenAI API?"
+  },
+  "msgHowToGetOpenRouterKey": {
+    "message": "Jak získat klíč OpenRouter API?"
+  },
+  "msgIWillBeGrateful": {
+    "message": "Budu vděčný, pokud můžete poskytnout dar."
+  },
+  "msgInterfaceComplex": {
+    "message": "Pokročilé"
+  },
+  "msgInterfaceSimple": {
+    "message": "Jednoduché"
+  },
+  "msgLanguages": {
+    "message": "Jazyky"
+  },
+  "msgLoadingModels": {
+    "message": "Načítání..."
+  },
+  "msgModelListFetchFailed": {
+    "message": "Failed to fetch model list with API key. Available models:"
+  },
+  "msgNo": {
+    "message": "Ne"
+  },
+  "msgNoTranslateSelectedText": {
+    "message": "Nepřeložit vybraný text"
+  },
+  "msgNoUseWidgets": {
+    "message": "Ne (používat widgety)"
+  },
+  "msgOpenOnYandexTranslator": {
+    "message": "Otevřeno v yandexovém překladu"
+  },
+  "msgOpenTranslated": {
+    "message": "Otevřít přeložené PDF"
+  },
+  "msgPDFtoHTML": {
+    "message": "PDF do HTML"
+  },
+  "msgPleaseWait": {
+    "message": "Prosím, čekejte..."
+  },
+  "msgRecents": {
+    "message": "Nedávné"
+  },
+  "msgSelectServiceConversion": {
+    "message": "Vyberte službu pro provedení této konverze"
+  },
+  "msgSelectTargetLanguage": {
+    "message": "Přeložte webové stránky do tohoto cílového jazyka"
+  },
+  "msgSelectTargetLanguageForText": {
+    "message": "Přeložte vybraný text do tohoto cílového jazyka"
+  },
+  "msgSendDocument": {
+    "message": "Odeslat dokument"
+  },
+  "msgSites": {
+    "message": "Weby"
+  },
+  "msgStorage": {
+    "message": "Úložiště"
+  },
+  "msgStyle": {
+    "message": "Styl"
+  },
+  "msgThanksForUseExtension": {
+    "message": "Děkujeme, že používáte toto rozšíření."
+  },
+  "msgToTranslateSites": {
+    "message": "Přeložit web"
+  },
+  "msgToTranslateThisDocument": {
+    "message": "Chcete-li přeložit tento dokument $DOC_TYPE$, je nutné jej převést na HTML",
+    "placeholders": {
+      "DOC_TYPE": {
+        "content": "$1",
+        "example": "(.pdf)"
+      }
+    }
+  },
+  "msgTranslateFor": {
+    "message": "Přeložit do $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateSelectedText": {
+    "message": "Přeložit označený text"
+  },
+  "msgTranslations": {
+    "message": "Překlady"
+  },
+  "msgUnknownLanguage": {
+    "message": "Neznámý"
+  },
+  "msgYes": {
+    "message": "Ano"
+  },
+  "msgYesRecommended": {
+    "message": "Ano (doporučeno)"
+  },
+  "openNativeShortcutManager": {
+    "message": "Otevřít nativního správce zkratek"
+  },
+  "optionFloatingConfig": {
+    "message": "zobrazit plovoucí tlačítko"
+  },
+  "optionPopupAuto": {
+    "message": "Automaticky"
+  },
+  "optionPopupConfig": {
+    "message": "Zobrazit mobilní vyskakovací okno"
+  },
+  "optionPopupThreeFingers": {
+    "message": "Když se dotknu tří prstů na obrazovce"
+  },
+  "optionPopupjustWhenIClickTranlateThisSite": {
+    "message": "Pouze po kliknutí na tlačítko \"Přeložit tuto stránku\""
+  },
+  "optionsAddToCustomDictionary": {
+    "message": "Přidat do vlastního slovníku (To vám umožní přeskočit určitá slova během překladu webové stránky)"
+  },
+  "optionsAlwaysTranslate": {
+    "message": "Vždy překládat tyto jazyky"
+  },
+  "optionsNeverTranslate": {
+    "message": "Nikdy tyto stránky nepřekládat"
+  },
+  "optionsPageTitle": {
+    "message": "Přeložit webové stránky - Možnosti"
+  },
+  "pageActionTitle": {
+    "message": "Přeložit tuto stránku"
+  },
+  "placeholderOpenRouterBase": {
+    "message": "https://openrouter.ai/api/v1/chat/completions"
+  },
+  "placeholderOpenRouterModel": {
+    "message": "openai/gpt-4o-mini"
+  },
+  "placeholderOpenRouterReferer": {
+    "message": "https://your-site.example"
+  },
+  "placeholderOpenRouterTitle": {
+    "message": "DualTran"
+  },
+  "popupBlueWhenSiteIsTranslated": {
+    "message": "Když je web přeložen, udělejte vyskakovací ikonu modrou"
+  },
+  "promptInputOpenAIKey": {
+    "message": "Zadejte prosím svůj OpenAI API klíč:"
+  },
+  "promptInputOpenRouterKey": {
+    "message": "Zadejte prosím svůj klíč OpenRouter API:"
+  },
+  "replaceOriginalTextWithTranslatedText": {
+    "message": "nahradit původní text"
+  },
+  "resetToDefault": {
+    "message": "Obnovit výchozí nastavení"
+  },
+  "restoreFromFile": {
+    "message": "Obnovit ze souboru"
+  },
+  "serviceBing": {
+    "message": "Bing"
+  },
+  "serviceDeepL": {
+    "message": "DeepL"
+  },
+  "serviceGoogle": {
+    "message": "Google"
+  },
+  "serviceGoogleTranslate": {
+    "message": "Google Translate"
+  },
+  "serviceMicrosoftTranslate": {
+    "message": "Microsoft Translator"
+  },
+  "serviceTranslateWebPages": {
+    "message": "DualTran"
+  },
+  "serviceYandex": {
+    "message": "Yandex"
+  },
+  "showOriginalText": {
+    "message": "Zobrazit původní text"
+  },
+  "swapPopup": {
+    "message": "Přepínat mezi jednoduchým a pokročilým rozhraním"
+  },
+  "swapTranslationService": {
+    "message": "Přepínání mezi překladatelskými službami"
+  },
+  "tooltipImproveTranslationByAI": {
+    "message": "kliknutím vylepšite překlad pomocí AI"
+  },
+  "translateClickingOnce": {
+    "message": "Stránku přeložíte jedním kliknutím na tlačítko v adresním řádku. (Chcete-li zobrazit vyskakovací okno, klikněte pravým tlačítkem myši)"
+  }
+}

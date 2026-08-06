@@ -1,0 +1,700 @@
+{
+  "aiProviderOpenAI": {
+    "message": "OpenAI"
+  },
+  "aiProviderOpenRouter": {
+    "message": "OpenRouter"
+  },
+  "alertSpecifyTargetLanguage": {
+    "message": "Vennligst spesifiser målspråket først."
+  },
+  "backupToFile": {
+    "message": "Sikkerhetskopier til fil"
+  },
+  "btnAlwaysTranslate": {
+    "message": "Oversett alltid denne siden"
+  },
+  "btnAlwaysTranslateThisLanguage": {
+    "message": "Oversett alltid dette språket"
+  },
+  "btnApply": {
+    "message": "Søke om"
+  },
+  "btnListen": {
+    "message": "Lytte"
+  },
+  "btnMobileDonate": {
+    "message": "Donere"
+  },
+  "btnMobileNeverTranslate": {
+    "message": "Oversett aldri dette nettstedet"
+  },
+  "btnMobileOriginal": {
+    "message": "Opprinnelig"
+  },
+  "btnMobileTranslated": {
+    "message": "Oversatt"
+  },
+  "btnMoreOptions": {
+    "message": "Flere valg"
+  },
+  "btnNeverTranslate": {
+    "message": "Oversett aldri denne siden"
+  },
+  "btnNeverTranslateThisLanguage": {
+    "message": "Oversett aldri dette språket"
+  },
+  "btnOptions": {
+    "message": "Alternativer"
+  },
+  "btnReplace": {
+    "message": "Erstatte"
+  },
+  "btnReset": {
+    "message": "Nullstille"
+  },
+  "btnRestore": {
+    "message": "Vis originalen"
+  },
+  "btnShowPopup": {
+    "message": "Vis popup"
+  },
+  "btnStopListening": {
+    "message": "Slutt å lytte"
+  },
+  "btnSubmit": {
+    "message": "Send"
+  },
+  "btnTranslate": {
+    "message": "Oversette"
+  },
+  "btncopy": {
+    "message": "Kopiere"
+  },
+  "calculatestorage": {
+    "message": "Regne ut"
+  },
+  "confirmAutoTranslateWithAI": {
+    "message": "Vil du at Dualtran automatisk skal oversette med AI i fremtiden?"
+  },
+  "confirmSetApiKeyNow": {
+    "message": "API-nøkkelen er ikke satt. Vil du sette den opp nå?"
+  },
+  "deleteTranslationCache": {
+    "message": "Slett oversettelsesbuffer"
+  },
+  "displayTranslatedTextInNewLine": {
+    "message": "Vis oversatt tekst på en ny linje"
+  },
+  "doYouWantOverwriteAllSettings": {
+    "message": "Vil du overskrive alle eksisterende innstillinger ved å bruke sikkerhetskopidataene?"
+  },
+  "doYouWantRestoreSettings": {
+    "message": "Vil du gjenopprette utvidelsen til standardinnstillingene?"
+  },
+  "doYouWantToDeleteTranslationCache": {
+    "message": "Vil du slette oversettelsesbufferen?"
+  },
+  "donatewithpaypal": {
+    "message": "Doner med PayPal"
+  },
+  "dontShowIfPageLangIsTargetLang": {
+    "message": "Ikke vis om sidespråket er målspråket"
+  },
+  "dontShowIfPageLangIsUnknown": {
+    "message": "Ikke vis hvis sidespråket er ukjent"
+  },
+  "dontShowIfSelectedTextIsTargetLang": {
+    "message": "Ikke vis om det valgte tekstspråket er målspråket"
+  },
+  "dontShowIfSelectedTextIsUnknown": {
+    "message": "Ikke vis hvis det valgte tekstspråket er ukjent"
+  },
+  "enterShortcut": {
+    "message": "Skriv inn en snarvei"
+  },
+  "errorApiKeyNotFound": {
+    "message": "API-nøkkel ikke funnet!"
+  },
+  "errorCopyFailed": {
+    "message": "Kopiering mislyktes."
+  },
+  "errorCopyFailedInsecure": {
+    "message": "Kopiering av tekst mislyktes. Sannsynligvis fordi sidens URL-protokoll er usikker HTTP, ikke HTTPS."
+  },
+  "errorTranslationUnknown": {
+    "message": "Oversettingsfeil: ukjent feil."
+  },
+  "errorTranslationWithMessage": {
+    "message": "Oversettingsfeil: $ERROR_MESSAGE$",
+    "placeholders": {
+      "ERROR_MESSAGE": {
+        "content": "$1",
+        "example": "Nettverksfeil"
+      }
+    }
+  },
+  "extensionDescription": {
+    "message": "Oversett siden din i sanntid ved hjelp av Google eller OpenAI."
+  },
+  "extensionName": {
+    "message": "Oversett nettsider"
+  },
+  "fileIsCorrupted": {
+    "message": "Filen ser ut til å være ødelagt"
+  },
+  "floatingButtonTooltip": {
+    "message": "Click to toggle translation state; drag to move this button"
+  },
+  "hideOriginalText": {
+    "message": "Skjul originaltekst"
+  },
+  "hotkeyError_ctrlOrAlt": {
+    "message": "Ta med Ctrl eller Alt"
+  },
+  "hotkeyError_invalid": {
+    "message": "Ugyldig kombinasjon"
+  },
+  "hotkeyError_letter": {
+    "message": "Skriv inn en bokstav"
+  },
+  "lblAdd": {
+    "message": "Legge til"
+  },
+  "lblAiFeatures": {
+    "message": "AI Features"
+  },
+  "lblAiImproveForLongerThan": {
+    "message": "Forbedre oversettelser med KI kun når antall ord er flere enn",
+    "description": "Label for the minimum number of words required to trigger AI improvement"
+  },
+  "lblAiProvider": {
+    "message": "AI-leverandør"
+  },
+  "lblAiTranslatedStyle": {
+    "message": "Color of AI translated text "
+  },
+  "lblAlwaysTranslate": {
+    "message": "Oversett alltid fra $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblAlwaysTranslateSites": {
+    "message": "Oversett alltid disse nettstedene"
+  },
+  "lblApiKeyOpenAI": {
+    "message": "OpenAI API-nøkkel"
+  },
+  "lblApiKeyOpenRouter": {
+    "message": "OpenRouter API-nøkkel"
+  },
+  "lblAutoImproveByAi": {
+    "message": "Forbedre oversettelser automatisk med KI"
+  },
+  "lblAutoTranslateWhenClickingALink": {
+    "message": "Oversett automatisk når du klikker på en lenke som tar deg til samme domene som det gjeldende nettstedet"
+  },
+  "lblButtonInTheAddressBar": {
+    "message": "Vis knapp i adressefeltet"
+  },
+  "lblDarkMode": {
+    "message": "Mørk modus"
+  },
+  "lblEnableDeepL": {
+    "message": "Aktiver DeepL som en tekstoversettelsestjeneste"
+  },
+  "lblEnterApiKey": {
+    "message": "Enter API key"
+  },
+  "lblError": {
+    "message": "Denne siden kunne ikke oversettes"
+  },
+  "lblFavoriteLanguage": {
+    "message": "Favorittspråk $FAVORITE_LANGUAGE_NUM$",
+    "placeholders": {
+      "FAVORITE_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblFreeTranslationEngine": {
+    "message": "Free translation engine"
+  },
+  "lblHotTranslatedSelectedText": {
+    "message": "Erstatt valgt tekst med oversatt tekst umiddelbart"
+  },
+  "lblKeyboardShortcuts": {
+    "message": "Tastatursnarveier"
+  },
+  "lblKeyboardShortcutsSpecial": {
+    "message": "Spesielle hurtigtaster"
+  },
+  "lblMakeDonation": {
+    "message": "Gi en donasjon"
+  },
+  "lblNeverTranslateLangs": {
+    "message": "Oversett aldri disse språkene"
+  },
+  "lblOpenAiModel": {
+    "message": "OpenAI Modell"
+  },
+  "lblOpenRouterBaseUrl": {
+    "message": "OpenRouter API-base (valgfritt)"
+  },
+  "lblOpenRouterModel": {
+    "message": "OpenRouter-modell"
+  },
+  "lblOpenRouterReferer": {
+    "message": "HTTP Referer-header (valgfritt)"
+  },
+  "lblOpenRouterTitle": {
+    "message": "X-Title-header (valgfritt)"
+  },
+  "lblOthers": {
+    "message": "Andre"
+  },
+  "lblPageTranslateInto": {
+    "message": "Side oversatt til $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblPageTranslationService": {
+    "message": "Sideoversettelsestjeneste"
+  },
+  "lblPersonalSettings": {
+    "message": "Personlige innstillinger"
+  },
+  "lblPlsDonate": {
+    "message": "Hjelp utvikleren med en donasjon"
+  },
+  "lblReleaseNotes": {
+    "message": "Utgivelsesnotater"
+  },
+  "lblReplaceSelectedTextWithTranslatedText": {
+    "message": "Erstatt valgt tekst med oversatt tekst når du trykker $SHORTCUT_KEY$ to ganger",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblReport": {
+    "message": "Rapporter et problem"
+  },
+  "lblReset": {
+    "message": "Tilbakestill"
+  },
+  "lblRestorePageToOriginal": {
+    "message": "Gjenopprett siden til originalen"
+  },
+  "lblSelectPopupInterfaceStyle": {
+    "message": "Velg popup-grensesnittstil"
+  },
+  "lblSettings": {
+    "message": "Innstillinger"
+  },
+  "lblShowContextMenu": {
+    "message": "Vis alternativet for å oversette siden i hurtigmenyen"
+  },
+  "lblShowOriginalTextWhenHovering": {
+    "message": "Vis originaltekst når du holder musepekeren"
+  },
+  "lblShowReleaseNotes": {
+    "message": "Vis versjonsnotater ved oppdatering"
+  },
+  "lblShowTranslateSelectedButton": {
+    "message": "Vis knappen for å oversette den valgte teksten"
+  },
+  "lblShowTranslateSelectedContextMenu": {
+    "message": "Vis alternativet for å oversette den valgte teksten i hurtigmenyen"
+  },
+  "lblShowTranslatedHoveringLangs": {
+    "message": "Vis oversatt tekst når du holder markøren over nettsteder med disse språkene"
+  },
+  "lblShowTranslatedHoveringSites": {
+    "message": "Vis oversatt tekst når du holder musepekeren på disse nettstedene"
+  },
+  "lblShowTranslatedWhenHovering": {
+    "message": "Vis oversatt tekst når du holder markøren"
+  },
+  "lblShowTranslatedWhenHoveringThisLang": {
+    "message": "Vis oversettelse når du holder musepekeren over nettsteder i $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblShowTranslatedWhenHoveringThisSite": {
+    "message": "Vis oversettelse når du holder musepekeren over denne siden"
+  },
+  "lblStorageUsed": {
+    "message": "Lagring brukt:"
+  },
+  "lblSwitchTranslatedAndOriginal": {
+    "message": "Bytt mellom den oversatte og den originale siden"
+  },
+  "lblTargetLanguage": {
+    "message": "Målspråk $TARGET_LANGUAGE_NUM$",
+    "placeholders": {
+      "TARGET_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblTargetLanguageGroup": {
+    "message": "Målspråk"
+  },
+  "lblTextTranslationService": {
+    "message": "Tekstoversettelsestjeneste"
+  },
+  "lblTranslate": {
+    "message": "Oversette denne siden?"
+  },
+  "lblTranslateInterface": {
+    "message": "Oversett grensesnittet"
+  },
+  "lblTranslateLongerThan": {
+    "message": "Oversett bare tekst med flere ord enn denne verdien",
+    "description": "Label for the minimum number of words required to trigger translation"
+  },
+  "lblTranslatePageInto": {
+    "message": "Oversett siden til $LANGUAGE_NAME$?",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblTranslatePageToTargetLanguage": {
+    "message": "Oversett siden til målspråket"
+  },
+  "lblTranslateSelectedWhenPressTwice": {
+    "message": "Oversett valgt tekst når du trykker $SHORTCUT_KEY$ to ganger",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslateTag_pre": {
+    "message": "Aktiver oversettelse for taggen $HTML_TAG_NAME$",
+    "placeholders": {
+      "HTML_TAG_NAME": {
+        "content": "<PRE>"
+      }
+    }
+  },
+  "lblTranslateTextOverMouseWhenPressTwice": {
+    "message": "Oversett teksten over musepekeren når du trykker $SHORTCUT_KEY$ to ganger",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslated": {
+    "message": "Oversatt"
+  },
+  "lblTranslatedStyle": {
+    "message": "Google oversatt tekst farge"
+  },
+  "lblTranslating": {
+    "message": "Oversetter ..."
+  },
+  "lblTranslationCache": {
+    "message": "Oversettelsesbuffer"
+  },
+  "lblTranslationService": {
+    "message": "Oversettelsestjeneste"
+  },
+  "lblTtsSpeed": {
+    "message": "Tekst-til-tale lydhastighet"
+  },
+  "lblUseNewAlgorithm": {
+    "message": "Vil du bruke den nye oversettelsesalgoritmen?"
+  },
+  "lblWhereToDisplayTranslatedText": {
+    "message": "Hvor oversatt tekst skal vises"
+  },
+  "lbldontsortresults": {
+    "message": "Ikke sorter google translate-resultatene"
+  },
+  "lbltranslatedynamicallycreatedcontent": {
+    "message": "Oversett dynamisk skapt innhold"
+  },
+  "less": {
+    "message": "Mindre"
+  },
+  "more": {
+    "message": "Mer"
+  },
+  "msgAi": {
+    "message": "AI"
+  },
+  "msgAll": {
+    "message": "Alle"
+  },
+  "msgAutomatic": {
+    "message": "Automatisk"
+  },
+  "msgAzureEnterKeyAndEndpoint": {
+    "message": "Vennligst oppgi Azure-endepunkt og API-nøkkel for å hente tilgjengelige modeller for Azure OpenAI"
+  },
+  "msgCannotLoadDeepSeekModelsHttp": {
+    "message": "Fikk ikke lastet DeepSeek-modeller (HTTP $1)",
+    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDonateWithPaypal": {
+    "message": "Doner med PayPal"
+  },
+  "msgDownloadingDocument": {
+    "message": "Laster ned dokumentet..."
+  },
+  "msgEmptyListAlwaysTranslateLanguages": {
+    "message": "Du har ikke lagt til noen språk i denne listen."
+  },
+  "msgEmptyListNeverTranslateSites": {
+    "message": "Du har ikke lagt til noen nettsteder i denne listen."
+  },
+  "msgEnterApiKeyForModels": {
+    "message": "Vennligst oppgi API-nøkkel for å hente tilgjengelige modeller for denne leverandøren"
+  },
+  "msgErrorDownloadingDocument": {
+    "message": "Feil ved nedlasting av dokument"
+  },
+  "msgFavoriteLanguages": {
+    "message": "Favorittspråk"
+  },
+  "msgFileLargerThan": {
+    "message": "Denne tjenesten støtter ikke filer større enn $FILE_SIZE$",
+    "placeholders": {
+      "FILE_SIZE": {
+        "content": "$1",
+        "example": "10 MB"
+      }
+    }
+  },
+  "msgHotkeys": {
+    "message": "Hurtigtaster"
+  },
+  "msgHowToGetOpenAIKey": {
+    "message": "Hvordan får jeg en OpenAI API-nøkkel?"
+  },
+  "msgHowToGetOpenRouterKey": {
+    "message": "Hvordan får jeg en OpenRouter API-nøkkel?"
+  },
+  "msgIWillBeGrateful": {
+    "message": "Jeg vil være takknemlig hvis du kan gi en donasjon."
+  },
+  "msgInterfaceComplex": {
+    "message": "Avansert"
+  },
+  "msgInterfaceSimple": {
+    "message": "Enkel"
+  },
+  "msgLanguages": {
+    "message": "Språk"
+  },
+  "msgLoadingModels": {
+    "message": "Laster..."
+  },
+  "msgModelListFetchFailed": {
+    "message": "Failed to fetch model list with API key. Available models:"
+  },
+  "msgNo": {
+    "message": "Nei"
+  },
+  "msgNoTranslateSelectedText": {
+    "message": "Ikke oversett valgt tekst"
+  },
+  "msgNoUseWidgets": {
+    "message": "Nei (bruk widgets)"
+  },
+  "msgOpenOnYandexTranslator": {
+    "message": "Åpne i yandex translate"
+  },
+  "msgOpenTranslated": {
+    "message": "Åpne oversatt PDF"
+  },
+  "msgPDFtoHTML": {
+    "message": "PDF til HTML"
+  },
+  "msgPleaseWait": {
+    "message": "Vennligst vent..."
+  },
+  "msgRecents": {
+    "message": "Nylig"
+  },
+  "msgSelectServiceConversion": {
+    "message": "Velg en tjeneste for å utføre denne konverteringen"
+  },
+  "msgSelectTargetLanguage": {
+    "message": "Oversett nettsteder til dette målspråket"
+  },
+  "msgSelectTargetLanguageForText": {
+    "message": "Translate seleOversett valgt tekst til dette målspråketcted text into this target language"
+  },
+  "msgSendDocument": {
+    "message": "Send dokument"
+  },
+  "msgSites": {
+    "message": "Nettsteder"
+  },
+  "msgStorage": {
+    "message": "Oppbevaring"
+  },
+  "msgStyle": {
+    "message": "Stil"
+  },
+  "msgThanksForUseExtension": {
+    "message": "Takk for at du bruker denne utvidelsen."
+  },
+  "msgToTranslateSites": {
+    "message": "For å oversette nettstedet"
+  },
+  "msgToTranslateThisDocument": {
+    "message": "For å oversette dette dokumentet $DOC_TYPE$ er det nødvendig å konvertere det til HTML",
+    "placeholders": {
+      "DOC_TYPE": {
+        "content": "$1",
+        "example": "(.pdf)"
+      }
+    }
+  },
+  "msgTranslateFor": {
+    "message": "Oversett til $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateSelectedText": {
+    "message": "Oversett valgt tekst"
+  },
+  "msgTranslations": {
+    "message": "Oversettelser"
+  },
+  "msgUnknownLanguage": {
+    "message": "Ukjent"
+  },
+  "msgYes": {
+    "message": "Ja"
+  },
+  "msgYesRecommended": {
+    "message": "Ja (anbefalt)"
+  },
+  "openNativeShortcutManager": {
+    "message": "Åpne administrator for innebygd snarvei"
+  },
+  "optionFloatingConfig": {
+    "message": "vis den flytende knappen"
+  },
+  "optionPopupAuto": {
+    "message": "Automatisk"
+  },
+  "optionPopupConfig": {
+    "message": "Vis popup-vinduet for mobil"
+  },
+  "optionPopupThreeFingers": {
+    "message": "Når jeg berører tre fingre på skjermen"
+  },
+  "optionPopupjustWhenIClickTranlateThisSite": {
+    "message": "Bare når jeg klikker \"Oversett denne siden\""
+  },
+  "optionsAddToCustomDictionary": {
+    "message": "Legg til i egendefinert ordbok (dette lar deg hoppe over bestemte ord under oversettelse av nettsider)"
+  },
+  "optionsAlwaysTranslate": {
+    "message": "Oversett alltid disse språkene"
+  },
+  "optionsNeverTranslate": {
+    "message": "Oversett aldri disse nettstedene"
+  },
+  "optionsPageTitle": {
+    "message": "Oversett nettsider - Alternativer"
+  },
+  "pageActionTitle": {
+    "message": "Oversett denne siden"
+  },
+  "placeholderOpenRouterBase": {
+    "message": "https://openrouter.ai/api/v1/chat/completions"
+  },
+  "placeholderOpenRouterModel": {
+    "message": "openai/gpt-4o-mini"
+  },
+  "placeholderOpenRouterReferer": {
+    "message": "https://your-site.example"
+  },
+  "placeholderOpenRouterTitle": {
+    "message": "DualTran"
+  },
+  "popupBlueWhenSiteIsTranslated": {
+    "message": "Gjør popup-ikonet blått når nettstedet er oversatt"
+  },
+  "promptInputOpenAIKey": {
+    "message": "Vennligst skriv inn din OpenAI API-nøkkel:"
+  },
+  "promptInputOpenRouterKey": {
+    "message": "Skriv inn OpenRouter API-nøkkelen din:"
+  },
+  "replaceOriginalTextWithTranslatedText": {
+    "message": "Erstatt originaltekst med oversatt tekst"
+  },
+  "resetToDefault": {
+    "message": "Gjenopprett standardinnstillinger"
+  },
+  "restoreFromFile": {
+    "message": "Gjenopprett fra fil"
+  },
+  "serviceBing": {
+    "message": "Bing"
+  },
+  "serviceDeepL": {
+    "message": "DeepL"
+  },
+  "serviceGoogle": {
+    "message": "Google"
+  },
+  "serviceGoogleTranslate": {
+    "message": "Google Translate"
+  },
+  "serviceMicrosoftTranslate": {
+    "message": "Microsoft Translator"
+  },
+  "serviceTranslateWebPages": {
+    "message": "DualTran"
+  },
+  "serviceYandex": {
+    "message": "Yandex"
+  },
+  "showOriginalText": {
+    "message": "Vis originaltekst"
+  },
+  "swapPopup": {
+    "message": "Bytt mellom enkel og avansert grensesnitt"
+  },
+  "swapTranslationService": {
+    "message": "Bytt mellom oversettelsestjenester"
+  },
+  "tooltipImproveTranslationByAI": {
+    "message": "klikk for å forbedre oversettelsen med AI"
+  },
+  "translateClickingOnce": {
+    "message": "Oversett siden ved å klikke én gang på knappen i adressefeltet. (Høyreklikk for å se popup-vinduet)"
+  }
+}

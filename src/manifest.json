@@ -1,0 +1,190 @@
+{
+  "manifest_version": 3,
+  "default_locale": "en",
+  "name": "DualTran",
+	"version": "2.1.30",
+	"description": "AI-powered browser extension that translates web pages and displays the translated text with the original text in the same page.",
+  // 注册默认快捷键，文档：https://developer.chrome.com/docs/extensions/mv3/declare_commands/
+  "commands": {
+    "hotkey-toggle-translation": {
+      "suggested_key": {
+        "default": "Alt+T"
+      },
+      "description": "__MSG_lblSwitchTranslatedAndOriginal__"
+    },
+    "hotkey-translate-selected-text": {
+      "suggested_key": {
+        "default": "Alt+S"
+      },
+      "description": "__MSG_msgTranslateSelectedText__"
+    },
+    "hotkey-swap-page-translation-service": {
+      "suggested_key": {
+        "default": "Alt+Q"
+      },
+      "description": "__MSG_swapTranslationService__"
+    }
+    ,
+    "hotkey-show-original": {
+      "description": "__MSG_lblRestorePageToOriginal__"
+    },
+    "hotkey-translate-page-1": {
+      "description": "__MSG_lblTranslatePageToTargetLanguage__ 1"
+    },
+    "hotkey-translate-page-2": {
+      "description": "__MSG_lblTranslatePageToTargetLanguage__ 2"
+    },
+    "hotkey-translate-page-3": {
+      "description": "__MSG_lblTranslatePageToTargetLanguage__ 3"
+    },
+    "hotkey-hot-translate-selected-text": {
+      "description": "__MSG_lblHotTranslatedSelectedText__"
+    }
+  },
+
+  "icons": {
+    "32": "/icons/icon-32.png",
+    "64": "/icons/icon-64.png",
+    "128": "/icons/icon-128.png"
+  },
+
+  // https://developer.chrome.com/docs/extensions/reference/permissions/#manifest
+  // https://developer.chrome.com/docs/extensions/mv3/declare_permissions/
+  // 在permissions字段里, 列出您的扩展程序的基本功能需要使用的必需的权限。对于此字段所列出的权限,浏览器仅提示用户一次接受。
+  // 当您升级扩展程序时，如果此字段添加了新权限, 浏览器会禁用扩展程序,直到用户重新启用. 如果权限只是在执行某些功能才用到,可以使用optional permissions
+  "permissions": [
+    // 存储权限, 需要此权限才能在业务代码中调用chrome.storage API
+    "storage",
+    // activeTab权限使当用户与该扩展程序交互(比如点击扩展图标/执行上下文菜单项/从commands API执行键盘快捷键/接受来自omnibox API的建议)时，扩展可获得临时的针对活动tab的额外权限
+    // 具体包括针对活动tab调用scripting.insertCSS/调用tabs.Tab/拦截requests等等
+    "activeTab", 
+    // 需要此权限才能在业务代码中调用chrome.contextMenus API
+    "contextMenus",
+    // 此权限用于使用 chrome.WebRequest API, 该API允许你为HTTP 请求的各个阶段添加事件侦听器, 从而观察和分析流量并拦截、阻止或修改正在运行的请求。
+    // 在本扩展中,使用此API来的onHeadersReceived钩子中获取document's mimetype
+    "webRequest",
+    // 需要此权限才能在业务代码中调用chrome.alarms API. 在本扩展中,用于通知tab在页面DOMContentLoaded事件触发后600毫秒后自动翻译网页(但是小于1分钟,似乎不起作用)
+    "alarms",
+    // 需要此权限以在离屏页面发送请求.
+    "offscreen",
+    // 需要此权限以使用declarativeNetRequest API修改请求头(如User-Agent伪装为Edge浏览器)
+    "declarativeNetRequest"
+  ],
+
+  // 如果某个权限只是在执行某些功能才用到,可以在optional permissions字段值里列出, 然后在业务逻辑代码中调用chrome.permissions.request接口来动态请求权限.
+  // 注意: 调用chrome.permissions.request接口, 浏览器会弹框提示用户此权限的作用。
+  // 当您升级扩展程序时，如果升级添加了可选权限而不是必需权限，Chrome 不会为您的用户禁用扩展。
+  "optional_permissions": [
+    // 此权限用于使用 chrome.webNavigation API, 该API允许你接收有关正在运行的导航请求状态的通知。常见导航状态如: onBeforeNavigate -> onCommitted -> [onDOMContentLoaded] -> onCompleted
+    // 本扩展中, 使用此权限以达到"若点击链接所访问的网站与当前域名相同，则自动翻译"
+    "webNavigation"
+  ],
+
+  
+  // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/host_permissions
+  // https://extensionworkshop.com/documentation/develop/request-the-right-permissions/
+  // 在哪些host上请求获取读写host数据的权限(例如 cookies 、 webRequest 和 tabs等). 
+  // 如果有这个权限,则不需要在permissoins属性(数组)中添加activeTab.
+  "host_permissions": [
+    "https://translate.googleapis.com/*",
+    "https://translate.google.com/*",
+    "https://translate.yandex.net/*",
+    "https://www.bing.com/*",
+    "https://www.deepl.com/*",
+    "https://edge.microsoft.com/*",
+    "https://api-edge.cognitive.microsofttranslator.com/*",
+    "https://api.openai.com/*",
+    "https://openrouter.ai/*",
+    "https://api.anthropic.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.deepseek.com/*",
+    "https://api.x.ai/*",
+    "https://*.openai.azure.com/*",
+    "http://127.0.0.1/*",
+    "http://localhost/*"
+  ],
+
+  // 作用类似于host_permissions, 但浏览器不会提前要求用户权限. 而是要在在业务逻辑代码中调用chrome.permissions.request接口来动态请求权限.
+  // "optional_host_permissions": [
+  // ],
+  
+  // Web 可访问资源是扩展中的文件，可以由网页或其他扩展访问。
+  // 如果扩展选择公开资源(正如在 Manifest V2 中的默认实现的那样)，网站和攻击者可检测到扩展,这为指纹识别或无意的资源访问创造了机会。
+  // 应提供一个对象数组,限制哪些网站和扩展程序可以访问哪些扩展程序资源. 如果是空数组,则网站和其他扩展程序无法访问你的扩展程序资源.
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "/icons/icon-16.png",
+        "/icons/icon-32.png",
+        "/icons/icon-64-translated.png",
+        "/icons/icon-64.png",
+        "/icons/icon-128.png",
+        "/icons/icon-256.png",
+        "/icons/google-translate-32.png",
+        "/icons/yandex-translate-32.png",
+        "/icons/swap-32.png",
+        "/contentScript/css/*",
+        "/contentScript/*.js",
+        "/lib/*.js",
+        "/lib/ai/*.js",
+        "/util/*.js"
+      ],
+      "matches": [
+        "*://*/*"
+      ]
+    }
+  ],
+
+  "options_ui": {
+    "page": "/options/options.html",
+    "open_in_tab": false,
+    "browser_style": false
+  },
+
+  "action": {
+    "browser_style": false,
+    "default_icon": "/icons/icon-32.png",
+    "default_title": "__MSG_pageActionTitle__",
+    "default_popup": "/popup/popup.html"  // optional
+
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "run_at": "document_start",
+      "all_frames": false,
+      "js": ["/contentScript/checkScriptIsInjected.js"]
+    },
+    {
+      "matches": ["<all_urls>"],
+      "run_at": "document_end",
+      "all_frames": true,
+      "match_about_blank": true,
+      "js": [
+        "/contentScript/contentScript.js"
+      ],
+      "type": "module"
+    },
+    {
+      "matches": ["https://www.deepl.com/translator*"],
+      "run_at": "document_end",
+      "all_frames": false,
+      "js": ["/contentScript/deepl.js"]
+    }
+  ],
+
+  "background": {
+    "service_worker": "/background/sw.js",
+    "type": "module" 
+  },
+
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "dualtran_rules",
+        "enabled": true,
+        "path": "/rules/request_modifier_rule.json"
+      }
+    ]
+  }
+}

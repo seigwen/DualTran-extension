@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DualTran E2E Dynamic Content Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 40px;
+      max-width: 900px;
+    }
+    h1 { font-size: 1.6em; border-bottom: 2px solid #333; padding-bottom: 8px; }
+    .static-paragraph { margin-bottom: 12px; }
+    .dynamic-paragraph {
+      border-left: 3px solid #4a90d9;
+      padding-left: 12px;
+      margin: 8px 0;
+      background: #f0f5ff;
+    }
+    .selection-target {
+      border: 2px dashed #666;
+      padding: 16px;
+      margin: 20px 0;
+      user-select: text;
+      background: #fffbe6;
+    }
+    #dynamic-container {
+      min-height: 20px;
+      margin: 16px 0;
+      padding: 8px;
+      border: 1px dashed #ccc;
+    }
+    #dynamic-container:empty::before {
+      content: "(Dynamic content will appear here after injection)";
+      color: #aaa;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <h1>DualTran E2E Dynamic Content Page</h1>
+
+  <p class="static-paragraph" id="p-static-1">This is a static paragraph that exists when the page loads. It should be translatable immediately after content script injection.</p>
+
+  <p class="static-paragraph" id="p-static-2">Dynamic content injected after page load must also be translatable. The extension should detect newly added paragraphs and translate them.</p>
+
+  <p class="static-paragraph" id="p-static-3">This third static paragraph provides additional baseline text for verifying that static content translation works correctly before dynamic injection.</p>
+
+  <div class="selection-target" id="selection-target">
+    Select this text to test the selected-text translation feature. This area remains
+    available for selection tests even after dynamic content has been injected into
+    the page.
+  </div>
+
+  <h2>Dynamic Content Area</h2>
+  <div id="dynamic-container"></div>
+
+  <p class="static-paragraph" id="p-static-4">This paragraph appears after the dynamic container. It helps verify that translation order is preserved when new content is inserted in the middle of the page.</p>
+
+  <script>
+    /**
+     * Injects dynamic content into #dynamic-container.
+     * Creates a new <p class="dynamic-paragraph"> element and appends it.
+     *
+     * @param {string} text - The text content for the new paragraph.
+     * @returns {HTMLParagraphElement} The newly created paragraph element.
+     */
+    window.injectDynamicContent = function (text) {
+      var container = document.getElementById("dynamic-container");
+      var p = document.createElement("p");
+      p.className = "dynamic-paragraph";
+      p.textContent = text;
+      container.appendChild(p);
+      return p;
+    };
+  </script>
+</body>
+</html>

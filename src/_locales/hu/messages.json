@@ -1,0 +1,700 @@
+{
+  "aiProviderOpenAI": {
+    "message": "OpenAI"
+  },
+  "aiProviderOpenRouter": {
+    "message": "OpenRouter"
+  },
+  "alertSpecifyTargetLanguage": {
+    "message": "Please specify target language first."
+  },
+  "backupToFile": {
+    "message": "Biztonsági mentés fájlba"
+  },
+  "btnAlwaysTranslate": {
+    "message": "Mindig fordítsa le ezt az oldalt"
+  },
+  "btnAlwaysTranslateThisLanguage": {
+    "message": "Mindig fordítsa le ezt a nyelvet"
+  },
+  "btnApply": {
+    "message": "Alkalmaz"
+  },
+  "btnListen": {
+    "message": "Hallgatás"
+  },
+  "btnMobileDonate": {
+    "message": "Adományozás"
+  },
+  "btnMobileNeverTranslate": {
+    "message": "Soha ne fordítsa le ezt az oldalt"
+  },
+  "btnMobileOriginal": {
+    "message": "Eredeti"
+  },
+  "btnMobileTranslated": {
+    "message": "Lefordított"
+  },
+  "btnMoreOptions": {
+    "message": "További beállítások"
+  },
+  "btnNeverTranslate": {
+    "message": "Soha ne fordítsa le ezt az oldalt"
+  },
+  "btnNeverTranslateThisLanguage": {
+    "message": "Soha ne fordítsa le ezt a nyelvet"
+  },
+  "btnOptions": {
+    "message": "Beállítások"
+  },
+  "btnReplace": {
+    "message": "Cserélje ki"
+  },
+  "btnReset": {
+    "message": "Visszaállítás"
+  },
+  "btnRestore": {
+    "message": "Eredeti megtekintése"
+  },
+  "btnShowPopup": {
+    "message": "Felugró ablak megjelenítése"
+  },
+  "btnStopListening": {
+    "message": "Hallgatás leállítása"
+  },
+  "btnSubmit": {
+    "message": "Küldés"
+  },
+  "btnTranslate": {
+    "message": "Lefordítás"
+  },
+  "btncopy": {
+    "message": "Másolás"
+  },
+  "calculatestorage": {
+    "message": "Kalkulálás"
+  },
+  "confirmAutoTranslateWithAI": {
+    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
+  },
+  "confirmSetApiKeyNow": {
+    "message": "Az API-kulcs nincs beállítva. Szeretné most beállítani?"
+  },
+  "deleteTranslationCache": {
+    "message": "Fordítási cache törlése"
+  },
+  "displayTranslatedTextInNewLine": {
+    "message": "új sor az eredeti szöveg alatt"
+  },
+  "doYouWantOverwriteAllSettings": {
+    "message": "Felül kívánja írni az összes létező beállítást a mentett adatból?"
+  },
+  "doYouWantRestoreSettings": {
+    "message": "Visszaállítja a bővítmény alapértelmezett beállításait?"
+  },
+  "doYouWantToDeleteTranslationCache": {
+    "message": "Szeretné törölni a fordítási cache-t?"
+  },
+  "donatewithpaypal": {
+    "message": "Adományozás PayPal-lal"
+  },
+  "dontShowIfPageLangIsTargetLang": {
+    "message": "Ne mutassa, ha az oldal nyelve ugyanaz mint a fordítási cél"
+  },
+  "dontShowIfPageLangIsUnknown": {
+    "message": "Ne mutassa, ha az oldal nyelve ismeretlen"
+  },
+  "dontShowIfSelectedTextIsTargetLang": {
+    "message": "Ne mutassa, ha a kijelölt szöveg nyelve ugyanaz mint a fordítási cél"
+  },
+  "dontShowIfSelectedTextIsUnknown": {
+    "message": "Ne mutassa, ha a kijelölt szöveg nyelve ismeretlen"
+  },
+  "enterShortcut": {
+    "message": "Gyorsbillentyű megadása"
+  },
+  "errorApiKeyNotFound": {
+    "message": "API key not found!"
+  },
+  "errorCopyFailed": {
+    "message": "Másolás sikertelen."
+  },
+  "errorCopyFailedInsecure": {
+    "message": "Szöveg másolása sikertelen. Valószínűleg azért, mert az oldal URL protokollja nem biztonságos HTTP, nem HTTPS."
+  },
+  "errorTranslationUnknown": {
+    "message": "Fordítási hiba: ismeretlen hiba."
+  },
+  "errorTranslationWithMessage": {
+    "message": "Fordítási hiba: $ERROR_MESSAGE$",
+    "placeholders": {
+      "ERROR_MESSAGE": {
+        "content": "$1",
+        "example": "Hálózati hiba"
+      }
+    }
+  },
+  "extensionDescription": {
+    "message": "Fordítsa le az oldalt valós időben Google vagy OpenAI fordítóval."
+  },
+  "extensionName": {
+    "message": "Weboldalak fordítása"
+  },
+  "fileIsCorrupted": {
+    "message": "A fájl meghibásodhatott"
+  },
+  "floatingButtonTooltip": {
+    "message": "Click to toggle translation state; drag to move this button"
+  },
+  "hideOriginalText": {
+    "message": "Eredeti szöveg elrejtése"
+  },
+  "hotkeyError_ctrlOrAlt": {
+    "message": "Tartalmazza a Ctrl-t vagy Alt-ot"
+  },
+  "hotkeyError_invalid": {
+    "message": "Érvénytelen kombináció"
+  },
+  "hotkeyError_letter": {
+    "message": "Nyomjon le egy betűt"
+  },
+  "lblAdd": {
+    "message": "Hozzáad"
+  },
+  "lblAiFeatures": {
+    "message": "AI Features"
+  },
+  "lblAiImproveForLongerThan": {
+    "message": "Csak azokat a fordításokat javítsa MI-vel, amelyekben több szó van, mint",
+    "description": "Label for the minimum number of words required to trigger AI improvement"
+  },
+  "lblAiProvider": {
+    "message": "MI-szolgáltató"
+  },
+  "lblAiTranslatedStyle": {
+    "message": "Color of AI translated text "
+  },
+  "lblAlwaysTranslate": {
+    "message": "Mindig frdítsa $LANGUAGE_NAME$ nyelvről",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblAlwaysTranslateSites": {
+    "message": "Mindig fordítsa le ezeket az oldalakat"
+  },
+  "lblApiKeyOpenAI": {
+    "message": "OpenAI API kulcs"
+  },
+  "lblApiKeyOpenRouter": {
+    "message": "OpenRouter API-kulcs"
+  },
+  "lblAutoImproveByAi": {
+    "message": "Fordítások automatikus javítása MI-vel"
+  },
+  "lblAutoTranslateWhenClickingALink": {
+    "message": "Ha domainen belülre visz a megnyitott link, akkor ugyanúgy fordítsa az oldalt"
+  },
+  "lblButtonInTheAddressBar": {
+    "message": "Gomb megjelenítése az eszköztáron"
+  },
+  "lblDarkMode": {
+    "message": "Sötét mód"
+  },
+  "lblEnableDeepL": {
+    "message": "DeepL bekapcsolása mint szöveg fordító szolgáltatás"
+  },
+  "lblEnterApiKey": {
+    "message": "Enter API key"
+  },
+  "lblError": {
+    "message": "Ez az oldal nem lefordítható"
+  },
+  "lblFavoriteLanguage": {
+    "message": "Kedvenc nyelv $FAVORITE_LANGUAGE_NUM$",
+    "placeholders": {
+      "FAVORITE_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblFreeTranslationEngine": {
+    "message": "Free translation engine"
+  },
+  "lblHotTranslatedSelectedText": {
+    "message": "Cserélje ki a kijelölt szöveget lefordított szöveggel azonnal"
+  },
+  "lblKeyboardShortcuts": {
+    "message": "Billentyűparancsok"
+  },
+  "lblKeyboardShortcutsSpecial": {
+    "message": "Speciális billentyűparancsok"
+  },
+  "lblMakeDonation": {
+    "message": "Adományozás"
+  },
+  "lblNeverTranslateLangs": {
+    "message": "Soha ne fordítsa le ezeket a nyelveket"
+  },
+  "lblOpenAiModel": {
+    "message": "OpenAI Modell"
+  },
+  "lblOpenRouterBaseUrl": {
+    "message": "OpenRouter API-alap (opcionális)"
+  },
+  "lblOpenRouterModel": {
+    "message": "OpenRouter-modell"
+  },
+  "lblOpenRouterReferer": {
+    "message": "HTTP Referer fejléc (opcionális)"
+  },
+  "lblOpenRouterTitle": {
+    "message": "X-Title fejléc (opcionális)"
+  },
+  "lblOthers": {
+    "message": "Egyebek"
+  },
+  "lblPageTranslateInto": {
+    "message": "Az oldal le lett fordítva erre: $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblPageTranslationService": {
+    "message": "Weboldal fordító szolgáltatás"
+  },
+  "lblPersonalSettings": {
+    "message": "Személyes beállítások"
+  },
+  "lblPlsDonate": {
+    "message": "Segítse a fejlesztőt egy adománnyal"
+  },
+  "lblReleaseNotes": {
+    "message": "Kibocsátási megjegyzések"
+  },
+  "lblReplaceSelectedTextWithTranslatedText": {
+    "message": "A kiválasztott szöveg lecserélése lefordított szöveggel, ha kétszer megnyomja a $SHORTCUT_KEY$ gombot",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblReport": {
+    "message": "Probléma bejelentése"
+  },
+  "lblReset": {
+    "message": "Visszaállítás"
+  },
+  "lblRestorePageToOriginal": {
+    "message": "Eredeti oldal megjelenítése"
+  },
+  "lblSelectPopupInterfaceStyle": {
+    "message": "Válassza ki a felugró felület stílusát"
+  },
+  "lblSettings": {
+    "message": "Beállítások"
+  },
+  "lblShowContextMenu": {
+    "message": "Mutassa a fordítási lehetőséget a jobb klikkes menüben"
+  },
+  "lblShowOriginalTextWhenHovering": {
+    "message": "Eredeti szöveg mutatása ha fölötte van a kurzor"
+  },
+  "lblShowReleaseNotes": {
+    "message": "Kibocsátási megjegyzés megjelenítése frissítéskor"
+  },
+  "lblShowTranslateSelectedButton": {
+    "message": "Gomb megjelenítése kijelölt szöveg fordításához"
+  },
+  "lblShowTranslateSelectedContextMenu": {
+    "message": "Mutassa a fordítási lehetőséget a jobb klikkes menüben"
+  },
+  "lblShowTranslatedHoveringLangs": {
+    "message": "Fordítás mutatása ha a kurzorral fölötte áll az oldalon ezeknél a nyelveknél"
+  },
+  "lblShowTranslatedHoveringSites": {
+    "message": "Fordított szöveg mutatása ezeknél az oldalaknál ha fölötte áll a kurzorral"
+  },
+  "lblShowTranslatedWhenHovering": {
+    "message": "Fordított szöveg mutatása ha fölötte van a kurzor"
+  },
+  "lblShowTranslatedWhenHoveringThisLang": {
+    "message": "Fordítás mutatása ha a kurzorral fölötte áll az oldalon $LANGUAGE_NAME$ nyelven",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblShowTranslatedWhenHoveringThisSite": {
+    "message": "Fordítás mutatása ha a kurzorral fölötte áll az oldalon"
+  },
+  "lblStorageUsed": {
+    "message": "Használt tárhely:"
+  },
+  "lblSwitchTranslatedAndOriginal": {
+    "message": "Az eredeti és fordított weboldal közötti váltás"
+  },
+  "lblTargetLanguage": {
+    "message": "Oldal fordítása $TARGET_LANGUAGE_NUM$ nyelvre",
+    "placeholders": {
+      "TARGET_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblTargetLanguageGroup": {
+    "message": "Célnyelv"
+  },
+  "lblTextTranslationService": {
+    "message": "Szöveg fordító szolgáltatás"
+  },
+  "lblTranslate": {
+    "message": "Kívánja az oldalt lefordítani?"
+  },
+  "lblTranslateInterface": {
+    "message": "A felület fordítása"
+  },
+  "lblTranslateLongerThan": {
+    "message": "Csak azokat a szövegeket fordítsa le, amelyek szavainak száma nagyobb ennél az értéknél",
+    "description": "Label for the minimum number of words required to trigger translation"
+  },
+  "lblTranslatePageInto": {
+    "message": "Lefordítja az oldalt erre: $LANGUAGE_NAME$?",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblTranslatePageToTargetLanguage": {
+    "message": "Oldal fordítása a megadott nyelvre"
+  },
+  "lblTranslateSelectedWhenPressTwice": {
+    "message": "Kijelölt szöveg fordítása, a $SHORTCUT_KEY$ kombináció dupla megnyomására",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslateTag_pre": {
+    "message": "Fordítás bekapcsolás a $HTML_TAG_NAME$ címkére",
+    "placeholders": {
+      "HTML_TAG_NAME": {
+        "content": "<PRE>"
+      }
+    }
+  },
+  "lblTranslateTextOverMouseWhenPressTwice": {
+    "message": "A kurzor alatti szöveg fordítása, a $SHORTCUT_KEY$ kombináció dupla megnyomására",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslated": {
+    "message": "Lefordítva"
+  },
+  "lblTranslatedStyle": {
+    "message": "Google fordított szöveg színe"
+  },
+  "lblTranslating": {
+    "message": "Fordítás ..."
+  },
+  "lblTranslationCache": {
+    "message": "Fordítási cache"
+  },
+  "lblTranslationService": {
+    "message": "Fordító szolgáltatás"
+  },
+  "lblTtsSpeed": {
+    "message": "Felolvasási hang sebesség"
+  },
+  "lblUseNewAlgorithm": {
+    "message": "Használni kívánja az új fordítási algoritmust?"
+  },
+  "lblWhereToDisplayTranslatedText": {
+    "message": "Hol jelenjen meg a lefordított szöveg"
+  },
+  "lbldontsortresults": {
+    "message": "Ne rendezze sorba a Google fordított eredményeket"
+  },
+  "lbltranslatedynamicallycreatedcontent": {
+    "message": "Dinamikusan létrehozott tartalom fordítása"
+  },
+  "less": {
+    "message": "Kevesebb"
+  },
+  "more": {
+    "message": "Továbbiak"
+  },
+  "msgAi": {
+    "message": "AI"
+  },
+  "msgAll": {
+    "message": "Mind"
+  },
+  "msgAutomatic": {
+    "message": "Automatikus"
+  },
+  "msgAzureEnterKeyAndEndpoint": {
+    "message": "Kérjük, adja meg az Azure végpontot és az API kulcsot az Azure OpenAI modelljeinek lekéréséhez"
+  },
+  "msgCannotLoadDeepSeekModelsHttp": {
+    "message": "Nem sikerült betölteni a DeepSeek modelleket (HTTP $1)",
+    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDonateWithPaypal": {
+    "message": "Adományozás PayPal-lal"
+  },
+  "msgDownloadingDocument": {
+    "message": "Dokumentum letöltése..."
+  },
+  "msgEmptyListAlwaysTranslateLanguages": {
+    "message": "Nem adott hozzá még nyelvet a listához."
+  },
+  "msgEmptyListNeverTranslateSites": {
+    "message": "Nem adott hozzá még weboldalt a listához."
+  },
+  "msgEnterApiKeyForModels": {
+    "message": "Kérjük, adja meg az API kulcsot a szolgáltató elérhető modelljeinek lekéréséhez"
+  },
+  "msgErrorDownloadingDocument": {
+    "message": "Hiba a dokumentum letöltésénél"
+  },
+  "msgFavoriteLanguages": {
+    "message": "Kedvenc nyelvek"
+  },
+  "msgFileLargerThan": {
+    "message": "Ez a szolgáltatás nem támogatja a $FILE_SIZE$ -nál nagyobb fájlokat",
+    "placeholders": {
+      "FILE_SIZE": {
+        "content": "$1",
+        "example": "10 MB"
+      }
+    }
+  },
+  "msgHotkeys": {
+    "message": "Gyorsbillentyűk"
+  },
+  "msgHowToGetOpenAIKey": {
+    "message": "Hogyan szerezhetek OpenAI API-kulcsot?"
+  },
+  "msgHowToGetOpenRouterKey": {
+    "message": "Hogyan szerezhetek OpenRouter API-kulcsot?"
+  },
+  "msgIWillBeGrateful": {
+    "message": "Örök hálám az adományokért."
+  },
+  "msgInterfaceComplex": {
+    "message": "Speciális"
+  },
+  "msgInterfaceSimple": {
+    "message": "Egyszerű"
+  },
+  "msgLanguages": {
+    "message": "Nyelvek"
+  },
+  "msgLoadingModels": {
+    "message": "Betöltés..."
+  },
+  "msgModelListFetchFailed": {
+    "message": "Failed to fetch model list with API key. Available models:"
+  },
+  "msgNo": {
+    "message": "Nem"
+  },
+  "msgNoTranslateSelectedText": {
+    "message": "Ne fordítsa a kijelölt szöveget"
+  },
+  "msgNoUseWidgets": {
+    "message": "Nem (widget használata)"
+  },
+  "msgOpenOnYandexTranslator": {
+    "message": "Megnyitás Yandex fordítóban"
+  },
+  "msgOpenTranslated": {
+    "message": "Lefordított PDF megnyitása"
+  },
+  "msgPDFtoHTML": {
+    "message": "PDF-ből HTML-be"
+  },
+  "msgPleaseWait": {
+    "message": "Kérem várjon..."
+  },
+  "msgRecents": {
+    "message": "Előzmények"
+  },
+  "msgSelectServiceConversion": {
+    "message": "Válasszon szolgáltatást a konvertáláshoz"
+  },
+  "msgSelectTargetLanguage": {
+    "message": "Weboldalak fordítása erre a célnyelvre"
+  },
+  "msgSelectTargetLanguageForText": {
+    "message": "A kijelölt szöveg fordítása erre a célnyelvre"
+  },
+  "msgSendDocument": {
+    "message": "Dokumentum küldése"
+  },
+  "msgSites": {
+    "message": "Weboldalak"
+  },
+  "msgStorage": {
+    "message": "Tárhely"
+  },
+  "msgStyle": {
+    "message": "Stílus"
+  },
+  "msgThanksForUseExtension": {
+    "message": "Köszönjük, hogy ezt a bővítményt használja."
+  },
+  "msgToTranslateSites": {
+    "message": "Az oldal fordításához"
+  },
+  "msgToTranslateThisDocument": {
+    "message": "A $DOC_TYPE$ lefordításához kérem konvertálja HTML formátumba",
+    "placeholders": {
+      "DOC_TYPE": {
+        "content": "$1",
+        "example": "(.pdf)"
+      }
+    }
+  },
+  "msgTranslateFor": {
+    "message": "Fordítás $LANGUAGE_NAME$ nyelvre",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateSelectedText": {
+    "message": "A kijelölt szöveg fordítása"
+  },
+  "msgTranslations": {
+    "message": "Fordítások"
+  },
+  "msgUnknownLanguage": {
+    "message": "Ismeretlen"
+  },
+  "msgYes": {
+    "message": "Igen"
+  },
+  "msgYesRecommended": {
+    "message": "Igen (javasolt)"
+  },
+  "openNativeShortcutManager": {
+    "message": "Natív billentyűparancs menedzser megnyitása"
+  },
+  "optionFloatingConfig": {
+    "message": "mutasd meg a lebegő gombot"
+  },
+  "optionPopupAuto": {
+    "message": "Automatikusan"
+  },
+  "optionPopupConfig": {
+    "message": "Mutassa a mobilon felugró ablakot"
+  },
+  "optionPopupThreeFingers": {
+    "message": "Amikor 3 ujjal érintem a képernyőt"
+  },
+  "optionPopupjustWhenIClickTranlateThisSite": {
+    "message": "Csak akkor ha a \"Oldal lefordítása\"-ra kattintok"
+  },
+  "optionsAddToCustomDictionary": {
+    "message": "Hozzáadás egyéni szótárhoz (Ez lehetővé teszi bizonyos szavak kihagyását a weboldal fordítása során)"
+  },
+  "optionsAlwaysTranslate": {
+    "message": "Mindig fordítsa le ezeket a nyelveket"
+  },
+  "optionsNeverTranslate": {
+    "message": "Soha ne fordítsa le ezeket az oldalakat"
+  },
+  "optionsPageTitle": {
+    "message": "Weboldalak fordítása - Beállítások"
+  },
+  "pageActionTitle": {
+    "message": "Az oldal fordítása"
+  },
+  "placeholderOpenRouterBase": {
+    "message": "https://openrouter.ai/api/v1/chat/completions"
+  },
+  "placeholderOpenRouterModel": {
+    "message": "openai/gpt-4o-mini"
+  },
+  "placeholderOpenRouterReferer": {
+    "message": "https://your-site.example"
+  },
+  "placeholderOpenRouterTitle": {
+    "message": "DualTran"
+  },
+  "popupBlueWhenSiteIsTranslated": {
+    "message": "A felugró ikon kékre vált ha az oldal fordításra került"
+  },
+  "promptInputOpenAIKey": {
+    "message": "Please input your OpenAI API Key:"
+  },
+  "promptInputOpenRouterKey": {
+    "message": "Adja meg az OpenRouter API-kulcsát:"
+  },
+  "replaceOriginalTextWithTranslatedText": {
+    "message": "az eredeti szöveg cseréje"
+  },
+  "resetToDefault": {
+    "message": "Alapértelmezett beállítások visszaállítása"
+  },
+  "restoreFromFile": {
+    "message": "Visszaállítás fájlból"
+  },
+  "serviceBing": {
+    "message": "Bing"
+  },
+  "serviceDeepL": {
+    "message": "DeepL"
+  },
+  "serviceGoogle": {
+    "message": "Google"
+  },
+  "serviceGoogleTranslate": {
+    "message": "Google Translate"
+  },
+  "serviceMicrosoftTranslate": {
+    "message": "Microsoft Translator"
+  },
+  "serviceTranslateWebPages": {
+    "message": "DualTran"
+  },
+  "serviceYandex": {
+    "message": "Yandex"
+  },
+  "showOriginalText": {
+    "message": "Eredeti szöveg megjelenítése"
+  },
+  "swapPopup": {
+    "message": "Váltás az egyszerű és a speciális felület között"
+  },
+  "swapTranslationService": {
+    "message": "Fordító szolgáltatások közötti váltás"
+  },
+  "tooltipImproveTranslationByAI": {
+    "message": "kattintson a fordítás AI-val való javításához"
+  },
+  "translateClickingOnce": {
+    "message": "Oldal fordítása az eszköztáron levő ikonra kattintva. (felugró ablak megjelenítéséhez nyomjon jobb klikket)"
+  }
+}

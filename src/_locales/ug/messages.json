@@ -1,0 +1,700 @@
+{
+  "aiProviderOpenAI": {
+    "message": "OpenAI"
+  },
+  "aiProviderOpenRouter": {
+    "message": "OpenRouter"
+  },
+  "alertSpecifyTargetLanguage": {
+    "message": "Please specify target language first."
+  },
+  "backupToFile": {
+    "message": "ھۆججەتكە زاپاسلاش"
+  },
+  "btnAlwaysTranslate": {
+    "message": "بۇ تور بەتنى ھەمىشە تەرجىمە قىلىڭ"
+  },
+  "btnAlwaysTranslateThisLanguage": {
+    "message": "بۇ تىلنى ھەمىشە تەرجىمە قىلىڭ"
+  },
+  "btnApply": {
+    "message": "ئىلتىماس قىلىڭ"
+  },
+  "btnListen": {
+    "message": "ئاڭلاڭ"
+  },
+  "btnMobileDonate": {
+    "message": "ئىئانە قىلىڭ"
+  },
+  "btnMobileNeverTranslate": {
+    "message": "بۇ تور بەتنى ھەرگىز تەرجىمە قىلماڭ"
+  },
+  "btnMobileOriginal": {
+    "message": "ئەسلى"
+  },
+  "btnMobileTranslated": {
+    "message": "تەرجىمە قىلىندى"
+  },
+  "btnMoreOptions": {
+    "message": "تېخىمۇ كۆپ تاللاشلار"
+  },
+  "btnNeverTranslate": {
+    "message": "بۇ تور بەتنى ھەرگىز تەرجىمە قىلماڭ"
+  },
+  "btnNeverTranslateThisLanguage": {
+    "message": "بۇ تىلنى ھەرگىز تەرجىمە قىلماڭ"
+  },
+  "btnOptions": {
+    "message": "تاللانما"
+  },
+  "btnReplace": {
+    "message": "ئالماشتۇرۇڭ"
+  },
+  "btnReset": {
+    "message": "ئەسلىگە قايتۇرۇش"
+  },
+  "btnRestore": {
+    "message": "ئەسلى كۆرسەت"
+  },
+  "btnShowPopup": {
+    "message": "سەكرىمە كۆزنەكنى كۆرسىتىش"
+  },
+  "btnStopListening": {
+    "message": "ئاڭلاشنى توختىتىڭ"
+  },
+  "btnSubmit": {
+    "message": "تاپشۇرۇش"
+  },
+  "btnTranslate": {
+    "message": "تەرجىمە"
+  },
+  "btncopy": {
+    "message": "كۆچۈرۈڭ"
+  },
+  "calculatestorage": {
+    "message": "ھېسابلاپ بېقىڭ"
+  },
+  "confirmAutoTranslateWithAI": {
+    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
+  },
+  "confirmSetApiKeyNow": {
+    "message": "API ئاچقۇچى تەڭشەلمىگەن. ھازىر تەڭشەمەكچىمۇ؟"
+  },
+  "deleteTranslationCache": {
+    "message": "تەرجىمە ساقلانمىسىنى ئۆچۈرۈڭ"
+  },
+  "displayTranslatedTextInNewLine": {
+    "message": "تەرجىمە قىلىنغان تېكىستنى يېڭى قۇردا كۆرسىتىش"
+  },
+  "doYouWantOverwriteAllSettings": {
+    "message": "زاپاس سانلىق مەلۇمات ئارقىلىق بارلىق تەڭشەكلەرنى قاپلىماقچىمۇ؟"
+  },
+  "doYouWantRestoreSettings": {
+    "message": "كېڭەيتىلمىنى سۈكۈتتىكى تەڭشىكىگە ئەسلىگە كەلتۈرمەكچىمۇ؟"
+  },
+  "doYouWantToDeleteTranslationCache": {
+    "message": "تەرجىمە ساقلىغۇچنى ئۆچۈرمەكچىمۇ؟"
+  },
+  "donatewithpaypal": {
+    "message": "PayPal بىلەن ئىئانە قىلىڭ"
+  },
+  "dontShowIfPageLangIsTargetLang": {
+    "message": "بەت تىلى نىشان تىل ئىكەنلىكىنى كۆرسەتمەڭ"
+  },
+  "dontShowIfPageLangIsUnknown": {
+    "message": "بەت تىلى نامەلۇم بولسا كۆرسەتمەڭ"
+  },
+  "dontShowIfSelectedTextIsTargetLang": {
+    "message": "تاللانغان تېكىستنىڭ نىشان تىل ئىكەنلىكىنى كۆرسەتمەڭ"
+  },
+  "dontShowIfSelectedTextIsUnknown": {
+    "message": "تاللانغان تېكىست تىلى نامەلۇم ياكى ئەمەسلىكىنى كۆرسەتمەڭ"
+  },
+  "enterShortcut": {
+    "message": "تېزلەتمە كىرگۈزۈڭ"
+  },
+  "errorApiKeyNotFound": {
+    "message": "API key not found!"
+  },
+  "errorCopyFailed": {
+    "message": "كۆچۈرۈش مەغلۇپ بولدى."
+  },
+  "errorCopyFailedInsecure": {
+    "message": "تېكىست كۆچۈرۈش مەغلۇپ بولدى. بەلكىم بەت URL ئۇسۇلى بىخەتەر بولمىغان HTTP بولۇپ، HTTPS ئەمەس."
+  },
+  "errorTranslationUnknown": {
+    "message": "تەرجىمە خاتالىقى: نامەلۇم خاتالىق."
+  },
+  "errorTranslationWithMessage": {
+    "message": "تەرجىمە خاتالىقى: $ERROR_MESSAGE$",
+    "placeholders": {
+      "ERROR_MESSAGE": {
+        "content": "$1",
+        "example": "تور خاتالىقى"
+      }
+    }
+  },
+  "extensionDescription": {
+    "message": "Google ياكى OpenAI ئارقىلىق بېتىڭىزنى ھەقىقىي تەرجىمە قىلىڭ."
+  },
+  "extensionName": {
+    "message": "تور بەتلەرنى تەرجىمە قىلىڭ"
+  },
+  "fileIsCorrupted": {
+    "message": "بۇ ھۆججەت بۇزۇلغاندەك قىلىدۇ"
+  },
+  "floatingButtonTooltip": {
+    "message": "Click to toggle translation state; drag to move this button"
+  },
+  "hideOriginalText": {
+    "message": "ئەسلى تېكىستنى يوشۇرۇش"
+  },
+  "hotkeyError_ctrlOrAlt": {
+    "message": "Ctrl ياكى Alt نى ئۆز ئىچىگە ئالىدۇ"
+  },
+  "hotkeyError_invalid": {
+    "message": "ئىناۋەتسىز"
+  },
+  "hotkeyError_letter": {
+    "message": "خەت يېزىڭ"
+  },
+  "lblAdd": {
+    "message": "قوش"
+  },
+  "lblAiFeatures": {
+    "message": "AI Features"
+  },
+  "lblAiImproveForLongerThan": {
+    "message": "سۆزلەر سانى ... دىن ئەشەك چوڭ بولغاندا AI ئارقىلىق ياخشىلاش",
+    "description": "Label for the minimum number of words required to trigger AI improvement"
+  },
+  "lblAiProvider": {
+    "message": "AI تەمىنلىگۈچىسى"
+  },
+  "lblAiTranslatedStyle": {
+    "message": "Color of AI translated text "
+  },
+  "lblAlwaysTranslate": {
+    "message": "ھەمىشە $LANGUAGE_NAME$دىن تەرجىمە قىلىڭ",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblAlwaysTranslateSites": {
+    "message": "بۇ تور بېكەتلەرنى ھەمىشە تەرجىمە قىلىڭ"
+  },
+  "lblApiKeyOpenAI": {
+    "message": "OpenAI API ئاچقۇچى"
+  },
+  "lblApiKeyOpenRouter": {
+    "message": "OpenRouter API ئاچقۇچىسى"
+  },
+  "lblAutoImproveByAi": {
+    "message": "AI ئارقىلىق تەرجىمىنى ئاپتوماتىك ياخشىلاش"
+  },
+  "lblAutoTranslateWhenClickingALink": {
+    "message": "سىزنى نۆۋەتتىكى تور بېكەت بىلەن ئوخشاش تورغا ئېلىپ بارىدىغان ئۇلانمىنى چەككەندە ئاپتوماتىك تەرجىمە قىلىڭ"
+  },
+  "lblButtonInTheAddressBar": {
+    "message": "ئادرېس ستونىدا كۇنۇپكىنى كۆرسىتىش"
+  },
+  "lblDarkMode": {
+    "message": "قاراڭغۇ ھالەت"
+  },
+  "lblEnableDeepL": {
+    "message": "DeepL نى تېكىست تەرجىمە مۇلازىمىتى سۈپىتىدە قوزغىتىڭ"
+  },
+  "lblEnterApiKey": {
+    "message": "Enter API key"
+  },
+  "lblError": {
+    "message": "بۇ بەتنى تەرجىمە قىلىشقا بولمىدى"
+  },
+  "lblFavoriteLanguage": {
+    "message": "ياقتۇرغان تىل $FAVORITE_LANGUAGE_NUM$",
+    "placeholders": {
+      "FAVORITE_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblFreeTranslationEngine": {
+    "message": "Free translation engine"
+  },
+  "lblHotTranslatedSelectedText": {
+    "message": "تاللانغان تېكىستنى تەرجىمە تېكىست بىلەن دەرھال ئالماشتۇرۇڭ"
+  },
+  "lblKeyboardShortcuts": {
+    "message": "كۇنۇپكا تاختىسى تېزلەتمىسى"
+  },
+  "lblKeyboardShortcutsSpecial": {
+    "message": "ئالاھىدە كۇنۇپكا تاختىسى"
+  },
+  "lblMakeDonation": {
+    "message": "ئىئانە قىلىڭ"
+  },
+  "lblNeverTranslateLangs": {
+    "message": "بۇ تىللارنى ھەرگىز تەرجىمە قىلماڭ"
+  },
+  "lblOpenAiModel": {
+    "message": "OpenAI مودېلى"
+  },
+  "lblOpenRouterBaseUrl": {
+    "message": "OpenRouter API ئاساسى (تاللاشچان)"
+  },
+  "lblOpenRouterModel": {
+    "message": "OpenRouter مودېلى"
+  },
+  "lblOpenRouterReferer": {
+    "message": "HTTP Referer قاشلىقى (تاللاشچان)"
+  },
+  "lblOpenRouterTitle": {
+    "message": "X-Title قاشلىقى (تاللاشچان)"
+  },
+  "lblOthers": {
+    "message": "باشقىلار"
+  },
+  "lblPageTranslateInto": {
+    "message": "بەت $LANGUAGE_NAME$ غا تەرجىمە قىلىندى",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblPageTranslationService": {
+    "message": "بەت تەرجىمە مۇلازىمىتى"
+  },
+  "lblPersonalSettings": {
+    "message": "شەخسىي تەڭشەكلەر"
+  },
+  "lblPlsDonate": {
+    "message": "ئىئانە قىلغۇچىغا ئىئانە بىلەن ياردەم قىلىڭ"
+  },
+  "lblReleaseNotes": {
+    "message": "ئىزاھات"
+  },
+  "lblReplaceSelectedTextWithTranslatedText": {
+    "message": "$SHORTCUT_KEY$ نى ئىككى قېتىم باسقاندا تاللانغان تېكىستنى تەرجىمە تېكىست بىلەن ئالماشتۇرۇڭ",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblReport": {
+    "message": "بىر مەسىلىنى دوكلات قىلىڭ"
+  },
+  "lblReset": {
+    "message": "ئەسلىگە قايتۇرۇش"
+  },
+  "lblRestorePageToOriginal": {
+    "message": "بەتنى ئەسلىگە ئەسلىگە كەلتۈرۈڭ"
+  },
+  "lblSelectPopupInterfaceStyle": {
+    "message": "سەكرىمە كۆرۈنمە يۈز ئۇسلۇبىنى تاللاڭ"
+  },
+  "lblSettings": {
+    "message": "تەڭشەك"
+  },
+  "lblShowContextMenu": {
+    "message": "مەزمۇن تىزىملىكىدە بەتنى تەرجىمە قىلىش تاللانمىسىنى كۆرسىتىڭ"
+  },
+  "lblShowOriginalTextWhenHovering": {
+    "message": "يۆتكىگەندە ئەسلى تېكىستنى كۆرسىتىڭ"
+  },
+  "lblShowReleaseNotes": {
+    "message": "يېڭىلىغاندا قويۇپ بېرىش خاتىرىسىنى كۆرسەت"
+  },
+  "lblShowTranslateSelectedButton": {
+    "message": "تاللانغان تېكىستنى تەرجىمە قىلىش ئۈچۈن كۇنۇپكىنى كۆرسىتىڭ"
+  },
+  "lblShowTranslateSelectedContextMenu": {
+    "message": "تاللانغان تېكىستنى مەزمۇن تىزىملىكىدە تەرجىمە قىلىش تاللانمىسىنى كۆرسىتىڭ"
+  },
+  "lblShowTranslatedHoveringLangs": {
+    "message": "بۇ تىللار بىلەن تور بېكەتلەرنى ئايلىنىپ يۈرگەندە تەرجىمە قىلىنغان تېكىستنى كۆرسىتىڭ"
+  },
+  "lblShowTranslatedHoveringSites": {
+    "message": "بۇ تور بەتلەردە يۈرگەندە تەرجىمە قىلىنغان تېكىستنى كۆرسەت"
+  },
+  "lblShowTranslatedWhenHovering": {
+    "message": "يۆتكەلگەندە تەرجىمە قىلىنغان تېكىستنى كۆرسەت"
+  },
+  "lblShowTranslatedWhenHoveringThisLang": {
+    "message": "$LANGUAGE_NAME$دىكى تور بېكەتلەرنى بېسىپ ئۆتكەندە تەرجىمىنى كۆرسىتىڭ",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblShowTranslatedWhenHoveringThisSite": {
+    "message": "بۇ تور بەتنى بېسىپ ئۆتكەندە تەرجىمىنى كۆرسەت"
+  },
+  "lblStorageUsed": {
+    "message": "ساقلاش بوشلۇقى:"
+  },
+  "lblSwitchTranslatedAndOriginal": {
+    "message": "تەرجىمە قىلىنغان بىلەن ئەسلى بەتنى ئالماشتۇرۇڭ"
+  },
+  "lblTargetLanguage": {
+    "message": "نىشان تىلى $TARGET_LANGUAGE_NUM$",
+    "placeholders": {
+      "TARGET_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblTargetLanguageGroup": {
+    "message": "نىشان تىل"
+  },
+  "lblTextTranslationService": {
+    "message": "تېكىست تەرجىمە مۇلازىمىتى"
+  },
+  "lblTranslate": {
+    "message": "بۇ بەتنى تەرجىمە قىلامسىز؟"
+  },
+  "lblTranslateInterface": {
+    "message": "كۆرۈنمە يۈزىنى تەرجىمە قىلىڭ"
+  },
+  "lblTranslateLongerThan": {
+    "message": "مەزكۇر قىممەتتىن كۆپ سۆزدىن تۈزүлгән تېكىستنىلا تەرجىمە qil",
+    "description": "Label for the minimum number of words required to trigger translation"
+  },
+  "lblTranslatePageInto": {
+    "message": "بەتنى $LANGUAGE_NAME$ غا تەرجىمە قىلامسىز؟",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblTranslatePageToTargetLanguage": {
+    "message": "بەتنى نىشان تىلغا تەرجىمە قىلىڭ"
+  },
+  "lblTranslateSelectedWhenPressTwice": {
+    "message": "$SHORTCUT_KEY$ نى ئىككى قېتىم باسقاندا تاللانغان تېكىستنى تەرجىمە قىلىڭ",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslateTag_pre": {
+    "message": "$HTML_TAG_NAME$بەلگىسىنىڭ تەرجىمىسىنى قوزغىتىڭ",
+    "placeholders": {
+      "HTML_TAG_NAME": {
+        "content": "<PRE>"
+      }
+    }
+  },
+  "lblTranslateTextOverMouseWhenPressTwice": {
+    "message": "$SHORTCUT_KEY$ نى ئىككى قېتىم باسقاندا تېكىستنى مائۇس نۇر بەلگىسىنىڭ ئۈستىگە تەرجىمە قىلىڭ",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslated": {
+    "message": "تەرجىمە قىلىندى"
+  },
+  "lblTranslatedStyle": {
+    "message": "Google تەرجىمە تېكىست رەڭگى"
+  },
+  "lblTranslating": {
+    "message": "تەرجىمە ..."
+  },
+  "lblTranslationCache": {
+    "message": "تەرجىمە ساقلىغۇچ"
+  },
+  "lblTranslationService": {
+    "message": "تەرجىمە مۇلازىمىتى"
+  },
+  "lblTtsSpeed": {
+    "message": "تېكىستتىن سۆزلەش ئاۋازى"
+  },
+  "lblUseNewAlgorithm": {
+    "message": "يېڭى تەرجىمە ھېسابلاش ئۇسۇلىنى ئىشلىتىڭ؟"
+  },
+  "lblWhereToDisplayTranslatedText": {
+    "message": "تەرجىمە قىلىنغان تېكىستنى قەيەردە كۆرسىتىش"
+  },
+  "lbldontsortresults": {
+    "message": "Google تەرجىمە نەتىجىسىنى رەتلىمەڭ"
+  },
+  "lbltranslatedynamicallycreatedcontent": {
+    "message": "ھەرىكەتچان ئىجاد قىلىنغان مەزمۇننى تەرجىمە قىلىڭ"
+  },
+  "less": {
+    "message": "ئاز"
+  },
+  "more": {
+    "message": "تېخىمۇ كۆپ"
+  },
+  "msgAi": {
+    "message": "AI"
+  },
+  "msgAll": {
+    "message": "ھەممىسى"
+  },
+  "msgAutomatic": {
+    "message": "ئاپتوماتىك"
+  },
+  "msgAzureEnterKeyAndEndpoint": {
+    "message": "ئىلتىماس، Azure نىڭ endpoint ۋە API ئاچقۇچىنى كىرگۈزۈپ، Azure OpenAI ئۈچۈن مۇمكىن بولغان مودېللارنى ئېلىڭ"
+  },
+  "msgCannotLoadDeepSeekModelsHttp": {
+    "message": "DeepSeek مودېللەرنى يۈكلەپ بولمىدى (HTTP $1)",
+    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDonateWithPaypal": {
+    "message": "PayPal بىلەن ئىئانە قىلىڭ"
+  },
+  "msgDownloadingDocument": {
+    "message": "ھۆججەتنى چۈشۈرۈش ..."
+  },
+  "msgEmptyListAlwaysTranslateLanguages": {
+    "message": "سىز بۇ تىزىملىككە ھېچقانداق تىل قوشمىدىڭىز."
+  },
+  "msgEmptyListNeverTranslateSites": {
+    "message": "سىز بۇ تىزىملىككە ھېچقانداق تور بېكەت قوشمىدىڭىز."
+  },
+  "msgEnterApiKeyForModels": {
+    "message": "ئىلتىماس، بۇ تەمىنلىگۈچى ئۈچۈن مۇمكىن بولغان مودېللارنى ئېلىش ئۈچۈن API ئاچقۇچىنى كىرگۈزۈڭ"
+  },
+  "msgErrorDownloadingDocument": {
+    "message": "ھۆججەت چۈشۈرۈشتە خاتالىق"
+  },
+  "msgFavoriteLanguages": {
+    "message": "ياقتۇرىدىغان تىللار"
+  },
+  "msgFileLargerThan": {
+    "message": "بۇ مۇلازىمەت $FILE_SIZE$دىن چوڭ ھۆججەتلەرنى قوللىمايدۇ",
+    "placeholders": {
+      "FILE_SIZE": {
+        "content": "$1",
+        "example": "10 MB"
+      }
+    }
+  },
+  "msgHotkeys": {
+    "message": "Hotkeys"
+  },
+  "msgHowToGetOpenAIKey": {
+    "message": "OpenAI API ئاچقۇچىنى قانداق ئېلىش؟"
+  },
+  "msgHowToGetOpenRouterKey": {
+    "message": "OpenRouter API ئاچقۇچىسىنى قانداق تاپسىمەن؟"
+  },
+  "msgIWillBeGrateful": {
+    "message": "ئىئانە قىلسىڭىز مەن مىننەتدار بولىمەن."
+  },
+  "msgInterfaceComplex": {
+    "message": "ئالىي"
+  },
+  "msgInterfaceSimple": {
+    "message": "ئاددى"
+  },
+  "msgLanguages": {
+    "message": "تىللار"
+  },
+  "msgLoadingModels": {
+    "message": "يۈكلىنىۋاتىدۇ..."
+  },
+  "msgModelListFetchFailed": {
+    "message": "Failed to fetch model list with API key. Available models:"
+  },
+  "msgNo": {
+    "message": "ياق"
+  },
+  "msgNoTranslateSelectedText": {
+    "message": "تاللانغان تېكىستنى تەرجىمە قىلماڭ"
+  },
+  "msgNoUseWidgets": {
+    "message": "ياق (كىچىك قوراللارنى ئىشلىتىڭ)"
+  },
+  "msgOpenOnYandexTranslator": {
+    "message": "Yandex تەرجىمىسىدە ئېچىڭ"
+  },
+  "msgOpenTranslated": {
+    "message": "تەرجىمە قىلىنغان PDF نى ئاچىڭ"
+  },
+  "msgPDFtoHTML": {
+    "message": "PDF دىن HTML"
+  },
+  "msgPleaseWait": {
+    "message": "ساقلاپ تۇرۇڭ ..."
+  },
+  "msgRecents": {
+    "message": "قوبۇل قىلىدۇ"
+  },
+  "msgSelectServiceConversion": {
+    "message": "بۇ ئايلاندۇرۇش ئۈچۈن مۇلازىمەت تاللاڭ"
+  },
+  "msgSelectTargetLanguage": {
+    "message": "تور بېكەتلەرنى بۇ نىشان تىلغا تەرجىمە قىلىڭ"
+  },
+  "msgSelectTargetLanguageForText": {
+    "message": "تاللانغان تېكىستنى بۇ نىشان تىلغا تەرجىمە قىلىڭ"
+  },
+  "msgSendDocument": {
+    "message": "ھۆججەت ئەۋەتىڭ"
+  },
+  "msgSites": {
+    "message": "بېكەتلەر"
+  },
+  "msgStorage": {
+    "message": "ساقلاش"
+  },
+  "msgStyle": {
+    "message": "ئۇسلۇب"
+  },
+  "msgThanksForUseExtension": {
+    "message": "بۇ كېڭەيتىلمىنى ئىشلەتكەنلىكىڭىزگە رەھمەت."
+  },
+  "msgToTranslateSites": {
+    "message": "بېكەتنى تەرجىمە قىلىش"
+  },
+  "msgToTranslateThisDocument": {
+    "message": "بۇ ھۆججەتنى $DOC_TYPE$ قىلىش ئۈچۈن ئۇنى HTML غا ئايلاندۇرۇش كېرەك",
+    "placeholders": {
+      "DOC_TYPE": {
+        "content": "$1",
+        "example": "(.pdf)"
+      }
+    }
+  },
+  "msgTranslateFor": {
+    "message": "$LANGUAGE_NAME$تەرجىمە قىلىڭ",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateSelectedText": {
+    "message": "تاللانغان تېكىستنى تەرجىمە قىلىڭ"
+  },
+  "msgTranslations": {
+    "message": "تەرجىمە"
+  },
+  "msgUnknownLanguage": {
+    "message": "نامەلۇم"
+  },
+  "msgYes": {
+    "message": "ھەئە"
+  },
+  "msgYesRecommended": {
+    "message": "ھەئە (تەۋسىيە)"
+  },
+  "openNativeShortcutManager": {
+    "message": "يەرلىك تېزلەتمە ئاچقۇچ باشقۇرغۇچىنى ئېچىڭ"
+  },
+  "optionFloatingConfig": {
+    "message": "لەيلىمە كۇنۇپكىنى كۆرسەت"
+  },
+  "optionPopupAuto": {
+    "message": "ئاپتوماتىك"
+  },
+  "optionPopupConfig": {
+    "message": "كۆچمە كۆزنەكنى كۆرسەت"
+  },
+  "optionPopupThreeFingers": {
+    "message": "ئېكرانغا ئۈچ بارماق تەگسەم"
+  },
+  "optionPopupjustWhenIClickTranlateThisSite": {
+    "message": "«بۇ تور بەتنى تەرجىمە قىلىش» نى باسساملا بولىدۇ."
+  },
+  "optionsAddToCustomDictionary": {
+    "message": "ئىختىيارى لۇغەتكە قوشۇڭ (بۇ تور بەت تەرجىمە جەريانىدا بەزى سۆزلەرنى ئاتلاپ ئۆتۈپ كېتىدۇ)"
+  },
+  "optionsAlwaysTranslate": {
+    "message": "بۇ تىللارنى ھەمىشە تەرجىمە قىلىڭ"
+  },
+  "optionsNeverTranslate": {
+    "message": "بۇ تور بېكەتلەرنى ھەرگىز تەرجىمە قىلماڭ"
+  },
+  "optionsPageTitle": {
+    "message": "تور بەتلەرنى تەرجىمە قىلىش - تاللانما"
+  },
+  "pageActionTitle": {
+    "message": "بۇ بەتنى تەرجىمە قىلىڭ"
+  },
+  "placeholderOpenRouterBase": {
+    "message": "https://openrouter.ai/api/v1/chat/completions"
+  },
+  "placeholderOpenRouterModel": {
+    "message": "openai/gpt-4o-mini"
+  },
+  "placeholderOpenRouterReferer": {
+    "message": "https://your-site.example"
+  },
+  "placeholderOpenRouterTitle": {
+    "message": "DualTran"
+  },
+  "popupBlueWhenSiteIsTranslated": {
+    "message": "تور بېكەت تەرجىمە قىلىنغاندا سەكرىمە سىنبەلگىنى كۆك قىلىڭ"
+  },
+  "promptInputOpenAIKey": {
+    "message": "Please input your OpenAI API Key:"
+  },
+  "promptInputOpenRouterKey": {
+    "message": "OpenRouter API ئاچقۇچىسىنى كىرگۈزۈڭ:"
+  },
+  "replaceOriginalTextWithTranslatedText": {
+    "message": "ئەسلى تېكىستنى تەرجىمە قىلىنغان تېكىست بىلەن ئالماشتۇرۇش"
+  },
+  "resetToDefault": {
+    "message": "سۈكۈتتىكى تەڭشەكلەرنى ئەسلىگە كەلتۈرۈڭ"
+  },
+  "restoreFromFile": {
+    "message": "ھۆججەتتىن ئەسلىگە كەلتۈرۈڭ"
+  },
+  "serviceBing": {
+    "message": "Bing"
+  },
+  "serviceDeepL": {
+    "message": "DeepL"
+  },
+  "serviceGoogle": {
+    "message": "Google"
+  },
+  "serviceGoogleTranslate": {
+    "message": "Google Translate"
+  },
+  "serviceMicrosoftTranslate": {
+    "message": "Microsoft Translator"
+  },
+  "serviceTranslateWebPages": {
+    "message": "DualTran"
+  },
+  "serviceYandex": {
+    "message": "Yandex"
+  },
+  "showOriginalText": {
+    "message": "ئەسلى تېكىستنى كۆرسىتىش"
+  },
+  "swapPopup": {
+    "message": "ئاددى ۋە ئالىي كۆرۈنۈش ئارسىدا ئالماشتۇرۇش"
+  },
+  "swapTranslationService": {
+    "message": "تەرجىمە مۇلازىمىتى ئارىسىدا ئالماشتۇرۇڭ"
+  },
+  "tooltipImproveTranslationByAI": {
+    "message": "AI ئارقىلىق تەرجىمىنى ياخشىلاش ئۈچۈن چېكىڭ"
+  },
+  "translateClickingOnce": {
+    "message": "ئادرېس ستونىدىكى كۇنۇپكىنى بىر قېتىم چېكىپ بەتنى تەرجىمە قىلىڭ. (سەكرىمە كۆزنەكنى كۆرۈش ئۈچۈن ئوڭ تەرەپنى چېكىڭ)"
+  }
+}

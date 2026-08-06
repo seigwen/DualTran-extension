@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DualTran Privacy Policy</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif; line-height: 1.6; margin: 0; padding: 2rem; }
+    main { max-width: 980px; margin: 0 auto; }
+    h1 { font-size: 1.8rem; margin: 0 0 1rem; }
+    h2 { font-size: 1.2rem; margin-top: 2rem; }
+    h3 { font-size: 1rem; margin-top: 1.2rem; }
+    .muted { opacity: .8; }
+    .toc { background: rgba(127,127,127,.08); padding: 1rem; border-radius: 8px; }
+    a { color: #0b6bf2; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ul { padding-left: 1.25rem; }
+    li { margin: .4rem 0; }
+    .badge { display: inline-block; padding: .15rem .5rem; border-radius: 999px; font-size: .8rem; background: #eef2ff; color: #1e40af; margin-left: .4rem; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  </style>
+  <meta name="description" content="DualTran browser extension Privacy Policy: data collection and use, third-parties, permissions, retention & deletion, contact, changes.">
+  <meta name="robots" content="noindex">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="light dark">
+  <link rel="icon" href="data:,">
+  <!-- Chrome Web Store privacy requirements: https://developer.chrome.com/docs/webstore/program-policies/privacy/ -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const el = document.getElementById('last-updated');
+      if (el) el.textContent = new Date().toISOString().slice(0,10);
+    });
+  </script>
+  <style>@media (prefers-color-scheme: dark){ body{ background:#0b0b0c; color:#e6e6e6;} .toc{ background: rgba(255,255,255,.06);} a{ color:#8ab4ff;} .badge{ background:#1e293b; color:#cbd5e1;} }</style>
+  <meta name="format-detection" content="telephone=no,email=no,address=no">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
+</head>
+<body>
+<main>
+  <header>
+    <h1>DualTran Privacy Policy</h1>
+    <p class="muted">Last updated: <time id="last-updated" datetime="2025-10-29">2025-10-29</time></p>
+  </header>
+
+  <section class="toc">
+    <strong>Contents</strong>
+    <ul>
+      <li><a href="#about">About DualTran</a></li>
+      <li><a href="#summary">Data Safety Summary</a></li>
+      <li><a href="#what-we-collect">Content We Process</a></li>
+      <li><a href="#how-we-use">How We Use Data</a></li>
+      <li><a href="#third-parties">Third-party Services & Transfers</a></li>
+      <li><a href="#api-keys">API Keys & Accounts</a></li>
+      <li><a href="#local-storage">Local Storage, Cache & Retention</a></li>
+      <li><a href="#permissions">Browser Permissions</a></li>
+      <li><a href="#user-controls">Your Choices & Controls</a></li>
+      <li><a href="#children">Children</a></li>
+      <li><a href="#security">Security</a></li>
+      <li><a href="#transfer">Cross-border Transfers</a></li>
+      <li><a href="#changes">Changes to this Policy</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </section>
+
+  <section id="about">
+    <h2>About DualTran</h2>
+    <p>DualTran is a browser extension that helps you translate full pages or selected text between languages, and view original and translated content side by side. It supports Google Translate and Text-to-Speech (TTS), as well as AI providers you configure.</p>
+
+    <h3>Built-in AI Providers</h3>
+    <p>The extension includes built-in definitions for these AI providers (you must supply your own API key to use any of them):</p>
+    <ul>
+      <li><strong>Global:</strong> OpenAI, Anthropic (Claude), Google Gemini, Mistral AI, Cohere, Together AI, Groq, Perplexity, xAI (Grok), Deep Infra, Cerebras, Vercel AI Gateway</li>
+      <li><strong>Aggregator:</strong> OpenRouter (300+ models across providers)</li>
+      <li><strong>Enterprise:</strong> Azure OpenAI</li>
+      <li><strong>China:</strong> DeepSeek, Zhipu/GLM, Moonshot/Kimi, Qwen/DashScope, Baidu/ERNIE, ByteDance/Doubao, iFlytek Spark</li>
+    </ul>
+    <p>You can also add custom providers through the extension options. Providers are dynamically updated from models.dev when available, with built-in definitions as fallback.</p>
+    <p class="muted">Note: The manifest includes host permissions for Yandex Translate, Bing Translator, DeepL, and Microsoft Translator for potential future use; these services are not actively enabled in the current version.</p>
+  </section>
+
+  <section id="summary">
+    <h2>Data Safety Summary</h2>
+    <ul>
+      <li><strong>No collection or sale of personal data:</strong> We do not run servers to collect your personal information; no ads or third-party trackers are embedded.</li>
+      <li><strong>Only on-demand transmission:</strong> Text is sent to translation/TTS/AI services only when you explicitly request translation or speech.</li>
+      <li><strong>API keys stored locally:</strong> If you opt to use AI providers, your keys are stored in your browser's <code>storage.local</code>, not uploaded to the developer.</li>
+      <li><strong>Local cache is removable:</strong> Translations are cached in IndexedDB for performance; you can clear it in the extension options or by uninstalling the extension.</li>
+      <li><strong>No ad/marketing sharing:</strong> We do not share your data with third parties for advertising or marketing.</li>
+    </ul>
+
+    <h3>Chrome Web Store Disclosure Summary</h3>
+    <ul>
+      <li>Collection: The developer does not collect user data.</li>
+      <li>Processing: When you request translation/TTS/AI, necessary text is sent to your chosen provider; preferences and keys are stored locally.</li>
+      <li>Sharing: No sharing for ads/marketing; text is transmitted only to complete translation/TTS/AI features.</li>
+      <li>Purpose: Core functionality (translation, TTS, AI-enhanced translation).</li>
+      <li>Retention: Local storage/cache persists until you clear it or uninstall; incognito tabs do not write persistent cache.</li>
+    </ul>
+  </section>
+
+  <section id="what-we-collect">
+    <h2>Content We Process</h2>
+    <p>To provide translation and related features, the extension processes locally:</p>
+    <ul>
+      <li>Text content from pages you view, text you select, and text you input to translate.</li>
+      <li>Runtime context to improve experience (e.g., detected language, target language, AI enhancement preferences).</li>
+      <li>For TTS, the text to be spoken is sent to the TTS endpoint to generate audio.</li>
+    </ul>
+    <p>Such information is processed on your device and only transmitted when you initiate translation, TTS, or AI translation.</p>
+  </section>
+
+  <section id="how-we-use">
+    <h2>How We Use Data</h2>
+    <ul>
+      <li>When you translate, necessary text snippets are sent to the currently selected provider (e.g., Google Translate or a configured AI provider).</li>
+      <li>To reduce duplicate requests and improve speed, results are cached in local IndexedDB.</li>
+      <li>When using TTS, the text is sent to a TTS endpoint to return audio.</li>
+      <li>When using AI providers, text blocks are sent wrapped in translation markup to the chosen provider's API endpoint along with your locally stored API key.</li>
+      <li>No use for advertising, analytics, profiling, or data sales.</li>
+    </ul>
+  </section>
+
+  <section id="third-parties">
+    <h2>Third-party Services & Transfers</h2>
+    <p>Your browser sends necessary text to the chosen service only when you request translation or speech.</p>
+
+    <h3>Translation & TTS Service</h3>
+    <ul>
+      <li>Google Translate & TTS (<span class="mono">translate.googleapis.com</span>, <span class="mono">translate.google.com</span>, TTS endpoints) — Privacy: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a></li>
+    </ul>
+
+    <h3>AI Providers (only if you configure and use them)</h3>
+
+    <h4>Global Providers</h4>
+    <ul>
+      <li>OpenAI (<span class="mono">api.openai.com</span>): <a href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>Anthropic (<span class="mono">api.anthropic.com</span>): <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>Google Gemini (<span class="mono">generativelanguage.googleapis.com</span>): <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google Privacy Policy</a></li>
+      <li>Mistral AI (<span class="mono">api.mistral.ai</span>): <a href="https://mistral.ai/terms/" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>Cohere (<span class="mono">api.cohere.com</span>): <a href="https://cohere.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>Together AI (<span class="mono">api.together.xyz</span>): <a href="https://www.together.ai/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>Groq (<span class="mono">api.groq.com</span>): <a href="https://groq.com/privacy-policy/" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>Perplexity (<span class="mono">api.perplexity.ai</span>): <a href="https://www.perplexity.ai/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>xAI / Grok (<span class="mono">api.x.ai</span>): <a href="https://x.ai/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>Deep Infra (<span class="mono">api.deepinfra.com</span>): <a href="https://deepinfra.com/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>Cerebras (<span class="mono">api.cerebras.ai</span>): <a href="https://cerebras.ai/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>Vercel AI Gateway (<span class="mono">api.vercel.ai</span>): <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+    </ul>
+
+    <h4>Aggregator</h4>
+    <ul>
+      <li>OpenRouter (<span class="mono">openrouter.ai</span>): <a href="https://openrouter.ai/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+    </ul>
+
+    <h4>Enterprise</h4>
+    <ul>
+      <li>Azure OpenAI (<span class="mono">{your-resource}.openai.azure.com</span>): <a href="https://privacy.microsoft.com/" target="_blank" rel="noopener noreferrer">Microsoft Privacy Statement</a></li>
+    </ul>
+
+    <h4>China-based Providers</h4>
+    <ul>
+      <li>DeepSeek (<span class="mono">api.deepseek.com</span>): <a href="https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>Zhipu GLM (<span class="mono">open.bigmodel.cn</span>): <a href="https://open.bigmodel.cn/dev/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>Moonshot Kimi (<span class="mono">api.moonshot.cn</span>): <a href="https://www.moonshot.cn/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>Qwen DashScope (<span class="mono">dashscope.aliyuncs.com</span>): <a href="https://terms.aliyun.com/legal-agreement/terms/suit_bu1_ali_cloud/suit_bu1_ali_cloud202109140920_41639.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>Baidu ERNIE (<span class="mono">qianfan.baidubce.com</span>): <a href="https://privacy.baidu.com/" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>ByteDance Doubao (<span class="mono">ark.cn-beijing.volces.com</span>): <a href="https://www.volcengine.com/docs/6909/data-security" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+      <li>iFlytek Spark (<span class="mono">spark-api-open.xf-yun.com</span>): <a href="https://www.xfyun.cn/doc/platform/guide.html#_3-%E9%9A%90%E7%A7%81%E6%9D%A1%E6%AC%BE" target="_blank" rel="noopener noreferrer">Privacy Policy</a></li>
+    </ul>
+
+    <h4>Custom / Dynamic Providers</h4>
+    <p>You may add custom AI providers through the extension options. Provider definitions are also updated from models.dev (a community-maintained provider directory). Data sent to custom or dynamically discovered providers is transmitted over HTTPS to the API base URL you configure, and is governed by that provider's privacy policy.</p>
+
+    <p class="muted">Note: Data is transmitted to complete translation/TTS/AI features and governed by the respective provider's privacy policy. Providers may process data on servers located in various countries/regions.</p>
+  </section>
+
+  <section id="api-keys">
+    <h2>API Keys & Accounts</h2>
+    <ul>
+      <li>If you use AI providers, you may enter API keys in the extension settings for any supported or custom provider.</li>
+      <li>Keys are stored locally in <code>chrome.storage.local</code> and are not uploaded to the developer.</li>
+      <li>When you make an AI request, we send only necessary text and the authorization header (e.g., <code>Authorization: Bearer &lt;key&gt;</code>, <code>x-api-key</code>, or query-parameter-based auth) to the selected API endpoint, depending on the provider's authentication scheme.</li>
+      <li>For OpenRouter, <code>HTTP-Referer</code> and <code>X-Title</code> headers may be sent as required for source attribution (customizable in settings).</li>
+      <li>For providers using query-parameter authentication (e.g., Google Gemini), the API key is sent as a URL query parameter.</li>
+      <li>Protect your keys. You can delete or rotate them at any time, or uninstall the extension to remove all local data.</li>
+    </ul>
+  </section>
+
+  <section id="local-storage">
+    <h2>Local Storage, Cache & Retention</h2>
+    <ul>
+      <li><strong>Preferences & keys:</strong> Saved in <code>chrome.storage.local</code> (not synced across accounts). Includes provider configurations, API keys, selected models, and custom provider definitions.</li>
+      <li><strong>Translation cache:</strong> Stored in IndexedDB (per service/language), used to reduce duplicate requests.</li>
+      <li><strong>Provider/model cache:</strong> Provider definitions and model lists fetched from models.dev are cached locally with a 24-hour TTL in <code>chrome.storage.local</code>.</li>
+      <li><strong>Deletion:</strong> Clear cache from the options page, or uninstall the extension to remove all local data (including preferences, cache, keys).</li>
+      <li><strong>Incognito:</strong> When a request originates from an incognito tab, results are not written to persistent cache.</li>
+      <li><strong>Retention:</strong> Data persists locally until you clear it or uninstall.</li>
+    </ul>
+  </section>
+
+  <section id="permissions">
+    <h2>Browser Permissions</h2>
+    <p>To provide core features (Manifest V3):</p>
+    <ul>
+      <li><strong>storage</strong>: Save preferences, API keys, provider configurations, and cached provider/model data locally.</li>
+      <li><strong>activeTab</strong>: Inject scripts into the current tab when you interact with the extension.</li>
+      <li><strong>contextMenus</strong>: Provide context menu entries (translate page/selection).</li>
+      <li><strong>webRequest</strong>: Read document MIME type via <span class="mono">onHeadersReceived</span> to improve handling; not used to intercept for data collection.</li>
+      <li><strong>alarms</strong>: Delay auto-translate after <span class="mono">DOMContentLoaded</span> for compatibility.</li>
+      <li><strong>offscreen</strong>: Play TTS audio from the service worker via an offscreen document.</li>
+      <li><strong>declarativeNetRequest</strong>: Modify the <span class="mono">User-Agent</span> request header for specific Microsoft Translator endpoints (<span class="mono">edge.microsoft.com/translate/auth</span> and <span class="mono">api-edge.cognitive.microsofttranslator.com</span>) to facilitate authentication. This does not collect or redirect data.</li>
+      <li><strong>optional_permissions → webNavigation</strong>: Optional for auto-translate on same-domain navigation.</li>
+      <li><strong>host_permissions</strong>: Declared for hosts where Chrome extension APIs (webRequest, declarativeNetRequest) may need access:
+        <ul>
+          <li><code>https://translate.googleapis.com/*</code>, <code>https://translate.google.com/*</code> — Google Translate & TTS</li>
+          <li><code>https://api.openai.com/*</code> — OpenAI</li>
+          <li><code>https://api.anthropic.com/*</code> — Anthropic</li>
+          <li><code>https://generativelanguage.googleapis.com/*</code> — Google Gemini</li>
+          <li><code>https://openrouter.ai/*</code> — OpenRouter</li>
+          <li><code>https://api.deepseek.com/*</code> — DeepSeek</li>
+          <li><code>https://api.x.ai/*</code> — xAI / Grok</li>
+          <li><code>https://*.openai.azure.com/*</code> — Azure OpenAI</li>
+          <li><code>https://edge.microsoft.com/*</code>, <code>https://api-edge.cognitive.microsofttranslator.com/*</code> — Microsoft Translator (reserved; also used by declarativeNetRequest)</li>
+          <li><code>https://translate.yandex.net/*</code>, <code>https://www.bing.com/*</code>, <code>https://www.deepl.com/*</code> — reserved for potential future translation services</li>
+          <li><code>http://127.0.0.1/*</code>, <code>http://localhost/*</code> — local AI services (e.g., Ollama, LM Studio)</li>
+        </ul>
+        <p class="muted">Note: Other AI providers (Mistral, Cohere, Together, Groq, Perplexity, DeepInfra, Cerebras, Vercel AI Gateway, Zhipu, Moonshot, Qwen, Baidu, ByteDance, iFlytek) are accessed via <code>fetch()</code> from the extension's service worker, which does not require explicit host permissions. All requests are sent only when you initiate translation.</p>
+      </li>
+    </ul>
+    <p class="muted">Note: Content scripts match <code>&lt;all_urls&gt;</code> to operate on arbitrary pages. Text is only used locally and with providers you choose.</p>
+  </section>
+
+  <section id="user-controls">
+    <h2>Your Choices & Controls</h2>
+    <ul>
+      <li>Switch providers and target languages in the popup or options page.</li>
+      <li>Add, edit, or remove custom AI providers.</li>
+      <li>Enter, edit, or delete API keys at any time.</li>
+      <li>Clear local translation cache in the options page.</li>
+      <li>Provider/model data from models.dev is refreshed automatically (24-hour cache); you can manually refresh from the options page.</li>
+      <li>Disable or uninstall the extension at any time (uninstall removes all local data).</li>
+    </ul>
+  </section>
+
+  <section id="children">
+    <h2>Children</h2>
+    <p>DualTran is not directed to children under 13 and does not knowingly collect information from children.</p>
+  </section>
+
+  <section id="security">
+    <h2>Security</h2>
+    <ul>
+      <li>No developer-operated backend minimizes centralized storage risk.</li>
+      <li>API keys are stored locally in <code>storage.local</code>. Note: browser local storage is not a dedicated secrets vault; avoid using shared devices or remove keys after use.</li>
+      <li>All requests are sent over HTTPS to the selected providers. Localhost endpoints (<code>http://127.0.0.1</code>, <code>http://localhost</code>) are the exception, intended for local-only AI services.</li>
+    </ul>
+  </section>
+
+  <section id="transfer">
+    <h2>Cross-border Transfers</h2>
+    <p>When using third-party translation/AI/TTS services, text and necessary metadata are sent to servers that may be located in other countries/regions, subject to each provider's policy. In particular, China-based providers (DeepSeek, Zhipu, Moonshot, Qwen, Baidu, ByteDance, iFlytek) process data on servers located in China.</p>
+  </section>
+
+  <section id="changes">
+    <h2>Changes to this Policy</h2>
+    <p>We may update this policy due to feature or policy changes. Updates will be posted on this page with a new "Last updated" date. Material changes may be announced in release notes or the store listing.</p>
+  </section>
+
+  <section id="contact">
+    <h2>Contact</h2>
+    <p>If you have questions about this policy or our data practices, please contact us via the "Contact the developer / Support" entry on the Chrome Web Store listing.</p>
+  </section>
+
+  <footer class="muted" style="margin-top:2rem;">
+    <p>This page describes the data practices of the DualTran extension. When you use any third-party services, please also review their privacy policies and terms.</p>
+  </footer>
+</main>
+</body>
+</html>

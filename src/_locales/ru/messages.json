@@ -1,0 +1,757 @@
+{
+  "aiProviderAnthropic": {
+    "message": "Anthropic (Claude)"
+  },
+  "aiProviderAzureOpenAI": {
+    "message": "Azure OpenAI"
+  },
+  "aiProviderBaidu": {
+    "message": "Baidu ERNIE"
+  },
+  "aiProviderBytedance": {
+    "message": "ByteDance Doubao"
+  },
+  "aiProviderCerebras": {
+    "message": "Cerebras"
+  },
+  "aiProviderCohere": {
+    "message": "Cohere"
+  },
+  "aiProviderDeepInfra": {
+    "message": "Deep Infra"
+  },
+  "aiProviderDeepSeek": {
+    "message": "DeepSeek"
+  },
+  "aiProviderGoogleGemini": {
+    "message": "Google Gemini"
+  },
+  "aiProviderGrok": {
+    "message": "xAI (Grok)"
+  },
+  "aiProviderGroq": {
+    "message": "Groq"
+  },
+  "aiProviderIflytek": {
+    "message": "iFlytek Spark"
+  },
+  "aiProviderMistral": {
+    "message": "Mistral AI"
+  },
+  "aiProviderMoonshot": {
+    "message": "Moonshot (Kimi)"
+  },
+  "aiProviderOpenAI": {
+    "message": "OpenAI"
+  },
+  "aiProviderOpenRouter": {
+    "message": "OpenRouter"
+  },
+  "aiProviderPerplexity": {
+    "message": "Perplexity"
+  },
+  "aiProviderQwen": {
+    "message": "Alibaba Qwen"
+  },
+  "aiProviderTogether": {
+    "message": "Together AI"
+  },
+  "aiProviderVercel": {
+    "message": "Vercel AI Gateway"
+  },
+  "aiProviderZhipu": {
+    "message": "Zhipu AI (GLM)"
+  },
+  "alertSpecifyTargetLanguage": {
+    "message": "Сначала укажите целевой язык."
+  },
+  "backupToFile": {
+    "message": "Экспортировать в файл"
+  },
+  "btnAlwaysTranslate": {
+    "message": "Всегда переводить этот сайт"
+  },
+  "btnAlwaysTranslateThisLanguage": {
+    "message": "Всегда переводить с этого языка"
+  },
+  "btnApply": {
+    "message": "Применить"
+  },
+  "btnListen": {
+    "message": "Прослушать"
+  },
+  "btnMobileDonate": {
+    "message": "Пожертвовать"
+  },
+  "btnMobileNeverTranslate": {
+    "message": "Никогда не переводить этот сайт"
+  },
+  "btnMobileOriginal": {
+    "message": "Исходный"
+  },
+  "btnMobileTranslated": {
+    "message": "Перевод"
+  },
+  "btnMoreOptions": {
+    "message": "Дополнительные настройки"
+  },
+  "btnNeverTranslate": {
+    "message": "Никогда не переводить этот сайт"
+  },
+  "btnNeverTranslateThisLanguage": {
+    "message": "Никогда не переводить этот язык"
+  },
+  "btnOptions": {
+    "message": "Настройки"
+  },
+  "btnReplace": {
+    "message": "Заменить"
+  },
+  "btnReset": {
+    "message": "Сбросить"
+  },
+  "btnRestore": {
+    "message": "Показать исходный"
+  },
+  "btnShowPopup": {
+    "message": "Показывать всплывающее окно"
+  },
+  "btnStopListening": {
+    "message": "Остановить прослушивание"
+  },
+  "btnSubmit": {
+    "message": "Отправить"
+  },
+  "btnTranslate": {
+    "message": "Перевести"
+  },
+  "btncopy": {
+    "message": "Копировать"
+  },
+  "calculatestorage": {
+    "message": "Вычислить"
+  },
+  "confirmAutoTranslateWithAI": {
+    "message": "Хотите ли вы, чтобы Dualtran автоматически переводил с помощью ИИ в будущем?"
+  },
+  "confirmSetApiKeyNow": {
+    "message": "API-ключ не настроен. Хотите настроить его сейчас?"
+  },
+  "deleteTranslationCache": {
+    "message": "Удалить кэш переводов"
+  },
+  "displayTranslatedTextInNewLine": {
+    "message": "Отображать переведенный текст на новой строке"
+  },
+  "doYouWantOverwriteAllSettings": {
+    "message": "Перезаписать все существующие настройки, используя данные резервной копии?"
+  },
+  "doYouWantRestoreSettings": {
+    "message": "Восстановить настройки расширения по умолчанию?"
+  },
+  "doYouWantToDeleteTranslationCache": {
+    "message": "Вы действительно хотите удалить кэш переводов?"
+  },
+  "donatewithpaypal": {
+    "message": "Пожертвовать через PayPal"
+  },
+  "dontShowIfPageLangIsTargetLang": {
+    "message": "Не показывать, если язык страницы является целевым языком"
+  },
+  "dontShowIfPageLangIsUnknown": {
+    "message": "Не показывать, если язык страницы неизвестен"
+  },
+  "dontShowIfSelectedTextIsTargetLang": {
+    "message": "Не показывать, если язык текста является целевым языком"
+  },
+  "dontShowIfSelectedTextIsUnknown": {
+    "message": "Не показывать, если язык выделенного текста неизвестен"
+  },
+  "enterShortcut": {
+    "message": "Введите комбинацию"
+  },
+  "errorApiKeyNotFound": {
+    "message": "API-ключ не найден!"
+  },
+  "errorCopyFailed": {
+    "message": "Не удалось скопировать."
+  },
+  "errorCopyFailedInsecure": {
+    "message": "Не удалось скопировать текст. Вероятно, потому что протокол URL страницы - небезопасный HTTP, а не HTTPS."
+  },
+  "errorTranslationUnknown": {
+    "message": "Ошибка перевода: неизвестная ошибка."
+  },
+  "errorTranslationWithMessage": {
+    "message": "Ошибка перевода: $ERROR_MESSAGE$",
+    "placeholders": {
+      "ERROR_MESSAGE": {
+        "content": "$1",
+        "example": "Ошибка сети"
+      }
+    }
+  },
+  "extensionDescription": {
+    "message": "Перевод страниц в режиме реального времени с помощью Google или OpenAI."
+  },
+  "extensionName": {
+    "message": "Перевод веб страниц"
+  },
+  "fileIsCorrupted": {
+    "message": "Файл повреждён"
+  },
+  "floatingButtonTooltip": {
+    "message": "Click to toggle translation state; drag to move this button"
+  },
+  "hideOriginalText": {
+    "message": "Скрыть оригинальный текст"
+  },
+  "hotkeyError_ctrlOrAlt": {
+    "message": "Добавьте Ctrl или Alt"
+  },
+  "hotkeyError_invalid": {
+    "message": "Недопустимая комбинация"
+  },
+  "hotkeyError_letter": {
+    "message": "Добавьте символ"
+  },
+  "lblAdd": {
+    "message": "Добавить"
+  },
+  "lblAiFeatures": {
+    "message": "AI Features"
+  },
+  "lblAiImproveForLongerThan": {
+    "message": "Улучшать с помощью ИИ только те переводы, где слов больше чем",
+    "description": "Label for the minimum number of words required to trigger AI improvement"
+  },
+  "lblAiProvider": {
+    "message": "Поставщик ИИ"
+  },
+  "lblAiTranslatedStyle": {
+    "message": "Color of AI translated text "
+  },
+  "lblAlwaysTranslate": {
+    "message": "Всегда переводить с $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblAlwaysTranslateSites": {
+    "message": "Всегда переводить эти сайты"
+  },
+  "lblApiKeyOpenAI": {
+    "message": "API-ключ OpenAI"
+  },
+  "lblApiKeyOpenRouter": {
+    "message": "Ключ OpenRouter API"
+  },
+  "lblAutoImproveByAi": {
+    "message": "Автоматически улучшать переводы с помощью ИИ"
+  },
+  "lblAutoTranslateWhenClickingALink": {
+    "message": "Автоматически переводить при нажатии на ссылку, которая ведет на тот же домен, что и текущий сайт"
+  },
+  "lblButtonInTheAddressBar": {
+    "message": "Показывать значок в адресной строке"
+  },
+  "lblDarkMode": {
+    "message": "Тёмный режим"
+  },
+  "lblEnableDeepL": {
+    "message": "Включить DeepL как сервис перевода текста"
+  },
+  "lblEnterApiKey": {
+    "message": "Введите ключ API"
+  },
+  "lblError": {
+    "message": "Невозможно перевести эту страницу"
+  },
+  "lblFavoriteLanguage": {
+    "message": "Предпочитаемый язык $FAVORITE_LANGUAGE_NUM$",
+    "placeholders": {
+      "FAVORITE_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblFreeTranslationEngine": {
+    "message": "Free translation engine"
+  },
+  "lblHotTranslatedSelectedText": {
+    "message": "Мгновенно заменить выделенный текст переводом"
+  },
+  "lblKeyboardShortcuts": {
+    "message": "Горячие клавиши"
+  },
+  "lblKeyboardShortcutsSpecial": {
+    "message": "Специальные сочетания клавиш"
+  },
+  "lblMakeDonation": {
+    "message": "Пожертвовать"
+  },
+  "lblNeverTranslateLangs": {
+    "message": "Никогда не переводить эти языки"
+  },
+  "lblOpenAiModel": {
+    "message": "Модель OpenAI"
+  },
+  "lblOpenRouterBaseUrl": {
+    "message": "Базовый URL OpenRouter API (необязательно)"
+  },
+  "lblOpenRouterModel": {
+    "message": "Модель OpenRouter"
+  },
+  "lblOpenRouterReferer": {
+    "message": "Заголовок HTTP Referer (необязательно)"
+  },
+  "lblOpenRouterTitle": {
+    "message": "Заголовок X-Title (необязательно)"
+  },
+  "lblOthers": {
+    "message": "Прочее"
+  },
+  "lblPageTranslateInto": {
+    "message": "Страница переведена на $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblPageTranslationService": {
+    "message": "Сервис перевода страниц"
+  },
+  "lblPersonalSettings": {
+    "message": "Персональные настройки"
+  },
+  "lblPlsDonate": {
+    "message": "Пожертвовать разработчику"
+  },
+  "lblReleaseNotes": {
+    "message": "Примечания к выпуску"
+  },
+  "lblReplaceSelectedTextWithTranslatedText": {
+    "message": "Заменить выделенный текст переводом при двойном нажатии $SHORTCUT_KEY$",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblReport": {
+    "message": "Сообщить о проблеме"
+  },
+  "lblReset": {
+    "message": "Сбросить"
+  },
+  "lblRestorePageToOriginal": {
+    "message": "Восстановить исходный язык страницы"
+  },
+  "lblSelectPopupInterfaceStyle": {
+    "message": "Выберите стиль всплывающего интерфейса"
+  },
+  "lblSettings": {
+    "message": "Настройки"
+  },
+  "lblShowContextMenu": {
+    "message": "Показывать опцию перевода страницы в контекстном меню"
+  },
+  "lblShowOriginalTextWhenHovering": {
+    "message": "При наведении курсора показывать исходный текст"
+  },
+  "lblShowReleaseNotes": {
+    "message": "Открывать заметки о релизе при обновлении"
+  },
+  "lblShowTranslateSelectedButton": {
+    "message": "Показывать кнопку перевода выделенного текста"
+  },
+  "lblShowTranslateSelectedContextMenu": {
+    "message": "Показывать опцию перевода выделенного текста в контекстном меню"
+  },
+  "lblShowTranslatedHoveringLangs": {
+    "message": "Показывать переведённый текст при наведении курсора на сайтах на этих языках"
+  },
+  "lblShowTranslatedHoveringSites": {
+    "message": "Показывать переведённый текст при наведении курсора на этих сайтах"
+  },
+  "lblShowTranslatedWhenHovering": {
+    "message": "При наведении курсора показывать переведённый текст"
+  },
+  "lblShowTranslatedWhenHoveringThisLang": {
+    "message": "Показывать перевод при наведении курсора, если сайты на $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "lblShowTranslatedWhenHoveringThisSite": {
+    "message": "Показывать перевод при наведении курсора на этом сайте"
+  },
+  "lblStorageUsed": {
+    "message": "Занято:"
+  },
+  "lblSwitchTranslatedAndOriginal": {
+    "message": "Переключение между переведённой и исходной страницами"
+  },
+  "lblTargetLanguage": {
+    "message": "Целевой язык $TARGET_LANGUAGE_NUM$",
+    "placeholders": {
+      "TARGET_LANGUAGE_NUM": {
+        "content": "$1",
+        "example": "2"
+      }
+    }
+  },
+  "lblTargetLanguageGroup": {
+    "message": "Целевой язык"
+  },
+  "lblTextTranslationService": {
+    "message": "Сервис перевода текста"
+  },
+  "lblTranslate": {
+    "message": "Перевести эту страницу?"
+  },
+  "lblTranslateInterface": {
+    "message": "Помочь с переводом"
+  },
+  "lblTranslateLongerThan": {
+    "message": "Переводить только текст, в котором число слов больше этого значения",
+    "description": "Label for the minimum number of words required to trigger translation"
+  },
+  "lblTranslatePageInto": {
+    "message": "Перевести страницу на $LANGUAGE_NAME$?",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "German"
+      }
+    }
+  },
+  "lblTranslatePageToTargetLanguage": {
+    "message": "Перевести страницу на целевой язык"
+  },
+  "lblTranslateSelectedWhenPressTwice": {
+    "message": "Переводить выделенный текст при двойном нажатии на $SHORTCUT_KEY$",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslateTag_pre": {
+    "message": "Включить перевод для тега $HTML_TAG_NAME$",
+    "placeholders": {
+      "HTML_TAG_NAME": {
+        "content": "<PRE>"
+      }
+    }
+  },
+  "lblTranslateTextOverMouseWhenPressTwice": {
+    "message": "Переводить текст над курсором при двойном нажатии $SHORTCUT_KEY$",
+    "placeholders": {
+      "SHORTCUT_KEY": {
+        "content": "[Ctrl]"
+      }
+    }
+  },
+  "lblTranslated": {
+    "message": "Переведено"
+  },
+  "lblTranslatedStyle": {
+    "message": "Цвет текста перевода Google"
+  },
+  "lblTranslating": {
+    "message": "Идет перевод ..."
+  },
+  "lblTranslationCache": {
+    "message": "Кэш перевода"
+  },
+  "lblTranslationService": {
+    "message": "Сервис перевода"
+  },
+  "lblTtsSpeed": {
+    "message": "Скорость преобразования текста в речь"
+  },
+  "lblUseNewAlgorithm": {
+    "message": "Использовать новый алгоритм перевода?"
+  },
+  "lblWhereToDisplayTranslatedText": {
+    "message": "Где отображать переведенный текст"
+  },
+  "lbldontsortresults": {
+    "message": "Не сортировать результаты Google Translate"
+  },
+  "lbltranslatedynamicallycreatedcontent": {
+    "message": "Переводить динамически созданный контент"
+  },
+  "less": {
+    "message": "Меньше"
+  },
+  "more": {
+    "message": "Больше"
+  },
+  "msgAi": {
+    "message": "AI"
+  },
+  "msgAll": {
+    "message": "Все"
+  },
+  "msgAutomatic": {
+    "message": "Автоматически"
+  },
+  "msgAzureEnterKeyAndEndpoint": {
+    "message": "Пожалуйста, введите Azure endpoint и API-ключ, чтобы получить доступные модели для Azure OpenAI"
+  },
+  "msgCannotLoadDeepSeekModelsHttp": {
+    "message": "Не удалось загрузить модели DeepSeek (HTTP $1)",
+    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDonateWithPaypal": {
+    "message": "Сделать пожертвование через PayPal"
+  },
+  "msgDownloadingDocument": {
+    "message": "Файл скачивается..."
+  },
+  "msgEmptyListAlwaysTranslateLanguages": {
+    "message": "Вы не добавили ни один язык в этот список."
+  },
+  "msgEmptyListNeverTranslateSites": {
+    "message": "Вы не добавили ни один сайт в этот список."
+  },
+  "msgEnterApiKeyForModels": {
+    "message": "Пожалуйста, введите API-ключ, чтобы получить доступные модели для этого провайдера"
+  },
+  "msgErrorDownloadingDocument": {
+    "message": "Ошибка при скачивании документа"
+  },
+  "msgFavoriteLanguages": {
+    "message": "Любимые языки"
+  },
+  "msgFileLargerThan": {
+    "message": "Эта служба не поддерживает файлы размером более $FILE_SIZE$",
+    "placeholders": {
+      "FILE_SIZE": {
+        "content": "$1",
+        "example": "10 MB"
+      }
+    }
+  },
+  "msgHotkeys": {
+    "message": "Горячие клавиши"
+  },
+  "msgHowToGetOpenAIKey": {
+    "message": "Как получить ключ API OpenAI?"
+  },
+  "msgHowToGetOpenRouterKey": {
+    "message": "Как получить ключ OpenRouter API?"
+  },
+  "msgIWillBeGrateful": {
+    "message": "Буду признателен, если сделаете пожертвование."
+  },
+  "msgInterfaceComplex": {
+    "message": "Расширенный"
+  },
+  "msgInterfaceSimple": {
+    "message": "Простой"
+  },
+  "msgLanguages": {
+    "message": "Языки"
+  },
+  "msgLoadingModels": {
+    "message": "Загрузка..."
+  },
+  "msgModelListFetchFailed": {
+    "message": "Failed to fetch model list with API key. Available models:"
+  },
+  "msgNo": {
+    "message": "Нет"
+  },
+  "msgNoTranslateSelectedText": {
+    "message": "Не переводить выделенный текст"
+  },
+  "msgNoUseWidgets": {
+    "message": "Нет (использовать виджеты)"
+  },
+  "msgOpenOnYandexTranslator": {
+    "message": "Открыть в Яндекс.Переводчике"
+  },
+  "msgOpenTranslated": {
+    "message": "Открыть переведённый PDF"
+  },
+  "msgPDFtoHTML": {
+    "message": "PDF в HTML"
+  },
+  "msgPleaseWait": {
+    "message": "Подождите..."
+  },
+  "msgRecents": {
+    "message": "Недавние"
+  },
+  "msgSelectServiceConversion": {
+    "message": "Выберите сервис для конвертации"
+  },
+  "msgSelectTargetLanguage": {
+    "message": "Перевод веб-сайтов на этот целевой язык"
+  },
+  "msgSelectTargetLanguageForText": {
+    "message": "Перевести выделенный текст на этот целевой язык"
+  },
+  "msgSendDocument": {
+    "message": "Отправить документ"
+  },
+  "msgSites": {
+    "message": "Сайты"
+  },
+  "msgStorage": {
+    "message": "Хранилище"
+  },
+  "msgStyle": {
+    "message": "Стиль"
+  },
+  "msgThanksForUseExtension": {
+    "message": "Спасибо, что используете это расширение."
+  },
+  "msgToTranslateSites": {
+    "message": "Перевести сайт"
+  },
+  "msgToTranslateThisDocument": {
+    "message": "Для перевода документа $DOC_TYPE$ необходимо сконвертировать его в HTML",
+    "placeholders": {
+      "DOC_TYPE": {
+        "content": "$1",
+        "example": "(.pdf)"
+      }
+    }
+  },
+  "msgTranslateFor": {
+    "message": "Перевести на $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateSelectedText": {
+    "message": "Перевести выделенный текст"
+  },
+  "msgTranslations": {
+    "message": "Переводы"
+  },
+  "msgUnknownLanguage": {
+    "message": "Неизвестный"
+  },
+  "msgYes": {
+    "message": "Да"
+  },
+  "msgYesRecommended": {
+    "message": "Да (рекомендуется)"
+  },
+  "openNativeShortcutManager": {
+    "message": "Откройте встроенный менеджер горячих клавиш"
+  },
+  "optionFloatingConfig": {
+    "message": "показать плавающую кнопку"
+  },
+  "optionPopupAuto": {
+    "message": "Автоматически"
+  },
+  "optionPopupConfig": {
+    "message": "Показывать всплывающее окно для мобильного телефона"
+  },
+  "optionPopupThreeFingers": {
+    "message": "Когда касаюсь экрана тремя пальцами"
+  },
+  "optionPopupjustWhenIClickTranlateThisSite": {
+    "message": "Только при нажатии \"Перевести этот сайт\""
+  },
+  "optionsAddToCustomDictionary": {
+    "message": "Добавить в пользовательский словарь (Это позволяет пропускать определённые слова при переводе веб-страниц)"
+  },
+  "optionsAlwaysTranslate": {
+    "message": "Всегда переводить эти языки"
+  },
+  "optionsNeverTranslate": {
+    "message": "Никогда не переводить эти сайты"
+  },
+  "optionsPageTitle": {
+    "message": "DualTran - Настройки"
+  },
+  "pageActionTitle": {
+    "message": "Перевести эту страницу"
+  },
+  "placeholderOpenRouterBase": {
+    "message": "https://openrouter.ai/api/v1/chat/completions"
+  },
+  "placeholderOpenRouterModel": {
+    "message": "openai/gpt-4o-mini"
+  },
+  "placeholderOpenRouterReferer": {
+    "message": "https://your-site.example"
+  },
+  "placeholderOpenRouterTitle": {
+    "message": "DualTran"
+  },
+  "popupBlueWhenSiteIsTranslated": {
+    "message": "Когда сайт переведён, окрашивать значок расширения синим"
+  },
+  "promptInputOpenAIKey": {
+    "message": "Пожалуйста, введите ваш API-ключ OpenAI:"
+  },
+  "promptInputOpenRouterKey": {
+    "message": "Введите ключ OpenRouter API:"
+  },
+  "replaceOriginalTextWithTranslatedText": {
+    "message": "Заменить оригинальный текст переведенным текстом"
+  },
+  "resetToDefault": {
+    "message": "Восстановить настройки по умолчанию"
+  },
+  "restoreFromFile": {
+    "message": "Восстановить из файла"
+  },
+  "serviceBing": {
+    "message": "Bing"
+  },
+  "serviceDeepL": {
+    "message": "DeepL"
+  },
+  "serviceGoogle": {
+    "message": "Google"
+  },
+  "serviceGoogleTranslate": {
+    "message": "Google Translate"
+  },
+  "serviceMicrosoftTranslate": {
+    "message": "Microsoft Translator"
+  },
+  "serviceTranslateWebPages": {
+    "message": "DualTran"
+  },
+  "serviceYandex": {
+    "message": "Yandex"
+  },
+  "showOriginalText": {
+    "message": "Показать оригинальный текст"
+  },
+  "swapPopup": {
+    "message": "Переключение между простым и расширенным интерфейсом"
+  },
+  "swapTranslationService": {
+    "message": "Переключиться между сервисами перевода"
+  },
+  "tooltipImproveTranslationByAI": {
+    "message": "нажмите, чтобы улучшить перевод с помощью ИИ"
+  },
+  "translateClickingOnce": {
+    "message": "Переводить страницу по однократному нажатию кнопки в адресной строке. Чтобы увидеть всплывающее окно, щелкните правой кнопкой"
+  }
+}
