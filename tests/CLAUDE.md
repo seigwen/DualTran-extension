@@ -1,6 +1,6 @@
 # tests/CLAUDE.md
 
-DualTran 扩展的测试目录。使用 **Vitest + jsdom** 进行单元/集成测试，**Playwright** 进行浏览器 E2E 测试, **node tests/mcp-e2e/start-test-servers.js** 运行MCP E2E 组件级快速验证。
+DualTran test directory. Uses **Vitest + jsdom** for unit/integration tests, **Playwright** for browser E2E tests, and **node tests/mcp-e2e/start-test-servers.js** for MCP E2E component-level quick verification.
 
 ---
 
