@@ -772,12 +772,15 @@ describe("newLine 模式：原始文本不应被清除", () => {
     // 模拟 AI 翻译开始（调用 applyAiTranslatingState）
     const { applyAiTranslatingState } = await import("../../src/contentScript/aiUiState.js");
 
-    // newLine 模式下，translatedTextNode 是文本节点（nodeType === 3）
-    const translatedTextNode = translatedElement.firstChild;
+    // newLine 模式下，translatedTextNode 现在是 googleSpan（dual-span 结构）
+    const googleSpan = translatedElement.querySelector(".dualtran-google");
+    const aiSpan = translatedElement.querySelector(".dualtran-ai");
 
     const mockBtnAi = {
       _st: () => ({ nodesToClear: null }),
-      translatedTextNode: translatedTextNode,
+      translatedTextNode: googleSpan,
+      googleSpan: googleSpan,
+      aiSpan: aiSpan,
       translationStatus: null,
       btnAiTxtNode: document.createElement("span"),
       tooltip: document.createElement("span"),
@@ -792,9 +795,9 @@ describe("newLine 模式：原始文本不应被清除", () => {
       translatedTextColor: "#FF0000",
     });
 
-    // AI 译文颜色应覆盖谷歌译文颜色
+    // AI 译文颜色应应用到 aiSpan（dual-span 模式）
     // translatedTextNode 是文本节点，颜色应应用到其父元素（translatedElement）
-    expect(translatedElement.style.color).toBe("rgb(255, 0, 0)");
+    expect(aiSpan.style.color).toBe("rgb(255, 0, 0)");
   });
 });
 

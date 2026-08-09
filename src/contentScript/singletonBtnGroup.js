@@ -63,16 +63,19 @@ const blockStateMap = new WeakMap();
  * Register a translated block in the WeakMap.
  * Called by pageTranslator.js instead of createInlineButtonGroup().
  */
-export function registerBlock(translatedElement, sourceString, translatedTextNode, googleTranslatedText, nodesToClear) {
+export function registerBlock(translatedElement, sourceString, translatedTextNode, googleTranslatedText, nodesToClear, { googleSpan = null, aiSpan = null } = {}) {
   // Mark element so getProxiesForTranslation can find non-<translated> elements in replaceOriginal mode
   translatedElement.dataset.dualtranBlock = "1";
   blockStateMap.set(translatedElement, {
     sourceString,
-    translatedTextNode,
+    translatedTextNode,  // Legacy: kept for backward compat (points to googleTextNode in new mode)
     googleTranslatedText,
     nodesToClear,
     translationId: "",
     aiStatus: "idle",
+    // Dual-span mode: separate spans for Google and AI translations
+    googleSpan,   // <span class="dualtran-google"> — Google writes here
+    aiSpan,       // <span class="dualtran-ai"> — AI writes here
   });
 }
 
@@ -93,6 +96,8 @@ export class BtnAiProxy {
   // ── WeakMap-backed properties ──
   get sourceString()  { return this._st().sourceString; }
   get translatedTextNode() { return this._st().translatedTextNode; }
+  get googleSpan()    { return this._st().googleSpan; }
+  get aiSpan()        { return this._st().aiSpan; }
   get translationId() { return this._st().translationId; }
   set translationId(v) { this._st().translationId = v; }
   get translationStatus() { return this._st().aiStatus; }

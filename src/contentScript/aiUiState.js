@@ -11,8 +11,13 @@ function applyAiTranslatedTextColor(btnAi, translatedTextColor) {
     return;
   }
 
+  // Dual-span mode: apply AI color to aiSpan directly
+  if (btnAi?.aiSpan) {
+    btnAi.aiSpan.style.color = aiTranslatedColor;
+    return;
+  }
+
   // In replaceOriginal mode, AI translation should use original text color, not the configured translation color
-  // Check if in replaceOriginal mode by looking for data-dualtran-block attribute on translatedTextNode or its ancestors
   const translatedTextNode = btnAi?.translatedTextNode;
   if (!translatedTextNode) {
     return;
@@ -116,7 +121,17 @@ export function applyAiTranslatingState(btnAi, {
     if (btnAi.translatedTextNode && btnAi.translatedTextNode.classList) {
       btnAi.translatedTextNode.classList.remove("dualtran-loading");
     }
-    if (typeof translatedText === "string" && btnAi.translatedTextNode) {
+    // Dual-span mode: write AI translation to aiSpan, toggle visibility
+    if (btnAi.aiSpan) {
+      if (typeof translatedText === "string") {
+        btnAi.aiSpan.textContent = translatedText;
+      }
+      btnAi.aiSpan.style.display = "block";
+      if (btnAi.googleSpan) {
+        btnAi.googleSpan.style.display = "none";
+      }
+    } else if (typeof translatedText === "string" && btnAi.translatedTextNode) {
+      // Legacy single-span mode
       btnAi.translatedTextNode.textContent = translatedText;
     }
     applyAiTranslatedTextColor(btnAi, translatedTextColor);
@@ -175,7 +190,17 @@ export function applyAiSuccessState(btnAi, {
     if (btnAi.translatedTextNode && btnAi.translatedTextNode.classList) {
       btnAi.translatedTextNode.classList.remove("dualtran-loading");
     }
-    if (typeof translatedText === "string" && btnAi.translatedTextNode) {
+    // Dual-span mode: write AI translation to aiSpan, toggle visibility
+    if (btnAi.aiSpan) {
+      if (typeof translatedText === "string") {
+        btnAi.aiSpan.textContent = translatedText;
+      }
+      btnAi.aiSpan.style.display = "block";
+      if (btnAi.googleSpan) {
+        btnAi.googleSpan.style.display = "none";
+      }
+    } else if (typeof translatedText === "string" && btnAi.translatedTextNode) {
+      // Legacy single-span mode
       btnAi.translatedTextNode.textContent = translatedText;
     }
     applyAiTranslatedTextColor(btnAi, translatedTextColor);

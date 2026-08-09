@@ -204,6 +204,11 @@ function applyTranslatedColorToNode(node) {
 function _applyAiColorToTranslatedElement(btnAi, aiColor) {
   try {
     if (!aiColor || ["", "rgba(0, 0, 0, 1)", undefined, null].includes(aiColor)) return;
+    // Dual-span mode: apply AI color to aiSpan directly
+    if (btnAi?.aiSpan) {
+      btnAi.aiSpan.style.color = aiColor;
+      return;
+    }
     const ttn = btnAi?.translatedTextNode;
     if (!ttn) return;
      // Do not apply AI color in replaceOriginal mode (use original text color)
@@ -2698,7 +2703,15 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             }
           }
           const translatedTextNode = document.createTextNode(finalResults)
-          translatedElement.appendChild(translatedTextNode)
+          // Dual-span: create separate Google and AI spans inside <translated>
+          const googleSpan = document.createElement("span")
+          googleSpan.className = "dualtran-google"
+          googleSpan.textContent = finalResults
+          const aiSpan = document.createElement("span")
+          aiSpan.className = "dualtran-ai"
+          aiSpan.style.display = "none"
+          translatedElement.appendChild(googleSpan)
+          translatedElement.appendChild(aiSpan)
 
            // Add inline button group (Google + AI)
           let sourceString = piecesToTranslateNow[i].nodes.reduce((accumulator, currentNode) => accumulator + currentNode.textContent, "")
@@ -2706,9 +2719,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           if (shouldTriggerAiImprove(wordsCount(finalResults), twpConfig.get("aiImproveForLongerThan"))) {
             ensureSingletonInit();
             registerBlock(
-              translatedElement, sourceString, translatedTextNode,
+              translatedElement, sourceString, googleSpan,  // translatedTextNode points to googleSpan for backward compat
               finalResults, // Store Google translation for restoration
-              null // No nodes to clear in new-line mode
+              null, // No nodes to clear in new-line mode
+              { googleSpan, aiSpan }
             );
           }
         }
