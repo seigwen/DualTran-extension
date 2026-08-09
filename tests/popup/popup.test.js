@@ -28,7 +28,6 @@ const {
     showOriginalTextWhenHovering: "no",
     sitesToTranslateWhenHovering: [],
     langsToTranslateWhenHovering: [],
-    autoImproveByAI: "no",
     whereToDisplayTranslatedText: "replaceOriginal",
     darkMode: "no",
   };
@@ -156,7 +155,6 @@ describe("popup", () => {
       <input type="checkbox" id="cbShowOriginalWhenHovering"/>
       <input type="checkbox" id="cbShowTranslatedWhenHoveringThisSite"/>
       <input type="checkbox" id="cbShowTranslatedWhenHoveringThisLang"/>
-      <input type="checkbox" id="cbAutoImproveByAi"/>
       <button id="cbMoreOptions"></button>
       <div id="containerShowOriginalWhenHovering"></div>
       <div id="containerShowTranslatedWhenHoveringThisSite"></div>
@@ -199,7 +197,6 @@ describe("popup", () => {
     configValues.showOriginalTextWhenHovering = "no";
     configValues.sitesToTranslateWhenHovering = [];
     configValues.langsToTranslateWhenHovering = [];
-    configValues.autoImproveByAI = "no";
     configValues.whereToDisplayTranslatedText = "replaceOriginal";
     configValues.darkMode = "no";
 
@@ -371,7 +368,6 @@ describe("popup", () => {
     configValues.showOriginalTextWhenHovering = "yes";
     configValues.sitesToTranslateWhenHovering = ["example.com"];
     configValues.langsToTranslateWhenHovering = ["en"];
-    configValues.autoImproveByAI = "yes";
 
     await loadModule();
 
@@ -383,7 +379,6 @@ describe("popup", () => {
     expect(document.getElementById("cbShowOriginalWhenHovering").checked).toBe(true);
     expect(document.getElementById("cbShowTranslatedWhenHoveringThisSite").checked).toBe(true);
     expect(document.getElementById("cbShowTranslatedWhenHoveringThisLang").checked).toBe(true);
-    expect(document.getElementById("cbAutoImproveByAi").checked).toBe(true);
   });
 
   it("disables language-dependent controls when the original language is und", async () => {
@@ -500,16 +495,6 @@ describe("popup", () => {
 
     expect(addSiteToTranslateWhenHoveringMock).toHaveBeenCalledWith("example.com");
     expect(addLangToTranslateWhenHoveringMock).toHaveBeenCalledWith("en");
-  });
-
-  it("stores auto-improve-by-ai changes", async () => {
-    await loadModule();
-
-    setCheckedAndDispatch("#cbAutoImproveByAi", true);
-    setCheckedAndDispatch("#cbAutoImproveByAi", false);
-
-    expect(setMock).toHaveBeenCalledWith("autoImproveByAI", "yes");
-    expect(setMock).toHaveBeenCalledWith("autoImproveByAI", "no");
   });
 
   it("opens the options page from the more options button", async () => {

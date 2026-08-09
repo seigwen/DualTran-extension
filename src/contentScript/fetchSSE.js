@@ -262,9 +262,7 @@ export async function translateWithAI(content, onMessage, onError, onFinished, s
       }
       twpConfig.set(configKey, value)
       if (confirmAuto) {
-        const confirmMessage = chrome.i18n.getMessage("confirmAutoTranslateWithAI") || 'Automatically improve future translations with AI?'
         if (window.confirm(confirmMessage)) {
-          twpConfig.set("autoImproveByAI", "yes")
         }
       }
     }

@@ -373,14 +373,13 @@ function setCachedAiTranslation(sourceLanguage, targetLanguage, providerId, mode
 
 /**
  * Determine whether to skip AI auto-translation (pure decision function, no side effects, for unit testing).
- * @param {string} autoImproveByAI — "autoImproveByAI" value from twpConfig ("yes" / "no")
  * @param {boolean} hasApiKey — whether the current provider has an API key configured
  * @param {number} rateLimitCountdown — rate limit cooldown countdown (milliseconds)
  * @param {boolean} shouldForce — shouldForceAiAfterPageTranslation flag
  * @returns {boolean} true = skip AI translation, false = proceed with AI translation
  */
-function _shouldSkipAiTranslation(autoImproveByAI, hasApiKey, rateLimitCountdown, shouldForce) {
-  return rateLimitCountdown > 0 || (autoImproveByAI === "no" && !shouldForce) || !hasApiKey;
+function _shouldSkipAiTranslation(hasApiKey, rateLimitCountdown, shouldForce) {
+  return rateLimitCountdown > 0 || !shouldForce || !hasApiKey;
 }
 
 function promptToConfigureAiProvider() {
@@ -3032,7 +3031,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     updateAiRenderStateInternal();
     try {
       openAiRateLimitCountDown = openAiRateLimitCountDown - aiTranslationInterval
-      if (_shouldSkipAiTranslation(twpConfig.get("autoImproveByAI"), hasActiveProviderApiKey(), openAiRateLimitCountDown, shouldForceAiAfterPageTranslation)) {
+      if (_shouldSkipAiTranslation(hasActiveProviderApiKey(), openAiRateLimitCountDown, shouldForceAiAfterPageTranslation)) {
         clearTimeout(timerAiTran)
         timerAiTran = setTimeout(aiTranslateDynamically, aiTranslationInterval);
         return
@@ -3375,6 +3374,12 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       } else {
         pageTranslator.translatePage();
       }
+    } else if (request.action === "translate-page-google") {
+      pageTranslator.translatePage();
+    } else if (request.action === "translate-page-ai") {
+      pageTranslator.translatePageAi();
+    } else if (request.action === "restore-original") {
+      pageTranslator.restorePage();
     } else if (request.action === "autoTranslateBecauseClickedALink") {
       if (twpConfig.get("autoTranslateWhenClickingALink") === "yes") {
         pageTranslator.onGetOriginalTabLanguage(function () {

@@ -93,12 +93,22 @@ describe("contextMenuExecutionHelpers", () => {
       targetLanguageName: "French",
       buildTranslateForLabel: (languageName) => `Translate to ${languageName}`,
     })).toEqual([
-      { type: "remove-context-menu", menuId: "translate-web-page" },
+      { type: "remove-context-menu", menuId: "restore-original" },
+      { type: "remove-context-menu", menuId: "translate-page-google" },
       {
         type: "create-context-menu",
         config: {
-          id: "translate-web-page",
+          id: "translate-page-google",
           title: "Translate to French",
+          contexts: ["page", "frame"],
+        },
+      },
+      { type: "remove-context-menu", menuId: "translate-page-ai" },
+      {
+        type: "create-context-menu",
+        config: {
+          id: "translate-page-ai",
+          title: "🤖 Translate to French",
           contexts: ["page", "frame"],
         },
       },
@@ -111,11 +121,13 @@ describe("contextMenuExecutionHelpers", () => {
       targetLanguageName: "French",
       buildTranslateForLabel: (languageName) => `Translate to ${languageName}`,
     })).toEqual([
-      { type: "remove-context-menu", menuId: "translate-web-page" },
+      { type: "remove-context-menu", menuId: "translate-page-google" },
+      { type: "remove-context-menu", menuId: "translate-page-ai" },
+      { type: "remove-context-menu", menuId: "restore-original" },
       {
         type: "create-context-menu",
         config: {
-          id: "translate-web-page",
+          id: "restore-original",
           title: "Restore",
           contexts: ["page", "frame"],
         },

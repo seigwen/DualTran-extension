@@ -63,6 +63,18 @@ export function buildTranslatePageContextMenuEffects(config) {
   return buildContextMenuRefreshEffects("translate-web-page", config);
 }
 
+export function buildTranslatePageGoogleContextMenuEffects(config) {
+  return buildContextMenuRefreshEffects("translate-page-google", config);
+}
+
+export function buildTranslatePageAiContextMenuEffects(config) {
+  return buildContextMenuRefreshEffects("translate-page-ai", config);
+}
+
+export function buildRestoreOriginalContextMenuEffects(config) {
+  return buildContextMenuRefreshEffects("restore-original", config);
+}
+
 export function buildTranslateSelectedContextMenuRefreshPlan({ isEnabled, title }) {
   return buildTranslateSelectedContextMenuEffects(
     buildTranslateSelectedContextMenuConfig(isEnabled, title)
@@ -76,16 +88,28 @@ export function buildTranslatePageContextMenuRefreshPlan({
   targetLanguageName,
   buildTranslateForLabel,
 }) {
-  const title = getTranslatePageContextMenuTitle({
-    pageLanguageState,
-    restoreLabel,
-    targetLanguageName,
-    buildTranslateForLabel,
-  });
+  if (pageLanguageState === "translated") {
+    // Page is translated → show "Restore original" only
+    return [
+      ...buildTranslatePageGoogleContextMenuEffects(null),  // remove Google item
+      ...buildTranslatePageAiContextMenuEffects(null),      // remove AI item
+      ...buildRestoreOriginalContextMenuEffects(
+        isEnabled ? { id: "restore-original", title: restoreLabel, contexts: ["page", "frame"] } : null
+      ),
+    ];
+  }
 
-  return buildTranslatePageContextMenuEffects(
-    buildTranslatePageContextMenuConfig(isEnabled, title)
-  );
+  // Page is original → show "Translate with Google" and "Translate with AI"
+  const googleTitle = buildTranslateForLabel(targetLanguageName);
+  return [
+    ...buildRestoreOriginalContextMenuEffects(null),  // remove restore item
+    ...buildTranslatePageGoogleContextMenuEffects(
+      isEnabled ? { id: "translate-page-google", title: googleTitle, contexts: ["page", "frame"] } : null
+    ),
+    ...buildTranslatePageAiContextMenuEffects(
+      isEnabled ? { id: "translate-page-ai", title: "🤖 " + googleTitle, contexts: ["page", "frame"] } : null
+    ),
+  ];
 }
 
 export async function executeActivatedContextMenuRefresh(tabId, {

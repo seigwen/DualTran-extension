@@ -920,11 +920,6 @@ twpConfig.onReady(function () {
     twpConfig.set("aiImproveForLongerThan", e.target.value);
   };
 
-  $("#autoImproveByAI").onchange = (e) => { // Auto AI improvement toggle
-    twpConfig.set("autoImproveByAI", e.target.value);
-  };
-  $("#autoImproveByAI").value = twpConfig.get("autoImproveByAI"); // Initialize value
-
   $("#enableAiTranslationCache").onchange = (e) => { // Enable AI translation cache toggle
     twpConfig.set("enableAiTranslationCache", e.target.value);
   };

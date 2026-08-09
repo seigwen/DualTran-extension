@@ -49,6 +49,36 @@ export function resolveBasicMenuClickAction({ menuItemId, tabId, tabUrl, options
     };
   }
 
+  if (menuItemId === "translate-page-google") {
+    return {
+      type: "send-tab-message",
+      tabId,
+      message: {
+        action: "translate-page-google",
+      },
+    };
+  }
+
+  if (menuItemId === "translate-page-ai") {
+    return {
+      type: "send-tab-message",
+      tabId,
+      message: {
+        action: "translate-page-ai",
+      },
+    };
+  }
+
+  if (menuItemId === "restore-original") {
+    return {
+      type: "send-tab-message",
+      tabId,
+      message: {
+        action: "restore-original",
+      },
+    };
+  }
+
   if (menuItemId === "browserAction-showPopup") {
     return {
       type: "run-popup-sequence",

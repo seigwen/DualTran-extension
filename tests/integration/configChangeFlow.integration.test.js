@@ -9,7 +9,6 @@ const CONFIG_MODULE_URL = pathToFileURL(resolve(__dirname, "../../src/lib/config
 
 const expectedConfigKeys = [
   "openAiUserType",
-  "autoImproveByAI",
   "enableAiTranslationCache",
   "aiImproveForLongerThan",
   "apiKeyOpenAI",

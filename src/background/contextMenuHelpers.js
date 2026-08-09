@@ -36,3 +36,18 @@ export function buildTranslatePageContextMenuConfig(isEnabled, title) {
     contexts: ["page", "frame"],
   };
 }
+
+export function buildTranslatePageGoogleConfig(isEnabled, title) {
+  if (!isEnabled) return null;
+  return { id: "translate-page-google", title, contexts: ["page", "frame"] };
+}
+
+export function buildTranslatePageAiConfig(isEnabled, title) {
+  if (!isEnabled) return null;
+  return { id: "translate-page-ai", title, contexts: ["page", "frame"] };
+}
+
+export function buildRestoreOriginalConfig(isEnabled, title) {
+  if (!isEnabled) return null;
+  return { id: "restore-original", title, contexts: ["page", "frame"] };
+}

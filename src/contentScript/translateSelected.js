@@ -812,7 +812,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       setTranslatorButtonState("ai");
       triggerAiTranslation({ showToastForError: true });
     })
-    if (twpConfig.get("autoImproveByAI") === "yes") {
+    if (false) {
       setTimeout(() => sOpenAI.click(), 1000)
     }
 

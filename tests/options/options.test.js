@@ -18,7 +18,6 @@ const state = vi.hoisted(() => {
     ]),
     translateLongerThan: "100",
     aiImproveForLongerThan: "200",
-    autoImproveByAI: "no",
     pageTranslatorService: "google",
     ttsSpeed: "1.25",
     showOriginalTextWhenHovering: "yes",
@@ -301,7 +300,6 @@ function createOptionsDom() {
 
     <input id="translateLongerThan" />
     <input id="aiImproveForLongerThan" />
-    <select id="autoImproveByAI"><option value="yes">yes</option><option value="no">no</option></select>
     <select id="pageTranslatorService"><option value="google">google</option><option value="microsoft">microsoft</option></select>
     <input id="ttsSpeed" />
     <span id="displayTtsSpeed"></span>
@@ -777,7 +775,6 @@ describe("options/options", () => {
     { id: "translateLongerThan", type: "number", configKey: "translateLongerThan", testValue: "5" },
     { id: "whereToDisplayTranslatedText", type: "select", configKey: "whereToDisplayTranslatedText", testValue: "replaceOriginal" },
     { id: "aiImproveForLongerThan", type: "number", configKey: "aiImproveForLongerThan", testValue: "10" },
-    { id: "autoImproveByAI", type: "select", configKey: "autoImproveByAI", testValue: "no" },
     // 注: pageTranslatorService 的 HTML 在 options.html 中被注释，但其 JS handler 是激活的
     { id: "pageTranslatorService", type: "select", configKey: "pageTranslatorService", testValue: "microsoft", note: "HTML 在 prod 中被注释，handler 仅在 dev 测试 DOM 中生效" },
     { id: "ttsSpeed", type: "range", configKey: "ttsSpeed", testValue: "0.5", note: "使用 oninput 而非 onchange" },

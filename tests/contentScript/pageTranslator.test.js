@@ -367,27 +367,23 @@ describe("pageTranslator aiTranslateText", () => {
 describe("_shouldSkipAiTranslation guard logic", () => {
   it("A1: returns true when autoImproveByAI=no and not forced", async () => {
     const { _shouldSkipAiTranslation } = await import("../../src/contentScript/pageTranslator.js");
-    expect(_shouldSkipAiTranslation("no", true, 0, false)).toBe(true);
+    expect(_shouldSkipAiTranslation(true, 0, false)).toBe(true);
   });
 
-  it("A2: returns false when autoImproveByAI=yes, has key, rate limit=0, not forced", async () => {
-    const { _shouldSkipAiTranslation } = await import("../../src/contentScript/pageTranslator.js");
-    expect(_shouldSkipAiTranslation("yes", true, 0, false)).toBe(false);
-  });
 
   it("A3: returns false when autoImproveByAI=no but force=true", async () => {
     const { _shouldSkipAiTranslation } = await import("../../src/contentScript/pageTranslator.js");
-    expect(_shouldSkipAiTranslation("no", true, 0, true)).toBe(false);
+    expect(_shouldSkipAiTranslation(true, 0, true)).toBe(false);
   });
 
   it("A4: returns true when hasApiKey is false", async () => {
     const { _shouldSkipAiTranslation } = await import("../../src/contentScript/pageTranslator.js");
-    expect(_shouldSkipAiTranslation("yes", false, 0, false)).toBe(true);
+    expect(_shouldSkipAiTranslation(false, 0, false)).toBe(true);
   });
 
   it("A5: returns true when rateLimitCountdown > 0", async () => {
     const { _shouldSkipAiTranslation } = await import("../../src/contentScript/pageTranslator.js");
-    expect(_shouldSkipAiTranslation("yes", true, 60_000, false)).toBe(true);
+    expect(_shouldSkipAiTranslation(true, 60_000, false)).toBe(true);
   });
 
   // ═══════════════════════════════════════════════════════════════
@@ -398,7 +394,7 @@ describe("_shouldSkipAiTranslation guard logic", () => {
   //
   // 根因：aiTranslateDynamically 每轮翻译完成后将
   // shouldForceAiAfterPageTranslation 重置为 false，导致下一轮
-  // _shouldSkipAiTranslation("no", true, 0, false) → true → 跳过。
+  // _shouldSkipAiTranslation(true, 0, false) → true → 跳过。
   //
   // 修复：shouldForceAiAfterPageTranslation 在用户点击 AI 按钮后
   // 持续保持 true，仅 restorePage()/stopAiAutoTranslate() 时重置。
@@ -406,47 +402,47 @@ describe("_shouldSkipAiTranslation guard logic", () => {
 
   it("B1: 用户点击AI按钮后动态内容应被翻译 (shouldForce=true)", async () => {
     const { _shouldSkipAiTranslation } = await import("../../src/contentScript/pageTranslator.js");
-    expect(_shouldSkipAiTranslation("no", true, 0, true)).toBe(false);
+    expect(_shouldSkipAiTranslation(true, 0, true)).toBe(false);
   });
 
   it("B2: bug场景 — shouldForce被错误重置后动态内容被跳过 (shouldForce=false)", async () => {
     const { _shouldSkipAiTranslation } = await import("../../src/contentScript/pageTranslator.js");
-    expect(_shouldSkipAiTranslation("no", true, 0, false)).toBe(true);
+    expect(_shouldSkipAiTranslation(true, 0, false)).toBe(true);
   });
 
   it("B3: shouldForce必须跨多轮保持true才能实现持续AI翻译", async () => {
     const { _shouldSkipAiTranslation } = await import("../../src/contentScript/pageTranslator.js");
     // 修复后: 每轮 shouldForce=true → 不跳过
     for (let round = 0; round < 3; round++) {
-      expect(_shouldSkipAiTranslation("no", true, 0, true)).toBe(false);
+      expect(_shouldSkipAiTranslation(true, 0, true)).toBe(false);
     }
     // 修复前(bug): 首轮后 shouldForce=false → 后续全部跳过
     for (let round = 0; round < 3; round++) {
-      expect(_shouldSkipAiTranslation("no", true, 0, false)).toBe(true);
+      expect(_shouldSkipAiTranslation(true, 0, false)).toBe(true);
     }
   });
 
   it("B4: rate limit冷却中时force标志也不生效（rate limit优先）", async () => {
     const { _shouldSkipAiTranslation } = await import("../../src/contentScript/pageTranslator.js");
-    expect(_shouldSkipAiTranslation("no", true, 10_000, true)).toBe(true);
+    expect(_shouldSkipAiTranslation(true, 10_000, true)).toBe(true);
   });
 
   it("B5: 无API key时force标志也不生效", async () => {
     const { _shouldSkipAiTranslation } = await import("../../src/contentScript/pageTranslator.js");
-    expect(_shouldSkipAiTranslation("no", false, 0, true)).toBe(true);
+    expect(_shouldSkipAiTranslation(false, 0, true)).toBe(true);
   });
 
   it("B6: 完整决策矩阵 — 验证所有关键场景", async () => {
     const { _shouldSkipAiTranslation } = await import("../../src/contentScript/pageTranslator.js");
     const matrix = [
-      ["默认无强制（bug场景）",        "no",  true, 0,    false, true],
-      ["默认+强制（AI按钮）",          "no",  true, 0,    true,  false],
-      ["自动改进模式",                "yes", true, 0,    false, false],
-      ["无API Key",                  "no",  false,0,    true,  true],
+      ["默认无强制（bug场景）",        true, 0,    false, true],
+      ["默认+强制（AI按钮）",          true, 0,    true,  false],
+      ["有API Key + 无强制",          true, 0,    false, true],
+      ["无API Key",                  false,0,    true,  true],
     ];
-    for (const [desc, improve, key, limit, force, expected] of matrix) {
+    for (const [desc, key, limit, force, expected] of matrix) {
       expect(
-        _shouldSkipAiTranslation(improve, key, limit, force),
+        _shouldSkipAiTranslation(key, limit, force),
         `"${desc}" 期望 ${expected}`
       ).toBe(expected);
     }
@@ -467,13 +463,13 @@ describe("_shouldSkipAiTranslation guard logic", () => {
   it("C1: 修复后 — rate limit被重置为0后force=true应放行请求", async () => {
     const { _shouldSkipAiTranslation } = await import("../../src/contentScript/pageTranslator.js");
     // translatePageAi() 已将 openAiRateLimitCountDown 重置为 0
-    expect(_shouldSkipAiTranslation("no", true, 0, true)).toBe(false);
+    expect(_shouldSkipAiTranslation(true, 0, true)).toBe(false);
   });
 
   it("C2: 修复前 bug 场景 — rate limit>0时即使force=true也被跳过", async () => {
     const { _shouldSkipAiTranslation } = await import("../../src/contentScript/pageTranslator.js");
     // 修复前：translatePageAi() 未重置 countdown，仍为 10000
-    expect(_shouldSkipAiTranslation("no", true, 10_000, true)).toBe(true);
+    expect(_shouldSkipAiTranslation(true, 10_000, true)).toBe(true);
   });
 });
 

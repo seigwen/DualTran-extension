@@ -4,7 +4,6 @@ const expectedExportKeys = [
   "timeStamp",
   "version",
   "openAiUserType",
-  "autoImproveByAI",
   "aiImproveForLongerThan",
   "apiKeyOpenAI",
   "openAiModel",

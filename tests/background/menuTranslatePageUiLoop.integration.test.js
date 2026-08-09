@@ -13,9 +13,9 @@ import {
 } from "../../src/background/iconHelpers.js";
 
 describe("menu translate-page ui loop integration", () => {
-  it("combines translate-web-page menu click with translated runtime UI updates", () => {
+  it("combines translate-page-google menu click with translated runtime UI updates", () => {
     const menuClickAction = resolveBasicMenuClickAction({
-      menuItemId: "translate-web-page",
+      menuItemId: "translate-page-google",
       tabId: 18,
     });
 
@@ -24,7 +24,7 @@ describe("menu translate-page ui loop integration", () => {
         type: "send-tab-message",
         tabId: 18,
         message: {
-          action: "toggle-translation",
+          action: "translate-page-google",
         },
       },
     ]);
@@ -49,9 +49,11 @@ describe("menu translate-page ui loop integration", () => {
       createContextMenu,
     });
 
-    expect(removeContextMenu).toHaveBeenCalledWith("translate-web-page", undefined);
+    expect(removeContextMenu).toHaveBeenCalledWith("translate-page-google", undefined);
+    expect(removeContextMenu).toHaveBeenCalledWith("translate-page-ai", undefined);
+    expect(removeContextMenu).toHaveBeenCalledWith("restore-original", undefined);
     expect(createContextMenu).toHaveBeenCalledWith({
-      id: "translate-web-page",
+      id: "restore-original",
       title: "Restore original",
       contexts: ["page", "frame"],
     }, undefined);
@@ -100,7 +102,7 @@ describe("menu translate-page ui loop integration", () => {
 
   it("combines restore-original menu click with original runtime UI updates", () => {
     const menuClickAction = resolveBasicMenuClickAction({
-      menuItemId: "translate-web-page",
+      menuItemId: "restore-original",
       tabId: 18,
     });
 
@@ -109,7 +111,7 @@ describe("menu translate-page ui loop integration", () => {
         type: "send-tab-message",
         tabId: 18,
         message: {
-          action: "toggle-translation",
+          action: "restore-original",
         },
       },
     ]);
@@ -134,10 +136,17 @@ describe("menu translate-page ui loop integration", () => {
       createContextMenu,
     });
 
-    expect(removeContextMenu).toHaveBeenCalledWith("translate-web-page", undefined);
+    expect(removeContextMenu).toHaveBeenCalledWith("restore-original", undefined);
+    expect(removeContextMenu).toHaveBeenCalledWith("translate-page-google", undefined);
+    expect(removeContextMenu).toHaveBeenCalledWith("translate-page-ai", undefined);
     expect(createContextMenu).toHaveBeenCalledWith({
-      id: "translate-web-page",
+      id: "translate-page-google",
       title: "Translate to French",
+      contexts: ["page", "frame"],
+    }, undefined);
+    expect(createContextMenu).toHaveBeenCalledWith({
+      id: "translate-page-ai",
+      title: "🤖 Translate to French",
       contexts: ["page", "frame"],
     }, undefined);
 

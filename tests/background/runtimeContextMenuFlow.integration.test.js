@@ -24,11 +24,13 @@ describe("runtime context menu flow integration", () => {
     });
 
     expect(effects).toEqual([
-      { type: "remove-context-menu", menuId: "translate-web-page" },
+      { type: "remove-context-menu", menuId: "translate-page-google" },
+      { type: "remove-context-menu", menuId: "translate-page-ai" },
+      { type: "remove-context-menu", menuId: "restore-original" },
       {
         type: "create-context-menu",
         config: {
-          id: "translate-web-page",
+          id: "restore-original",
           title: "Restore original",
           contexts: ["page", "frame"],
         },
@@ -42,9 +44,11 @@ describe("runtime context menu flow integration", () => {
       createCallback,
     });
 
-    expect(removeContextMenu).toHaveBeenCalledWith("translate-web-page", removeCallback);
+    expect(removeContextMenu).toHaveBeenCalledWith("translate-page-google", removeCallback);
+    expect(removeContextMenu).toHaveBeenCalledWith("translate-page-ai", removeCallback);
+    expect(removeContextMenu).toHaveBeenCalledWith("restore-original", removeCallback);
     expect(createContextMenu).toHaveBeenCalledWith({
-      id: "translate-web-page",
+      id: "restore-original",
       title: "Restore original",
       contexts: ["page", "frame"],
     }, createCallback);
@@ -69,12 +73,22 @@ describe("runtime context menu flow integration", () => {
     });
 
     expect(effects).toEqual([
-      { type: "remove-context-menu", menuId: "translate-web-page" },
+      { type: "remove-context-menu", menuId: "restore-original" },
+      { type: "remove-context-menu", menuId: "translate-page-google" },
       {
         type: "create-context-menu",
         config: {
-          id: "translate-web-page",
+          id: "translate-page-google",
           title: "Translate to French",
+          contexts: ["page", "frame"],
+        },
+      },
+      { type: "remove-context-menu", menuId: "translate-page-ai" },
+      {
+        type: "create-context-menu",
+        config: {
+          id: "translate-page-ai",
+          title: "🤖 Translate to French",
           contexts: ["page", "frame"],
         },
       },
@@ -87,10 +101,17 @@ describe("runtime context menu flow integration", () => {
       createCallback,
     });
 
-    expect(removeContextMenu).toHaveBeenCalledWith("translate-web-page", removeCallback);
+    expect(removeContextMenu).toHaveBeenCalledWith("restore-original", removeCallback);
+    expect(removeContextMenu).toHaveBeenCalledWith("translate-page-google", removeCallback);
+    expect(removeContextMenu).toHaveBeenCalledWith("translate-page-ai", removeCallback);
     expect(createContextMenu).toHaveBeenCalledWith({
-      id: "translate-web-page",
+      id: "translate-page-google",
       title: "Translate to French",
+      contexts: ["page", "frame"],
+    }, createCallback);
+    expect(createContextMenu).toHaveBeenCalledWith({
+      id: "translate-page-ai",
+      title: "🤖 Translate to French",
       contexts: ["page", "frame"],
     }, createCallback);
   });

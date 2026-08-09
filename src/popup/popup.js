@@ -277,16 +277,6 @@ twpConfig.onReady(function () {
         }
       );
 
-      // Set "Automatically improve translations by AI" checkbox click handler
-      $("#cbAutoImproveByAi").addEventListener("change", (e) => {
-        if (e.target.checked) {
-          twpConfig.set("autoImproveByAI", "yes");
-        } else {
-          twpConfig.set("autoImproveByAI", "no");
-        }
-        updateInterface();
-      });
-
       // Set "Show translation when hovering over this language" checkbox click handler
       $("#cbMoreOptions").addEventListener(
         "click",
@@ -330,7 +320,6 @@ twpConfig.onReady(function () {
     // Set "Show translate selected text button" checkbox style
     $("#cbShowTranslateSelectedButton").checked = twpConfig.get("showTranslateSelectedButton") == "yes" ? true : false;
 
-    $("#cbAutoImproveByAi").checked = twpConfig.get("autoImproveByAI") == "yes" ? true : false;
 
     // Set "Show original when hovering" checkbox style
     $("#cbShowOriginalWhenHovering").checked = twpConfig.get("showOriginalTextWhenHovering") == "yes" ? true : false;
