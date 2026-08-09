@@ -3108,6 +3108,22 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     shouldForceAiAfterPageTranslation = false;
   };
 
+  /**
+   * Show only Google translations (hide AI spans). Called when user clicks Google button
+   * while AI is active — switches from AI view to Google-only view without re-translating.
+   */
+  pageTranslator.showGoogleOnly = function () {
+    getAllProxies().forEach((p) => {
+      if (p.googleSpan) {
+        p.googleSpan.style.display = "block";
+      }
+      if (p.aiSpan) {
+        p.aiSpan.style.display = "none";
+      }
+    });
+    shouldForceAiAfterPageTranslation = false;
+  };
+
   function setPageRenderState(state) {
     if (pageRenderState !== state) {
       pageRenderState = state;

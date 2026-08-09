@@ -640,19 +640,21 @@ if (window.self !== window.top) {
       }
       console.log("Google translate button clicked");
       if (pageLanguageState === "original") {
-        // Original state → translate entire page
+        // Original state → Google-only translation
         googleRenderState = "loading";
         updateButtons(googleRenderState, aiRenderState);
         translatePage();
       } else {
-        // Translated state → restore original, then check if AI has translated
+        // Translated state
         if (aiRenderState === "success") {
-          // AI has translated → switch to AI translation
-          googleRenderState = "idle";
+          // AI has translated → switch to Google-only view (hide AI, show Google)
+          pageTranslator.showGoogleOnly();
+          aiRenderState = "idle";
+          googleRenderState = "success";
           updateButtons(googleRenderState, aiRenderState);
-          pageTranslator.translatePageAi();
+          pageTranslator.stopAiAutoTranslate();
         } else {
-          // AI not translated → hide translation
+          // AI not translated → restore original
           pageTranslator.restorePage();
         }
       }
@@ -670,23 +672,21 @@ if (window.self !== window.top) {
         return;
       }
       if (aiRenderState === "success") {
-        // Translated state → restore original, then check if Google has translated
-        if (googleRenderState === "success") {
-          // Google has translated → switch to Google translation
-          // User manually switched from AI to Google, stop AI auto-translate mode,
-          // to prevent newly loaded content from being auto-translated by AI.
-          // Note: translatePage() internally keeps shouldForceAiAfterPageTranslation,
-          // so we must explicitly call stopAiAutoTranslate() here to correctly reset.
+        // Already AI-translated → restore original
+        pageTranslator.restorePage();
+      } else if (pageLanguageState === "original") {
+        // Original state → Google+AI concurrent translation
+        googleRenderState = "loading";
+        aiRenderState = "loading";
+        updateButtons(googleRenderState, aiRenderState);
+        const started = pageTranslator.translatePageAi();
+        if (started === false) {
           aiRenderState = "idle";
+          googleRenderState = "idle";
           updateButtons(googleRenderState, aiRenderState);
-          pageTranslator.stopAiAutoTranslate();
-          pageTranslator.translatePage();
-        } else {
-          // Google not translated → hide translation
-          pageTranslator.restorePage();
         }
-      } else if (pageLanguageState === "original" || googleRenderState === "success" || googleRenderState === "loading") {
-        // Original state → translate entire page
+      } else if (googleRenderState === "success") {
+        // Already has Google translation → add AI on top
         aiRenderState = "loading";
         updateButtons(googleRenderState, aiRenderState);
         const started = pageTranslator.translatePageAi();

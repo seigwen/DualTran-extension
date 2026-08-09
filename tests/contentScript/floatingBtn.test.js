@@ -30,6 +30,7 @@ const {
     translatePageAi: vi.fn(),
     restorePage: vi.fn(),
     stopAiAutoTranslate: vi.fn(),
+    showGoogleOnly: vi.fn(),
     onPageLanguageStateChange: vi.fn((callback) => {
       pageTranslatorCallbacks.onPageLanguageStateChange.push(callback);
     }),
@@ -139,6 +140,7 @@ describe("floatingBtn", () => {
     pageTranslatorMock.translatePageAi.mockReset();
     pageTranslatorMock.restorePage.mockReset();
     pageTranslatorMock.stopAiAutoTranslate.mockReset();
+    pageTranslatorMock.showGoogleOnly.mockReset();
     pageTranslatorMock.onPageLanguageStateChange.mockClear();
     pageTranslatorMock.onPageRenderStateChange.mockClear();
     pageTranslatorMock.onAiRenderStateChange.mockClear();
@@ -203,6 +205,9 @@ describe("floatingBtn", () => {
   }
   function getAiButton() {
     return getHost()?.shadowRoot?.getElementById("btnAi");
+  }
+  function getGoogleButton() {
+    return getHost()?.shadowRoot?.getElementById("btnGoogle");
   }
   function getDragHandle() {
     return getHost()?.shadowRoot?.getElementById("dragHandle");
@@ -331,27 +336,18 @@ describe("floatingBtn", () => {
     expect(pageTranslatorMock.restorePage).not.toHaveBeenCalled();
   });
 
-  it("switching from AI to Google translation calls stopAiAutoTranslate before translatePage", async () => {
+  it("switching from AI to Google translation calls showGoogleOnly and stopAiAutoTranslate", async () => {
     // 用户已用 AI 翻译（aiRenderState=success）且 Google 译文也在（googleRenderState=success），
-    // 此时点击 AI 按钮应切换到 Google 译文，并停止 AI 自动翻译模式，
-    // 使后续动态加载的新内容不再被 AI 翻译。
+    // 此时点击 Google 按钮应切换到仅显示 Google 译文，并停止 AI 自动翻译模式。
     await loadModule();
     emitPageLanguageStateChange("translated");
     emitPageRenderStateChange("success");
     emitAiRenderStateChange("success");
 
-    getAiButton().click();
+    getGoogleButton().click();
 
-    // stopAiAutoTranslate 必须在 translatePage 之前调用，
-    // 因为 translatePage 内部会保留 shouldForceAiAfterPageTranslation 标志，
-    // 必须先显式重置才能正确停止 AI 自动翻译。
-    // vitest 不内置 toHaveBeenCalledBefore 匹配器，用 invocationCallOrder 比较调用先后
+    expect(pageTranslatorMock.showGoogleOnly).toHaveBeenCalledOnce();
     expect(pageTranslatorMock.stopAiAutoTranslate).toHaveBeenCalledOnce();
-    expect(pageTranslatorMock.translatePage).toHaveBeenCalledOnce();
-    expect(pageTranslatorMock.stopAiAutoTranslate.mock.invocationCallOrder[0]).toBeLessThan(
-      pageTranslatorMock.translatePage.mock.invocationCallOrder[0]
-    );
-    expect(pageTranslatorMock.translatePageAi).not.toHaveBeenCalled();
   });
 
   it("restores a saved floating button position from config", async () => {
