@@ -3114,11 +3114,39 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   pageTranslator.showGoogleOnly = function () {
     getAllProxies().forEach((p) => {
       if (p.googleSpan) {
+        // newLine mode (dual-span): show Google, hide AI
         p.googleSpan.style.display = "block";
+        if (p.aiSpan) {
+          p.aiSpan.style.display = "none";
+        }
+      } else if (p.nodesToClear) {
+        // replaceOriginal mode (no dual-span): restore original nodes, clear AI text
+        p.nodesToClear.forEach((n) => {
+          try {
+            const restored = nodesToRestore.find((r) => r.node === n);
+            if (restored) {
+              if (n.nodeType === 3) {
+                n.textContent = restored.originalText;
+                const parent = n.parentNode;
+                if (parent && parent.nodeType === 1 && parent.style?.display === "none") {
+                  parent.style.display = "";
+                }
+              } else if (n.nodeType === 1) {
+                n.style.display = "";
+                n.textContent = restored.originalText;
+              }
+            }
+          } catch (_) {}
+        });
+        // Clear the AI translated text node
+        if (p.translatedTextNode) {
+          try { p.translatedTextNode.textContent = ""; } catch (_) {}
+        }
       }
-      if (p.aiSpan) {
-        p.aiSpan.style.display = "none";
-      }
+      // Reset AI translation state so blocks can be re-translated
+      // when user clicks AI again after switching to Google-only view
+      p.translationStatus = "idle";
+      p.translationId = "";
     });
     shouldForceAiAfterPageTranslation = false;
   };
