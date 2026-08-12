@@ -98,6 +98,8 @@ export class BtnAiProxy {
   get translatedTextNode() { return this._st().translatedTextNode; }
   get googleSpan()    { return this._st().googleSpan; }
   get aiSpan()        { return this._st().aiSpan; }
+  get nodesToClear()  { return this._st().nodesToClear; }
+  get googleTranslatedText() { return this._st().googleTranslatedText; }
   get translationId() { return this._st().translationId; }
   set translationId(v) { this._st().translationId = v; }
   get translationStatus() { return this._st().aiStatus; }

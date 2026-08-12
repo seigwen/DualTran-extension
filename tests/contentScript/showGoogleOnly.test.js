@@ -152,7 +152,7 @@ describe("showGoogleOnly — Bug 1: replaceOriginal mode", () => {
     cleanup(container);
   });
 
-  it("BUG 1: replaceOriginal mode — showGoogleOnly should restore original text and clear AI text", () => {
+  it("BUG 1: replaceOriginal mode — proxy should expose nodesToClear for showGoogleOnly", () => {
     const { container, blocks } = createReplaceOriginalModeBlocks();
 
     // Simulate AI translation done: translatedTextNode has AI text
@@ -163,23 +163,28 @@ describe("showGoogleOnly — Bug 1: replaceOriginal mode", () => {
     // Verify AI text is showing
     expect(blocks[0].translatedTextNode.textContent).toBe("AI translation");
 
-    // Act: simulate showGoogleOnly (with replaceOriginal handling)
+    // Key assertion: proxy must expose nodesToClear so showGoogleOnly can restore original text
+    const proxies = getAllProxies();
+    expect(proxies.length).toBeGreaterThan(0);
+
+    proxies.forEach((p, idx) => {
+      // BUG 1 ROOT CAUSE: before fix, nodesToClear was undefined on proxy
+      expect(p.nodesToClear).toBeDefined();
+      expect(p.googleTranslatedText).toBeDefined();
+    });
+
+    // Act: simulate showGoogleOnly
     simulateShowGoogleOnly();
 
-    // After fix, showGoogleOnly should:
-    // 1. Restore original text from nodesToRestore (if available)
-    // 2. Clear the AI translatedTextNode
-    // 3. Reset aiStatus to "idle"
-    //
-    // Since our test doesn't populate nodesToRestore (that's done by
-    // the real translateResults function), we verify the state reset:
-    const proxies = getAllProxies();
+    // After fix: aiStatus reset and translationId cleared
     proxies.forEach((p, idx) => {
       expect(p.translationStatus).toBe("idle",
         `Block ${idx}: aiStatus should be reset to "idle" after showGoogleOnly`);
       expect(p.translationId).toBe("",
         `Block ${idx}: translationId should be cleared after showGoogleOnly`);
     });
+
+    cleanup(container);
   });
 });
 
