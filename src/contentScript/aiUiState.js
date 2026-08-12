@@ -92,30 +92,17 @@ export function applyAiTranslatingState(btnAi, {
 
   updateInlineBtnStateClass(btnAi, "loading");
 
-  // replaceOriginal mode: clear/hide original nodes when AI translation starts, to avoid showing AI translation to the right of original text
-  // Text nodes (nodeType === 3): clear content and hide INLINE parent elements only
-  // Block-level parents (<li>, <p>, <div>) must NOT be hidden.
-  // Element nodes (nodeType === 1): hide with display:none (keep element for restoration)
-  const INLINE_ELEMENTS = new Set([
-    "a", "abbr", "b", "bdo", "cite", "code", "dfn", "em", "i", "kbd",
-    "label", "mark", "q", "ruby", "rt", "rp", "s", "samp", "small",
-    "span", "strong", "sub", "sup", "time", "tt", "u", "var", "font", "wbr",
-  ]);
+  // replaceOriginal mode: clear original text nodes when AI translation starts.
+  // Only clear text content — do NOT hide parent elements, as restoration may
+  // fail to find matching nodesToRestore entries, leaving parents permanently hidden.
   try {
     const blockState = btnAi._st ? btnAi._st() : null;
     if (blockState && Array.isArray(blockState.nodesToClear) && blockState.nodesToClear.length > 0) {
       blockState.nodesToClear.forEach((node) => {
         try {
           if (node.nodeType === 3) {
-            // Text node: clear content
             node.textContent = "";
-            // If parent is an inline element (e.g., <code>, <a>, <b>), also hide the parent
-            const parent = node.parentNode;
-            if (parent && parent.nodeType === 1 && parent.style && !parent.dataset?.dualtranBlock && INLINE_ELEMENTS.has(parent.nodeName.toLowerCase())) {
-              parent.style.display = "none";
-            }
           } else if (node.nodeType === 1 && node.style) {
-            // Element node: hide (keep element for restoration)
             node.style.display = "none";
           }
         } catch (_) {}
@@ -167,30 +154,17 @@ export function applyAiSuccessState(btnAi, {
 } = {}) {
   if (!btnAi) return;
 
-  // replaceOriginal mode: clear/hide original nodes when AI translation succeeds (including cache hits)
-  // Text nodes (nodeType === 3): clear content and hide INLINE parent elements only
-  // Block-level parents (<li>, <p>, <div>) must NOT be hidden.
-  // Element nodes (nodeType === 1): hide with display:none (keep element for restoration)
+  // replaceOriginal mode: clear original text nodes when AI translation succeeds.
+  // Only clear text content — do NOT hide parent elements, as restoration may
+  // fail to find matching nodesToRestore entries, leaving parents permanently hidden.
   try {
-  const INLINE_ELEMENTS = new Set([
-    "a", "abbr", "b", "bdo", "cite", "code", "dfn", "em", "i", "kbd",
-    "label", "mark", "q", "ruby", "rt", "rp", "s", "samp", "small",
-    "span", "strong", "sub", "sup", "time", "tt", "u", "var", "font", "wbr",
-  ]);
     const blockState = btnAi._st ? btnAi._st() : null;
     if (blockState && Array.isArray(blockState.nodesToClear) && blockState.nodesToClear.length > 0) {
       blockState.nodesToClear.forEach((node) => {
         try {
           if (node.nodeType === 3) {
-            // Text node: clear content
             node.textContent = "";
-            // If parent is an inline element (e.g., <code>, <a>, <b>), also hide the parent
-            const parent = node.parentNode;
-            if (parent && parent.nodeType === 1 && parent.style && !parent.dataset?.dualtranBlock && INLINE_ELEMENTS.has(parent.nodeName.toLowerCase())) {
-              parent.style.display = "none";
-            }
           } else if (node.nodeType === 1 && node.style) {
-            // Element node: hide (keep element for restoration)
             node.style.display = "none";
           }
         } catch (_) {}
