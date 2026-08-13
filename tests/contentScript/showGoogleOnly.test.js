@@ -114,8 +114,14 @@ function cleanup(container) {
 function simulateShowGoogleOnly() {
   getAllProxies().forEach((p) => {
     if (p.googleSpan) {
+      // newLine mode (dual-span): show Google, hide AI
       p.googleSpan.style.display = "block";
       if (p.aiSpan) p.aiSpan.style.display = "none";
+    } else if (p.nodesToClear) {
+      // replaceOriginal mode: clear AI translatedTextNode, keep Google text on nodes
+      if (p.translatedTextNode) {
+        p.translatedTextNode.textContent = "";
+      }
     }
     p.translationStatus = "idle";
     p.translationId = "";
@@ -296,6 +302,38 @@ describe("behavior 4 full flow: AI → Google+AI → Google only → AI again", 
     const blocksNeedingAi = getProxiesForTranslation();
     expect(blocksNeedingAi.length).toBe(blocks.length,
       "After behavior 4, all blocks should be available for AI re-translation");
+
+    cleanup(container);
+  });
+
+  it("replaceOriginal mode: showGoogleOnly keeps Google text, not original text", () => {
+    const { container, blocks } = createReplaceOriginalModeBlocks();
+
+    // Simulate Google+AI concurrent done:
+    // - text nodes were originally "Original text N"
+    // - Google translation replaced them with "Google translation N"
+    // - AI translation wrote to translatedTextNode, then applyAiTranslatingState
+    //   cleared text nodes and hid parents
+    blocks.forEach(({ translatedEl, translatedTextNode, textNode }) => {
+      // Google translation replaced the text node content
+      textNode.textContent = "Google translation";
+      // AI translation wrote to translatedTextNode
+      translatedTextNode.textContent = "AI translation";
+      // Simulate AI hiding parent (as applyAiTranslatingState does)
+      const state = getBlockState(translatedEl);
+      state.aiStatus = "translated";
+    });
+
+    // Act: showGoogleOnly
+    simulateShowGoogleOnly();
+
+    // CRITICAL: text nodes should still have Google translation, NOT original text
+    blocks.forEach(({ textNode, translatedTextNode }, idx) => {
+      expect(textNode.textContent).toBe("Google translation",
+        `Block ${idx}: text node should keep Google translation, not revert to original`);
+      expect(translatedTextNode.textContent).toBe("",
+        `Block ${idx}: AI translatedTextNode should be cleared`);
+    });
 
     cleanup(container);
   });
