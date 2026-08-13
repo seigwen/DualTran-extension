@@ -3120,28 +3120,22 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           p.aiSpan.style.display = "none";
         }
       } else if (p.nodesToClear) {
-        // replaceOriginal mode (no dual-span): restore original nodes, clear AI text
-        p.nodesToClear.forEach((n) => {
-          try {
-            const restored = nodesToRestore.find((r) => r.node === n);
-            if (restored) {
-              if (n.nodeType === 3) {
-                n.textContent = restored.originalText;
-                const parent = n.parentNode;
-                if (parent && parent.nodeType === 1 && parent.style?.display === "none") {
-                  parent.style.display = "";
-                }
-              } else if (n.nodeType === 1) {
-                n.style.display = "";
-                n.textContent = restored.originalText;
-              }
-            }
-          } catch (_) {}
-        });
-        // Clear the AI translated text node
+        // replaceOriginal mode: Google translation is written directly to text nodes,
+        // AI translation is in translatedTextNode. Just clear the AI text node —
+        // the text nodes already contain Google translation, do NOT restore original text.
         if (p.translatedTextNode) {
           try { p.translatedTextNode.textContent = ""; } catch (_) {}
         }
+        // Also restore any hidden parent elements (e.g., <code>, <a>) that were
+        // hidden by AI translation via applyAiTranslatingState
+        p.nodesToClear.forEach((n) => {
+          try {
+            const parent = n.parentNode;
+            if (parent && parent.nodeType === 1 && parent.style?.display === "none") {
+              parent.style.display = "";
+            }
+          } catch (_) {}
+        });
       }
       // Reset AI translation state so blocks can be re-translated
       // when user clicks AI again after switching to Google-only view
