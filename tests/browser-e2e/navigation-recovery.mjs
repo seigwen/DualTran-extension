@@ -22,6 +22,7 @@ import {
   waitForContentScriptInjected,
   waitForPageTranslatorReady,
   writeStorage,
+  sendMessageToTab,
 } from "./setup.mjs";
 
 export const name = "navigation-recovery";
@@ -271,13 +272,12 @@ async function verifySingletonSpaRecovery(page, serviceWorker, testPageUrl) {
   await page.waitForTimeout(800);
 
   // 触发 Google 翻译 → ensureSingletonInit → singleton host 创建
-  await page.evaluate(() => {
-    return new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        { action: "translatePage", targetLanguage: "fr" },
-        () => resolve()
-      );
-    });
+  // 注意：内容脚本运行在隔离世界，页面主世界的 chrome.runtime 不可用，
+  // 必须通过 SW 的 sendMessageToTab 转发（chrome.runtime.sendMessage 在
+  // page.evaluate 中会抛 "Cannot read properties of undefined"）
+  await sendMessageToTab(serviceWorker, page.url(), {
+    action: "translatePage",
+    targetLanguage: "fr",
   });
 
   // 等待翻译完成
@@ -309,13 +309,9 @@ async function verifySingletonSpaRecovery(page, serviceWorker, testPageUrl) {
   await page.waitForTimeout(500);
 
   // 触发重新翻译 → ensureSingletonInit → createSingletonButtonGroup 检测并重建
-  await page.evaluate(() => {
-    return new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        { action: "translatePage", targetLanguage: "fr" },
-        () => resolve()
-      );
-    });
+  await sendMessageToTab(serviceWorker, page.url(), {
+    action: "translatePage",
+    targetLanguage: "fr",
   });
 
   // 等待翻译和 singleton 重建

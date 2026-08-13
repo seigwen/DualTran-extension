@@ -60,24 +60,31 @@ async function selectTextAndMouseUp(page) {
 
 /**
  * 验证翻译选中文本按钮是否出现。
- * 检查 document.body 中是否存在 div.notranslate[style="all: initial"]，
- * 且其 shadowRoot 中 #eButtonTransSelText.display === "block"。
+ *
+ * translateSelected.js 的宿主 div 使用 closed shadow root（mode: "closed"），
+ * 页面侧无法读取 host.shadowRoot。改用可观测信号：划词宿主创建后，
+ * 无 id 的 div.notranslate 数量会增加（singletonBtnGroup 宿主带 id 会被排除，
+ * floatingBtn 宿主为常量基线）。
+ *
  * @param {import("playwright").Page} page
  * @returns {Promise<boolean>}
  */
-async function verifyTranslateButtonVisible(page) {
-  return page.evaluate(() => {
-    const hosts = document.querySelectorAll('div.notranslate[style="all: initial"]');
-    for (const host of hosts) {
-      if (host.shadowRoot) {
-        const btn = host.shadowRoot.getElementById("eButtonTransSelText");
-        if (btn && btn.style.display === "block") {
-          return true;
-        }
-      }
-    }
-    return false;
-  });
+async function verifyTranslateButtonVisible(page, baselineCount) {
+  const appeared = await page
+    .waitForFunction(
+      (before) =>
+        document.querySelectorAll("div.notranslate:not([id])").length > before,
+      baselineCount,
+      { timeout: 5000 }
+    )
+    .then(() => true)
+    .catch(() => false);
+  return appeared;
+}
+
+/** 统计无 id 的 div.notranslate 数量（closed shadow 宿主基线）。 */
+async function countClosedShadowHosts(page) {
+  return page.evaluate(() => document.querySelectorAll("div.notranslate:not([id])").length);
 }
 
 /**
@@ -125,11 +132,12 @@ async function paShowButtonOnSelect(page, serviceWorker, testPageUrl) {
   // 触发
   await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
   await waitForPageReady(serviceWorker, page.url());
+  const baseline = await countClosedShadowHosts(page);
   await selectTextAndMouseUp(page);
   await page.waitForTimeout(400); // > 150ms setTimeout + buffer
 
-  // 验证
-  const visible = await verifyTranslateButtonVisible(page);
+  // 验证（closed shadow root 无法直接读取，用宿主计数增量）
+  const visible = await verifyTranslateButtonVisible(page, baseline);
   if (!visible) {
     throw new Error("[P-A] 选中文本后翻译按钮未出现");
   }
@@ -152,30 +160,44 @@ async function pbShowOriginalOnHover(page, serviceWorker, testPageUrl) {
     throw new Error("[P-B] Google 翻译未能在 2 次尝试内完成");
   }
 
-  // 触发 mouseenter 到第一个 translated 元素
-  await page.evaluate(() => {
-    const translated = document.querySelector("translated");
-    if (translated) {
-      translated.dispatchEvent(new MouseEvent("mouseenter", { bubbles: true }));
-    }
-  });
-  await page.waitForTimeout(2500); // > 1500ms delay + buffer
+  // 触发 hover 到第一个 translated 元素（真实鼠标事件）
+  const translated = page.locator("translated").first();
+  await translated.hover({ timeout: 5000 });
 
-  // 验证原文弹出
-  const originalVisible = await page.evaluate(() => {
-    const hosts = document.querySelectorAll("div.notranslate");
-    for (const host of hosts) {
-      if (host.shadowRoot) {
-        const txt = host.shadowRoot.getElementById("originalText");
-        if (txt && txt.textContent && txt.textContent.trim().length > 0) {
-          return true;
-        }
-      }
-    }
-    return false;
-  });
-  if (!originalVisible) {
-    throw new Error("[P-B] hover 后原文未弹出");
+  // 验证原文弹出：
+  // showOriginal.js 的宿主同样是 closed shadow root，无法从页面侧读取内容。
+  // 可观测信号：
+  //   1) singletonBtnGroup 宿主（#dualtran-singleton-btn-host）出现，说明 hover 生效
+  //   2) 无 id 的 div.notranslate 数量 +1（= showOriginal 弹出面板宿主，
+  //      延迟 1500ms 后出现；floatingBtn 宿主为基线）
+  const baselineHosts = await countClosedShadowHosts(page);
+  let singletonAppeared = false;
+  let originalAppeared = false;
+  try {
+    await page.waitForFunction(
+      () => !!document.getElementById("dualtran-singleton-btn-host"),
+      null,
+      { timeout: 3000 }
+    );
+    singletonAppeared = true;
+  } catch {
+    /* hover 按钮组未出现，稍后统一报错 */
+  }
+  try {
+    await page.waitForFunction(
+      (before) =>
+        document.querySelectorAll("div.notranslate:not([id])").length > before,
+      baselineHosts,
+      { timeout: 4000 }
+    );
+    originalAppeared = true;
+  } catch {
+    /* 原文面板未出现，稍后统一报错 */
+  }
+  if (!singletonAppeared || !originalAppeared) {
+    throw new Error(
+      `[P-B] hover 后原文未弹出 (hoverBtnGroup=${singletonAppeared}, originalPopup=${originalAppeared})`
+    );
   }
   console.log("[P-B] 通过 ✓\n");
 
@@ -197,23 +219,23 @@ async function pcHoverSiteTranslation(page, serviceWorker, testPageUrl) {
   // 触发
   await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
   await waitForPageReady(serviceWorker, page.url());
-  // hover 到内联文本元素（span 在 <p> 内部）
-  await page.hover("p#p-intro", { timeout: 5000 });
-  await page.waitForTimeout(2500); // > 1250ms delay + buffer
+  // hover 到页面正文段落（test-page.html 的段落 id 为 paragraph-1）
+  const baselineHosts = await countClosedShadowHosts(page);
+  await page.hover("p#paragraph-1", { timeout: 5000 });
 
-  // 验证
-  const translatedPopup = await page.evaluate(() => {
-    const hosts = document.querySelectorAll("div.notranslate");
-    for (const host of hosts) {
-      if (host.shadowRoot) {
-        const txt = host.shadowRoot.getElementById("eTextTranslated");
-        if (txt && txt.textContent && txt.textContent.trim().length > 0) {
-          return true;
-        }
-      }
-    }
-    return false;
-  });
+  // 验证（showTranslated.js 宿主为 closed shadow root，用计数增量断言）
+  let translatedPopup = false;
+  try {
+    await page.waitForFunction(
+      (before) =>
+        document.querySelectorAll("div.notranslate:not([id])").length > before,
+      baselineHosts,
+      { timeout: 6000 }
+    );
+    translatedPopup = true;
+  } catch {
+    /* 稍后统一报错 */
+  }
   if (!translatedPopup) {
     throw new Error("[P-C] hover 后翻译弹窗未出现");
   }
@@ -235,22 +257,22 @@ async function pdHoverLangTranslation(page, serviceWorker, testPageUrl) {
   // 触发
   await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
   await waitForPageReady(serviceWorker, page.url());
-  await page.hover("p#p-intro", { timeout: 5000 });
-  await page.waitForTimeout(2500);
+  const baselineHosts = await countClosedShadowHosts(page);
+  await page.hover("p#paragraph-1", { timeout: 5000 });
 
-  // 验证
-  const translatedPopup = await page.evaluate(() => {
-    const hosts = document.querySelectorAll("div.notranslate");
-    for (const host of hosts) {
-      if (host.shadowRoot) {
-        const txt = host.shadowRoot.getElementById("eTextTranslated");
-        if (txt && txt.textContent && txt.textContent.trim().length > 0) {
-          return true;
-        }
-      }
-    }
-    return false;
-  });
+  // 验证（showTranslated.js 宿主为 closed shadow root，用计数增量断言）
+  let translatedPopup = false;
+  try {
+    await page.waitForFunction(
+      (before) =>
+        document.querySelectorAll("div.notranslate:not([id])").length > before,
+      baselineHosts,
+      { timeout: 6000 }
+    );
+    translatedPopup = true;
+  } catch {
+    /* 稍后统一报错 */
+  }
   if (!translatedPopup) {
     throw new Error("[P-D] hover 后翻译弹窗未出现");
   }

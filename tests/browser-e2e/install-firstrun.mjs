@@ -107,7 +107,8 @@ async function f2SensibleDefaults(page, extensionId, serviceWorker) {
   await page.goto(`chrome-extension://${extensionId}/popup/popup.html`, { waitUntil: "load" });
   await page.waitForTimeout(2000); // 等待 popup.js 初始化完成 + twpConfig 写回默认值
 
-  const requiredKeys = ["targetLanguage", "pageTranslatorService", "autoImproveByAI"];
+  // autoImproveByAI 已在 eecfb00 移除，改用仍存在的 aiImproveForLongerThan 作为 AI 相关默认键
+  const requiredKeys = ["targetLanguage", "pageTranslatorService", "aiImproveForLongerThan"];
   let stored = await serviceWorker.evaluate(async (keys) => {
     return await chrome.storage.local.get(keys);
   }, requiredKeys);
@@ -119,7 +120,7 @@ async function f2SensibleDefaults(page, extensionId, serviceWorker) {
       await chrome.storage.local.set({
         targetLanguage: "zh-CN",
         pageTranslatorService: "google",
-        autoImproveByAI: "no",
+        aiImproveForLongerThan: 0,
       });
     });
     stored = await serviceWorker.evaluate(async (keys) => {
@@ -149,7 +150,7 @@ async function f2SensibleDefaults(page, extensionId, serviceWorker) {
     );
   }
 
-  console.log(`[F2] 默认配置正确: targetLanguage="${stored.targetLanguage}", pageTranslatorService="${stored.pageTranslatorService}", autoImproveByAI="${stored.autoImproveByAI}" ✓`);
+  console.log(`[F2] 默认配置正确: targetLanguage="${stored.targetLanguage}", pageTranslatorService="${stored.pageTranslatorService}", aiImproveForLongerThan=${stored.aiImproveForLongerThan} ✓`);
 }
 
 /**
@@ -208,7 +209,7 @@ async function f3OutOfBoxTranslation(page, serviceWorker, testPageUrl) {
  *
  * 打开弹出页并验证：
  *   1. #selectTargetLanguage 下拉框包含至少 4 个选项（含 "original" + 语言项）
- *   2. #cbAutoImproveByAi 复选框存在
+ *   2. #cbAlwaysTranslateThisSite 复选框存在
  *   3. #cbShowTranslateSelectedButton 复选框存在
  *
  * @param {import("playwright").Page} page - Playwright 页面对象
@@ -240,14 +241,15 @@ async function f4PopupDefaultState(page, extensionId) {
   }
   console.log(`[F4] #selectTargetLanguage 包含 ${optionCount} 个选项 ✓`);
 
-  // 验证 #cbAutoImproveByAi 存在
-  const cbAutoImproveExists = await page.evaluate(() => {
-    return !!document.getElementById("cbAutoImproveByAi");
+  // #cbAutoImproveByAi 已在 eecfb00 移除（AI 改进改为按钮显式触发），
+  // 改用 #cbAlwaysTranslateThisSite 验证"更多选项"区域的复选框渲染
+  const cbAlwaysTranslateExists = await page.evaluate(() => {
+    return !!document.getElementById("cbAlwaysTranslateThisSite");
   });
-  if (!cbAutoImproveExists) {
-    throw new Error("[F4] #cbAutoImproveByAi 复选框未找到");
+  if (!cbAlwaysTranslateExists) {
+    throw new Error("[F4] #cbAlwaysTranslateThisSite 复选框未找到");
   }
-  console.log("[F4] #cbAutoImproveByAi 存在 ✓");
+  console.log("[F4] #cbAlwaysTranslateThisSite 存在 ✓");
 
   // 验证 #cbShowTranslateSelectedButton 存在
   const cbShowTranslateSelectedExists = await page.evaluate(() => {

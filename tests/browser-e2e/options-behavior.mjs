@@ -52,19 +52,29 @@ async function selectTextAndMouseUp(page) {
   });
 }
 
-async function verifyTranslateButtonVisible(page) {
-  return page.evaluate(() => {
-    const hosts = document.querySelectorAll('div.notranslate[style="all: initial"]');
-    for (const host of hosts) {
-      if (host.shadowRoot) {
-        const btn = host.shadowRoot.getElementById("eButtonTransSelText");
-        if (btn && btn.style.display === "block") {
-          return true;
-        }
-      }
-    }
+/**
+ * 统计无 id 的 div.notranslate 数量。
+ * translateSelected/showOriginal/showTranslated 的宿主都是 closed shadow root，
+ * 页面侧无法读取内容；singletonBtnGroup 宿主带 id（可排除），floatingBtn 为基线。
+ */
+async function countClosedShadowHosts(page) {
+  return page.evaluate(() => document.querySelectorAll("div.notranslate:not([id])").length);
+}
+
+/**
+ * 验证翻译选中文本按钮是否出现：划词宿主创建后无 id 的 div.notranslate 数量增加。
+ */
+async function verifyTranslateButtonVisible(page, baselineCount) {
+  try {
+    await page.waitForFunction(
+      (before) => document.querySelectorAll("div.notranslate:not([id])").length > before,
+      baselineCount,
+      { timeout: 5000 }
+    );
+    return true;
+  } catch {
     return false;
-  });
+  }
 }
 
 async function triggerPageTranslation(page, serviceWorker, url) {
@@ -93,10 +103,12 @@ async function oaShowButtonOnSelect(page, serviceWorker, testPageUrl) {
 
   await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
   await waitForPageReady(serviceWorker, page.url());
+  await page.waitForTimeout(1500); // 等 floatingBtn 等异步宿主稳定后再取基线
+  const baseline = await countClosedShadowHosts(page);
   await selectTextAndMouseUp(page);
   await page.waitForTimeout(400);
 
-  const visible = await verifyTranslateButtonVisible(page);
+  const visible = await verifyTranslateButtonVisible(page, baseline);
   if (!visible) throw new Error("[O-A] 选中文本后翻译按钮未出现");
   console.log("[O-A] 通过 ✓\n");
 }
@@ -112,25 +124,29 @@ async function obShowOriginalOnHover(page, serviceWorker, testPageUrl) {
   const translatedFound = await triggerPageTranslation(page, serviceWorker, testPageUrl);
   if (!translatedFound) throw new Error("[O-B] Google 翻译未能在 2 次尝试内完成");
 
-  await page.evaluate(() => {
-    const translated = document.querySelector("translated");
-    if (translated) {
-      translated.dispatchEvent(new MouseEvent("mouseenter", { bubbles: true }));
-    }
-  });
-  await page.waitForTimeout(2500);
+  const translated = page.locator("translated").first();
+  await translated.hover({ timeout: 5000 });
 
-  const originalVisible = await page.evaluate(() => {
-    const hosts = document.querySelectorAll("div.notranslate");
-    for (const host of hosts) {
-      if (host.shadowRoot) {
-        const txt = host.shadowRoot.getElementById("originalText");
-        if (txt && txt.textContent && txt.textContent.trim().length > 0) return true;
-      }
-    }
-    return false;
-  });
-  if (!originalVisible) throw new Error("[O-B] hover 后原文未弹出");
+  // showOriginal 宿主为 closed shadow root，用计数增量断言：
+  // hover 生效（singleton 按钮组宿主带 id 出现）+ 无 id 宿主 +1（原文弹出面板）
+  const baselineHosts = await countClosedShadowHosts(page);
+  let singletonAppeared = false;
+  let originalAppeared = false;
+  try {
+    await page.waitForFunction(() => !!document.getElementById("dualtran-singleton-btn-host"), null, { timeout: 3000 });
+    singletonAppeared = true;
+  } catch { /* 稍后统一报错 */ }
+  try {
+    await page.waitForFunction(
+      (before) => document.querySelectorAll("div.notranslate:not([id])").length > before,
+      baselineHosts,
+      { timeout: 4000 }
+    );
+    originalAppeared = true;
+  } catch { /* 稍后统一报错 */ }
+  if (!singletonAppeared || !originalAppeared) {
+    throw new Error(`[O-B] hover 后原文未弹出 (hoverBtnGroup=${singletonAppeared}, originalPopup=${originalAppeared})`);
+  }
   console.log("[O-B] 通过 ✓\n");
 
   await writeStorage(serviceWorker, "showOriginalTextWhenHovering", "yes");
@@ -142,9 +158,18 @@ async function ocAutoTranslateLink(page, serviceWorker, linkSourceUrl) {
   console.log("[O-C] autoTranslateWhenClickingALink ON 行为测试...");
 
   await writeStorage(serviceWorker, "autoTranslateWhenClickingALink", "yes");
+  // config 加载时会把不在 targetLanguages 里的目标语言归一化为 targetLanguages[0]，
+  // 目标页 content script 用 config 里的 targetLanguage 判断是否自动翻译，须保持一致
+  await writeStorage(serviceWorker, "targetLanguages", ["fr", "en", "es"]);
   await writeStorage(serviceWorker, "targetLanguage", "fr");
 
   await page.goto(linkSourceUrl, { waitUntil: "domcontentloaded" });
+  await waitForPageReady(serviceWorker, page.url());
+  await page.bringToFront(); // 使本页成为活动标签页（SW 只跟踪 sender.tab.active 的状态消息）
+
+  // 前置条件：源页面必须处于已翻译状态（SW 才会在 link 导航时记住站点并自动翻译目标页）
+  await sendMessageToTab(serviceWorker, page.url(), { action: "translatePage", targetLanguage: "fr" });
+  await page.waitForFunction(() => document.querySelectorAll("translated").length > 0, null, { timeout: 30000 });
   await page.waitForSelector("a#test-link", { timeout: 5000 });
 
   // 点击同域链接
@@ -210,15 +235,21 @@ async function oeDontShowPageLang(page, serviceWorker, frPageUrl) {
   console.log("[O-E] dontShowIfPageLangIsTargetLang ON 行为测试...");
 
   await writeStorage(serviceWorker, "dontShowIfPageLangIsTargetLang", "yes");
-  await writeStorage(serviceWorker, "targetLanguage", "fr");
+  // 划词翻译的目标语言是 targetLanguageTextTranslation（页面翻译才用 targetLanguage）。
+  // config 加载时会把不在 targetLanguages 里的目标语言归一化为 targetLanguages[0]，
+  // 因此必须同时写入 targetLanguages 包含 fr。
+  await writeStorage(serviceWorker, "targetLanguages", ["fr", "en", "es"]);
+  await writeStorage(serviceWorker, "targetLanguageTextTranslation", "fr");
   await writeStorage(serviceWorker, "showTranslateSelectedButton", "yes");
 
   await page.goto(frPageUrl, { waitUntil: "domcontentloaded" });
   await waitForPageReady(serviceWorker, page.url());
+  await page.waitForTimeout(1500); // 等 floatingBtn 等异步宿主稳定后再取基线
+  const baseline = await countClosedShadowHosts(page);
   await selectTextAndMouseUp(page);
   await page.waitForTimeout(500);
 
-  const visible = await verifyTranslateButtonVisible(page);
+  const visible = await verifyTranslateButtonVisible(page, baseline);
   if (visible) throw new Error("[O-E] 法语页面（页面语言=目标语言）应不显示翻译按钮");
   console.log("[O-E] 通过 ✓\n");
 
@@ -231,15 +262,20 @@ async function ofDontShowSelectedLang(page, serviceWorker, frPageUrl) {
   console.log("[O-F] dontShowIfSelectedTextIsTargetLang ON 行为测试...");
 
   await writeStorage(serviceWorker, "dontShowIfSelectedTextIsTargetLang", "yes");
-  await writeStorage(serviceWorker, "targetLanguage", "fr");
+  // 划词翻译的目标语言是 targetLanguageTextTranslation（页面翻译才用 targetLanguage）。
+  // config 加载时会把不在 targetLanguages 里的目标语言归一化为 targetLanguages[0]。
+  await writeStorage(serviceWorker, "targetLanguages", ["fr", "en", "es"]);
+  await writeStorage(serviceWorker, "targetLanguageTextTranslation", "fr");
   await writeStorage(serviceWorker, "showTranslateSelectedButton", "yes");
 
   await page.goto(frPageUrl, { waitUntil: "domcontentloaded" });
   await waitForPageReady(serviceWorker, page.url());
+  await page.waitForTimeout(1500); // 等 floatingBtn 等异步宿主稳定后再取基线
+  const baseline = await countClosedShadowHosts(page);
   await selectTextAndMouseUp(page);
   await page.waitForTimeout(500);
 
-  const visible = await verifyTranslateButtonVisible(page);
+  const visible = await verifyTranslateButtonVisible(page, baseline);
   if (visible) throw new Error("[O-F] 选中法语文本（=目标语言）应不显示翻译按钮");
   console.log("[O-F] 通过 ✓\n");
 
@@ -256,6 +292,7 @@ async function ogDontShowUnknownLang(page, serviceWorker, testPageUrl) {
 
   await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
   await waitForPageReady(serviceWorker, page.url());
+  const baseline = await countClosedShadowHosts(page);
 
   // 选中极短/CJK 混合文本，使 detectTextLanguage 返回 "und"
   await page.evaluate(() => {
@@ -282,7 +319,7 @@ async function ogDontShowUnknownLang(page, serviceWorker, testPageUrl) {
     if (tmp) tmp.remove();
   });
 
-  const visible = await verifyTranslateButtonVisible(page);
+  const visible = await verifyTranslateButtonVisible(page, baseline);
   if (visible) {
     console.warn("  [O-G] ⚠ detectTextLanguage 可能未返回 'und'，按钮出现了。检查 detectTextLanguage 行为。");
   } else {
@@ -303,6 +340,7 @@ async function ohCtrlDoublePressTranslate(page, serviceWorker, testPageUrl) {
 
   await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
   await waitForPageReady(serviceWorker, page.url());
+  const baselineHostsO = await countClosedShadowHosts(page);
 
   // 先选中文本
   await page.evaluate(() => {
@@ -322,17 +360,17 @@ async function ohCtrlDoublePressTranslate(page, serviceWorker, testPageUrl) {
   await page.keyboard.up("Control");
   await page.waitForTimeout(2000); // 等待 Google 翻译请求完成
 
-  // 验证翻译窗口弹出（#eSelTextTrans 非空）
-  const translated = await page.evaluate(() => {
-    const hosts = document.querySelectorAll("div.notranslate");
-    for (const host of hosts) {
-      if (host.shadowRoot) {
-        const txt = host.shadowRoot.getElementById("eSelTextTrans");
-        if (txt && txt.textContent && txt.textContent.trim().length > 0) return true;
-      }
-    }
-    return false;
-  });
+  // 验证翻译窗口弹出：translateSelected 宿主（closed shadow）出现
+  // → 无 id 的 div.notranslate 数量增加
+  let translated = false;
+  try {
+    await page.waitForFunction(
+      (before) => document.querySelectorAll("div.notranslate:not([id])").length > before,
+      baselineHostsO,
+      { timeout: 5000 }
+    );
+    translated = true;
+  } catch { /* 稍后统一报错 */ }
   if (!translated) throw new Error("[O-H] Ctrl×2 后翻译未触发");
   console.log("[O-H] 通过 ✓\n");
 
@@ -349,27 +387,26 @@ async function oiCtrlDoublePressHoverTranslate(page, serviceWorker, testPageUrl)
   await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
   await waitForPageReady(serviceWorker, page.url());
 
-  // hover 到内联元素
-  await page.hover("p#p-intro", { timeout: 5000 });
+  // hover 到页面正文段落（test-page.html 的段落 id 为 paragraph-1）
+  const baselineHosts = await countClosedShadowHosts(page);
+  await page.hover("p#paragraph-1", { timeout: 5000 });
 
   // 双击 Ctrl
   await page.keyboard.down("Control");
   await page.keyboard.up("Control");
   await page.keyboard.down("Control");
   await page.keyboard.up("Control");
-  await page.waitForTimeout(3000); // 翻译请求 + 1250ms delay + buffer
 
-  // 验证翻译弹窗
-  const translated = await page.evaluate(() => {
-    const hosts = document.querySelectorAll("div.notranslate");
-    for (const host of hosts) {
-      if (host.shadowRoot) {
-        const txt = host.shadowRoot.getElementById("eTextTranslated");
-        if (txt && txt.textContent && txt.textContent.trim().length > 0) return true;
-      }
-    }
-    return false;
-  });
+  // 验证翻译弹窗（showTranslated 宿主为 closed shadow root，用计数增量断言）
+  let translated = false;
+  try {
+    await page.waitForFunction(
+      (before) => document.querySelectorAll("div.notranslate:not([id])").length > before,
+      baselineHosts,
+      { timeout: 8000 }
+    );
+    translated = true;
+  } catch { /* 稍后统一报错 */ }
   if (!translated) throw new Error("[O-I] hover + Ctrl×2 后翻译未触发");
   console.log("[O-I] 通过 ✓\n");
 

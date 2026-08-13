@@ -64,6 +64,7 @@ async function configureExtensionForAi(page, extensionId, serviceWorker, mockSer
       autoImproveByAI: "no",
       aiImproveForLongerThan: 0,
       showFloatingBtn: "yes",
+      translateDynamicallyCreatedContent: "yes",
     });
   }, openRouterApiBase);
   console.log("  Extension configured: autoImproveByAI=no, provider=openrouter, mock API base set");
@@ -290,8 +291,12 @@ export async function run(scope) {
     for (const text of texts) {
       window.injectDynamicContent(text);
     }
+    // translateDynamically 只翻译可见屏幕内的元素——把动态容器滚动进视口中央，
+    // 否则注入的内容在视口之外永远不会被 Google/AI 翻译。
+    const container = document.getElementById("dynamic-container");
+    container?.scrollIntoView({ block: "center" });
   }, dynamicTexts);
-  console.log(`  Injected ${INJECT_COUNT} dynamic paragraphs`);
+  console.log(`  Injected ${INJECT_COUNT} dynamic paragraphs (container scrolled into view)`);
 
   // ── 步骤 6：等待 Google 翻译处理新内容 ──
   console.log("\n[Step 6] Wait for Google translation of dynamic content");

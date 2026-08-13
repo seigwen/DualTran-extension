@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Test
+    name: Unit Tests (zero tolerance)
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -40,8 +40,51 @@ jobs:
         path: dist/chrome/
         retention-days: 7
 
+  e2e:
+    name: Browser E2E (xvfb, 1 retry)
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 120
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build extension
+      run: npm run build
+
+    - name: Install Playwright Chromium
+      run: npx playwright install --with-deps chromium
+
+    # 全量 15 个浏览器 E2E 场景（真实 Chrome + 扩展 + xvfb）。
+    # 失败自动重试 1 次（E2E 存在环境级偶发波动）；两次都失败则任务失败。
+    - name: Run browser E2E suite (attempt 1)
+      id: e2e-attempt-1
+      continue-on-error: true
+      run: xvfb-run -a node tests/browser-e2e/run-all.mjs
+
+    - name: Run browser E2E suite (retry)
+      if: steps.e2e-attempt-1.outcome == 'failure'
+      run: xvfb-run -a node tests/browser-e2e/run-all.mjs
+
+    - name: Upload E2E logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: e2e-logs
+        path: /tmp/*.log
+        retention-days: 7
+
   coverage:
-    name: Coverage
+    name: Coverage (non-blocking)
     runs-on: ubuntu-latest
     needs: test
 
@@ -69,24 +112,11 @@ jobs:
         retention-days: 7
 
   i18n-check:
-    name: i18n Check
+    name: i18n Check (hard failure)
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Check for Chinese in source (excluding _locales)
-      run: |
-        MATCHES=$(grep -rPn '[\x{4e00}-\x{9fff}]' src/ \
-          --include='*.js' --include='*.html' \
-          | grep -v '_locales/' || true)
-        if [ -n "$MATCHES" ]; then
-          echo "::warning::Found Chinese text in source files (excluding _locales/):"
-          echo "$MATCHES"
-          echo ""
-          echo "Please translate to English. i18n user-facing strings should go through _locales/."
-          # Uncomment to make this a hard failure:
-          # exit 1
-        else
-          echo "✅ No Chinese text found in source files (excluding _locales/)."
-        fi
+    - name: Check for accidental Chinese in source (hard failure)
+      run: node scripts/check-no-chinese.js

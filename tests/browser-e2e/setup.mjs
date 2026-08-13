@@ -30,6 +30,39 @@ const projectRoot = process.cwd();
 /** 构建后的扩展目录，Playwright 将加载此目录作为 Chrome 扩展 */
 const extensionPath = path.join(projectRoot, "dist", "chrome");
 
+/**
+ * 准备 E2E 使用的扩展目录：
+ * 把 dist/chrome 拷贝到临时目录，并把 webNavigation 从 optional_permissions
+ * 提升为核心 permissions。webNavigation 是"自动翻译点击链接"功能的可选权限，
+ * 生产环境由用户在弹窗里授权（原生权限气泡无法在 E2E 中点击）；
+ * 测试环境直接预授权，保证 O-C 场景可验证完整链路。产品 manifest 不改动。
+ *
+ * @returns {Promise<string>} 准备好的扩展目录路径
+ */
+let preparedExtensionDirPromise = null;
+async function prepareExtensionDir() {
+  if (preparedExtensionDirPromise) return preparedExtensionDirPromise;
+  preparedExtensionDirPromise = (async () => {
+    const srcDir = extensionPath;
+    const destDir = await fs.mkdtemp(path.join(os.tmpdir(), "dualtran-ext-e2e-"));
+    await fs.cp(srcDir, destDir, { recursive: true });
+
+    const manifestPath = path.join(destDir, "manifest.json");
+    const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+    if (!Array.isArray(manifest.permissions)) manifest.permissions = [];
+    if (!manifest.permissions.includes("webNavigation")) {
+      manifest.permissions.push("webNavigation");
+    }
+    manifest.optional_permissions = (manifest.optional_permissions || []).filter(
+      (p) => p !== "webNavigation"
+    );
+    await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2));
+    console.log(`[e2e-harness] 已准备扩展目录（预授权 webNavigation）: ${destDir}`);
+    return destDir;
+  })();
+  return preparedExtensionDirPromise;
+}
+
 /** 基础测试页面 HTML 路径（含简单段落、选中文本目标等） */
 const testPagePath = path.join(projectRoot, "extra", "e2e", "test-page.html");
 
@@ -683,20 +716,39 @@ export async function waitForOptionsSelectReady(page, selectId) {
  * @returns {Promise<void>}
  */
 export async function setOptionsSelectValueAndWait(page, selectId, nextValue) {
+  // options 页的 select 有两种绑定方式：
+  // 1) 属性式（$("#x").onchange = ...，如 #darkMode）——可探测就绪状态；
+  // 2) 监听器式（addEventListener("change", ...)，如 #genericModel）——无法探测。
+  //
+  // 属性式绑定的竞态：页面首次加载时 init（twpConfig.onReady）可能延迟数百毫秒，
+  // 期间 onchange 未绑定，dispatch 是空操作，随后 init 用配置默认值覆盖 select。
+  // 因此先轮询"onchange 已绑定"（上限 3s，实测 init 延迟 ~200ms），绑定后直接
+  // 调用处理器；监听器式 select 轮询超时后 dispatch 一次（同旧行为，调用方
+  // 需在 set 前确保页面已初始化）。
+  const readyDeadline = Date.now() + 3000;
+  for (;;) {
+    const ready = await page.evaluate((id) => {
+      const select = document.getElementById(id);
+      return (
+        select instanceof HTMLSelectElement &&
+        typeof select.onchange === "function"
+      );
+    }, selectId);
+    if (ready || Date.now() > readyDeadline) break;
+    await page.waitForTimeout(100);
+  }
+
   await page.evaluate(({ id, expected }) => {
     const select = document.getElementById(id);
     if (!(select instanceof HTMLSelectElement)) {
       throw new Error(`Select element not found: ${id}`);
     }
-
     select.value = expected;
-
     if (typeof select.onchange === "function") {
       select.onchange({ target: select });
-      return;
+    } else {
+      select.dispatchEvent(new Event("change", { bubbles: true }));
     }
-
-    select.dispatchEvent(new Event("change", { bubbles: true }));
   }, { id: selectId, expected: nextValue });
 
   await page.waitForFunction(({ id, expected }) => {
@@ -744,9 +796,10 @@ export async function waitForPageStorageValue(page, key, expectedValue, timeoutM
 export async function runWithIsolatedExtensionContext(callback, collector = null, options = {}) {
   const userDataDir = await fs.mkdtemp(path.join(os.tmpdir(), "dualtran-options-e2e-"));
   /** 浏览器启动参数 */
+  const extDir = await prepareExtensionDir();
   const launchArgs = [
-    `--disable-extensions-except=${extensionPath}`,
-    `--load-extension=${extensionPath}`,
+    `--disable-extensions-except=${extDir}`,
+    `--load-extension=${extDir}`,
   ];
   // 如果指定了 locale，添加 --lang 参数（影响 chrome.i18n.getUILanguage()）
   if (options.locale) {
@@ -769,6 +822,20 @@ export async function runWithIsolatedExtensionContext(callback, collector = null
     // 等待扩展在全新的浏览器上下文中完成初始化
     await page.waitForTimeout(3000);
 
+    // 关闭安装流程自动打开的扩展页（onInstalled → openPageUrl effect），
+    // 然后新建一个 about:blank 页面作为测试页。原因：自动打开的 options 页
+    // 在测试写入 storage 之前就已加载，其 in-memory config 是陈旧的，且对
+    // #hash 的导航不会触发重新加载——会导致 select 显示旧值、持久化断言误判。
+    for (const p of isolatedContext.pages()) {
+      if (p !== page) await p.close().catch(() => {});
+    }
+    if (!page.url().startsWith("about:")) {
+      await page.goto("about:blank", { waitUntil: "load" }).catch(() => {});
+    }
+    const freshPage = await isolatedContext.newPage();
+    await page.close().catch(() => {});
+    await freshPage.bringToFront().catch(() => {});
+
     // 将模块私有错误收集器的错误合并到 ErrorCollector
     if (collector && _collectedErrors.length > 0) {
       for (const err of _collectedErrors) {
@@ -779,7 +846,7 @@ export async function runWithIsolatedExtensionContext(callback, collector = null
 
     return await callback({
       context: isolatedContext,
-      page,
+      page: freshPage,
       extensionId,
       serviceWorker,
     });
@@ -891,10 +958,11 @@ export function queryShadowAll(root, selector) {
  * @returns {Promise<import("playwright").BrowserContext>} Playwright 浏览器上下文
  */
 export async function launchExtensionBrowser() {
+  const extDir = await prepareExtensionDir();
   const context = await chromium.launchPersistentContext("", {
     args: [
-      `--disable-extensions-except=${extensionPath}`,  // 仅加载我们的扩展
-      `--load-extension=${extensionPath}`,             // 从 dist/chrome/ 加载
+      `--disable-extensions-except=${extDir}`,  // 仅加载我们的扩展
+      `--load-extension=${extDir}`,             // 从准备好的扩展目录加载（预授权 webNavigation）
       "--no-first-run",                                // 跳过 Chrome 首次运行向导
       "--no-default-browser-check",                    // 跳过默认浏览器检查
     ],

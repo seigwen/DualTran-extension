@@ -372,6 +372,15 @@ async function verifyAiTranslation(page, serviceWorker, verifyPageUrl, mockServe
       return document.querySelectorAll("translated").length > 0;
     }, null, { timeout: 30000 });
 
+    // 等待 singleton 按钮组出现。第一个 <translated> 在 getPiecesToTranslate
+    // 阶段就进入 DOM，而 singleton 宿主在 addTranslatedContent 的异步批次中创建，
+    // 二者存在毫秒级竞态——必须显式等待，不能立即断言。
+    await page.waitForFunction(
+      () => !!document.getElementById("dualtran-singleton-btn-host"),
+      null,
+      { timeout: 10000 }
+    );
+
     // 记录 Google 翻译后的状态
     const postGoogleState = await page.evaluate(() => ({
       translatedCount: document.querySelectorAll("translated").length,
@@ -379,11 +388,23 @@ async function verifyAiTranslation(page, serviceWorker, verifyPageUrl, mockServe
     }));
     console.log(`  Post-Google-Translate: ${postGoogleState.translatedCount} translated nodes, singleton host: ${postGoogleState.singletonHost}`);
 
-    // ── AI 自动改进轮询 ──
-    // autoImproveByAI = "yes" 时，扩展通过 aiTranslateDynamically() 每 2500ms 轮询一次。
-    // Mock 服务器返回确定性的响应文本。
-    // 最多等待 45 秒让 AI 翻译完成。
-    console.log("  Waiting for AI auto-improve to process paragraphs via mock server...");
+    // ── AI 翻译轮询（显式触发）──
+    // autoImproveByAI 已于 eecfb00 移除：AI 翻译现在由用户点击 AI 按钮触发
+    // （translatePageAi → shouldForceAiAfterPageTranslation = true）。
+    // 这里点击悬浮按钮组的 #btnAi 触发 AI 翻译，再轮询等待 mock 响应。
+    console.log("  Clicking #btnAi to trigger AI translation via mock server...");
+
+    // 等待悬浮按钮组出现（Google 翻译完成后按钮组才可见）
+    await page.waitForFunction(() => {
+      const host = document.getElementById("dualtran-floating-btn-host");
+      return !!host?.shadowRoot?.getElementById("btnAi");
+    }, null, { timeout: 10000 });
+
+    await page.evaluate(() => {
+      const host = document.getElementById("dualtran-floating-btn-host");
+      host?.shadowRoot?.getElementById("btnAi")?.click();
+    });
+    console.log("  #btnAi clicked, waiting for AI translation to process paragraphs via mock server...");
 
     let aiResult;
     const aiPollStart = Date.now();

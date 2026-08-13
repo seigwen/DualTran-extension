@@ -57,12 +57,8 @@ async function a1DarkModeToggle(page, extensionId) {
   await page.goto(`chrome-extension://${extensionId}/options/options.html#style`, { waitUntil: "load" });
   await page.waitForSelector("#darkMode");
 
-  // 等待下拉框初始化完成
-  await waitForOptionsSelectReady(page, "darkMode");
-
-  // ── 设为 "yes" ──
+  // 设置 darkMode = "yes"（setOptionsSelectValueAndWait 已原子化：onchange 未绑定时重试）
   await setOptionsSelectValueAndWait(page, "darkMode", "yes");
-  await page.waitForTimeout(500); // 等待 updateDarkMode() 执行
 
   // 验证 sessionStorage
   let sessionVal = await page.evaluate(() => sessionStorage.getItem("darkModeIsEnabled"));
@@ -80,7 +76,6 @@ async function a1DarkModeToggle(page, extensionId) {
 
   // ── 设为 "no" ──
   await setOptionsSelectValueAndWait(page, "darkMode", "no");
-  await page.waitForTimeout(500);
 
   // 验证 sessionStorage
   sessionVal = await page.evaluate(() => sessionStorage.getItem("darkModeIsEnabled"));
@@ -92,14 +87,14 @@ async function a1DarkModeToggle(page, extensionId) {
   // 验证 darkModeElement 不存在
   elExists = await page.evaluate(() => !!document.getElementById("darkModeElement"));
   if (elExists) {
-    throw new Error("[A1] darkMode=\"no\" 时 darkModeElement 应不存在");
+    throw new Error("[A1] darkMode=\"no\" 时 darkModeElement 不应存在");
   }
   console.log("  [A1] darkModeElement 已移除 ✓");
 
   // ── 恢复为 "auto" ──
   await setOptionsSelectValueAndWait(page, "darkMode", "auto");
-  await page.waitForTimeout(500);
-  console.log("  [A1] 已恢复 darkMode = \"auto\"");
+  sessionVal = await page.evaluate(() => sessionStorage.getItem("darkModeIsEnabled"));
+  console.log(`  [A1] darkMode="auto" → sessionStorage.darkModeIsEnabled = "${sessionVal}" ✓`);
 
   console.log("[A1] 通过 ✓\n");
 }
