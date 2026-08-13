@@ -132,6 +132,13 @@ export function applyAiTranslatingState(btnAi, {
   }
 
   btnAi.translationStatus = "translating";
+  // Keep the hover-button display state machine in sync: AI takes over the display
+  try {
+    const st = btnAi._st ? btnAi._st() : null;
+    if (st && st.displayMode !== undefined) {
+      st.displayMode = "ai";
+    }
+  } catch (_) {}
   if (btnAi.btnAiTxtNode) {
     btnAi.btnAiTxtNode.textContent = labelText;
   }
@@ -194,6 +201,14 @@ export function applyAiSuccessState(btnAi, {
   }
 
   btnAi.translationStatus = "translated";
+  // Keep the hover-button display state machine in sync: AI takes over the display
+  try {
+    const st = btnAi._st ? btnAi._st() : null;
+    if (st && st.displayMode !== undefined) {
+      st.displayMode = "ai";
+      st.googleBtnState = st.googleBtnState || "idle";
+    }
+  } catch (_) {}
   btnAi.classList?.remove?.("dualtran-hide");
   if (btnAi.style) {
     btnAi.style.color = buttonColor;
@@ -330,4 +345,12 @@ export function applyShowGoogleOnlyState(btnAi, nodesToRestore = []) {
   // Reset AI translation state so blocks can be re-translated
   btnAi.translationStatus = "idle";
   btnAi.translationId = "";
+  // Keep the hover-button display state machine in sync: page now shows Google
+  try {
+    const st = btnAi._st ? btnAi._st() : null;
+    if (st) {
+      st.displayMode = "google";
+      st.googleBtnState = "success";
+    }
+  } catch (_) {}
 }

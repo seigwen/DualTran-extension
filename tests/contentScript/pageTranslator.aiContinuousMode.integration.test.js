@@ -78,6 +78,7 @@ vi.mock("../../src/contentScript/singletonBtnGroup.js", () => ({
   setCallbacks: vi.fn(),
   getProxiesForTranslation: getProxiesForTranslationMock,
   getAllProxies: getAllProxiesMock,
+  updateSingletonUI: vi.fn(),
   getBlockState: vi.fn(() => null),
 }));
 vi.mock("../../src/lib/ai/providerRegistry.js", () => ({

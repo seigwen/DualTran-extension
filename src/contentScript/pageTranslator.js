@@ -60,7 +60,7 @@ import {
 import Toastify from 'toastify-js'
 import { encode } from 'gpt-tokenizer'
 import { wordsCount } from "../util/globalWordsCount.js"
-import { registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, setCallbacks, getProxiesForTranslation, getAllProxies, getBlockState } from "./singletonBtnGroup.js";
+import { registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, setCallbacks, getProxiesForTranslation, getAllProxies, getBlockState, updateSingletonUI } from "./singletonBtnGroup.js";
 
 /**
  * Convert the dontSortResults config value to a boolean (pure function, for unit testing).
@@ -136,6 +136,14 @@ const aiTranslationInterval = 2500 // Under normal conditions, send an AI transl
 const openAiRateLimitWaitingTime = 10 * 1000 // When an AI translation API error occurs, wait openAiRateLimitWaitingTime ms before resuming AI translation requests.
 export const abortControllers = []
 export const aiCache = []
+
+// ── Hover-button handler state (MUST stay at module top level) ───────────────
+// handleSingletonGoogleClick / handleSingletonAiClick are module-level functions
+// registered via setCallbacks(); they reference these. If these were scoped inside
+// the Promise.all(...).then() callback below, clicking the hover buttons would
+// throw ReferenceError (silently swallowed by try/catch → "no response").
+let currentTargetLanguage = "";
+let nodesToRestore = [];
 /* mili-seconds to wait for next openAI request after translation error happened. 
 * initial value should be 0 so that translation can be started as soon as page is loaded.
 */
@@ -429,135 +437,328 @@ function resetAiButtonToIdle(btnAi) {
 
 // ── Singleton button group click handlers ─────────────────────
 
-async function handleSingletonGoogleClick(translatedElement) {
-  const state = getBlockState(translatedElement);
+/**
+ * Restore per-block original text. Used by both hover-button handlers.
+ * replaceOriginal mode: nodesToClear get originalText from nodesToRestore, AI span cleared.
+ * newLine mode: the <translated> element is hidden (original text stays visible above).
+ * Resets aiStatus/translationId/googleBtnState; displayMode becomes "original".
+ */
+function restoreBlockOriginal(state, translatedElement) {
   if (!state) return;
+  if (state.nodesToClear && Array.isArray(state.nodesToClear)) {
+    state.nodesToClear.forEach((n) => {
+      try {
+        const restored = nodesToRestore.find((r) => r && r.node === n);
+        if (restored) {
+          if (n.nodeType === 3) {
+            n.textContent = restored.originalText;
+            const parent = n.parentNode;
+            if (parent && parent.nodeType === 1 && parent.style && parent.style.display === "none") {
+              parent.style.display = "";
+            }
+          } else if (n.nodeType === 1) {
+            n.style.display = "";
+            n.textContent = restored.originalText;
+          }
+        }
+      } catch (_) {}
+    });
+  }
+  // Clear AI span in replaceOriginal mode
+  if (state.translatedTextNode && !state.googleSpan) {
+    try { state.translatedTextNode.textContent = ""; } catch (_) {}
+    try { state.translatedTextNode.style.display = ""; } catch (_) {}
+  }
+  // newLine mode: hide the whole <translated> element
+  if (state.googleSpan && translatedElement && translatedElement.style) {
+    try {
+      translatedElement.style.display = "none";
+      state.googleSpan.style.display = "none";
+      if (state.aiSpan) state.aiSpan.style.display = "none";
+    } catch (_) {}
+  }
+  state.aiStatus = "idle";
+  state.translationId = "";
+  state.googleBtnState = "idle";
+  state.displayMode = "original";
+  try { updateSingletonUI(translatedElement); } catch (_) {}
+}
 
-  if (state.googleBtnState === "success") {
-    state.googleBtnState = "idle";
-    if (state.aiStatus === "translated") {
-      const cacheItem = aiCache.find(item =>
-        state.sourceString === item.original && item.targetLanguage === currentTargetLanguage
-      );
-      if (cacheItem && state.translatedTextNode) {
-        state.translatedTextNode.textContent = cacheItem.translated;
-      }
-    } else {
-      if (state.nodesToClear) {
+/**
+ * Show Google-only view for one block.
+ * newLine: unhide <translated>, show googleSpan, hide aiSpan.
+ * replaceOriginal: write Google text into nodesToClear (from googleTranslatedText
+ * or nodesToRestore[].translatedText), hide AI span (text preserved for re-show).
+ */
+function showBlockGoogleOnly(state, translatedElement) {
+  if (!state) return;
+  if (state.googleSpan) {
+    // newLine dual-span
+    if (translatedElement && translatedElement.style) {
+      try { translatedElement.style.display = "block"; } catch (_) {}
+    }
+    state.googleSpan.style.display = "block";
+    if (state.aiSpan) state.aiSpan.style.display = "none";
+  } else {
+    // replaceOriginal: restore Google text into text nodes
+    if (state.nodesToClear && Array.isArray(state.nodesToClear)) {
+      if (typeof state.googleTranslatedText === "string" && state.googleTranslatedText) {
+        state.nodesToClear.forEach((n, idx) => {
+          try {
+            if (n.nodeType === 3) {
+              n.textContent = idx === 0 ? state.googleTranslatedText : "";
+              const parent = n.parentNode;
+              if (parent && parent.nodeType === 1 && parent.style && parent.style.display === "none") {
+                parent.style.display = "";
+              }
+            } else if (n.nodeType === 1) {
+              n.style.display = idx === 0 ? "" : "none";
+              n.textContent = idx === 0 ? state.googleTranslatedText : "";
+            }
+          } catch (_) {}
+        });
+      } else {
         state.nodesToClear.forEach((n) => {
           try {
-             // Restore cleared/hidden nodes
-            const restored = nodesToRestore.find((r) => r.node === n);
+            const restored = nodesToRestore.find((r) => r && r.node === n);
             if (restored) {
               if (n.nodeType === 3) {
-                 // Text node: restore content
-                n.textContent = restored.originalText;
-                 // Restore hidden parent element (e.g., <code>)
+                n.textContent = restored.translatedText;
                 const parent = n.parentNode;
-                if (parent && parent.nodeType === 1 && parent.style?.display === "none") {
+                if (parent && parent.nodeType === 1 && parent.style && parent.style.display === "none") {
                   parent.style.display = "";
                 }
               } else if (n.nodeType === 1) {
-                 // Element node: show and restore content
                 n.style.display = "";
-                n.textContent = restored.originalText;
+                n.textContent = restored.translatedText;
               }
             }
           } catch (_) {}
         });
       }
-      if (state.translatedTextNode) {
-        state.translatedTextNode.textContent = "";
-      }
     }
+    // Hide AI span but PRESERVE its text so clicking AI again can re-show it
+    if (state.translatedTextNode) {
+      try { state.translatedTextNode.style.display = "none"; } catch (_) {}
+    }
+  }
+  state.displayMode = "google";
+  state.googleBtnState = "success";
+  try { updateSingletonUI(translatedElement); } catch (_) {}
+}
+
+/**
+ * Write a freshly obtained Google translation into the block (both modes).
+ */
+function writeGoogleIntoBlock(state, result, translatedElement) {
+  if (state.googleSpan) {
+    // newLine: write into googleSpan and show it
+    if (translatedElement && translatedElement.style) {
+      try { translatedElement.style.display = "block"; } catch (_) {}
+    }
+    state.googleSpan.textContent = result;
+    state.googleSpan.style.display = "block";
+    if (state.aiSpan) state.aiSpan.style.display = "none";
   } else {
-    state.googleBtnState = "translating";
-    try {
-      const result = await backgroundTranslateSingleText(
-        "google", currentTargetLanguage, state.sourceString
-      );
-      if (result) {
-        state.googleTranslatedText = result;
-        if (state.translatedTextNode) {
-          state.translatedTextNode.textContent = result;
-        }
-        state.googleBtnState = "success";
-      }
-    } catch (_) {
-      state.googleBtnState = "idle";
+    // replaceOriginal: first text node gets the result, others cleared
+    if (state.nodesToClear && Array.isArray(state.nodesToClear)) {
+      state.nodesToClear.forEach((n, idx) => {
+        try {
+          if (n.nodeType === 3) {
+            n.textContent = idx === 0 ? result : "";
+            const parent = n.parentNode;
+            if (parent && parent.nodeType === 1 && parent.style && parent.style.display === "none") {
+              parent.style.display = "";
+            }
+          } else if (n.nodeType === 1) {
+            n.style.display = idx === 0 ? "" : "none";
+            n.textContent = idx === 0 ? result : "";
+          }
+        } catch (_) {}
+      });
     }
   }
 }
 
+async function handleSingletonGoogleClick(translatedElement) {
+  const state = getBlockState(translatedElement);
+  if (!state) return;
+
+  // Legacy state fallback: blocks registered before displayMode existed
+  const displayMode = state.displayMode ||
+    (state.aiStatus === "translated" ? "ai" : "google");
+
+  if (displayMode === "google") {
+    // Behavior 1 second click: restore original
+    restoreBlockOriginal(state, translatedElement);
+    return;
+  }
+  if (displayMode === "ai") {
+    // Behavior 4 second step: show Google only (no network)
+    showBlockGoogleOnly(state, translatedElement);
+    return;
+  }
+  // displayMode === "original": behavior 1 first click — Google-only translation
+  state.googleBtnState = "translating";
+  try {
+    const result = await backgroundTranslateSingleText(
+      "google", currentTargetLanguage, state.sourceString
+    );
+    if (result) {
+      state.googleTranslatedText = result;
+      writeGoogleIntoBlock(state, result, translatedElement);
+      state.googleBtnState = "success";
+      state.displayMode = "google";
+    } else {
+      state.googleBtnState = "idle";
+    }
+  } catch (_) {
+    state.googleBtnState = "idle";
+  }
+  try { updateSingletonUI(translatedElement); } catch (_) {}
+}
+
 async function handleSingletonAiClick(translatedElement) {
+  const state = getBlockState(translatedElement);
+  if (!state) return;
+
+  // Legacy state fallback: blocks registered before displayMode existed
+  const displayMode = state.displayMode ||
+    (state.aiStatus === "translated" ? "ai" : "google");
+
+  if (displayMode === "ai") {
+    // Behavior 3 second click: restore original
+    restoreBlockOriginal(state, translatedElement);
+    return;
+  }
+
   if (!hasActiveProviderApiKey()) {
     promptToConfigureAiProvider();
     return;
   }
 
-  const state = getBlockState(translatedElement);
-  if (!state) return;
-
-  if (state.aiStatus === "translated") {
-    // Already translated — reset and restore Google if available
-    state.aiStatus = "idle";
-    if (state.googleBtnState === "success" && state.translatedTextNode && typeof state.googleTranslatedText === "string") {
-      try { state.translatedTextNode.textContent = state.googleTranslatedText; } catch (_) {}
-    } else if (state.nodesToClear) {
-       // replaceOriginal mode: restore original nodes and clear AI translation span
-      if (state.translatedTextNode) {
-        try { state.translatedTextNode.textContent = ""; } catch (_) {}
-      }
-      state.nodesToClear.forEach((n) => {
-        try {
-           // Restore cleared/hidden nodes
-          const restored = nodesToRestore.find((r) => r.node === n);
-          if (restored) {
-            if (n.nodeType === 3) {
-               // Text node: restore content
-              n.textContent = restored.originalText;
-               // Restore hidden parent element (e.g., <code>)
-              const parent = n.parentNode;
-              if (parent && parent.nodeType === 1 && parent.style?.display === "none") {
-                parent.style.display = "";
+  if (displayMode === "google") {
+    if (state.aiStatus === "translated") {
+      // Behavior 4 last step: re-show AI without re-translating
+      if (state.googleSpan) {
+        // newLine: toggle spans
+        state.googleSpan.style.display = "none";
+        if (state.aiSpan) state.aiSpan.style.display = "block";
+      } else {
+        // replaceOriginal: clear text nodes, re-show AI span (text preserved)
+        if (state.nodesToClear && Array.isArray(state.nodesToClear)) {
+          state.nodesToClear.forEach((n) => {
+            try {
+              if (n.nodeType === 3) {
+                n.textContent = "";
+                const parent = n.parentNode;
+                if (parent && parent.nodeType === 1 && parent.style && parent.style.display === "none") {
+                  parent.style.display = "";
+                }
+              } else if (n.nodeType === 1) {
+                n.style.display = "none";
               }
-            } else if (n.nodeType === 1) {
-               // Element node: show and restore content
-              n.style.display = "";
-              n.textContent = restored.originalText;
-            }
-          }
-        } catch (_) {}
-      });
+            } catch (_) {}
+          });
+        }
+        if (state.translatedTextNode) {
+          try { state.translatedTextNode.style.display = ""; } catch (_) {}
+        }
+      }
+      state.displayMode = "ai";
+      try { updateSingletonUI(translatedElement); } catch (_) {}
+      return;
     }
+    // Behavior 2: run AI on top of Google
+    state.aiStatus = "translating";
+    state.errorMessage = undefined;
+    try {
+      const proxy = {
+        _st: () => state,
+        get sourceString() { return state.sourceString; },
+        get translatedTextNode() { return state.translatedTextNode; },
+        get googleSpan() { return state.googleSpan || null; },
+        get aiSpan() { return state.aiSpan || null; },
+        get translationId() { return state.translationId; },
+        set translationId(v) { state.translationId = v; },
+        get translationStatus() { return state.aiStatus; },
+        set translationStatus(v) { state.aiStatus = v; },
+        get btnAiTxtNode() { return document.createElement("span"); },
+        get tooltip() { return document.createElement("span"); },
+        get classList() { return { contains: () => false, add: () => {}, remove: () => {} }; },
+        get style() { let _c = ""; return { set color(v) { _c = v; }, get color() { return _c; } }; },
+        get ownerDocument() { return document; },
+        setAttribute: () => {},
+      };
+      await aiTranslateText([proxy], false);
+      if (state.aiStatus === "translated") {
+        state.displayMode = "ai";
+      } else if (state.aiStatus === "translationError") {
+        // Fall back: keep Google visible
+        state.displayMode = state.googleBtnState === "success" || state.googleTranslatedText ? "google" : "original";
+      }
+    } catch (e) {
+      state.aiStatus = "translationError";
+      state.errorMessage = e?.message || "AI translation error";
+    }
+    try { updateSingletonUI(translatedElement); } catch (_) {}
     return;
   }
 
+  // displayMode === "original": behavior 3 — Google+AI concurrently, final display AI
+  state.googleBtnState = "translating";
+  backgroundTranslateSingleText("google", currentTargetLanguage, state.sourceString)
+    .then((result) => {
+      if (result) {
+        state.googleTranslatedText = result;
+        state.googleBtnState = "success";
+        // Write into googleSpan unconditionally (text needed for later "show Google only");
+        // visibility toggle only if AI hasn't taken over the display yet
+        if (state.googleSpan) {
+          try { state.googleSpan.textContent = result; } catch (_) {}
+        }
+        if (state.displayMode === "original") {
+          writeGoogleIntoBlock(state, result, translatedElement);
+          state.displayMode = "google";
+          try { updateSingletonUI(translatedElement); } catch (_) {}
+        }
+      } else {
+        state.googleBtnState = "idle";
+      }
+    })
+    .catch(() => { state.googleBtnState = "idle"; });
+
   state.aiStatus = "translating";
-   // Clear previous error message to prevent stale errors after successful retry
   state.errorMessage = undefined;
   try {
-    // Build a lightweight proxy with direct state access
     const proxy = {
       _st: () => state,
-      get sourceString() { return this._st().sourceString; },
-      get translatedTextNode() { return this._st().translatedTextNode; },
-      get translationId() { return this._st().translationId; },
-      set translationId(v) { this._st().translationId = v; },
-      get translationStatus() { return this._st().aiStatus; },
-      set translationStatus(v) { this._st().aiStatus = v; },
+      get sourceString() { return state.sourceString; },
+      get translatedTextNode() { return state.translatedTextNode; },
+      get googleSpan() { return state.googleSpan || null; },
+      get aiSpan() { return state.aiSpan || null; },
+      get translationId() { return state.translationId; },
+      set translationId(v) { state.translationId = v; },
+      get translationStatus() { return state.aiStatus; },
+      set translationStatus(v) { state.aiStatus = v; },
       get btnAiTxtNode() { return document.createElement("span"); },
       get tooltip() { return document.createElement("span"); },
-      get classList() { return { contains: ()=>false, add: ()=>{}, remove: ()=>{} }; },
-      get style() { let _c=""; return { set color(v){_c=v}, get color(){return _c} }; },
+      get classList() { return { contains: () => false, add: () => {}, remove: () => {} }; },
+      get style() { let _c = ""; return { set color(v) { _c = v; }, get color() { return _c; } }; },
       get ownerDocument() { return document; },
       setAttribute: () => {},
     };
     await aiTranslateText([proxy], false);
+    if (state.aiStatus === "translated") {
+      state.displayMode = "ai";
+    } else if (state.aiStatus === "translationError") {
+      state.displayMode = state.googleBtnState === "success" || state.googleTranslatedText ? "google" : "original";
+    }
   } catch (e) {
     state.aiStatus = "translationError";
     state.errorMessage = e?.message || "AI translation error";
   }
+  try { updateSingletonUI(translatedElement); } catch (_) {}
 }
 
 /**
@@ -788,11 +989,16 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
           if (!isSelectedPanel) saveAiAppliedFlag();
            // replaceOriginal mode: AI translation start already hid original text nodes via display:none,
            // just keep them hidden here (nodes were already hidden in applyAiTranslatingState)
-          // In-memory cache write
+          // In-memory cache write.
+          // Dual-span mode: AI text lives in aiSpan (translatedTextNode is googleSpan),
+          // so read the AI text from aiSpan when present.
+          const aiTextForCache = btnAi.aiSpan
+            ? btnAi.aiSpan.textContent
+            : (btnAi.translatedTextNode ? btnAi.translatedTextNode.textContent : "");
           aiCache.push({
             original: btnAi.sourceString,
             targetLanguage: targetLanguageCodeForAI,
-            translated: btnAi.translatedTextNode.textContent
+            translated: aiTextForCache
           })
           // Persistent cache write (fire-and-forget, sourceLanguage defaults to "und")
           setCachedAiTranslation(
@@ -800,7 +1006,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
             twpConfig.get("aiProvider") || "openai",
             getModelForProvider(twpConfig.get("aiProvider") || "openai"),
             btnAi.sourceString,
-            btnAi.translatedTextNode.textContent
+            aiTextForCache
           );
           // Continue loop — there may be more blocks in the remainder.
         } else {
@@ -1594,7 +1800,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    // Page language state (original/translated)
   let pageLanguageState = "original"; // "original" or "translated"
    // Current target language. Initially loaded from config; when the user changes the target language during use, currentTargetLanguage updates accordingly
-  let currentTargetLanguage = twpConfig.get("targetLanguage");
+  currentTargetLanguage = twpConfig.get("targetLanguage");
    // Translation service engine (google/yandex)
   let currentPageTranslatorService = twpConfig.get("pageTranslatorService");
    // Google returns translations with HTML node order different from the original for fluency.
@@ -1614,7 +1820,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    // Removed nodes (removed by mutationObserver)
   let removedNodes = [];
 
-  let nodesToRestore = [];
+   // NOTE: nodesToRestore is declared at module top level (hoisted) so the
+   // module-level hover-button handlers can access it. Do not redeclare here.
 
 
 
@@ -3328,6 +3535,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   pageTranslator._aiTranslateDynamically = aiTranslateDynamically;
    /** @internal — for testing: set shouldForceAiAfterPageTranslation internal state */
   pageTranslator._setForceAiTranslation = (v) => { shouldForceAiAfterPageTranslation = v; };
+   /** @internal — for testing per-block restore: replace the nodesToRestore array */
+  pageTranslator._setNodesToRestoreForTest = (arr) => { nodesToRestore = arr; };
 
   let alreadyGotTheLanguage = false;
    // Callback function for when tab language is detected

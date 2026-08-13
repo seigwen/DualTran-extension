@@ -118,6 +118,7 @@ vi.mock("../../src/contentScript/singletonBtnGroup.js", () => ({
   setCallbacks: vi.fn(),
   getProxiesForTranslation: vi.fn(() => []),
   getAllProxies: vi.fn(() => []),
+  updateSingletonUI: vi.fn(),
   getBlockState: vi.fn(() => null),
   ensureSingletonInit: vi.fn(),
 }));

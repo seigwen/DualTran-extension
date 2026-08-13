@@ -56,6 +56,8 @@ const blockStateMap = new WeakMap();
  * @property {Element[]|null} nodesToClear
  * @property {string} translationId
  * @property {"idle"|"queuing"|"translating"|"translated"|"translationError"} aiStatus
+ * @property {"idle"|"translating"|"success"} googleBtnState
+ * @property {"original"|"google"|"ai"} displayMode
  * @property {string} [errorMessage]
  */
 
@@ -76,6 +78,9 @@ export function registerBlock(translatedElement, sourceString, translatedTextNod
     // Dual-span mode: separate spans for Google and AI translations
     googleSpan,   // <span class="dualtran-google"> — Google writes here
     aiSpan,       // <span class="dualtran-ai"> — AI writes here
+    // Hover-button state machine
+    googleBtnState: "idle", // "idle" | "translating" | "success" — Google-only translation status
+    displayMode: "google",  // what the block currently shows: "original" | "google" | "ai"
   });
 }
 
@@ -104,6 +109,10 @@ export class BtnAiProxy {
   set translationId(v) { this._st().translationId = v; }
   get translationStatus() { return this._st().aiStatus; }
   set translationStatus(v) { this._st().aiStatus = v; }
+  get googleBtnState() { return this._st().googleBtnState; }
+  set googleBtnState(v) { this._st().googleBtnState = v; }
+  get displayMode() { return this._st().displayMode; }
+  set displayMode(v) { this._st().displayMode = v; }
 
   // ── Singleton-backed DOM nodes (only live when currentTarget matches) ──
   get btnAiTxtNode()  { return this._isTarget() ? this._s.aiTextNode : DUMMY_NODE; }
