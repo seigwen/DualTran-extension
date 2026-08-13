@@ -477,7 +477,7 @@ function restoreBlockOriginal(state, translatedElement) {
       if (state.aiSpan) state.aiSpan.style.display = "none";
     } catch (_) {}
   }
-  state.aiStatus = "idle";
+  state.aiStatus = "userPinned";
   state.translationId = "";
   state.googleBtnState = "idle";
   state.displayMode = "original";
@@ -544,9 +544,11 @@ function showBlockGoogleOnly(state, translatedElement) {
   }
   state.displayMode = "google";
   state.googleBtnState = "success";
-  // Reset AI state so the singleton AI button returns to its initial (pre-AI)
-  // look — mirroring applyShowGoogleOnlyState, which also resets to "idle".
-  state.aiStatus = "idle";
+  // "userPinned": the user explicitly chose Google-only for this block.
+  // Renders the singleton AI button in its initial (pre-AI) look, AND keeps
+  // the block out of getProxiesForTranslation() so the periodic
+  // aiTranslateDynamically() loop does NOT re-translate it with AI.
+  state.aiStatus = "userPinned";
   state.translationId = "";
   state.errorMessage = undefined;
   try { updateSingletonUI(translatedElement); } catch (_) {}
@@ -3216,7 +3218,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     if (pageLanguageState !== "translated") return;
     let allProxies = getAllProxies();
     let allTranslating = allProxies.filter(p => ["queuing", "translating"].includes(p.translationStatus));
-    let toBeTranslated = allProxies.filter(p => !["queuing", "translating", "translated"].includes(p.translationStatus));
+    let toBeTranslated = allProxies.filter(p => !["queuing", "translating", "translated", "userPinned"].includes(p.translationStatus));
 
     const nextState = resolveNextAiRenderState(
       aiRenderState,
@@ -3360,7 +3362,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
        // otherwise getProxiesForTranslation() will filter out blocks in translationError state,
        // causing aiTranslateDynamically() to have no blocks to translate and not send requests
       getAllProxies().forEach((p) => {
-        if (p.translationStatus === "translationError") {
+        if (p.translationStatus === "translationError" || p.translationStatus === "userPinned") {
           p.translationStatus = "idle";
         }
       });

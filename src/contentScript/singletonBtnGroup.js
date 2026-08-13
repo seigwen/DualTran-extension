@@ -55,7 +55,7 @@ const blockStateMap = new WeakMap();
  * @property {string} googleTranslatedText
  * @property {Element[]|null} nodesToClear
  * @property {string} translationId
- * @property {"idle"|"queuing"|"translating"|"translated"|"translationError"} aiStatus
+ * @property {"idle"|"queuing"|"translating"|"translated"|"translationError"|"userPinned"} aiStatus
  * @property {"idle"|"translating"|"success"} googleBtnState
  * @property {"original"|"google"|"ai"} displayMode
  * @property {string} [errorMessage]
@@ -150,7 +150,7 @@ export function getProxiesForTranslation(_map = null, _s = null) {
   // translationError must also be filtered, otherwise aiTranslateDynamically() would
   // keep retrying errored blocks after cooldown, causing infinite retry loops on persistent errors (e.g., 503).
   // Users can manually click the AI button to retry (status is reset to idle on click).
-  return result.filter(p => !["queuing", "translating", "translated", "translationError"].includes(p.translationStatus));
+  return result.filter(p => !["queuing", "translating", "translated", "translationError", "userPinned"].includes(p.translationStatus));
 }
 
 /**

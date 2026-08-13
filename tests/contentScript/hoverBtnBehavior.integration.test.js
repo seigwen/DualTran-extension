@@ -177,7 +177,7 @@ describe("Behavior 1 — G → Google-only translate → G → restore original"
     expect(translatedEl.style.display).toBe("none");
     const state1 = getBlockState(translatedEl);
     expect(state1.displayMode).toBe("original");
-    expect(state1.aiStatus).toBe("idle");
+    expect(state1.aiStatus).toBe("userPinned");
 
     // Click G again: translate Google-only → show Google
     await handleG(translatedEl);
@@ -258,7 +258,7 @@ describe("Behavior 3 — AI → Google+AI concurrent → AI → restore original
     expect(textNode.textContent).toBe("Hello world");
     expect(aiSpan.textContent).toBe("");
     expect(getBlockState(p).displayMode).toBe("original");
-    expect(getBlockState(p).aiStatus).toBe("idle");
+    expect(getBlockState(p).aiStatus).toBe("userPinned");
   });
 });
 
@@ -330,7 +330,7 @@ describe("Behavior 4b — G after AI resets the singleton AI button to initial s
     await handleG(translatedEl);
     const st = getBlockState(translatedEl);
     expect(st.displayMode).toBe("google");
-    expect(st.aiStatus).toBe("idle");
+    expect(st.aiStatus).toBe("userPinned");
     expect(st.translationId).toBe("");
     expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(false);
     expect(aiBtn.classList.contains("dualtran-ai-error")).toBe(false);
@@ -353,10 +353,71 @@ describe("Behavior 4b — G after AI resets the singleton AI button to initial s
     await handleG(p);
     const st = getBlockState(p);
     expect(st.displayMode).toBe("google");
-    expect(st.aiStatus).toBe("idle");
+    expect(st.aiStatus).toBe("userPinned");
     expect(st.translationId).toBe("");
     expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(false);
     expect(aiBtn.querySelector(".dualtran-ai-success-check")).toBeNull();
     expect(aiBtn.querySelector("span").textContent).toBe("AI");
+  });
+});
+
+describe("Behavior 4c — G click is not auto-reverted by the AI translate loop", () => {
+  function singletonAiBtn() {
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    return host ? host.shadowRoot.querySelector(".dualtran-ai-btn") : null;
+  }
+
+  it("newLine: aiTranslateDynamically skips a block switched to Google-only", async () => {
+    createSingletonButtonGroup();
+    const { translatedEl, googleSpan, aiSpan } = createNewLineBlock();
+
+    // AI → AI shown
+    await handleAI(translatedEl);
+    // G → Google-only + AI button initial
+    await handleG(translatedEl);
+    const st = getBlockState(translatedEl);
+    expect(st.displayMode).toBe("google");
+    expect(st.aiStatus).toBe("userPinned");
+
+    // Simulate the periodic auto-AI loop (page-level AI mode active)
+    pageTranslator._setForceAiTranslation(true);
+    await pageTranslator._aiTranslateDynamically();
+    await flushAsync();
+
+    // Block must stay Google-only, not be re-translated with AI
+    expect(getBlockState(translatedEl).displayMode).toBe("google");
+    expect(getBlockState(translatedEl).aiStatus).toBe("userPinned");
+    expect(googleSpan.style.display).toBe("block");
+    expect(aiSpan.style.display).toBe("none");
+    // AI button stays in initial state
+    const aiBtn = singletonAiBtn();
+    expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(false);
+    expect(aiBtn.querySelector(".dualtran-ai-success-check")).toBeNull();
+  });
+
+  it("replaceOriginal: aiTranslateDynamically skips a block switched to Google-only", async () => {
+    createSingletonButtonGroup();
+    const { p, textNode, aiSpan } = createReplaceOriginalBlock();
+
+    // AI → AI shown
+    await handleAI(p);
+    // G → Google-only
+    await handleG(p);
+    const st = getBlockState(p);
+    expect(st.displayMode).toBe("google");
+    expect(st.aiStatus).toBe("userPinned");
+    expect(textNode.textContent).toBe("Google译文");
+
+    // Auto-AI loop runs — must NOT re-translate this block
+    pageTranslator._setForceAiTranslation(true);
+    await pageTranslator._aiTranslateDynamically();
+    await flushAsync();
+
+    expect(getBlockState(p).displayMode).toBe("google");
+    expect(getBlockState(p).aiStatus).toBe("userPinned");
+    expect(textNode.textContent).toBe("Google译文");
+    expect(aiSpan.style.display).toBe("none");
+    const aiBtn = singletonAiBtn();
+    expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(false);
   });
 });

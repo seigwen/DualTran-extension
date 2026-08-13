@@ -842,8 +842,8 @@ describe("handleSingletonAiClick (AI 按钮点击 → 恢复原文)", () => {
 
     // 验证: AI span 被清除
     expect(aiSpan.textContent).toBe("");
-    // 验证: aiStatus 被重置
-    expect(blockState.aiStatus).toBe("idle");
+    // 验证: aiStatus 被重置为 userPinned（用户手动固定显示，AI 自动循环不再触碰）
+    expect(blockState.aiStatus).toBe("userPinned");
   });
 });
 
