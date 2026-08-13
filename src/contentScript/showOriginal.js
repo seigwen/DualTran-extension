@@ -134,13 +134,21 @@ twpConfig.onReady(function () {
     hideOriginalText();
   }
 
-  showOriginal.add = function (node) {
+  /**
+   * Register a node so that hovering it pops up the original text.
+   * @param {Node} node - node to attach mouseenter/mouseout listeners to
+   * @param {string} [originalText] - original (source-language) text to show;
+   *   defaults to the node's own textContent (replaceOriginal mode, where the
+   *   source node itself is registered)
+   */
+  showOriginal.add = function (node, originalText) {
     if (platformInfo.isMobile.any) return;
 
     if (node && nodesToShowOriginal.indexOf(node) === -1) {
       nodesToShowOriginal.push({
         node: node,
-        original: node.textContent,
+        original:
+          typeof originalText === "string" ? originalText : node.textContent,
       });
       node.addEventListener("mouseenter", onMouseEnter);
       node.addEventListener("mouseout", onMouseOut);

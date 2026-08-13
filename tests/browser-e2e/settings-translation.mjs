@@ -671,7 +671,7 @@ async function s6AiProviderSwitchUpdatesUi(page, extensionId) {
   console.log("[S6] AI 提供商切换 UI 更新测试...");
 
   // 导航到翻译标签页
-  await page.goto(`chrome-extension://${extensionId}/options/options.html#translations`, { waitUntil: "load" });
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#ai`, { waitUntil: "load" });
   await page.waitForSelector("#aiProvider");
 
   // 等待提供商下拉框初始化完成
@@ -737,7 +737,7 @@ async function s7ApiKeyEndpointPersistence(page, extensionId, serviceWorker) {
   console.log("[S7] API Key + endpoint 持久化测试...");
 
   // 导航到翻译标签页
-  await page.goto(`chrome-extension://${extensionId}/options/options.html#translations`, { waitUntil: "load" });
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#ai`, { waitUntil: "load" });
   await page.waitForSelector("#aiProvider");
   await page.waitForFunction(() => {
     const sel = document.getElementById("aiProvider");
@@ -854,7 +854,7 @@ async function s8ModelSelectionPersistence(page, extensionId, serviceWorker) {
   console.log("[S8] 模型选择持久化测试...");
 
   // 导航到翻译标签页
-  await page.goto(`chrome-extension://${extensionId}/options/options.html#translations`, { waitUntil: "load" });
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#ai`, { waitUntil: "load" });
   await page.waitForSelector("#aiProvider");
   await page.waitForFunction(() => {
     const sel = document.getElementById("aiProvider");
@@ -959,7 +959,7 @@ async function s9CustomProviderModelList(page, extensionId, serviceWorker, scope
   await writeStorage(serviceWorker, "providerConfigs", providerConfigs);
   await writeStorage(serviceWorker, "aiProvider", customProviderId);
 
-  await page.goto(`chrome-extension://${extensionId}/options/options.html#translations`, { waitUntil: "load" });
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#ai`, { waitUntil: "load" });
   await page.waitForSelector("#aiProvider", { timeout: 15000 });
   await page.waitForFunction(() => {
     const sel = document.getElementById("aiProvider");
@@ -979,14 +979,9 @@ async function s9CustomProviderModelList(page, extensionId, serviceWorker, scope
     }
   }, { providerId: customProviderId, providerName: customProviderName });
 
-  await page.reload({ waitUntil: "load" });
-  await page.waitForSelector("#aiProvider", { timeout: 15000 });
-  await page.waitForFunction((providerId) => {
-    const sel = document.getElementById("aiProvider");
-    return sel instanceof HTMLSelectElement && Array.from(sel.options).some((option) => option.value === providerId);
-  }, customProviderId, { timeout: 15000 });
-
-  // 使用 Playwright route 拦截来验证 /v1/models 请求确实被发出
+  // 使用 Playwright route 拦截来验证 /v1/models 请求确实被发出。
+  // 必须在 reload 之前安装：选项页加载时会以 storage 中的自定义 provider 初始化，
+  // 首次模型列表 fetch 就发生在这个阶段，晚了就会漏掉。
   const modelsRequests = [];
   await page.route("**/*.0.0.1:8788/**", (route) => {
     const url = route.request().url();
@@ -995,6 +990,13 @@ async function s9CustomProviderModelList(page, extensionId, serviceWorker, scope
     }
     route.continue();
   });
+
+  await page.reload({ waitUntil: "load" });
+  await page.waitForSelector("#aiProvider", { timeout: 15000 });
+  await page.waitForFunction((providerId) => {
+    const sel = document.getElementById("aiProvider");
+    return sel instanceof HTMLSelectElement && Array.from(sel.options).some((option) => option.value === providerId);
+  }, customProviderId, { timeout: 15000 });
 
   // 先切换到 openai 再切回自定义 provider，确保 change 事件触发新的模型加载
   await setOptionsSelectValueAndWait(page, "aiProvider", "openai");
@@ -1097,7 +1099,7 @@ async function s10CustomApiBaseModelList(page, extensionId, scope) {
   }
 
   // 导航到翻译标签页
-  await page.goto(`chrome-extension://${extensionId}/options/options.html#translations`, { waitUntil: "load" });
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#ai`, { waitUntil: "load" });
   await page.waitForSelector("#aiProvider");
   await page.waitForFunction(() => {
     const sel = document.getElementById("aiProvider");
@@ -1245,7 +1247,7 @@ async function s11ColdStartPersistence(scope) {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     // 导航到选项页的翻译标签
-    await isolatedPage.goto(`chrome-extension://${isolatedExtId}/options/options.html#translations`, { waitUntil: "load" });
+    await isolatedPage.goto(`chrome-extension://${isolatedExtId}/options/options.html#ai`, { waitUntil: "load" });
     await isolatedPage.waitForTimeout(1000);
 
     // 验证 AI 提供商面板加载

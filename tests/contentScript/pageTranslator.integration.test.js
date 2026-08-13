@@ -32,6 +32,8 @@ const mockState = vi.hoisted(() => {
     registerBlockMock: vi.fn(),
     ensureSingletonInitMock: vi.fn(),
     getBlockStateMock: vi.fn(() => null), // 默认为 null，测试中覆盖
+    showOriginalIsEnabled: false,
+    showOriginalAddMock: vi.fn(),
   };
 });
 
@@ -47,7 +49,17 @@ vi.mock("../../src/lib/config.js", () => ({
 
 vi.mock("../../src/lib/languages.js", () => ({ default: { fixTLanguageCode: (c) => c } }));
 vi.mock("../../src/lib/platformInfo.js", () => ({ default: { isMobile: { any: false } } }));
-vi.mock("../../src/contentScript/showOriginal.js", () => ({ default: { isEnabled: false, enable: vi.fn(), disable: vi.fn(), enabledObserverSubscribe: vi.fn() } }));
+vi.mock("../../src/contentScript/showOriginal.js", () => ({
+  default: {
+    get isEnabled() {
+      return mockState.showOriginalIsEnabled;
+    },
+    add: mockState.showOriginalAddMock,
+    enable: vi.fn(),
+    disable: vi.fn(),
+    enabledObserverSubscribe: vi.fn(),
+  },
+}));
 vi.mock("../../src/contentScript/fetchSSE.js", () => ({ translateWithAI: vi.fn() }));
 vi.mock("../../src/contentScript/aiStreamMessage.js", () => ({
   parseOpenAiStyleStreamMessage: vi.fn(() => ({ type: "done" })),
@@ -196,6 +208,8 @@ describe("addTranslatedContent (newLine 模式)", () => {
     mockState.registerBlockMock.mockClear();
     mockState.ensureSingletonInitMock.mockClear();
     mockState.configValues.aiImproveForLongerThan = 0;
+    mockState.showOriginalIsEnabled = false;
+    mockState.showOriginalAddMock.mockClear();
   });
 
   it("aiImproveForLongerThan=0 时应调用 registerBlock", async () => {
@@ -213,6 +227,46 @@ describe("addTranslatedContent (newLine 模式)", () => {
     );
 
     expect(mockState.registerBlockMock).toHaveBeenCalled();
+  });
+
+  it("showOriginal 启用时应把 translated 元素连同原文注册到 showOriginal（newLine 模式 hover 原文回归）", async () => {
+    mockState.showOriginalIsEnabled = true;
+
+    const textNode = document.createTextNode("Hello world original");
+    const parentElement = document.createElement("p");
+    parentElement.appendChild(textNode);
+
+    const translatedElement = document.createElement("translated");
+    parentElement.appendChild(translatedElement);
+    document.body.appendChild(parentElement);
+
+    await addTranslatedContent(
+      [{ nodes: [textNode], translatedElement, nodesToBeInTranslatedNode: [textNode] }],
+      [["Bonjour le monde"]]
+    );
+
+    // 译文块连同原文一起注册，hover 译文时才能弹出原文
+    expect(mockState.showOriginalAddMock).toHaveBeenCalledWith(
+      translatedElement,
+      "Hello world original"
+    );
+  });
+
+  it("showOriginal 未启用时不应注册", async () => {
+    const textNode = document.createTextNode("Hello world");
+    const parentElement = document.createElement("p");
+    parentElement.appendChild(textNode);
+
+    const translatedElement = document.createElement("translated");
+    parentElement.appendChild(translatedElement);
+    document.body.appendChild(parentElement);
+
+    await addTranslatedContent(
+      [{ nodes: [textNode], translatedElement, nodesToBeInTranslatedNode: [textNode] }],
+      [["Bonjour le monde"]]
+    );
+
+    expect(mockState.showOriginalAddMock).not.toHaveBeenCalled();
   });
 });
 
@@ -862,5 +916,31 @@ describe("translateDynamically (视口感知翻译)", () => {
     document.body.innerHTML = "<p>Hello world</p>";
     // piecesToTranslate 在 translatePage 中被设置，此处为空 → 安全退出
     expect(() => translateDynamically()).not.toThrow();
+  });
+});
+
+describe("getPiecesToTranslate (动态注入单块内容)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockState.configValues.translateLongerThan = 0;
+    document.body.innerHTML = "";
+  });
+
+  it("动态注入的单个 <p> 应带有 translatedElement（否则翻译结果被静默丢弃）", () => {
+    // 模拟 MutationObserver 场景：新增一个独立 <p> 作为根节点遍历
+    const p = document.createElement("p");
+    p.textContent = "This is a dynamically loaded paragraph that should be translated.";
+    document.body.appendChild(p);
+
+    const pieces = getPiecesToTranslate(p);
+
+    expect(pieces.length).toBeGreaterThan(0);
+    // 最后一个 piece（也是唯一一个）必须有 translatedElement ——
+    // 否则 addTranslatedContent 中 `if (!translatedElement) continue`
+    // 会静默丢弃 Google 翻译结果（E2E: dynamic-content-ai-translation 7<10 的根因）
+    const lastPiece = pieces[pieces.length - 1];
+    expect(lastPiece.nodes.length).toBeGreaterThan(0);
+    expect(lastPiece.translatedElement).toBeInstanceOf(HTMLElement);
+    expect(lastPiece.translatedElement.isConnected).toBe(true);
   });
 });

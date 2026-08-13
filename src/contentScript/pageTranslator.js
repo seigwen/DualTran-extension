@@ -1811,7 +1811,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    // Translation service engine (google/yandex)
   let currentPageTranslatorService = twpConfig.get("pageTranslatorService");
    // Google returns translations with HTML node order different from the original for fluency.
-   // You can choose to re-sort (dontSortResults === false) to display in original HTML node order, which better matches the original layout, but may reduce fluency. E.g., "what is the <b>treatment</b> for stroke" may become "是什么<b>治疗方法</b>中风的" (Chinese example showing poor word order)
+   // You can choose to re-sort (dontSortResults === false) to display in original HTML node order, which better matches the original layout, but may reduce fluency (e.g. in languages like Chinese where word order differs significantly from English).
    // Or set to not re-sort (dontSortResults === true) to display in Google's order, which is more fluent but the layout may be incorrect
   let dontSortResults =
     twpConfig.get("dontSortResults") == "yes" ? true : false;
@@ -2541,6 +2541,32 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       tmpPiecesToTranslate.pop();
     }
 
+     // The translatedElement is normally created when the NEXT block boundary is
+     // encountered. A traversal whose root IS the final block (e.g., a single <p>
+     // injected by the MutationObserver) never hits that boundary, so the last
+     // piece is left without a translatedElement — addTranslatedContent then
+     // silently skips it and the Google translation result is discarded.
+     // Create the element here so dynamically injected single blocks are rendered.
+    const lastPiece =
+      tmpPiecesToTranslate[tmpPiecesToTranslate.length - 1];
+    if (
+      lastPiece &&
+      lastPiece.nodes.length > 0 &&
+      !lastPiece.translatedElement
+    ) {
+      const anchor =
+        lastPiece.bottomElement ||
+        lastPiece.parentElement ||
+        lastPiece.topElement ||
+        lastPiece.nodes[lastPiece.nodes.length - 1].parentNode;
+      if (anchor) {
+        const translatedElement = document.createElement("translated");
+        translatedElement.style.display = "none";
+        anchor.appendChild(translatedElement);
+        lastPiece.translatedElement = translatedElement;
+      }
+    }
+
     return tmpPiecesToTranslate;
   }
 
@@ -2970,6 +2996,18 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
               translatedElement.appendChild(node.cloneNode(true))
             }
           }
+        }
+
+         // "Hover to show original" is enabled — register the translated block
+         // with its original (source-language) text so hovering the translation
+         // pops up the original. This is the newLine-mode counterpart of the
+         // per-source-node registration in translateResults (replaceOriginal mode).
+        if (showOriginal.isEnabled) {
+          const originalTextForBlock = piecesToTranslateNow[i].nodes.reduce(
+            (accumulator, node) => accumulator + node.textContent,
+            ""
+          );
+          showOriginal.add(translatedElement, originalTextForBlock);
         }
 
         if (!translatedElement) {

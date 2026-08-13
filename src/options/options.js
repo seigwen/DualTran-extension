@@ -82,6 +82,8 @@
       let english = String(fb);
 
       // First try to match patterns like: "Unable to load <Provider> models (HTTP 123)"
+      // i18n-allow-chinese:start — legacy Chinese error-message normalization shim;
+      // these are regex PATTERNS that match old Chinese messages, not UI strings.
       english = english.replace(/无法加载\s*(.+?)\s*模型/g, 'Unable to load $1 models');
       // Common pattern replacements
       english = english.replace(/无法从API加载/g, 'Unable to load from API');
@@ -89,6 +91,7 @@
       // General "模型" -> "models", placed last to avoid overriding the capture rules above
       english = english.replace(/模型/g, 'models');
       english = english.replace(/无法加载/g, 'Unable to load');
+      // i18n-allow-chinese:end
 
       // If the result still contains Chinese characters (no rule matched), fall back to a generic English message for readability
       if (/[\u4E00-\u9FFF]/.test(english)) {

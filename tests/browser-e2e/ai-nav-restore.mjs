@@ -175,6 +175,26 @@ async function verifyAiRestoreAfterSpaBackNav(page, serviceWorker, spaSourceUrl,
   );
   console.log("  Google translation completed.");
 
+  // autoImproveByAI 已在 eecfb00 移除：AI 翻译由用户点击 AI 按钮触发。
+  // 这里显式点击悬浮按钮组的 #btnAi 再等待 mock 响应。
+  // 注意：必须先等 Google 渲染状态脱离 loading（spinner 消失），否则
+  // floatingBtn 的 btnAi click 状态机（googleRenderState !== "success"）
+  // 会走 else 分支调用 restorePage()，把整页还原而不是触发 AI 翻译。
+  await page.waitForFunction(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    const btnG = host?.shadowRoot?.getElementById("btnGoogle");
+    const btnA = host?.shadowRoot?.getElementById("btnAi");
+    if (!btnG || !btnA) return false;
+    const googleLoading = !!btnG.querySelector(".dualtran-floating-btn-spinner");
+    return !googleLoading;
+  }, null, { timeout: 30_000 });
+  await page.waitForTimeout(300);
+  await page.evaluate(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    host?.shadowRoot?.getElementById("btnAi")?.click();
+  });
+  console.log("  #btnAi clicked, waiting for AI translation...");
+
   // 等待 AI 翻译完成
   await waitForAiTranslation(page, expectedAiSnippet);
 
@@ -313,6 +333,9 @@ async function verifyNoAutoTranslateWithoutFlag(page, serviceWorker, spaSourceUr
   // 导航到 SPA 源页面（不触发翻译）
   console.log("  Step 1: Navigate to SPA source page without translating");
   await page.goto(spaSourceUrl, { waitUntil: "domcontentloaded" });
+  // Scene 1 在同 tab 的 sessionStorage 里留下了 AI flag（同 origin 同路径），
+  // 本场景验证的是"从未使用过 AI 翻译"的页面，先清空 sessionStorage
+  await page.evaluate(() => sessionStorage.clear());
   await waitForContentScriptInjected(serviceWorker, page.url());
   await page.waitForTimeout(500);
 
