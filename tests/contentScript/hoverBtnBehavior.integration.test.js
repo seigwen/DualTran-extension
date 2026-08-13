@@ -20,7 +20,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi, beforeAll } from "vitest";
-import { registerBlock, getBlockState } from "../../src/contentScript/singletonBtnGroup.js";
+import { registerBlock, getBlockState, createSingletonButtonGroup } from "../../src/contentScript/singletonBtnGroup.js";
 
 const mockState = vi.hoisted(() => {
   const configValues = {
@@ -306,5 +306,57 @@ describe("Behavior 4 — AI → Google+AI → G → Google only → AI → show 
     expect(aiSpan.textContent).toBe("AI译文");
     expect(textNode.textContent).toBe("");
     expect(getBlockState(p).displayMode).toBe("ai");
+  });
+});
+
+describe("Behavior 4b — G after AI resets the singleton AI button to initial state", () => {
+  function singletonAiBtn() {
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    return host ? host.shadowRoot.querySelector(".dualtran-ai-btn") : null;
+  }
+
+  it("newLine: AI button shows success after AI, returns to idle after G", async () => {
+    createSingletonButtonGroup();
+    const { translatedEl } = createNewLineBlock();
+
+    // AI → singleton button renders success (✓)
+    await handleAI(translatedEl);
+    const aiBtn = singletonAiBtn();
+    expect(aiBtn).not.toBeNull();
+    expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(true);
+    expect(aiBtn.querySelector(".dualtran-ai-success-check")).not.toBeNull();
+
+    // G → Google-only display AND AI button back to its initial (pre-AI) state
+    await handleG(translatedEl);
+    const st = getBlockState(translatedEl);
+    expect(st.displayMode).toBe("google");
+    expect(st.aiStatus).toBe("idle");
+    expect(st.translationId).toBe("");
+    expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(false);
+    expect(aiBtn.classList.contains("dualtran-ai-error")).toBe(false);
+    expect(aiBtn.classList.contains("dualtran-ai-loading")).toBe(false);
+    expect(aiBtn.querySelector(".dualtran-ai-success-check")).toBeNull();
+    expect(aiBtn.querySelector("span").textContent).toBe("AI");
+  });
+
+  it("replaceOriginal: AI button shows success after AI, returns to idle after G", async () => {
+    createSingletonButtonGroup();
+    const { p } = createReplaceOriginalBlock();
+
+    // AI → success
+    await handleAI(p);
+    const aiBtn = singletonAiBtn();
+    expect(aiBtn).not.toBeNull();
+    expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(true);
+
+    // G → Google-only, AI button back to initial state
+    await handleG(p);
+    const st = getBlockState(p);
+    expect(st.displayMode).toBe("google");
+    expect(st.aiStatus).toBe("idle");
+    expect(st.translationId).toBe("");
+    expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(false);
+    expect(aiBtn.querySelector(".dualtran-ai-success-check")).toBeNull();
+    expect(aiBtn.querySelector("span").textContent).toBe("AI");
   });
 });

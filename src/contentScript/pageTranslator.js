@@ -544,6 +544,11 @@ function showBlockGoogleOnly(state, translatedElement) {
   }
   state.displayMode = "google";
   state.googleBtnState = "success";
+  // Reset AI state so the singleton AI button returns to its initial (pre-AI)
+  // look — mirroring applyShowGoogleOnlyState, which also resets to "idle".
+  state.aiStatus = "idle";
+  state.translationId = "";
+  state.errorMessage = undefined;
   try { updateSingletonUI(translatedElement); } catch (_) {}
 }
 

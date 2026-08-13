@@ -195,6 +195,10 @@ export function applyAiSuccessState(btnAi, {
     } else if (typeof translatedText === "string" && btnAi.translatedTextNode) {
       // Legacy single-span mode
       btnAi.translatedTextNode.textContent = translatedText;
+      // Un-hide in case a previous "show Google only" hid it (hover-button flow)
+      if (btnAi.translatedTextNode.style) {
+        btnAi.translatedTextNode.style.display = "";
+      }
     }
     applyAiTranslatedTextColor(btnAi, translatedTextColor);
   } catch (_) {
