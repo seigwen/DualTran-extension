@@ -267,3 +267,67 @@ export function formatAiTranslationError(err) {
   const fallbackStr = typeof fallback === "object" ? JSON.stringify(fallback) : String(fallback);
   return "AI translation error: " + fallbackStr;
 }
+
+/**
+ * Per-block "show Google only" logic. Called by pageTranslator.showGoogleOnly()
+ * for each registered block. Centralised here so the replaceOriginal-mode
+ * restoration bug is locked down by a test at the same seam the bug occurs.
+ *
+ * newLine mode (googleSpan/aiSpan present):
+ *   - show googleSpan, hide aiSpan
+ *
+ * replaceOriginal mode (nodesToClear present):
+ *   - text nodes were CLEARED by applyAiSuccessState when AI finished;
+ *     restore the Google translation from nodesToRestore[].translatedText
+ *     (NOT originalText — that would revert to the source language)
+ *   - restore parent elements hidden by AI translation
+ *   - clear the AI translatedTextNode
+ *
+ * Both modes: reset aiStatus to "idle" and clear translationId so the block
+ * can be AI-translated again.
+ *
+ * @param {Object} btnAi — BtnAiProxy-like object
+ * @param {Array} nodesToRestore — pageTranslator's nodesToRestore array
+ *   entries: { node, originalText, translatedText }
+ */
+export function applyShowGoogleOnlyState(btnAi, nodesToRestore = []) {
+  if (!btnAi) return;
+
+  if (btnAi.googleSpan) {
+    // newLine mode (dual-span): show Google, hide AI
+    btnAi.googleSpan.style.display = "block";
+    if (btnAi.aiSpan) {
+      btnAi.aiSpan.style.display = "none";
+    }
+  } else if (btnAi.nodesToClear) {
+    // replaceOriginal mode: restore Google translation into cleared text nodes
+    const restoreList = Array.isArray(nodesToRestore) ? nodesToRestore : [];
+    btnAi.nodesToClear.forEach((n) => {
+      try {
+        const restored = restoreList.find((r) => r && r.node === n);
+        if (restored) {
+          if (n.nodeType === 3) {
+            // Google translation was stored in translatedText; originalText is the source language
+            n.textContent = restored.translatedText;
+          } else if (n.nodeType === 1) {
+            n.style.display = "";
+            n.textContent = restored.translatedText;
+          }
+        }
+        // Restore hidden parent elements (e.g., <code>, <a>) hidden by AI translation
+        const parent = n.parentNode;
+        if (parent && parent.nodeType === 1 && parent.style?.display === "none") {
+          parent.style.display = "";
+        }
+      } catch (_) {}
+    });
+    // Clear the AI translatedTextNode
+    if (btnAi.translatedTextNode) {
+      try { btnAi.translatedTextNode.textContent = ""; } catch (_) {}
+    }
+  }
+
+  // Reset AI translation state so blocks can be re-translated
+  btnAi.translationStatus = "idle";
+  btnAi.translationId = "";
+}

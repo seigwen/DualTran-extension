@@ -47,6 +47,7 @@ import {
   applyAiErrorState,
   applyAiSuccessState,
   applyAiTranslatingState,
+  applyShowGoogleOnlyState,
   ERROR_CROSS_COLOR,
   formatAiTranslationError,
   renderAiErrorIndicator,
@@ -3113,34 +3114,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    */
   pageTranslator.showGoogleOnly = function () {
     getAllProxies().forEach((p) => {
-      if (p.googleSpan) {
-        // newLine mode (dual-span): show Google, hide AI
-        p.googleSpan.style.display = "block";
-        if (p.aiSpan) {
-          p.aiSpan.style.display = "none";
-        }
-      } else if (p.nodesToClear) {
-        // replaceOriginal mode: Google translation is written directly to text nodes,
-        // AI translation is in translatedTextNode. Just clear the AI text node —
-        // the text nodes already contain Google translation, do NOT restore original text.
-        if (p.translatedTextNode) {
-          try { p.translatedTextNode.textContent = ""; } catch (_) {}
-        }
-        // Also restore any hidden parent elements (e.g., <code>, <a>) that were
-        // hidden by AI translation via applyAiTranslatingState
-        p.nodesToClear.forEach((n) => {
-          try {
-            const parent = n.parentNode;
-            if (parent && parent.nodeType === 1 && parent.style?.display === "none") {
-              parent.style.display = "";
-            }
-          } catch (_) {}
-        });
-      }
-      // Reset AI translation state so blocks can be re-translated
-      // when user clicks AI again after switching to Google-only view
-      p.translationStatus = "idle";
-      p.translationId = "";
+      // Per-block logic lives in aiUiState.applyShowGoogleOnlyState so the
+      // replaceOriginal-mode restoration bug is locked down by a unit test
+      // at the same seam the bug occurs.
+      applyShowGoogleOnlyState(p, nodesToRestore);
     });
     shouldForceAiAfterPageTranslation = false;
   };

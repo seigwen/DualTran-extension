@@ -17,6 +17,7 @@ import {
   getAllProxies,
   getBlockState,
 } from "../../src/contentScript/singletonBtnGroup.js";
+import { applyShowGoogleOnlyState } from "../../src/contentScript/aiUiState.js";
 
 /**
  * Create translated blocks in newLine mode using the GLOBAL document.
@@ -108,23 +109,13 @@ function cleanup(container) {
 }
 
 /**
- * Mirror the real showGoogleOnly() behavior:
- * toggle display AND reset AI state so blocks can be re-translated.
+ * Call the REAL per-block showGoogleOnly logic (applyShowGoogleOnlyState)
+ * for every registered block — the same code path pageTranslator.showGoogleOnly
+ * uses, so these tests exercise production logic, not a simulated copy.
  */
 function simulateShowGoogleOnly() {
   getAllProxies().forEach((p) => {
-    if (p.googleSpan) {
-      // newLine mode (dual-span): show Google, hide AI
-      p.googleSpan.style.display = "block";
-      if (p.aiSpan) p.aiSpan.style.display = "none";
-    } else if (p.nodesToClear) {
-      // replaceOriginal mode: clear AI translatedTextNode, keep Google text on nodes
-      if (p.translatedTextNode) {
-        p.translatedTextNode.textContent = "";
-      }
-    }
-    p.translationStatus = "idle";
-    p.translationId = "";
+    applyShowGoogleOnlyState(p, []);
   });
 }
 
