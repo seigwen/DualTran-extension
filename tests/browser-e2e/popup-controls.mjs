@@ -887,7 +887,21 @@ async function p7DisplayModeSelect(page, extensionId, serviceWorker) {
   }
   console.log(`  [P7] 重新打开后值 = ${restoredValue} ✓`);
 
-  // 6. 恢复
+  // 6. 回归断言：hover-lang label 必须包含语言名（不得是空占位符）
+  // 测试环境 originalTabLanguage="und" → twpLang.codeToLanguage("und")="Unknown"
+  // 正常环境下应显示实际语言名（如 "French"、"中文"）。
+  const hoverLangLabel = await page.evaluate(() => {
+    const lbl = document.getElementById("lblShowTranslatedWhenHoveringThisLang");
+    return lbl ? lbl.textContent : null;
+  });
+  if (hoverLangLabel && /[-\s]+$/.test(hoverLangLabel.trim())) {
+    throw new Error(
+      `[P7] lblShowTranslatedWhenHoveringThisLang 缺少语言名: "${hoverLangLabel}"`
+    );
+  }
+  console.log(`  [P7] hover-lang label = "${hoverLangLabel}" ✓`);
+
+  // 7. 恢复
   await page.selectOption("#whereToDisplayTranslatedText", initialValue || "newLine");
   await page.waitForTimeout(300);
 

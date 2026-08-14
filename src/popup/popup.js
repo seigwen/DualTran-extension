@@ -130,6 +130,18 @@ twpConfig.onReady(function () {
             originalTabLanguage = tabLanguage || "und";
             const lbl = document.getElementById("lblOriginalLanguage");
             if (lbl) lbl.textContent = twpLang.codeToLanguage(originalTabLanguage);
+            // Update "hover over this language" label with actual language name.
+            // The i18n template uses $LANGUAGE_NAME$ placeholder ($1), but
+            // data-i18n processing doesn't pass substitution args, so we set it
+            // explicitly here after the language is detected.
+            const langName = twpLang.codeToLanguage(originalTabLanguage);
+            if (langName) {
+              const hoverLangLbl = document.getElementById("lblShowTranslatedWhenHoveringThisLang");
+              if (hoverLangLbl) {
+                const msg = chrome.i18n.getMessage("lblShowTranslatedWhenHoveringThisLang", [langName]);
+                if (msg) hoverLangLbl.textContent = msg;
+              }
+            }
             updateInterface()
           }
         }
