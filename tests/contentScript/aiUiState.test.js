@@ -8,9 +8,13 @@ import {
   applyAiErrorState,
   applyAiSuccessState,
   applyAiTranslatingState,
+  applyGoogleIdle,
+  applyGoogleSuccess,
+  applyGoogleTranslating,
   formatAiTranslationError,
   renderAiErrorIndicator,
   renderAiSuccessIndicator,
+  resetBlockState,
 } from "../../src/contentScript/aiUiState.js";
 
 function createButton() {
@@ -107,5 +111,89 @@ describe("aiUiState", () => {
     expect(button.tooltip.textContent).toBe("AI translation error: rate limited");
     expect(button.getAttribute("title")).toBe(null);
     expect(button.btnAiTxtNode.querySelector("span")?.className).toBe(AI_ERROR_CROSS_CLASS);
+  });
+});
+
+describe("block state transitions (pure functions)", () => {
+  it("resetBlockState resets displayMode, googleBtnState, aiStatus, translationId", () => {
+    const state = {
+      displayMode: "ai",
+      googleBtnState: "success",
+      aiStatus: "success",
+      translationId: "abc123",
+    };
+
+    resetBlockState(state);
+
+    expect(state.displayMode).toBe("original");
+    expect(state.googleBtnState).toBe("idle");
+    expect(state.aiStatus).toBe("userPinned");
+    expect(state.translationId).toBe("");
+  });
+
+  it("resetBlockState is idempotent — resetting an already-original block is a no-op", () => {
+    const state = {
+      displayMode: "original",
+      googleBtnState: "idle",
+      aiStatus: "userPinned",
+      translationId: "",
+    };
+
+    resetBlockState(state);
+
+    expect(state.displayMode).toBe("original");
+    expect(state.googleBtnState).toBe("idle");
+    expect(state.aiStatus).toBe("userPinned");
+    expect(state.translationId).toBe("");
+  });
+
+  it("applyGoogleSuccess sets displayMode and googleBtnState", () => {
+    const state = {
+      displayMode: "original",
+      googleBtnState: "idle",
+    };
+
+    applyGoogleSuccess(state);
+
+    expect(state.displayMode).toBe("google");
+    expect(state.googleBtnState).toBe("success");
+  });
+
+  it("applyGoogleSuccess works when called from translating state", () => {
+    const state = {
+      displayMode: "original",
+      googleBtnState: "translating",
+    };
+
+    applyGoogleSuccess(state);
+
+    expect(state.displayMode).toBe("google");
+    expect(state.googleBtnState).toBe("success");
+  });
+
+  it("applyGoogleTranslating sets googleBtnState to translating", () => {
+    const state = {
+      displayMode: "original",
+      googleBtnState: "idle",
+    };
+
+    applyGoogleTranslating(state);
+
+    expect(state.googleBtnState).toBe("translating");
+    // displayMode should NOT change
+    expect(state.displayMode).toBe("original");
+  });
+
+  it("applyGoogleIdle sets googleBtnState to idle without changing displayMode", () => {
+    const state = {
+      displayMode: "google",
+      googleBtnState: "translating",
+    };
+
+    applyGoogleIdle(state);
+
+    expect(state.googleBtnState).toBe("idle");
+    // displayMode should NOT change
+    expect(state.displayMode).toBe("google");
   });
 });

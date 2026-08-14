@@ -47,11 +47,15 @@ import {
   applyAiErrorState,
   applyAiSuccessState,
   applyAiTranslatingState,
+  applyGoogleIdle,
+  applyGoogleSuccess,
+  applyGoogleTranslating,
   applyShowGoogleOnlyState,
   ERROR_CROSS_COLOR,
   formatAiTranslationError,
   renderAiErrorIndicator,
   renderAiSuccessIndicator,
+  resetBlockState,
 } from "./aiUiState.js"
 import {
   getFloatingButtonAiTooltipText,
@@ -501,10 +505,7 @@ function restoreBlockOriginal(state, translatedElement) {
       if (state.aiSpan) state.aiSpan.style.display = "none";
     } catch (_) {}
   }
-  state.aiStatus = "userPinned";
-  state.translationId = "";
-  state.googleBtnState = "idle";
-  state.displayMode = "original";
+  resetBlockState(state);
   try { updateSingletonUI(translatedElement); } catch (_) {}
 }
 
@@ -566,8 +567,7 @@ function showBlockGoogleOnly(state, translatedElement) {
       try { state.translatedTextNode.style.display = "none"; } catch (_) {}
     }
   }
-  state.displayMode = "google";
-  state.googleBtnState = "success";
+  applyGoogleSuccess(state);
   // "userPinned": the user explicitly chose Google-only for this block.
   // Renders the singleton AI button in its initial (pre-AI) look, AND keeps
   // the block out of getProxiesForTranslation() so the periodic
@@ -630,7 +630,7 @@ async function handleSingletonGoogleClick(translatedElement) {
     return;
   }
   // displayMode === "original": behavior 1 first click — Google-only translation
-  state.googleBtnState = "translating";
+  applyGoogleTranslating(state);
   try {
     const result = await backgroundTranslateSingleText(
       "google", currentTargetLanguage, state.sourceString
@@ -638,13 +638,12 @@ async function handleSingletonGoogleClick(translatedElement) {
     if (result) {
       state.googleTranslatedText = result;
       writeGoogleIntoBlock(state, result, translatedElement);
-      state.googleBtnState = "success";
-      state.displayMode = "google";
+      applyGoogleSuccess(state);
     } else {
-      state.googleBtnState = "idle";
+      applyGoogleIdle(state);
     }
   } catch (_) {
-    state.googleBtnState = "idle";
+    applyGoogleIdle(state);
   }
   try { updateSingletonUI(translatedElement); } catch (_) {}
 }
@@ -737,7 +736,7 @@ async function handleSingletonAiClick(translatedElement) {
   }
 
   // displayMode === "original": behavior 3 — Google+AI concurrently, final display AI
-  state.googleBtnState = "translating";
+  applyGoogleTranslating(state);
   backgroundTranslateSingleText("google", currentTargetLanguage, state.sourceString)
     .then((result) => {
       if (result) {
@@ -754,10 +753,10 @@ async function handleSingletonAiClick(translatedElement) {
           try { updateSingletonUI(translatedElement); } catch (_) {}
         }
       } else {
-        state.googleBtnState = "idle";
+        applyGoogleIdle(state);
       }
     })
-    .catch(() => { state.googleBtnState = "idle"; });
+    .catch(() => { applyGoogleIdle(state); });
 
   state.aiStatus = "translating";
   state.errorMessage = undefined;
