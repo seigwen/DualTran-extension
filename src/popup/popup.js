@@ -237,6 +237,12 @@ twpConfig.onReady(function () {
         updateInterface();
       });
 
+      // Set "Where to display translated text" select change handler
+      $("#whereToDisplayTranslatedText").addEventListener("change", (e) => {
+        twpConfig.set("whereToDisplayTranslatedText", e.target.value);
+        updateInterface();
+      });
+
       // Set "Show original text when hovering" checkbox click handler
       $("#cbShowOriginalWhenHovering").addEventListener("change", (e) => {
         if (e.target.checked) {
@@ -320,6 +326,8 @@ twpConfig.onReady(function () {
     // Set "Show translate selected text button" checkbox style
     $("#cbShowTranslateSelectedButton").checked = twpConfig.get("showTranslateSelectedButton") == "yes" ? true : false;
 
+    // Set "Where to display translated text" select value
+    $("#whereToDisplayTranslatedText").value = twpConfig.get("whereToDisplayTranslatedText") || "newLine";
 
     // Set "Show original when hovering" checkbox style
     $("#cbShowOriginalWhenHovering").checked = twpConfig.get("showOriginalTextWhenHovering") == "yes" ? true : false;

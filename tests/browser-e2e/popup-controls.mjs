@@ -6,7 +6,7 @@
  *   - 9 个复选框：语言/站点翻译开关、悬停显示、AI 改进等
  *   - 1 个链接：更多选项 (#cbMoreOptions)
  *
- * 共有 6 个测试步骤 (P1–P6)。
+ * 共有 7 个测试步骤 (P1–P7)。
  *
  * @module popup-controls
  */
@@ -806,6 +806,94 @@ async function p6MoreOptionsLink(page, extensionId, serviceWorker, context) {
  * @param {Object} scope.collector - 错误收集器实例
  * @returns {Promise<void>}
  */
+// ═════════════════════════════════════════════════════════════════
+// P7: 译文显示位置下拉框
+// ═════════════════════════════════════════════════════════════════
+
+/**
+ * [P7] 验证弹出页中"译文显示位置"下拉框 (#whereToDisplayTranslatedText) 存在且可操作。
+ *
+ * 流程：
+ *   1. 打开弹出页，验证 #whereToDisplayTranslatedText select 存在
+ *   2. 验证包含 newLine 和 replaceOriginal 两个选项
+ *   3. 选择 replaceOriginal，验证 storage 更新
+ *   4. 导航离开并重新打开，验证值持久化
+ *   6. 恢复为 newLine
+ *
+ * @param {import("playwright").Page} page - Playwright 页面对象
+ * @param {string} extensionId - 扩展 ID
+ * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
+ * @returns {Promise<void>}
+ */
+async function p7DisplayModeSelect(page, extensionId, serviceWorker) {
+  console.log("[P7] 译文显示位置下拉框测试...");
+
+  // 1. 打开弹出页
+  await openPopup(page, extensionId);
+
+  // 2. 验证 select 存在
+  const selectExists = await page.evaluate(() => {
+    const sel = document.getElementById("whereToDisplayTranslatedText");
+    return sel instanceof HTMLSelectElement;
+  });
+  if (!selectExists) {
+    throw new Error("[P7] #whereToDisplayTranslatedText select 不存在于弹出页");
+  }
+  console.log("  [P7] #whereToDisplayTranslatedText 存在 ✓");
+
+  // 3. 验证选项
+  const optionValues = await page.evaluate(() => {
+    const sel = document.getElementById("whereToDisplayTranslatedText");
+    return Array.from(sel.options).map((o) => o.value);
+  });
+  if (!optionValues.includes("newLine") || !optionValues.includes("replaceOriginal")) {
+    throw new Error(
+      `[P7] 选项应包含 newLine 和 replaceOriginal，实际为: ${optionValues.join(", ")}`
+    );
+  }
+  console.log(`  [P7] 选项正确: ${optionValues.join(", ")} ✓`);
+
+  // 4. 记录初始值，切换为 replaceOriginal
+  const initialValue = await page.evaluate(() => {
+    return document.getElementById("whereToDisplayTranslatedText").value;
+  });
+  console.log(`  [P7] 初始值: ${initialValue}`);
+
+  await page.selectOption("#whereToDisplayTranslatedText", "replaceOriginal");
+  await page.waitForTimeout(500);
+
+  // 验证 storage 已更新
+  const savedValue = await readStorage(serviceWorker, "whereToDisplayTranslatedText");
+  if (savedValue !== "replaceOriginal") {
+    throw new Error(
+      `[P7] storage 中 whereToDisplayTranslatedText 应为 "replaceOriginal"，实际为 "${savedValue}"`
+    );
+  }
+  console.log(`  [P7] storage.whereToDisplayTranslatedText = ${savedValue} ✓`);
+
+  // 5. 导航离开并重新打开，验证持久化
+  await page.goto("about:blank", { waitUntil: "load" });
+  await page.waitForTimeout(300);
+  await openPopup(page, extensionId);
+
+  const restoredValue = await page.evaluate(() => {
+    const sel = document.getElementById("whereToDisplayTranslatedText");
+    return sel instanceof HTMLSelectElement ? sel.value : null;
+  });
+  if (restoredValue !== "replaceOriginal") {
+    throw new Error(
+      `[P7] 重新打开后值应为 "replaceOriginal"，实际为 "${restoredValue}"`
+    );
+  }
+  console.log(`  [P7] 重新打开后值 = ${restoredValue} ✓`);
+
+  // 6. 恢复
+  await page.selectOption("#whereToDisplayTranslatedText", initialValue || "newLine");
+  await page.waitForTimeout(300);
+
+  console.log("[P7] 通过 ✓\n");
+}
+
 export async function run(scope) {
   const { page, extensionId, serviceWorker, context, testPageUrl, collector } = scope;
 
@@ -859,9 +947,13 @@ export async function run(scope) {
     p6MoreOptionsLink(page, extensionId, serviceWorker, context)
   );
 
+  await runStep("P7", () =>
+    p7DisplayModeSelect(page, extensionId, serviceWorker)
+  );
+
   // ── 汇总结果 ──
   console.log(`\n=== 场景 "${name}" 执行完毕 ===`);
-  console.log(`总步骤数: 6, 失败: ${stepErrors.length}`);
+  console.log(`总步骤数: 7, 失败: ${stepErrors.length}`);
 
   if (stepErrors.length > 0) {
     for (const { step, error } of stepErrors) {
