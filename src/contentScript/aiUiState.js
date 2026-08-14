@@ -358,3 +358,46 @@ export function applyShowGoogleOnlyState(btnAi, nodesToRestore = []) {
     }
   } catch (_) {}
 }
+
+// ── Block state transition pure functions ─────────────────────
+// These are the single authority for displayMode/googleBtnState transitions.
+// pageTranslator.js calls these instead of directly mutating state fields.
+
+/**
+ * Reset a block to "original" display state.
+ * Used when the user manually restores original text (showOriginalText).
+ * Sets aiStatus to "userPinned" so AI auto-cycles won't touch this block.
+ * @param {{ displayMode: string, googleBtnState: string, aiStatus: string, translationId: string }} state
+ */
+export function resetBlockState(state) {
+  state.displayMode = "original";
+  state.googleBtnState = "idle";
+  state.aiStatus = "userPinned";
+  state.translationId = "";
+}
+
+/**
+ * Mark a block as showing Google translation (success).
+ * @param {{ displayMode: string, googleBtnState: string }} state
+ */
+export function applyGoogleSuccess(state) {
+  state.displayMode = "google";
+  state.googleBtnState = "success";
+}
+
+/**
+ * Mark a block's Google translation as in-flight.
+ * @param {{ googleBtnState: string }} state
+ */
+export function applyGoogleTranslating(state) {
+  state.googleBtnState = "translating";
+}
+
+/**
+ * Reset a block's Google button state to idle (e.g. after translation failure).
+ * Does NOT change displayMode — the block may still show whatever was there.
+ * @param {{ googleBtnState: string }} state
+ */
+export function applyGoogleIdle(state) {
+  state.googleBtnState = "idle";
+}
