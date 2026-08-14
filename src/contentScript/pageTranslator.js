@@ -210,6 +210,30 @@ function applyTranslatedColorToNode(node) {
  * @param {object} btnAi - BtnAiProxy or similar object, must have translatedTextNode property
  * @param {string} aiColor - AI translation color value
  */
+/**
+ * After AI translation succeeds in replaceOriginal mode, register the visible
+ * AI-translated element with showOriginal so hovering it pops up the original text.
+ *
+ * In replaceOriginal mode, Google-translated <font> elements are hidden when AI
+ * takes over (nodesToClear). The AI text lives in translatedTextNode (a plain
+ * <span>), which was never registered with showOriginal — causing "hover to show
+ * original" to silently fail on AI-translated blocks.
+ *
+ * In newLine (dual-span) mode, the parent <translated> element is already
+ * registered, so this helper is a no-op.
+ */
+function _registerAiForShowOriginal(btnAi) {
+  if (!showOriginal.isEnabled) return;
+  // In newLine (dual-span) mode, aiSpan exists and the <translated> parent is
+  // already registered — nothing to do.
+  if (btnAi.aiSpan) return;
+  // replaceOriginal mode: register the AI text element with the source string.
+  const el = btnAi.translatedTextNode;
+  if (el) {
+    showOriginal.add(el, btnAi.sourceString);
+  }
+}
+
 function _applyAiColorToTranslatedElement(btnAi, aiColor) {
   try {
     if (!aiColor || ["", "rgba(0, 0, 0, 1)", undefined, null].includes(aiColor)) return;
@@ -822,6 +846,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
       })
        // newLine mode: ensure AI translation color overrides Google translation color
       _applyAiColorToTranslatedElement(btnAi, twpConfig.get("aiTranslatedColor"));
+      _registerAiForShowOriginal(btnAi);
        // After page-level AI translation succeeds, mark this URL as AI-translated in sessionStorage,
        // so AI translation state is automatically restored on Turbo/pjax navigation back
       if (!isSelectedPanel) saveAiAppliedFlag();
@@ -845,6 +870,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
       });
        // newLine mode: ensure AI translation color overrides Google translation color
       _applyAiColorToTranslatedElement(btnAi, twpConfig.get("aiTranslatedColor"));
+      _registerAiForShowOriginal(btnAi);
        // After page-level AI translation succeeds (persistent cache hit), mark this URL in sessionStorage
       if (!isSelectedPanel) saveAiAppliedFlag();
       // Populate in-memory cache for subsequent lookups
@@ -992,6 +1018,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
           })
            // newLine mode: ensure AI translation color overrides Google translation color
           _applyAiColorToTranslatedElement(btnAi, twpConfig.get("aiTranslatedColor"));
+          _registerAiForShowOriginal(btnAi);
            // After page-level AI translation succeeds (streaming response complete), mark this URL in sessionStorage
           if (!isSelectedPanel) saveAiAppliedFlag();
            // replaceOriginal mode: AI translation start already hid original text nodes via display:none,
@@ -3804,4 +3831,4 @@ window.addEventListener("beforeunload", (event) => {
   })
 });
 
-export { backgroundTranslateSingleText, pageTranslator, aiTranslateText, _shouldSkipAiTranslation, getAiAppliedStorageKey, saveAiAppliedFlag, checkAiAppliedFlag, removeAiAppliedFlag }
+export { backgroundTranslateSingleText, pageTranslator, aiTranslateText, _shouldSkipAiTranslation, getAiAppliedStorageKey, saveAiAppliedFlag, checkAiAppliedFlag, removeAiAppliedFlag, _registerAiForShowOriginal }

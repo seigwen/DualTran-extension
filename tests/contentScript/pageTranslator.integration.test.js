@@ -944,3 +944,91 @@ describe("getPiecesToTranslate (动态注入单块内容)", () => {
     expect(lastPiece.translatedElement.isConnected).toBe(true);
   });
 });
+
+describe("replaceOriginal 模式：AI 翻译后 showOriginal 注册（hover 原文回归）", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockState.registerBlockMock.mockClear();
+    mockState.ensureSingletonInitMock.mockClear();
+    mockState.showOriginalAddMock.mockClear();
+    mockState.configValues.aiImproveForLongerThan = 0;
+    mockState.configValues.whereToDisplayTranslatedText = "replaceOriginal";
+  });
+
+  it("AI 翻译成功后，replaceOriginal 模式的 AI 译文元素应注册给 showOriginal", async () => {
+    mockState.showOriginalIsEnabled = true;
+
+    const textNode = document.createTextNode("Hello world");
+    const parentElement = document.createElement("p");
+    parentElement.appendChild(textNode);
+    document.body.appendChild(parentElement);
+
+    // Google 翻译
+    translateResults(
+      [{ nodes: [textNode] }],
+      [["Bonjour le monde"]]
+    );
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    // Google 翻译后 <font> 元素已注册
+    expect(mockState.showOriginalAddMock).toHaveBeenCalled();
+    mockState.showOriginalAddMock.mockClear();
+
+    // 获取 AI 译文 span
+    const aiSpan = parentElement.querySelector(".dualtran-aitranslatedtext-replacemode");
+    expect(aiSpan).not.toBeNull();
+
+    // 构造 replaceOriginal 模式的 mock btnAi（无 aiSpan）
+    const mockBtnAi = {
+      _st: () => ({
+        nodesToClear: [parentElement.querySelector("font")],
+        sourceString: "Hello world",
+        translatedTextNode: aiSpan,
+        aiSpan: null,
+        googleSpan: null,
+        aiStatus: "idle",
+        translationId: "",
+      }),
+      get sourceString() { return this._st().sourceString; },
+      get translatedTextNode() { return this._st().translatedTextNode; },
+      get aiSpan() { return this._st().aiSpan; },
+      get nodesToClear() { return this._st().nodesToClear; },
+    };
+
+    // 直接调用 _registerAiForShowOriginal（pageTranslator 内部 helper）
+    const { _registerAiForShowOriginal } = await import("../../src/contentScript/pageTranslator.js");
+    _registerAiForShowOriginal(mockBtnAi);
+
+    // AI 译文元素应注册给 showOriginal，附带原文
+    expect(mockState.showOriginalAddMock).toHaveBeenCalledWith(
+      aiSpan,
+      "Hello world"
+    );
+  });
+
+  it("newLine（dual-span）模式下 _registerAiForShowOriginal 应为 no-op", async () => {
+    mockState.showOriginalIsEnabled = true;
+    mockState.showOriginalAddMock.mockClear();
+
+    // 构造 newLine 模式的 mock btnAi（有 aiSpan）
+    const mockBtnAi = {
+      _st: () => ({
+        nodesToClear: null,
+        sourceString: "Hello",
+        translatedTextNode: document.createElement("span"),
+        aiSpan: document.createElement("span"),
+        googleSpan: document.createElement("span"),
+      }),
+      get sourceString() { return this._st().sourceString; },
+      get translatedTextNode() { return this._st().translatedTextNode; },
+      get aiSpan() { return this._st().aiSpan; },
+      get nodesToClear() { return this._st().nodesToClear; },
+    };
+
+    const { _registerAiForShowOriginal } = await import("../../src/contentScript/pageTranslator.js");
+    _registerAiForShowOriginal(mockBtnAi);
+
+    // newLine 模式下不应注册（<translated> 已在 addTranslatedContent 中注册）
+    expect(mockState.showOriginalAddMock).not.toHaveBeenCalled();
+  });
+});
