@@ -147,6 +147,10 @@ describe("popup", () => {
     document.head.innerHTML = "";
     document.body.innerHTML = `
       <select id="selectTargetLanguage"></select>
+      <select id="whereToDisplayTranslatedText">
+        <option value="newLine">new line</option>
+        <option value="replaceOriginal">replace</option>
+      </select>
       <input type="checkbox" id="cbAlwaysTranslateThisLanguage"/>
       <input type="checkbox" id="cbNeverTranslateThisLanguage"/>
       <input type="checkbox" id="cbAlwaysTranslateThisSite"/>
