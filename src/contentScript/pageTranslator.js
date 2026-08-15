@@ -489,13 +489,13 @@ function restoreBlockOriginal(state, translatedElement) {
             n.textContent = restored.originalText;
           }
         }
-      } catch (_) {}
+      } catch (e) { console.warn("[DualTran] restoreBlockOriginal failed", e); }
     });
   }
   // Clear AI span in replaceOriginal mode
   if (state.translatedTextNode && !state.googleSpan) {
-    try { state.translatedTextNode.textContent = ""; } catch (_) {}
-    try { state.translatedTextNode.style.display = ""; } catch (_) {}
+    try { state.translatedTextNode.textContent = ""; } catch (e) { console.warn("[DualTran] restoreBlockOriginal failed", e); }
+    try { state.translatedTextNode.style.display = ""; } catch (e) { console.warn("[DualTran] restoreBlockOriginal failed", e); }
   }
   // newLine mode: hide the whole <translated> element
   if (state.googleSpan && translatedElement && translatedElement.style) {
@@ -503,10 +503,10 @@ function restoreBlockOriginal(state, translatedElement) {
       translatedElement.style.display = "none";
       state.googleSpan.style.display = "none";
       if (state.aiSpan) state.aiSpan.style.display = "none";
-    } catch (_) {}
+    } catch (e) { console.warn("[DualTran] restoreBlockOriginal failed", e); }
   }
   resetBlockState(state);
-  try { updateSingletonUI(translatedElement); } catch (_) {}
+  try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] restoreBlockOriginal failed", e); }
 }
 
 /**
@@ -520,7 +520,7 @@ function showBlockGoogleOnly(state, translatedElement) {
   if (state.googleSpan) {
     // newLine dual-span
     if (translatedElement && translatedElement.style) {
-      try { translatedElement.style.display = "block"; } catch (_) {}
+      try { translatedElement.style.display = "block"; } catch (e) { console.warn("[DualTran] showBlockGoogleOnly failed", e); }
     }
     state.googleSpan.style.display = "block";
     if (state.aiSpan) state.aiSpan.style.display = "none";
@@ -540,7 +540,7 @@ function showBlockGoogleOnly(state, translatedElement) {
               n.style.display = idx === 0 ? "" : "none";
               n.textContent = idx === 0 ? state.googleTranslatedText : "";
             }
-          } catch (_) {}
+          } catch (e) { console.warn("[DualTran] showBlockGoogleOnly failed", e); }
         });
       } else {
         state.nodesToClear.forEach((n) => {
@@ -558,13 +558,13 @@ function showBlockGoogleOnly(state, translatedElement) {
                 n.textContent = restored.translatedText;
               }
             }
-          } catch (_) {}
+          } catch (e) { console.warn("[DualTran] showBlockGoogleOnly failed", e); }
         });
       }
     }
     // Hide AI span but PRESERVE its text so clicking AI again can re-show it
     if (state.translatedTextNode) {
-      try { state.translatedTextNode.style.display = "none"; } catch (_) {}
+      try { state.translatedTextNode.style.display = "none"; } catch (e) { console.warn("[DualTran] showBlockGoogleOnly failed", e); }
     }
   }
   applyGoogleSuccess(state);
@@ -575,7 +575,7 @@ function showBlockGoogleOnly(state, translatedElement) {
   state.aiStatus = "userPinned";
   state.translationId = "";
   state.errorMessage = undefined;
-  try { updateSingletonUI(translatedElement); } catch (_) {}
+  try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] showBlockGoogleOnly failed", e); }
 }
 
 /**
@@ -585,7 +585,7 @@ function writeGoogleIntoBlock(state, result, translatedElement) {
   if (state.googleSpan) {
     // newLine: write into googleSpan and show it
     if (translatedElement && translatedElement.style) {
-      try { translatedElement.style.display = "block"; } catch (_) {}
+      try { translatedElement.style.display = "block"; } catch (e) { console.warn("[DualTran] showBlockGoogleOnly failed", e); }
     }
     state.googleSpan.textContent = result;
     state.googleSpan.style.display = "block";
@@ -605,7 +605,7 @@ function writeGoogleIntoBlock(state, result, translatedElement) {
             n.style.display = idx === 0 ? "" : "none";
             n.textContent = idx === 0 ? result : "";
           }
-        } catch (_) {}
+        } catch (e) { console.warn("[DualTran] showBlockGoogleOnly failed", e); }
       });
     }
   }
@@ -645,7 +645,7 @@ async function handleSingletonGoogleClick(translatedElement) {
   } catch (_) {
     applyGoogleIdle(state);
   }
-  try { updateSingletonUI(translatedElement); } catch (_) {}
+  try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonGoogleClick failed", e); }
 }
 
 async function handleSingletonAiClick(translatedElement) {
@@ -688,15 +688,15 @@ async function handleSingletonAiClick(translatedElement) {
               } else if (n.nodeType === 1) {
                 n.style.display = "none";
               }
-            } catch (_) {}
+            } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
           });
         }
         if (state.translatedTextNode) {
-          try { state.translatedTextNode.style.display = ""; } catch (_) {}
+          try { state.translatedTextNode.style.display = ""; } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
         }
       }
       state.displayMode = "ai";
-      try { updateSingletonUI(translatedElement); } catch (_) {}
+      try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
       return;
     }
     // Behavior 2: run AI on top of Google
@@ -731,7 +731,7 @@ async function handleSingletonAiClick(translatedElement) {
       state.aiStatus = "translationError";
       state.errorMessage = e?.message || "AI translation error";
     }
-    try { updateSingletonUI(translatedElement); } catch (_) {}
+    try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
     return;
   }
 
@@ -745,12 +745,12 @@ async function handleSingletonAiClick(translatedElement) {
         // Write into googleSpan unconditionally (text needed for later "show Google only");
         // visibility toggle only if AI hasn't taken over the display yet
         if (state.googleSpan) {
-          try { state.googleSpan.textContent = result; } catch (_) {}
+          try { state.googleSpan.textContent = result; } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
         }
         if (state.displayMode === "original") {
           writeGoogleIntoBlock(state, result, translatedElement);
           state.displayMode = "google";
-          try { updateSingletonUI(translatedElement); } catch (_) {}
+          try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
         }
       } else {
         applyGoogleIdle(state);
@@ -788,7 +788,7 @@ async function handleSingletonAiClick(translatedElement) {
     state.aiStatus = "translationError";
     state.errorMessage = e?.message || "AI translation error";
   }
-  try { updateSingletonUI(translatedElement); } catch (_) {}
+  try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
 }
 
 /**
@@ -885,7 +885,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
     btnAi.translationId = "i" + Math.random().toString().substring(2, 10)
     btnAi.translationStatus = "queuing"
      // Clear previous error message (if any) to prevent stale errors after successful retry
-    try { const st = btnAi._st(); if (st) st.errorMessage = undefined; } catch (_) {}
+    try { const st = btnAi._st(); if (st) st.errorMessage = undefined; } catch (e) { console.warn("[DualTran] aiTranslateText failed", e); }
     btnAi.btnAiTxtNode.textContent = "queuing"
     btnAi.tooltip.textContent = "This text will be translated by AI soon"
     contentSequence = contentSequence + `<译泽 id="${btnAi.translationId}">${btnAi.sourceString}</译泽>`
@@ -1087,7 +1087,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
       .filter(btnAi => btnAi.translationStatus != "translated")
       .map(btnAi => {
          // Persist error info to blockState for updateSingletonUI to restore tooltip on hover
-        try { const st = btnAi._st(); if (st) st.errorMessage = errTxt; } catch (_) {}
+        try { const st = btnAi._st(); if (st) st.errorMessage = errTxt; } catch (e) { console.warn("[DualTran] aiTranslateText failed", e); }
         applyAiErrorState(btnAi, {
           errorText: errTxt,
           translatedText: btnAi.classList && btnAi.classList.contains('dualtran-ai-selected-btn') ? errTxt : undefined,
@@ -1129,7 +1129,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
         const errTxt = accumulatedText && accumulatedText.trim().length > 0
           ? (chrome.i18n.getMessage("errorAiResponseNoTranslationTags") || "AI response did not contain expected translation tags")
           : (chrome.i18n.getMessage("errorAiNoResponse") || "No response from AI provider");
-        try { const st = btn._st(); if (st) st.errorMessage = errTxt; } catch (_) {}
+        try { const st = btn._st(); if (st) st.errorMessage = errTxt; } catch (e) { console.warn("[DualTran] aiTranslateText failed", e); }
         applyAiErrorState(btn, {
           errorText: errTxt,
           translatedText: btn.classList && btn.classList.contains('dualtran-ai-selected-btn') ? errTxt : undefined,
