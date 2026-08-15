@@ -65,22 +65,34 @@ const blockStateMap = new WeakMap();
  * Register a translated block in the WeakMap.
  * Called by pageTranslator.js instead of createInlineButtonGroup().
  */
+/**
+ * Create a block state with canonical defaults for the 4 state machine fields.
+ * registerBlock() merges this with data fields and DOM references.
+ * @returns {{ aiStatus: string, googleBtnState: string, displayMode: string, translationId: string }}
+ */
+export function createBlockState() {
+  return {
+    aiStatus: "idle",
+    googleBtnState: "idle",
+    displayMode: "original",
+    translationId: "",
+  };
+}
+
 export function registerBlock(translatedElement, sourceString, translatedTextNode, googleTranslatedText, nodesToClear, { googleSpan = null, aiSpan = null } = {}) {
   // Mark element so getProxiesForTranslation can find non-<translated> elements in replaceOriginal mode
   translatedElement.dataset.dualtranBlock = "1";
   blockStateMap.set(translatedElement, {
+    ...createBlockState(),
     sourceString,
     translatedTextNode,  // Legacy: kept for backward compat (points to googleTextNode in new mode)
     googleTranslatedText,
     nodesToClear,
-    translationId: "",
-    aiStatus: "idle",
     // Dual-span mode: separate spans for Google and AI translations
     googleSpan,   // <span class="dualtran-google"> — Google writes here
     aiSpan,       // <span class="dualtran-ai"> — AI writes here
-    // Hover-button state machine
-    googleBtnState: "idle", // "idle" | "translating" | "success" — Google-only translation status
-    displayMode: "google",  // what the block currently shows: "original" | "google" | "ai"
+    // Override: registerBlock is called after Google translation completes
+    displayMode: "google",
   });
 }
 

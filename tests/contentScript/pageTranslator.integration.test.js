@@ -134,7 +134,7 @@ vi.stubGlobal("top", window);
 vi.stubGlobal("self", window);
 vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ text: () => Promise.resolve(""), ok: true })));
 
-let pageTranslator, translateResults, addTranslatedContent, getPiecesToTranslate, filterKeywordsInText, handleCustomWords, handleSingletonAiClick, translateDynamically;
+let pageTranslator, translateResults, addTranslatedContent, getPiecesToTranslate, filterKeywordsInText, handleCustomWords, handleSingletonAiClick, handleSingletonGoogleClick, translateDynamically;
 
 beforeAll(async () => {
   const mod = await import("../../src/contentScript/pageTranslator.js");
@@ -148,6 +148,7 @@ beforeAll(async () => {
     expect(pageTranslator._filterKeywordsInText).toBeTypeOf("function");
     expect(pageTranslator._handleCustomWords).toBeTypeOf("function");
     expect(pageTranslator._handleSingletonAiClick).toBeTypeOf("function");
+    expect(pageTranslator._handleSingletonGoogleClick).toBeTypeOf("function");
     expect(pageTranslator._translateDynamically).toBeTypeOf("function");
   }, { timeout: 5000 });
   translateResults = pageTranslator._translateResults;
@@ -156,6 +157,7 @@ beforeAll(async () => {
   filterKeywordsInText = pageTranslator._filterKeywordsInText;
   handleCustomWords = pageTranslator._handleCustomWords;
   handleSingletonAiClick = pageTranslator._handleSingletonAiClick;
+  handleSingletonGoogleClick = pageTranslator._handleSingletonGoogleClick;
   translateDynamically = pageTranslator._translateDynamically;
 });
 
@@ -1030,5 +1032,87 @@ describe("replaceOriginal 模式：AI 翻译后 showOriginal 注册（hover 原�
 
     // newLine 模式下不应注册（<translated> 已在 addTranslatedContent 中注册）
     expect(mockState.showOriginalAddMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("handleSingletonGoogleClick 状态机分支", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockState.registerBlockMock.mockClear();
+    mockState.ensureSingletonInitMock.mockClear();
+  });
+
+  it("displayMode=google → 恢复原文（state 变为 original/userPinned）", async () => {
+    const state = {
+      displayMode: "google",
+      googleBtnState: "success",
+      aiStatus: "idle",
+      translationId: "test-id",
+      sourceString: "Hello",
+      nodesToClear: [],
+    };
+    mockState.getBlockStateMock.mockReturnValue(state);
+
+    const el = document.createElement("div");
+    document.body.appendChild(el);
+
+    await handleSingletonGoogleClick(el);
+
+    expect(state.displayMode).toBe("original");
+    expect(state.aiStatus).toBe("userPinned");
+    expect(state.googleBtnState).toBe("idle");
+    expect(state.translationId).toBe("");
+  });
+
+  it("displayMode=ai → 切回 Google（showBlockGoogleOnly，无网络请求）", async () => {
+    const state = {
+      displayMode: "ai",
+      googleBtnState: "success",
+      aiStatus: "translated",
+      translationId: "test-id",
+      sourceString: "Hello",
+      googleTranslatedText: "Bonjour",
+      nodesToClear: [],
+      translatedTextNode: document.createElement("span"),
+    };
+    mockState.getBlockStateMock.mockReturnValue(state);
+
+    const el = document.createElement("div");
+    document.body.appendChild(el);
+
+    await handleSingletonGoogleClick(el);
+
+    expect(state.displayMode).toBe("google");
+    expect(state.googleBtnState).toBe("success");
+  });
+});
+
+describe("handleSingletonAiClick 状态机分支", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockState.registerBlockMock.mockClear();
+    mockState.ensureSingletonInitMock.mockClear();
+  });
+
+  it("displayMode=ai → 恢复原文（state 变为 original/userPinned）", async () => {
+    const state = {
+      displayMode: "ai",
+      googleBtnState: "success",
+      aiStatus: "translated",
+      translationId: "test-id",
+      sourceString: "Hello",
+      nodesToClear: [],
+    };
+    mockState.getBlockStateMock.mockReturnValue(state);
+
+    const el = document.createElement("div");
+    document.body.appendChild(el);
+
+    await handleSingletonAiClick(el);
+
+    expect(state.displayMode).toBe("original");
+    expect(state.aiStatus).toBe("userPinned");
+    expect(state.googleBtnState).toBe("idle");
+    expect(state.translationId).toBe("");
   });
 });
