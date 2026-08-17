@@ -1826,6 +1826,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
   // Pieces are a set of nodes separated by inline tags that form a sentence or paragraph.
   let piecesToTranslate = [];
+  let isDynamicTranslating = false; // guard against concurrent translateDynamically calls
    // Original language of the page
   let originalTabLanguage = "und";
    // Current language of the page
@@ -1875,10 +1876,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                 tmpNewNodes.push(addedNode);
               }
             } else {
-              // Inline text element (span, a, b, etc.): add the node itself for re-scanning
-              // so lazily-loaded content gets translated.
-              // We add the node (not the parent) because getPiecesToTranslate(parent)
-              // would group it with already-translated siblings and skip it.
+              // Inline text element (span, a, b, etc.): add for re-scanning
+              // so lazily-loaded content (like X/Twitter "show more") gets translated.
               tmpNewNodes.push(addedNode);
             }
           }
@@ -1935,7 +1934,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       removedNodes = [];
     }
     // Trigger translation for newly discovered pieces
-    if (hasNewPieces) {
+    // But not if translateDynamically() is already running (prevents duplicate translations)
+    if (hasNewPieces && !isDynamicTranslating) {
       translateDynamically();
     }
   }
@@ -3091,6 +3091,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     * This iterates element coordinates rather than using intersectionObserver — not sure why??? (possibly for easier coding or compatibility)
    */
   function translateDynamically() {
+    isDynamicTranslating = true;
     try {
       if (piecesToTranslate && pageIsVisible) {
         (function () {
@@ -3258,7 +3259,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             }).finally(() => {
               pendingGoogleBatches--;
               updateGoogleRenderState();
+              isDynamicTranslating = false;
             });
+          } else {
+            // No pieces to translate — reset flag immediately
+            isDynamicTranslating = false;
           }
 
           if (attributesToTranslateNow.length > 0) {
@@ -3281,9 +3286,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
 
         })();
+      } else {
+        // pageIsVisible=false or piecesToTranslate empty — reset flag
+        isDynamicTranslating = false;
       }
     } catch (e) {
       console.error(e);
+      isDynamicTranslating = false; // error path: reset flag
     }
     setTimeout(translateDynamically, translationInterval);
   }
