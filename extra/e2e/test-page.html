@@ -32,5 +32,30 @@
   <pre id="code-block">function hello() {
   console.log("Hello from a pre block");
 }</pre>
+  <!-- Scenario A: X/Twitter-like — button INSIDE text container, CSS-only reveal -->
+  <article id="showmore-article">
+    <div id="showmore-container">
+      <span id="showmore-visible">This is the visible part of a long post that gets truncated.</span>
+      <!-- Hidden content NOT in DOM initially — added by JS on show-more (X/Twitter lazy-load behavior) -->
+    </div>
+    <button id="showmore-btn">Show more</button>
+  </article>
+  <script>
+    document.getElementById('showmore-btn').addEventListener('click', function() {
+      var container = document.getElementById('showmore-container');
+      var hidden = document.getElementById('showmore-hidden');
+      if (!hidden) {
+        // Lazy-load: add hidden content to DOM (simulates X/Twitter)
+        var span = document.createElement('span');
+        span.id = 'showmore-hidden';
+        span.textContent = ' This is the additional hidden content that only becomes visible after the user clicks the show-more button. The extension should translate this text automatically once it becomes visible to the user.';
+        container.appendChild(span);
+        this.textContent = 'Show less';
+      } else {
+        hidden.remove();
+        this.textContent = 'Show more';
+      }
+    });
+  </script>
 </body>
 </html>

@@ -1874,6 +1874,12 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
               if (htmlTagsInlineIgnore.indexOf(nodeName) == -1) {
                 tmpNewNodes.push(addedNode);
               }
+            } else {
+              // Inline text element (span, a, b, etc.): add the node itself for re-scanning
+              // so lazily-loaded content gets translated.
+              // We add the node (not the parent) because getPiecesToTranslate(parent)
+              // would group it with already-translated siblings and skip it.
+              tmpNewNodes.push(addedNode);
             }
           }
         }
@@ -1897,6 +1903,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     * Update piecesToTranslate array every 2 seconds (based on newNodes information)
    */
   function updatePiecesToTranslateWithNewNodes() {
+    let hasNewPieces = false;
     try {
       newNodes.forEach((nn) => {
         if (removedNodes.indexOf(nn) != -1) return;
@@ -1917,6 +1924,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
           if (!finded) {
             piecesToTranslate.push(newPiecesToTranslate[i]);
+            hasNewPieces = true;
           }
         }
       });
@@ -1925,6 +1933,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     } finally {
       newNodes = [];
       removedNodes = [];
+    }
+    // Trigger translation for newly discovered pieces
+    if (hasNewPieces) {
+      translateDynamically();
     }
   }
 
