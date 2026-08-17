@@ -1151,3 +1151,59 @@ export async function teardown(scope) {
   if (scope.staticServer?.server) await new Promise((resolve) => scope.staticServer.server.close(resolve));
   if (scope.mockServer) scope.mockServer.kill("SIGTERM");
 }
+
+/**
+ * Assert no duplicate <translated> elements per parent.
+ * Each parent element should have at most 1 <translated> child.
+ * Returns the total translated count for chaining.
+ * @param {import("playwright").Page} page
+ * @returns {Promise<number>} total translated element count
+ */
+export async function assertNoDuplicateTranslations(page) {
+  const result = await page.evaluate(() => {
+    const all = document.querySelectorAll("translated");
+    const byParent = {};
+    all.forEach(t => {
+      const p = t.parentElement;
+      // Build a precise key: walk up to find nearest ancestor with an id
+      let key = p?.id ? `#${p.id}` : "";
+      if (!key && p) {
+        let ancestor = p;
+        while (ancestor && ancestor !== document.body) {
+          if (ancestor.id) { key = `#${ancestor.id}>${p.tagName}`; break; }
+          ancestor = ancestor.parentElement;
+        }
+        if (!key) key = p?.tagName || "unknown";
+      }
+      if (!byParent[key]) byParent[key] = 0;
+      byParent[key]++;
+    });
+    const duplicates = Object.entries(byParent).filter(([_, count]) => count > 1);
+    return { total: all.length, duplicates, byParent };
+  });
+
+  if (result.duplicates.length > 0) {
+    throw new Error(
+      `[DualTran Test] Duplicate translations detected: ${result.duplicates.map(([k, v]) => `${k}×${v}`).join(", ")}. ` +
+      `Total: ${result.total}`
+    );
+  }
+  return result.total;
+}
+
+/**
+ * Assert at least minExpected translated elements exist.
+ * Returns the actual count for chaining.
+ * @param {import("playwright").Page} page
+ * @param {number} minExpected - minimum expected translated element count
+ * @returns {Promise<number>} actual translated element count
+ */
+export async function assertTranslationCount(page, minExpected) {
+  const count = await page.evaluate(() => document.querySelectorAll("translated").length);
+  if (count < minExpected) {
+    throw new Error(
+      `[DualTran Test] Expected at least ${minExpected} translated elements, but found ${count}`
+    );
+  }
+  return count;
+}
