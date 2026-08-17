@@ -77,6 +77,7 @@ const SCENARIO_MODULE_PATHS = [
   "./navigation-recovery.mjs",
   "./ai-nav-restore.mjs",
   "./dynamic-content-ai-translation.mjs",
+  "./dynamic-content-showmore.mjs",
 ];
 
 /**

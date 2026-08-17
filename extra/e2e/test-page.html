@@ -32,6 +32,42 @@
   <pre id="code-block">function hello() {
   console.log("Hello from a pre block");
 }</pre>
+  <!-- Enriched test content for comprehensive translation testing -->
+  <article id="article-multi-para">
+    <h2>Multi-Paragraph Article</h2>
+    <p id="multi-para-1">Coffee is one of the most widely consumed beverages in the world. It originated in Ethiopia and has become a global commodity traded on major exchanges.</p>
+    <p id="multi-para-2">The roasting process transforms green coffee beans into the aromatic brown beans we recognize. Different roast levels produce distinct flavor profiles from light to dark.</p>
+    <p id="multi-para-3">Espresso is a concentrated form of coffee brewed by forcing hot water through finely ground beans under high pressure. It forms the base for many popular drinks.</p>
+  </article>
+
+  <div id="nested-list">
+    <h2>Brewing Methods</h2>
+    <ul>
+      <li id="list-pourover">Pour-over: A manual brewing method using a dripper and paper filter</li>
+      <li id="list-frenchpress">French press: Immersion brewing with a metal mesh plunger
+        <ul>
+          <li id="list-fp-coarse">Use coarse ground coffee for best results</li>
+          <li id="list-fp-steep">Steep for four minutes before pressing</li>
+        </ul>
+      </li>
+      <li id="list-aeropress">AeroPress: A versatile portable brewing device combining immersion and pressure</li>
+    </ul>
+  </div>
+
+  <div id="code-block-rich">
+    <h2>Code Example</h2>
+    <pre><code id="code-content">function brewCoffee(method, beans) {
+  const water = heatWater(93); // Celsius
+  const grounds = grindBeans(beans, method.grindSize);
+  return method.brew(water, grounds);
+}</code></pre>
+  </div>
+
+  <article id="long-paragraph">
+    <h2>The Science of Coffee Extraction</h2>
+    <p id="long-para-text">Coffee extraction is the process of dissolving soluble compounds from ground coffee beans into water. The rate of extraction depends on several key variables: water temperature, grind size, contact time, and agitation. Water that is too hot will over-extract, producing bitter and astringent flavors dominated by chlorogenic acid lactones and phenylindanes. Water that is too cold will under-extract, resulting in sour and thin-tasting coffee with excessive citric and malic acid. The ideal extraction yield falls between eighteen and twenty-two percent of the dry coffee mass, measured by total dissolved solids. Grind size affects the surface area exposed to water — finer grinds increase extraction rate but can cause channeling in espresso, where water finds paths of least resistance through the puck rather than flowing evenly. Coarser grinds slow extraction and are better suited for longer brew methods like French press and cold brew. The ratio of coffee to water also profoundly impacts the final cup strength and flavor balance. The Specialty Coffee Association recommends a ratio of fifty-five grams of coffee per liter of water as a starting point, though personal preference and bean characteristics may warrant adjustments. Water chemistry matters too — minerals like magnesium and calcium enhance extraction of fruit and floral notes, while bicarbonate acts as a buffer that can mute acidity. Pre-infusion or blooming, where a small amount of water is added to saturate the grounds before the main pour, allows carbon dioxide to escape and promotes even extraction throughout the coffee bed.</p>
+  </article>
+
   <!-- Scenario A: X/Twitter-like — button INSIDE text container, CSS-only reveal -->
   <article id="showmore-article">
     <div id="showmore-container">

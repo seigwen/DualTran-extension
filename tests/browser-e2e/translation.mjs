@@ -36,6 +36,8 @@ import {
   waitForOptionsSelectReady,
   setOptionsSelectValueAndWait,
   waitForPageStorageValue,
+  assertNoDuplicateTranslations,
+  assertTranslationCount,
 } from "./setup.mjs";
 
 // ─── 模块级闭包代理变量 ──────────────────────────────────────
@@ -156,6 +158,40 @@ async function verifyWholePageTranslation(page, serviceWorker, testPageUrl) {
   if (!translationState.translatedCount) {
     throw new Error(`Whole-page translation did not insert any <translated> nodes. Page text: ${translationState.pageText}`);
   }
+
+  // 负面断言：无重复译文 + 至少翻译了预期数量
+  await assertNoDuplicateTranslations(page);
+  await assertTranslationCount(page, 3);
+}
+
+/**
+ * [14/14] 翻译稳定性浸泡测试。
+ *
+ * 翻译完成后等 10 秒（覆盖 5 个 MutationObserver 周期），
+ * 断言翻译数量不变、无重复译文。
+ * 捕获 translateDynamically() 反馈循环导致的重复翻译。
+ */
+async function verifyTranslationStability(page, serviceWorker, testPageUrl) {
+  await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
+  await waitForContentScriptInjected(serviceWorker, page.url());
+  await waitForPageTranslatorReady(serviceWorker, page.url());
+
+  await sendMessageToTab(serviceWorker, page.url(), { action: "translatePage", targetLanguage: "fr" });
+  await page.waitForFunction(() => document.querySelectorAll("translated").length > 0, null, { timeout: 15000 });
+
+  // 记录翻译完成时的数量
+  const countBefore = await assertNoDuplicateTranslations(page);
+  console.log(`  [soak] Translation complete: ${countBefore} elements. Soaking 10s...`);
+
+  // 浸泡 10 秒（5 × 2s MutationObserver 周期 + 16 × 600ms 翻译间隔）
+  await page.waitForTimeout(10000);
+
+  // 断言数量不变、无重复
+  const countAfter = await assertNoDuplicateTranslations(page);
+  if (countAfter !== countBefore) {
+    throw new Error(`[soak] Translation count changed during soak: ${countBefore} → ${countAfter}. Feedback loop detected!`);
+  }
+  console.log(`  [soak] Stability verified: ${countAfter} elements after 10s soak.`);
 }
 
 /**
@@ -1283,6 +1319,10 @@ export async function run(scope) {
   console.log("[13/13] Verifying error recovery...");
   await verifyErrorRecovery(page, serviceWorker, testPageUrl, scope);
   console.log("[13/13] Error recovery verified.");
+
+  console.log("[14/14] Verifying translation stability (10s soak)...");
+  await verifyTranslationStability(page, serviceWorker, testPageUrl);
+  console.log("[14/14] Translation stability verified.");
 
   // ── 错误汇总与报告 ──
   const fatalErrors = scope.collector.printSummary();
