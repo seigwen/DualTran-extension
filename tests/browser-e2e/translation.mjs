@@ -590,6 +590,24 @@ async function verifyAiTranslation(page, serviceWorker, verifyPageUrl, mockServe
       }
     }
 
+    // ── 不变量断言：AI 翻译后不应有重复的 <translated> 元素 ──
+    if (aiResult.hasMockResponse || aiResult.aiProcessedCount > 0) {
+      console.log("  Asserting no duplicate translations after AI translation...");
+      const countBeforeSoak = await assertNoDuplicateTranslations(page);
+
+      // 浸泡测试：等待 3 秒，检查反馈循环是否产生重复 <translated> 元素
+      console.log("  Soak test: waiting 3 seconds to detect feedback loops...");
+      await page.waitForTimeout(3000);
+      const countAfterSoak = await assertNoDuplicateTranslations(page);
+
+      if (countAfterSoak !== countBeforeSoak) {
+        throw new Error(
+          `[DualTran Test] Feedback loop detected! <translated> count changed during soak: ${countBeforeSoak} → ${countAfterSoak}`
+        );
+      }
+      console.log(`  Soak test passed: ${countAfterSoak} translated elements stable over 3 seconds.`);
+    }
+
     // ── 选中文本的 AI 翻译测试 ──
     console.log("  Testing selected-text AI translation...");
     const beforeNotranslate = await page.locator("div.notranslate").count();
