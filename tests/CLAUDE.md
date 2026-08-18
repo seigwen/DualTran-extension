@@ -41,6 +41,18 @@ tests/
 
 ---
 
+## Translation Test Rules
+
+**Invariant: every content block has at most 1 `<translated>` element.**
+
+When writing or modifying translation tests:
+
+1. **jsdom integration tests** — after calling `addTranslatedContent` or `translateResults`, assert `parent.querySelectorAll("translated").length <= 1` for each content block.
+2. **E2E tests** — call `assertNoDuplicateTranslations(page)` after every translation operation (Google, AI, dynamic content). This function is in `setup.mjs`.
+3. **AI translation soak test** — after AI translation completes, wait 3 seconds and re-assert no duplicates. This catches serial feedback loops that `isDynamicTranslating` guard cannot prevent.
+4. **Never use placeholder tests** like `expect(true).toBe(true)` for translation correctness. If the real test requires E2E, mark it with `it.todo("description")` instead.
+5. **replaceOriginal mode** — AI text nodes are NOT inside `<translated>` elements, so `isDescendantOfTranslated` doesn't catch them. Verify via E2E if affected.
+
 ## Test Naming Conventions
 
 ### Unit Tests vs Integration Tests

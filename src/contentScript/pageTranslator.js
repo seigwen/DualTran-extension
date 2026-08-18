@@ -2896,6 +2896,19 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           continue
         }
 
+         // Last defense: if all source nodes of this piece are inside an existing
+         // <translated> element, this piece was created from translation output
+         // (e.g. AI text written into aiSpan). Remove the duplicate translatedElement
+         // and skip to prevent duplicate translated lines.
+         // This is independent of the MutationObserver isDescendantOfTranslated filter
+         // (which is the first defense). Even if the observer filter is bypassed,
+         // this check prevents duplicate visual output.
+        const sourceNodes = piecesToTranslateNow[i].nodes || [];
+        if (sourceNodes.length > 0 && sourceNodes.every(n => isDescendantOfTranslated(n))) {
+          try { translatedElement.remove(); } catch (_) {}
+          continue;
+        }
+
          // Set styles
         // translatedElement.classList.add("columnified")
         translatedElement.style.display = "block"
@@ -3649,6 +3662,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    pageTranslator._setNodesToRestoreForTest = (arr) => { nodesToRestore = arr; };
    /** @internal — for testing MutationObserver translated-descendant filtering */
    pageTranslator._isDescendantOfTranslated = isDescendantOfTranslated;
+   /** @internal — for testing: trigger updatePiecesToTranslateWithNewNodes manually */
+   pageTranslator._updatePiecesToTranslateWithNewNodes = updatePiecesToTranslateWithNewNodes;
+   /** @internal — for testing: read current observer newNodes array */
+   pageTranslator._getNewNodes = () => newNodes;
 
   let alreadyGotTheLanguage = false;
    // Callback function for when tab language is detected

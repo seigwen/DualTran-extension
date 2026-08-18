@@ -1162,42 +1162,35 @@ export async function teardown(scope) {
 export async function assertNoDuplicateTranslations(page) {
   const result = await page.evaluate(() => {
     const all = document.querySelectorAll("translated");
-    const byParent = {};
+    // Group by DIRECT parent element (each content block should have at most 1 <translated>)
+    const parentCount = new Map();
     all.forEach(t => {
       const p = t.parentElement;
-      // Build a precise key: walk up to find nearest ancestor with an id
-      let key = p?.id ? `#${p.id}` : "";
-      if (!key && p) {
-        let ancestor = p;
-        while (ancestor && ancestor !== document.body) {
-          if (ancestor.id) { key = `#${ancestor.id}>${p.tagName}`; break; }
-          ancestor = ancestor.parentElement;
-        }
-        if (!key) key = p?.tagName || "unknown";
+      if (p) {
+        parentCount.set(p, (parentCount.get(p) || 0) + 1);
       }
-      if (!byParent[key]) byParent[key] = 0;
-      byParent[key]++;
     });
-    const duplicates = Object.entries(byParent).filter(([_, count]) => count > 1);
-    return { total: all.length, duplicates, byParent };
+    const duplicates = [];
+    parentCount.forEach((count, p) => {
+      if (count > 1) {
+        let desc = p.tagName.toLowerCase();
+        if (p.id) desc = `#${p.id}`;
+        else if (p.className) desc = `${p.tagName.toLowerCase()}.${String(p.className).split(/\s+/)[0]}`;
+        duplicates.push([`${desc} (y=${p.getBoundingClientRect().top|0})`, count]);
+      }
+    });
+    return { total: all.length, duplicates };
   });
 
   if (result.duplicates.length > 0) {
     throw new Error(
-      `[DualTran Test] Duplicate translations detected: ${result.duplicates.map(([k, v]) => `${k}×${v}`).join(", ")}. ` +
+      `[DualTran Test] Duplicate translations detected: ${result.duplicates.map(([k, v]) => `${k}\u00d7${v}`).join(", ")}. ` +
       `Total: ${result.total}`
     );
   }
   return result.total;
 }
 
-/**
- * Assert at least minExpected translated elements exist.
- * Returns the actual count for chaining.
- * @param {import("playwright").Page} page
- * @param {number} minExpected - minimum expected translated element count
- * @returns {Promise<number>} actual translated element count
- */
 export async function assertTranslationCount(page, minExpected) {
   const count = await page.evaluate(() => document.querySelectorAll("translated").length);
   if (count < minExpected) {

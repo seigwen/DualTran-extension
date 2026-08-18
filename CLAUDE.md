@@ -139,6 +139,17 @@ Content Script (fetchSSE.js)
 - **Service Workers terminate after ~30s idle** — all persistent state must use `chrome.storage.local`. Memory caches are for session-only speed.
 - **Models.dev data 24h TTL** — cached in `chrome.storage.local` under `"modelsdev:providers"`. The options page listens for `storage.onChanged` to auto-refresh the dropdown.
 
+### Translation Invariants
+
+**RULE: Every content block must have at most 1 `<translated>` element.** This is a hard invariant — any violation indicates a feedback loop (translation output being re-translated). All translation tests (jsdom + E2E) must assert this after any translation operation.
+
+**PR Checklist for translation core changes** (MutationObserver callback, `updatePiecesToTranslateWithNewNodes`, `getPiecesToTranslate`, `addTranslatedContent`, `translateDynamically`):
+- [ ] New/modified tests cover "translation output is not re-translated" scenario
+- [ ] `assertNoDuplicateTranslations` E2E assertion still passes
+- [ ] If modifying the MutationObserver callback, verify `isDescendantOfTranslated` filter is preserved
+
+**Known blind spot:** replaceOriginal mode AI text nodes (inside `.dualtran-aitranslatedtext-replacemode` spans) are NOT inside `<translated>` elements, so `isDescendantOfTranslated` does not catch them. The `addTranslatedContent` last defense also doesn't apply since replaceOriginal mode uses `translateResults`. This is a known limitation — verify via E2E if affected.
+
 ### i18n
 Alway use i18n when editing code. 
 Messages are store in \src\_locales.
