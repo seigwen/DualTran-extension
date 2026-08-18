@@ -1860,6 +1860,24 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
 
   /**
+    * Check if a node is a descendant of a <translated> element.
+    * Walks up the entire ancestor chain, not just the immediate parent.
+    * This prevents AI translation output (text inside aiSpan/googleSpan within
+    * <translated>) from being picked up by the MutationObserver as new content
+    * to translate, which would cause duplicate <translated> elements.
+   */
+  function isDescendantOfTranslated(node) {
+    let parent = node.parentNode;
+    while (parent && parent !== document) {
+      if (parent.nodeName && parent.nodeName.toLowerCase() === "translated") {
+        return true;
+      }
+      parent = parent.parentNode;
+    }
+    return false;
+  }
+
+  /**
     * Update newNodes and removedNodes arrays in real time
     * Principle: Create a MutationObserver instance, continuously adding new nodes to newNodes array and removed nodes to removedNodes array
    */
@@ -1869,7 +1887,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
        // New nodes: if a block-level element belonging to translatable tags, add to local tmpNewNodes array
       mutation.addedNodes.forEach((addedNode) => {
         const nodeName = addedNode.nodeName.toLowerCase();
-        if (nodeName.toLowerCase() !== "translated" && addedNode.parentNode?.nodeName.toLowerCase() !== "translated") {
+        if (nodeName.toLowerCase() !== "translated" && !isDescendantOfTranslated(addedNode)) {
           if (htmlTagsNoTranslate.indexOf(nodeName) == -1) {
             if (htmlTagsInlineText.indexOf(nodeName) == -1) {
               if (htmlTagsInlineIgnore.indexOf(nodeName) == -1) {
@@ -3628,7 +3646,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    /** @internal — for testing: set shouldForceAiAfterPageTranslation internal state */
   pageTranslator._setForceAiTranslation = (v) => { shouldForceAiAfterPageTranslation = v; };
    /** @internal — for testing per-block restore: replace the nodesToRestore array */
-  pageTranslator._setNodesToRestoreForTest = (arr) => { nodesToRestore = arr; };
+   pageTranslator._setNodesToRestoreForTest = (arr) => { nodesToRestore = arr; };
+   /** @internal — for testing MutationObserver translated-descendant filtering */
+   pageTranslator._isDescendantOfTranslated = isDescendantOfTranslated;
 
   let alreadyGotTheLanguage = false;
    // Callback function for when tab language is detected
