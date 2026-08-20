@@ -422,20 +422,28 @@ async function verifyAiTranslation(page, serviceWorker, verifyPageUrl, mockServe
       translatedCount: document.querySelectorAll("translated").length,
       singletonHost: !!document.getElementById("dualtran-singleton-btn-host"),
     }));
-    console.log(`  Post-Google-Translate: ${postGoogleState.translatedCount} translated nodes, singleton host: ${postGoogleState.singletonHost}`);
+    console.log("  Post-Google-Translate: " + postGoogleState.translatedCount + " translated nodes, singleton host: " + postGoogleState.singletonHost);
 
     // ── AI 翻译轮询（显式触发）──
-    // autoImproveByAI 已于 eecfb00 移除：AI 翻译现在由用户点击 AI 按钮触发
-    // （translatePageAi → shouldForceAiAfterPageTranslation = true）。
-    // 这里点击悬浮按钮组的 #btnAi 触发 AI 翻译，再轮询等待 mock 响应。
-    console.log("  Clicking #btnAi to trigger AI translation via mock server...");
+    // 新两态模型：Google 翻译完成后 pageLanguageState="translated"，
+    // 点击 AI 按钮会 toggle 到"未翻译"态（restorePage）。
+    // 需要点击两次：第一次恢复原文，第二次触发 AI 翻译。
+    console.log("  Clicking #btnAi to restore page (toggle off)...");
 
-    // 等待悬浮按钮组出现（Google 翻译完成后按钮组才可见）
     await page.waitForFunction(() => {
       const host = document.getElementById("dualtran-floating-btn-host");
       return !!host?.shadowRoot?.getElementById("btnAi");
     }, null, { timeout: 10000 });
 
+    // 第一次点击：恢复原文
+    await page.evaluate(() => {
+      const host = document.getElementById("dualtran-floating-btn-host");
+      host?.shadowRoot?.getElementById("btnAi")?.click();
+    });
+    await page.waitForTimeout(1000);
+
+    // 第二次点击：触发 AI 翻译（Google+AI 并发）
+    console.log("  Clicking #btnAi again to trigger AI translation via mock server...");
     await page.evaluate(() => {
       const host = document.getElementById("dualtran-floating-btn-host");
       host?.shadowRoot?.getElementById("btnAi")?.click();
