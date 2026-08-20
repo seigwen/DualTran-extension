@@ -65,6 +65,7 @@ import Toastify from 'toastify-js'
 import { encode } from 'gpt-tokenizer'
 import { wordsCount } from "../util/globalWordsCount.js"
 import { registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, setCallbacks, getProxiesForTranslation, getAllProxies, getBlockState, updateSingletonUI } from "./singletonBtnGroup.js";
+import { setBlockTranslationIndicator, injectBlockIndicatorStyles } from "./blockTranslationIndicator.js";
 
 /**
  * Convert the dontSortResults config value to a boolean (pure function, for unit testing).
@@ -3213,6 +3214,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             pendingGoogleBatches++;
             updateGoogleRenderState();
 
+            // Show green loading indicators for each piece
+            piecesToTranslateNow.forEach((ptt) => {
+              if (ptt.nodes && ptt.nodes.length > 0 && ptt.nodes[0] && ptt.nodes[0].parentNode) {
+                setBlockTranslationIndicator(ptt.nodes[0], "google", "loading");
+              }
+            });
+
              // Translate node list
             let array2d = piecesToTranslateNow.map((ptt) =>
               ptt.nodes.map((node) => filterKeywordsInText(node.textContent))
@@ -3232,6 +3240,14 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                   requestPreview: array2d.slice(0, 5).map((row) => row.join(" ").slice(0, 160)),
                   rawResults: results,
                 });
+
+                // Show green error indicators for unknown translation error
+                piecesToTranslateNow.forEach((ptt) => {
+                  if (ptt.nodes && ptt.nodes.length > 0 && ptt.nodes[0] && ptt.nodes[0].parentNode) {
+                    setBlockTranslationIndicator(ptt.nodes[0], "google", "error", "Unknown translation error");
+                  }
+                });
+
                 Toastify({
                   text: chrome.i18n.getMessage("errorTranslationUnknown"),
                   duration: 2500,
@@ -3260,6 +3276,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                     ? await addTranslatedContent(piecesToTranslateNow, results)
                      // Replace original node text with translated node text
                     : await translateResults(piecesToTranslateNow, results);
+
+                  // Remove green loading indicators — Google translation done
+                  piecesToTranslateNow.forEach((ptt) => {
+                    if (ptt.nodes && ptt.nodes.length > 0 && ptt.nodes[0] && ptt.nodes[0].parentNode) {
+                      setBlockTranslationIndicator(ptt.nodes[0], "google", "done");
+                    }
+                  });
                 }
               }
             })
@@ -3287,6 +3310,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                 },
                 onClick: function () { } // Callback after click
               }).showToast();
+
+              // Show green error indicators for each piece
+              piecesToTranslateNow.forEach((ptt) => {
+                if (ptt.nodes && ptt.nodes.length > 0 && ptt.nodes[0] && ptt.nodes[0].parentNode) {
+                  setBlockTranslationIndicator(ptt.nodes[0], "google", "error", e?.message || "Translation error");
+                }
+              });
             }).finally(() => {
               pendingGoogleBatches--;
               updateGoogleRenderState();
@@ -3329,6 +3359,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }
 
   translateDynamically();
+
+  // Inject CSS animation keyframes for block-level translation indicators
+  injectBlockIndicatorStyles();
 
   function updateAiRenderStateInternal() {
     if (pageLanguageState !== "translated") return;
@@ -3376,8 +3409,28 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       }
 
       console.log("[AI-STATE] aiTranslateDynamically: translating " + toBeTranslated.length + " blocks")
+
+      // Show purple loading indicators for each block
+      toBeTranslated.forEach((proxy) => {
+        if (proxy._el && proxy._el.parentNode) {
+          setBlockTranslationIndicator(proxy._el, "ai", "loading");
+        }
+      });
+
       await aiTranslateText(toBeTranslated)
       console.log("[AI-STATE] aiTranslateDynamically: aiTranslateText returned")
+
+      // Remove purple loading indicators — AI translation done
+      // (successful blocks have translationStatus="translated", failed ones have "translationError")
+      toBeTranslated.forEach((proxy) => {
+        if (proxy._el && proxy._el.parentNode) {
+          if (proxy.translationStatus === "translationError") {
+            setBlockTranslationIndicator(proxy._el, "ai", "error", proxy._lastErrorMessage || "AI translation error");
+          } else {
+            setBlockTranslationIndicator(proxy._el, "ai", "done");
+          }
+        }
+      });
        // Note: shouldForceAiAfterPageTranslation is NOT reset here.
        // Keep it as true so subsequently loaded dynamic content is also automatically AI-translated.
       updateAiRenderStateInternal()
@@ -3553,6 +3606,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     removeAiAppliedFlag();
      // Remove all <translated> elements
     document.querySelectorAll("translated").forEach((node) => { node.parentNode.removeChild(node); node = null })
+
+    // Remove all block-level translation indicators
+    document.querySelectorAll(".dualtran-block-indicator").forEach((node) => { if (node.parentNode) node.parentNode.removeChild(node); node = null })
 
      // Remove all inline button groups (including their AI and Google buttons)
      // Destroy the singleton button group
