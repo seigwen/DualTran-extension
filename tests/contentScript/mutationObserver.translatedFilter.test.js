@@ -130,13 +130,16 @@ vi.stubGlobal("self", window);
 vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ text: () => Promise.resolve(""), ok: true })));
 
 let isDescendantOfTranslated;
+let isDualTranGeneratedNode;
 
 beforeAll(async () => {
   const mod = await import("../../src/contentScript/pageTranslator.js");
   await vi.waitFor(() => {
     expect(mod.pageTranslator._isDescendantOfTranslated).toBeTypeOf("function");
+    expect(mod.pageTranslator._isDualTranGeneratedNode).toBeTypeOf("function");
   }, { timeout: 5000 });
   isDescendantOfTranslated = mod.pageTranslator._isDescendantOfTranslated;
+  isDualTranGeneratedNode = mod.pageTranslator._isDualTranGeneratedNode;
 });
 
 beforeEach(() => {
@@ -236,3 +239,37 @@ describe("isDescendantOfTranslated — 防止 AI 翻译内容被重复翻译", (
 // activated during translatePage() and cannot be tested in isolation.
 // The translateResults guard (tested in pageTranslator.integration.test.js) is the
 // primary fix. The observer filter is defense-in-depth.
+
+describe("isDualTranGeneratedNode — MutationObserver 过滤 DualTran 生成元素", () => {
+  it("AI 翻译 span (.dualtran-aitranslatedtext-replacemode) 应返回 true", () => {
+    const span = document.createElement("span");
+    span.className = "dualtran-aitranslatedtext-replacemode";
+    span.textContent = "AI 翻译结果";
+    expect(isDualTranGeneratedNode(span)).toBe(true);
+  });
+
+  it("encapsulateTextNode 创建的 <font> 元素应返回 true", () => {
+    const font = document.createElement("font");
+    font.setAttribute("data-dualtran-encapsulated", "true");
+    font.setAttribute("style", "vertical-align: inherit;");
+    font.textContent = "Translated text";
+    expect(isDualTranGeneratedNode(font)).toBe(true);
+  });
+
+  it("普通 <span> 元素应返回 false", () => {
+    const span = document.createElement("span");
+    span.textContent = "页面动态内容";
+    expect(isDualTranGeneratedNode(span)).toBe(false);
+  });
+
+  it("普通 <font> 元素（无标记）应返回 false", () => {
+    const font = document.createElement("font");
+    font.textContent = "Some text";
+    expect(isDualTranGeneratedNode(font)).toBe(false);
+  });
+
+  it("文本节点应返回 false（非元素节点）", () => {
+    const textNode = document.createTextNode("纯文本");
+    expect(isDualTranGeneratedNode(textNode)).toBe(false);
+  });
+});

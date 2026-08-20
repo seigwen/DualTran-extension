@@ -1357,4 +1357,47 @@ describe("replaceOriginal 模式 — 重复翻译元素防护", () => {
     const aiSpans = p.querySelectorAll(".dualtran-aitranslatedtext-replacemode");
     expect(aiSpans.length).toBe(1);
   });
+
+  it("feedback loop 防护: translateResults 输出不会被 observer 当作新内容再翻译", () => {
+    // 模拟完整的 feedback loop 场景:
+    // 1. translateResults 创建 AI span + <font> 元素
+    // 2. MutationObserver 拾取 <font> 元素
+    // 3. updatePiecesToTranslateWithNewNodes 处理
+    // 4. 断言: 不应产生会导致重复 AI span 的新 piece
+
+    const p = document.createElement("p");
+    const textNode = document.createTextNode("Feedback loop test paragraph");
+    p.appendChild(textNode);
+    document.body.appendChild(p);
+
+    // Step 1: 首次翻译
+    translateResults(
+      [{ nodes: [textNode] }],
+      [["Paragraphe de test de boucle de rétroaction"]]
+    );
+
+    const aiSpansAfterFirst = p.querySelectorAll(".dualtran-aitranslatedtext-replacemode");
+    expect(aiSpansAfterFirst.length).toBe(1);
+
+    // Step 2: 模拟 observer 拾取 <font> 元素
+    const fontNode = p.querySelector("font");
+    if (fontNode) {
+      const newNodes = getNewNodes();
+      newNodes.push(fontNode);
+
+      // Step 3: 处理新节点
+      updatePiecesToTranslateWithNewNodes();
+
+      // Step 4: 再次翻译新 piece（模拟 translateDynamically 的行为）
+      // 这时 fontNode 已被加入 piecesToTranslate，模拟 Google API 返回结果
+      translateResults(
+        [{ nodes: [fontNode] }],
+        [["Paragraphe de test de boucle de rétroaction"]]
+      );
+
+      // 关键断言: 仍然只有 1 个 AI span（guard 阻止了重复创建）
+      const aiSpansAfterLoop = p.querySelectorAll(".dualtran-aitranslatedtext-replacemode");
+      expect(aiSpansAfterLoop.length).toBe(1);
+    }
+  });
 });
