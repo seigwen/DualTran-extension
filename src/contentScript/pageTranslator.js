@@ -1904,6 +1904,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    const mutationObserver = new MutationObserver(function (mutations) { // The browser waits until all queued DOM operations are finished before calling this callback, hence the plural "mutations" parameter
     const tmpNewNodes = [];
     mutations.forEach((mutation) => {
+       // Skip characterData-only mutations (text content changes inside existing elements).
+       // These are not new content — they're translation results being written.
+       if (mutation.type === "characterData") return;
        // New nodes: if a block-level element belonging to translatable tags, add to local tmpNewNodes array
       mutation.addedNodes.forEach((addedNode) => {
         const nodeName = addedNode.nodeName.toLowerCase();
@@ -2008,6 +2011,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
        // Listen for document.body updates in real time
       mutationObserver.observe(document.body, {
         childList: true,
+        characterData: true,
         subtree: true,
       });
     }
