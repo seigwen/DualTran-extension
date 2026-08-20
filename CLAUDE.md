@@ -161,3 +161,6 @@ Dynamic import() is prohibited on ServiceWorkerGlobalScope by the HTML specifica
 The extension's translation flow works as follows:
 1. When the user clicks the “Google” button in the floating button group, Google Translate translates the original text. Then, depending on the “translation display position” setting, the Google translation either replaces the original text or is displayed below it.
 2. When the user clicks the “AI” button in the floating button group, there are two cases: (a) If Google Translate has already been applied, AI translates the original text and replaces the Google translation with the AI translation. (b) If Google Translate has not been applied yet, Google Translate runs first (either replacing the original or displaying below it), then AI translates the original text (note: AI translates the original, NOT the Google translation), and finally the AI translation replaces the Google translation.
+
+### English first
+It's a github project, always use English for code comments and git messages.
