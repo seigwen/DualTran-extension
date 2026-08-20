@@ -72,7 +72,7 @@ async function assertNoDuplicates(page, mode) {
 // ─── E2E 测试入口 ────────────────────────────────────────────
 
 export async function run(scope) {
-  const { context, serviceWorker, testPageUrl } = scope;
+  const { page, serviceWorker, testPageUrl } = scope;
   const errors = [];
 
   for (const { mode, showOriginal, label } of MATRIX) {
@@ -85,8 +85,8 @@ export async function run(scope) {
       await writeStorage(serviceWorker, "targetLanguage", "fr");
       await writeStorage(serviceWorker, "translateDynamicallyCreatedContent", "yes");
 
-      // 导航到测试页面（每个组合用新页面避免状态污染）
-      const page = await context.newPage();
+      // 导航到测试页面（每个组合重新导航避免状态污染）
+      await page.goto("about:blank");
       await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
       await waitForContentScriptInjected(serviceWorker, page.url());
       await waitForPageTranslatorReady(serviceWorker, page.url());
@@ -130,7 +130,6 @@ export async function run(scope) {
       // 再次断言无重复（belt-and-suspenders）
       await assertNoDuplicates(page, mode);
 
-      await page.close();
     } catch (e) {
       const msg = `[observer-loop] ${label}: ERROR — ${e.message}`;
       console.error(msg);

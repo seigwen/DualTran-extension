@@ -51,12 +51,7 @@ async function countReplaceOriginalElements(page) {
 // ─── E2E 测试步骤 ────────────────────────────────────────────
 
 export async function run(scope) {
-  const { context, page, serviceWorker, testPageUrl, mockServerConfig } = scope;
-  const extensionId = scope.extensionId || await (async () => {
-    const bg = serviceWorker || await context.waitForEvent("serviceworker");
-    const url = bg.url();
-    return url.split("/")[2];
-  })();
+  const { page, serviceWorker, testPageUrl, mockServerConfig } = scope;
 
   // ═══════════════════════════════════════════════════════════════
   // Step 1: 配置 replaceOriginal 模式
