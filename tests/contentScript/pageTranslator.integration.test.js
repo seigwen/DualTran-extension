@@ -1300,7 +1300,7 @@ describe("addTranslatedContent 最后防线 — 跳过 <translated> 内部节点
   });
 });
 
-describe("replaceOriginal 模式 — AI text node 是否产生重复翻译", () => {
+describe("replaceOriginal 模式 — 重复翻译元素防护", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockState.registerBlockMock.mockClear();
@@ -1311,48 +1311,50 @@ describe("replaceOriginal 模式 — AI text node 是否产生重复翻译", () 
     document.body.innerHTML = "";
   });
 
-  it("replaceOriginal 模式下 AI text node 不会被 observer 当作新内容再翻译", () => {
+  it("translateResults 不应在同一 parent 上创建重复的 AI span（guard 防护）", () => {
     // 模拟 replaceOriginal 模式：translateResults 后的 DOM 结构
     const p = document.createElement("p");
     const textNode = document.createTextNode("Hello world");
     p.appendChild(textNode);
     document.body.appendChild(p);
 
-    // 模拟 Google 翻译（replaceOriginal 模式）
+    // 第一次调用 translateResults
     translateResults(
       [{ nodes: [textNode] }],
       [["Bonjour le monde"]]
     );
 
-    // 找到 AI 翻译 span
-    const aiSpan = p.querySelector(".dualtran-aitranslatedtext-replacemode");
-    if (!aiSpan) {
-      // replaceOriginal 模式下 translateResults 可能不创建 AI span（取决于 mock 配置）
-      // 跳过此测试
-      return;
+    const aiSpansAfterFirst = p.querySelectorAll(".dualtran-aitranslatedtext-replacemode");
+    expect(aiSpansAfterFirst.length).toBe(1);
+
+    // 第二次调用 translateResults（模拟 feedback loop 中的重复调用）
+    // nodes[j] 可能已被替换为 <font> 元素，需要找到当前的 node
+    const currentNode = p.querySelector("font") || textNode;
+    translateResults(
+      [{ nodes: [currentNode] }],
+      [["Bonjour le monde encore"]]
+    );
+
+    // Guard 应阻止创建第二个 AI span
+    const aiSpansAfterSecond = p.querySelectorAll(".dualtran-aitranslatedtext-replacemode");
+    expect(aiSpansAfterSecond.length).toBe(1);
+  });
+
+  it("连续三次调用 translateResults 也只产生一个 AI span", () => {
+    const p = document.createElement("p");
+    const textNode = document.createTextNode("Repeated translation test");
+    p.appendChild(textNode);
+    document.body.appendChild(p);
+
+    for (let i = 0; i < 3; i++) {
+      const currentNode = p.querySelector("font") || textNode;
+      translateResults(
+        [{ nodes: [currentNode] }],
+        [["Traduction répétée"]]
+      );
     }
 
-    // 模拟 AI 翻译写入
-    aiSpan.textContent = "AI 翻译结果";
-
-    // 检查 AI text node 的祖先链是否包含 <translated>
-    const aiTextNode = aiSpan.firstChild;
-    const isInsideTranslated = (() => {
-      let parent = aiTextNode.parentNode;
-      while (parent && parent !== document) {
-        if (parent.nodeName && parent.nodeName.toLowerCase() === "translated") return true;
-        parent = parent.parentNode;
-      }
-      return false;
-    })();
-
-    // replaceOriginal 模式的 AI text node 不在 <translated> 内部
-    // isDescendantOfTranslated 不会捕获它 — 这是一个已知的防御盲区
-    // 但由于 replaceOriginal 模式下 addTranslatedContent 不是主要翻译路径，
-    // 实际影响需要 E2E 测试进一步验证
-    expect(isInsideTranslated).toBe(false);
-
-    // 记录：这是一个需要 E2E 验证的已知盲区
-    // 如果 E2E 确认有漏洞，需要扩展 isDescendantOfTranslated 或增加其他防御
+    const aiSpans = p.querySelectorAll(".dualtran-aitranslatedtext-replacemode");
+    expect(aiSpans.length).toBe(1);
   });
 });

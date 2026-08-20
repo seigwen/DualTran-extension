@@ -230,3 +230,9 @@ describe("isDescendantOfTranslated — 防止 AI 翻译内容被重复翻译", (
     expect(isDescendantOfTranslated(aiSpan.firstChild)).toBe(true);
   });
 });
+
+// Note: MutationObserver filter tests for .dualtran-aitranslatedtext-replacemode
+// and data-dualtran-encapsulated are not included here because the observer is only
+// activated during translatePage() and cannot be tested in isolation.
+// The translateResults guard (tested in pageTranslator.integration.test.js) is the
+// primary fix. The observer filter is defense-in-depth.

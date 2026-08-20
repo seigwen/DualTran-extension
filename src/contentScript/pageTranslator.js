@@ -1889,6 +1889,17 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       mutation.addedNodes.forEach((addedNode) => {
         const nodeName = addedNode.nodeName.toLowerCase();
         if (nodeName.toLowerCase() !== "translated" && !isDescendantOfTranslated(addedNode)) {
+          // Skip DualTran-generated elements in replaceOriginal mode:
+          // - .dualtran-aitranslatedtext-replacemode: AI translation result span
+          // - [data-dualtran-encapsulated]: <font> wrapper from encapsulateTextNode (showOriginal)
+          // Without this filter, the MutationObserver picks these up as "new content"
+          // and feeds them back into translateResults, creating duplicate translated elements.
+          if (addedNode.nodeType === 1 && (
+            addedNode.classList?.contains("dualtran-aitranslatedtext-replacemode") ||
+            addedNode.hasAttribute?.("data-dualtran-encapsulated")
+          )) {
+            return;
+          }
           if (htmlTagsNoTranslate.indexOf(nodeName) == -1) {
             if (htmlTagsInlineText.indexOf(nodeName) == -1) {
               if (htmlTagsInlineIgnore.indexOf(nodeName) == -1) {
@@ -2740,6 +2751,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   function encapsulateTextNode(node) {
     const fontNode = document.createElement("font");
     fontNode.setAttribute("style", "vertical-align: inherit;");
+    // Mark as DualTran-generated so the MutationObserver can filter it out.
+    // Without this mark, the observer picks up the <font> as "new content"
+    // and feeds it back into translation, creating a feedback loop.
+    fontNode.setAttribute("data-dualtran-encapsulated", "true");
     fontNode.textContent = node.textContent;
 
     node.replaceWith(fontNode);
@@ -2770,16 +2785,24 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             if (lastTextNode && lastTextNode.parentNode) {
               lastTextNode.parentNode.classList.add("dualtran-result-container")
             }
-            let translatedTextNode = document.createElement("span")
-            translatedTextNode.classList.add("dualtran-aitranslatedtext-replacemode")
-            lastTextNode.parentNode.appendChild(translatedTextNode)
+            // Guard: skip if the parent already has an AI translation span.
+            // In replaceOriginal mode, the MutationObserver can pick up the AI span
+            // (it is NOT inside a <translated> element) and feed it back as "new content",
+            // causing translateResults to be called again on the same parent.
+            // Without this guard, each cycle creates a duplicate AI span.
+            if (lastTextNode && lastTextNode.parentNode &&
+                !lastTextNode.parentNode.querySelector(".dualtran-aitranslatedtext-replacemode")) {
+              let translatedTextNode = document.createElement("span")
+              translatedTextNode.classList.add("dualtran-aitranslatedtext-replacemode")
+              lastTextNode.parentNode.appendChild(translatedTextNode)
 
-            ensureSingletonInit();
-            registerBlock(
-              lastTextNode.parentNode, sourceString, translatedTextNode,
-              "", // Google text restored via nodesToRestore
-              nodes
-            );
+              ensureSingletonInit();
+              registerBlock(
+                lastTextNode.parentNode, sourceString, translatedTextNode,
+                "", // Google text restored via nodesToRestore
+                nodes
+              );
+            }
           }
         }
 
