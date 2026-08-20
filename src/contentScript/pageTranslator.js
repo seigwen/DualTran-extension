@@ -1951,6 +1951,14 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       newNodes.forEach((nn) => {
         if (removedNodes.indexOf(nn) != -1) return;
 
+        // Skip nodes inside DualTran-generated result containers.
+        // In replaceOriginal mode with showOriginal enabled, encapsulateTextNode
+        // creates <font> elements inside .dualtran-result-container parents.
+        // Without this check, the observer picks them up and the loop repeats.
+        if (nn.nodeType === 1 && nn.closest && nn.closest(".dualtran-result-container")) {
+          return;
+        }
+
          // Get pieces from each new node
         let newPiecesToTranslate = getPiecesToTranslate(nn);
 
