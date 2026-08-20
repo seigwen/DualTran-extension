@@ -295,7 +295,7 @@ describe("floatingBtn", () => {
     expect(pageTranslatorMock.translatePage).not.toHaveBeenCalled();
   });
 
-  it("updates the buttons when render state changes", async () => {
+  it("buttons toggle between two states driven by pageLanguageState only", async () => {
     Object.defineProperty(HTMLElement.prototype, "clientWidth", {
       configurable: true,
       get: function() {
@@ -305,49 +305,71 @@ describe("floatingBtn", () => {
     });
     await loadModule();
 
+    // Initial state: "未翻译"
     expect(getIcon().textContent).toBe("Google");
     expect(getAiButton().textContent).toBe("AI");
+    expect(getIcon().style.color).toBe("rgb(29, 78, 216)"); // blue
+    expect(getAiButton().style.color).toBe("rgb(124, 58, 237)"); // purple
 
-    emitPageRenderStateChange("loading");
-    expect(getIcon().textContent).toBe("Google…");
-
-    emitPageRenderStateChange("success");
+    // Switch to "已要求翻译" — same colors, text gets ✓
+    emitPageLanguageStateChange("translated");
     expect(getIcon().textContent).toBe("Google ✓");
-
-    emitAiRenderStateChange("loading");
-    expect(getAiButton().textContent).toBe("AI…");
-
-    emitAiRenderStateChange("success");
     expect(getAiButton().textContent).toBe("AI ✓");
+    expect(getIcon().style.color).toBe("rgb(29, 78, 216)"); // blue — unchanged
+    expect(getAiButton().style.color).toBe("rgb(124, 58, 237)"); // purple — unchanged
 
+    // Switch back to "未翻译"
     emitPageLanguageStateChange("original");
     expect(getIcon().textContent).toBe("Google");
     expect(getAiButton().textContent).toBe("AI");
+    expect(getIcon().style.color).toBe("rgb(29, 78, 216)"); // blue
+    expect(getAiButton().style.color).toBe("rgb(124, 58, 237)"); // purple
   });
 
-  it("clicking the AI button triggers AI page translation on translated pages", async () => {
+  it("compact mode shows G ✓ / A ✓ in translated state", async () => {
+    Object.defineProperty(HTMLElement.prototype, "clientWidth", {
+      configurable: true,
+      get: function() {
+        if (this.id === "btnGoogle" || this.id === "btnAi") return 40;
+        return 0;
+      }
+    });
+    await loadModule();
+
+    // Initial compact: Go / AI
+    expect(getIcon().textContent).toBe("Go");
+    expect(getAiButton().textContent).toBe("AI");
+
+    // Translated compact: G ✓ / A ✓
+    emitPageLanguageStateChange("translated");
+    expect(getIcon().textContent).toBe("G ✓");
+    expect(getAiButton().textContent).toBe("A ✓");
+
+    // Back to original compact
+    emitPageLanguageStateChange("original");
+    expect(getIcon().textContent).toBe("Go");
+    expect(getAiButton().textContent).toBe("AI");
+  });
+
+  it("clicking the AI button restores the page in translated state", async () => {
     await loadModule();
     emitPageLanguageStateChange("translated");
-    emitPageRenderStateChange("success");
 
     getAiButton().click();
 
-    expect(pageTranslatorMock.translatePageAi).toHaveBeenCalledOnce();
-    expect(pageTranslatorMock.restorePage).not.toHaveBeenCalled();
+    expect(pageTranslatorMock.restorePage).toHaveBeenCalledOnce();
+    expect(pageTranslatorMock.translatePageAi).not.toHaveBeenCalled();
   });
 
-  it("switching from AI to Google translation calls showGoogleOnly and stopAiAutoTranslate", async () => {
-    // 用户已用 AI 翻译（aiRenderState=success）且 Google 译文也在（googleRenderState=success），
-    // 此时点击 Google 按钮应切换到仅显示 Google 译文，并停止 AI 自动翻译模式。
+  it("clicking the Google button restores the page in translated state", async () => {
     await loadModule();
     emitPageLanguageStateChange("translated");
-    emitPageRenderStateChange("success");
-    emitAiRenderStateChange("success");
 
     getGoogleButton().click();
 
-    expect(pageTranslatorMock.showGoogleOnly).toHaveBeenCalledOnce();
-    expect(pageTranslatorMock.stopAiAutoTranslate).toHaveBeenCalledOnce();
+    expect(pageTranslatorMock.restorePage).toHaveBeenCalledOnce();
+    expect(pageTranslatorMock.showGoogleOnly).not.toHaveBeenCalled();
+    expect(pageTranslatorMock.stopAiAutoTranslate).not.toHaveBeenCalled();
   });
 
   it("restores a saved floating button position from config", async () => {
@@ -415,15 +437,15 @@ describe("floatingBtn", () => {
   // ──────────────────────────────────────────────────────────────
   // bfcache (back/forward cache) 恢复回归测试
   //
-  // 场景：用户翻译页面（Google + AI）后导航到其他页面，再通过浏览器回退
-  // 按钮返回。页面从 bfcache 恢复，JavaScript 堆状态保留（AI 按钮显示绿色），
-  // 但页面动态内容被重新获取，AI 翻译因无缓存而缺失。
+  // 场景：用户翻译页面后导航到其他页面，再通过浏览器回退按钮返回。
+  // 页面从 bfcache 恢复，pageLanguageState 保留为 "translated"，
+  // 浮动按钮应显示"已要求翻译"态。
   //
-  // pageTranslator 应在检测到 bfcache 恢复后通过 onAiRenderStateChange
-  // 将 AI 状态从过时的 "success" 纠正为 "idle"。
+  // 当 pageLanguageState 被 pageTranslator 纠正为 "original" 时
+  // （如 bfcache 恢复后发现页面内容已丢失），按钮应回到"未翻译"态。
   // ──────────────────────────────────────────────────────────────
 
-  it("corrects stale AI success state to idle after bfcache restore", async () => {
+  it("buttons stay in translated state while pageLanguageState is translated after bfcache restore", async () => {
     Object.defineProperty(HTMLElement.prototype, "clientWidth", {
       configurable: true,
       get: function() {
@@ -433,32 +455,19 @@ describe("floatingBtn", () => {
     });
     await loadModule();
 
-    // Step 1: 模拟 bfcache 恢复后的过时状态
-    //         页面已翻译，Google 和 AI 均为 success（来自 bfcache 冻结前的状态）
+    // bfcache 恢复后 pageLanguageState 仍为 "translated"
     emitPageLanguageStateChange("translated");
-    emitPageRenderStateChange("success");
-    emitAiRenderStateChange("success");
 
-    // 验证：两个按钮都显示绿色 ✓（bfcache 刚恢复时的过时状态）
+    // 两个按钮都显示 ✓
     expect(getIcon().textContent).toBe("Google ✓");
     expect(getAiButton().textContent).toBe("AI ✓");
 
-    // Step 2: pageTranslator 检测到 bfcache 恢复（pageshow 事件），
-    //         重新评估 AI 渲染状态后发现存在未翻译块，
-    //         将 AI 状态从 "success" 纠正为 "idle"
-    emitAiRenderStateChange("idle");
-
-    // 验证：AI 按钮恢复到 idle 状态（"AI"），Google 按钮保持 success（"Google ✓"）
-    //       因为 Google 翻译有缓存，而 AI 翻译无缓存
-    expect(getIcon().textContent).toBe("Google ✓");
-    expect(getAiButton().textContent).toBe("AI");
-
-    // 验证按钮颜色也恢复到 idle 状态
-    expect(getAiButton().style.color).toBe("rgb(124, 58, 237)"); // AI idle purple
-    expect(getAiButton().style.background).toBe("rgb(245, 243, 255)");
+    // 颜色保持不变（蓝色/紫色）
+    expect(getIcon().style.color).toBe("rgb(29, 78, 216)");
+    expect(getAiButton().style.color).toBe("rgb(124, 58, 237)");
   });
 
-  it("does not reset AI state to idle when no untranslated blocks exist", async () => {
+  it("buttons reset to idle when pageLanguageState changes to original after bfcache restore", async () => {
     Object.defineProperty(HTMLElement.prototype, "clientWidth", {
       configurable: true,
       get: function() {
@@ -468,24 +477,20 @@ describe("floatingBtn", () => {
     });
     await loadModule();
 
-    // 设置页面为已翻译 + 两个按钮均为 success（正常状态，非 bfcache 恢复）
+    // 模拟页面已翻译
     emitPageLanguageStateChange("translated");
-    emitPageRenderStateChange("success");
-    emitAiRenderStateChange("success");
-
-    // 验证两个按钮均为绿色
     expect(getIcon().textContent).toBe("Google ✓");
     expect(getAiButton().textContent).toBe("AI ✓");
 
-    // 模拟 pageLanguageState 变回 original（用户点击恢复原始）
+    // pageLanguageState 变回 original（用户点击恢复原始或 bfcache 内容丢失）
     emitPageLanguageStateChange("original");
 
-    // 验证两个按钮都恢复到 idle
+    // 两个按钮都恢复到 idle
     expect(getIcon().textContent).toBe("Google");
     expect(getAiButton().textContent).toBe("AI");
   });
 
-  it("handles bfcache restore when Google is translated but AI was idle", async () => {
+  it("handles bfcache restore — pageLanguageState translated drives both buttons", async () => {
     Object.defineProperty(HTMLElement.prototype, "clientWidth", {
       configurable: true,
       get: function() {
@@ -495,19 +500,15 @@ describe("floatingBtn", () => {
     });
     await loadModule();
 
-    // 模拟场景：用户只用了 Google 翻译，AI 未翻译
-    // 从另一个页面回退到此页面，bfcache 恢复了 Google=success, AI=idle
+    // 模拟场景：页面已翻译，pageLanguageState = "translated"
     emitPageLanguageStateChange("translated");
-    emitPageRenderStateChange("success");
-    emitAiRenderStateChange("idle");
 
-    // 验证 Google 显示绿色，AI 显示 idle
+    // 两个按钮都显示 ✓，颜色保持不变
     expect(getIcon().textContent).toBe("Google ✓");
-    expect(getAiButton().textContent).toBe("AI");
+    expect(getAiButton().textContent).toBe("AI ✓");
 
-    // 确认 Google 颜色是绿色（success 状态）
-    expect(getIcon().style.color).toBe("rgb(21, 128, 61)");
-    // 确认 AI 颜色是紫色（idle 状态）
+    // Google 蓝色，AI 紫色（与 idle 态颜色一致）
+    expect(getIcon().style.color).toBe("rgb(29, 78, 216)");
     expect(getAiButton().style.color).toBe("rgb(124, 58, 237)");
   });
 

@@ -263,9 +263,9 @@ export async function run(scope) {
   const clickOk = await clickAiButton(page);
   if (!clickOk) throw new Error("Failed to click AI button (shadow DOM not accessible)");
 
-  // AI 按钮应进入 loading 状态
-  await waitForAiButtonState(page, "loading", 5_000);
-  console.log("  AI button entered loading state");
+  // AI 按钮应进入已要求翻译状态 (shows ✓)
+  await waitForAiButtonState(page, "success", 5_000);
+  console.log("  AI button entered translated state (✓)");
 
   // ── 步骤 4：等待初始内容的 AI 翻译完成 ──
   console.log("\n[Step 4] Wait for initial AI translation to complete");

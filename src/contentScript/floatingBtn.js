@@ -249,8 +249,7 @@ if (window.self !== window.top) {
     const btnOptionsShortcutEl = getElemById("btnOptionsShortcut");
     lastViewportWidth = window.innerWidth;
 
-    let googleRenderState = "idle";
-    let aiRenderState = "idle";
+    let pageTranslated = false;
     let currentFloatingBtnWidth = twpConfig.get("floatingBtnWidth");
     let suppressNextClick = false;
 
@@ -316,7 +315,7 @@ if (window.self !== window.top) {
       currentFloatingBtnWidth = normalizedWidth;
       containerEl.style.width = normalizedWidth + "px";
       updateShortcutPlacement();
-      updateButtons(googleRenderState, aiRenderState);
+      updateButtons(pageTranslated);
       if (saveAfterChange) {
         persistFloatingBtnWidth(normalizedWidth);
       }
@@ -640,23 +639,9 @@ if (window.self !== window.top) {
       }
       console.log("Google translate button clicked");
       if (pageLanguageState === "original") {
-        // Original state → Google-only translation
-        googleRenderState = "loading";
-        updateButtons(googleRenderState, aiRenderState);
         translatePage();
       } else {
-        // Translated state
-        if (aiRenderState === "success") {
-          // AI has translated → switch to Google-only view (hide AI, show Google)
-          pageTranslator.showGoogleOnly();
-          aiRenderState = "idle";
-          googleRenderState = "success";
-          updateButtons(googleRenderState, aiRenderState);
-          pageTranslator.stopAiAutoTranslate();
-        } else {
-          // AI not translated → restore original
-          pageTranslator.restorePage();
-        }
+        pageTranslator.restorePage();
       }
     });
 
@@ -668,32 +653,8 @@ if (window.self !== window.top) {
         return;
       }
       console.log("AI translate button clicked");
-      if (aiRenderState === "loading") {
-        return;
-      }
-      if (aiRenderState === "success") {
-        // Already AI-translated → restore original
-        pageTranslator.restorePage();
-      } else if (pageLanguageState === "original") {
-        // Original state → Google+AI concurrent translation
-        googleRenderState = "loading";
-        aiRenderState = "loading";
-        updateButtons(googleRenderState, aiRenderState);
-        const started = pageTranslator.translatePageAi();
-        if (started === false) {
-          aiRenderState = "idle";
-          googleRenderState = "idle";
-          updateButtons(googleRenderState, aiRenderState);
-        }
-      } else if (googleRenderState === "success") {
-        // Already has Google translation → add AI on top
-        aiRenderState = "loading";
-        updateButtons(googleRenderState, aiRenderState);
-        const started = pageTranslator.translatePageAi();
-        if (started === false) {
-          aiRenderState = "idle";
-          updateButtons(googleRenderState, aiRenderState);
-        }
+      if (pageLanguageState === "original") {
+        pageTranslator.translatePageAi();
       } else {
         pageTranslator.restorePage();
       }
@@ -701,96 +662,34 @@ if (window.self !== window.top) {
 
     console.log("updating buttons");
 
-    function updateButtons(googleState, aiState) {
-      console.log("updateButtons() called with", googleState, aiState);
+    function updateButtons(translated) {
+      console.log("updateButtons() called with", translated);
 
-      const applyButtonState = (button, state, labels) => {
-        const isCompact = button.clientWidth < labels.compactWidth;
-        if (state === "loading") {
-          if (button.clientWidth < labels.loadingMinWidth) {
-            button.innerHTML = `<span class="dualtran-floating-btn-label"><span class="dualtran-floating-btn-spinner" aria-hidden="true"></span></span>`;
-          } else {
-            button.innerHTML = `<span class="dualtran-floating-btn-label"><span class="dualtran-floating-btn-spinner" aria-hidden="true"></span><span class="dualtran-floating-btn-text">${labels.loading}</span></span>`;
-          }
-          button.style.color = "#6b7280";
-          button.style.background = "#f3f4f6";
-          button.style.borderColor = "#d1d5db";
-          return;
-        }
-
-        if (state === "success") {
-          button.textContent = isCompact ? labels.compactIdle : labels.success;
-          button.style.color = "#15803d";
-          button.style.background = "#f0fdf4";
-          button.style.borderColor = "#86efac";
-          return;
-        }
-
-        if (state === "error") {
-          button.textContent = isCompact ? labels.compactIdle : (labels.error || "AI ✗");
-          button.style.color = "#991b1b";
-          button.style.background = "#fef2f2";
-          button.style.borderColor = "#fca5a5";
-          return;
-        }
-
-        button.textContent = isCompact ? labels.compactIdle : labels.idle;
-        button.style.color = labels.idleColor;
-        button.style.background = labels.idleBackground;
-        button.style.borderColor = labels.idleBorder;
-      };
-
-      applyButtonState(btnGoogleEl, googleState, {
-        idle: "Google",
-        compactIdle: "Go",
-        loading: "Google…",
-        success: "Google ✓",
-        compactWidth: 58,
-        loadingMinWidth: 74,
-        idleColor: "#1d4ed8",
-        idleBackground: "#eff6ff",
-        idleBorder: "#bfdbfe",
-      });
-
-      applyButtonState(btnAiEl, aiState, {
-        idle: "AI",
-        compactIdle: "AI",
-        loading: "AI…",
-        success: "AI ✓",
-        error: "AI ✗",
-        compactWidth: 58,
-        loadingMinWidth: 62,
-        idleColor: "#7c3aed",
-        idleBackground: "#f5f3ff",
-        idleBorder: "#ddd6fe",
-      });
+      const isCompact = btnGoogleEl.clientWidth < 58;
+      if (translated) {
+        btnGoogleEl.textContent = isCompact ? "G ✓" : "Google ✓";
+        btnAiEl.textContent = isCompact ? "A ✓" : "AI ✓";
+      } else {
+        btnGoogleEl.textContent = isCompact ? "Go" : "Google";
+        btnAiEl.textContent = isCompact ? "AI" : "AI";
+      }
+      btnGoogleEl.style.color = "#1d4ed8";
+      btnGoogleEl.style.background = "#eff6ff";
+      btnGoogleEl.style.borderColor = "#bfdbfe";
+      btnAiEl.style.color = "#7c3aed";
+      btnAiEl.style.background = "#f5f3ff";
+      btnAiEl.style.borderColor = "#ddd6fe";
     }
 
-    updateButtons(googleRenderState, aiRenderState);
+    updateButtons(pageTranslated);
 
     // Watch page translation state
     pageTranslator.onPageLanguageStateChange((_pageLanguageState) => {
       pageLanguageState = _pageLanguageState;
-      if (pageLanguageState === "original") {
-        googleRenderState = "idle";
-        aiRenderState = "idle";
-        updateButtons(googleRenderState, aiRenderState);
-      }
+      pageTranslated = pageLanguageState === "translated";
+      updateButtons(pageTranslated);
     });
 
-    if (pageTranslator.onPageRenderStateChange) {
-      pageTranslator.onPageRenderStateChange((state) => {
-        googleRenderState = state;
-        updateButtons(googleRenderState, aiRenderState);
-      });
-    }
-
-    if (pageTranslator.onAiRenderStateChange) {
-      pageTranslator.onAiRenderStateChange((state) => {
-        aiRenderState = state;
-        updateButtons(googleRenderState, aiRenderState);
-      });
-    }
   };
 
     console.log("will show floating button, 88888888111111")

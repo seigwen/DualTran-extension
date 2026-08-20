@@ -177,18 +177,17 @@ async function verifyAiRestoreAfterSpaBackNav(page, serviceWorker, spaSourceUrl,
 
   // autoImproveByAI 已在 eecfb00 移除：AI 翻译由用户点击 AI 按钮触发。
   // 这里显式点击悬浮按钮组的 #btnAi 再等待 mock 响应。
-  // 注意：必须先等 Google 渲染状态脱离 loading（spinner 消失），否则
-  // floatingBtn 的 btnAi click 状态机（googleRenderState !== "success"）
-  // 会走 else 分支调用 restorePage()，把整页还原而不是触发 AI 翻译。
-  await page.waitForFunction(() => {
+  // 新两态模型：Google 翻译完成后 pageLanguageState="translated"，
+  // 点击 AI 按钮会 toggle 到"未翻译"态（restorePage）。
+  // 需要点击两次：第一次恢复原文，第二次触发 AI 翻译。
+  // 第一次点击：恢复原文
+  await page.evaluate(() => {
     const host = document.getElementById("dualtran-floating-btn-host");
-    const btnG = host?.shadowRoot?.getElementById("btnGoogle");
-    const btnA = host?.shadowRoot?.getElementById("btnAi");
-    if (!btnG || !btnA) return false;
-    const googleLoading = !!btnG.querySelector(".dualtran-floating-btn-spinner");
-    return !googleLoading;
-  }, null, { timeout: 30_000 });
-  await page.waitForTimeout(300);
+    host?.shadowRoot?.getElementById("btnAi")?.click();
+  });
+  await page.waitForTimeout(1000);
+
+  // 第二次点击：触发 AI 翻译（Google+AI 并发）
   await page.evaluate(() => {
     const host = document.getElementById("dualtran-floating-btn-host");
     host?.shadowRoot?.getElementById("btnAi")?.click();
