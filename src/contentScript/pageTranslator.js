@@ -1954,9 +1954,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         // Skip nodes inside DualTran-generated result containers.
         // In replaceOriginal mode with showOriginal enabled, encapsulateTextNode
         // creates <font> elements inside .dualtran-result-container parents.
+        // Also handle text nodes (nodeType 3) whose parent is inside such a container.
         // Without this check, the observer picks them up and the loop repeats.
-        if (nn.nodeType === 1 && nn.closest && nn.closest(".dualtran-result-container")) {
-          return;
+        {
+          const checkNode = nn.nodeType === 3 ? nn.parentElement : nn;
+          if (checkNode && checkNode.closest && checkNode.closest(".dualtran-result-container")) {
+            return;
+          }
         }
 
          // Get pieces from each new node
