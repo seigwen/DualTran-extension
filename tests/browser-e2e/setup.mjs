@@ -1200,3 +1200,55 @@ export async function assertTranslationCount(page, minExpected) {
   }
   return count;
 }
+
+/**
+ * Assert no duplicate translation elements in replaceOriginal mode.
+ * Each .dualtran-result-container should have at most 1
+ * .dualtran-aitranslatedtext-replacemode child.
+ * Returns the total AI span count for chaining.
+ * @param {import("playwright").Page} page
+ * @returns {Promise<number>} total AI span count
+ */
+export async function assertReplaceOriginalNoDuplicates(page) {
+  const result = await page.evaluate(() => {
+    const containers = document.querySelectorAll(".dualtran-result-container");
+    const allAiSpans = document.querySelectorAll(".dualtran-aitranslatedtext-replacemode");
+    const duplicates = [];
+    containers.forEach(c => {
+      const count = c.querySelectorAll(":scope > .dualtran-aitranslatedtext-replacemode").length;
+      if (count > 1) {
+        let desc = c.tagName.toLowerCase();
+        if (c.id) desc = `#${c.id}`;
+        else if (c.className) desc = `${c.tagName.toLowerCase()}.${String(c.className).split(/\s+/)[0]}`;
+        duplicates.push([`${desc} (y=${c.getBoundingClientRect().top|0})`, count]);
+      }
+    });
+    return { total: allAiSpans.length, duplicates };
+  });
+
+  if (result.duplicates.length > 0) {
+    throw new Error(
+      `[DualTran Test] Duplicate replaceOriginal translations detected: ${result.duplicates.map(([k, v]) => `${k}\u00d7${v}`).join(", ")}. ` +
+      `Total: ${result.total}`
+    );
+  }
+  return result.total;
+}
+
+/**
+ * Assert no duplicate translation elements, mode-aware.
+ * Reads whereToDisplayTranslatedText config from the page and dispatches
+ * to the appropriate assertion function.
+ * @param {import("playwright").Page} page
+ * @returns {Promise<number>} total translation element count
+ */
+export async function assertNoDuplicateTranslationElements(page) {
+  const mode = await page.evaluate(() => {
+    return window.__dualtran_test_config?.whereToDisplayTranslatedText || "newLine";
+  });
+
+  if (mode === "replaceOriginal") {
+    return assertReplaceOriginalNoDuplicates(page);
+  }
+  return assertNoDuplicateTranslations(page);
+}

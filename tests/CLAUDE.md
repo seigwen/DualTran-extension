@@ -43,15 +43,39 @@ tests/
 
 ## Translation Test Rules
 
-**Invariant: every content block has at most 1 `<translated>` element.**
+### 翻译不变量清单（每次翻译操作后必须断言）
 
-When writing or modifying translation tests:
+1. **【元素数量不变量】** 每个内容块最多有 1 个翻译输出元素
+   - newLine: `parent.querySelectorAll(':scope > translated').length <= 1`
+   - replaceOriginal: `container.querySelectorAll('.dualtran-aitranslatedtext-replacemode').length <= 1`
+   - **判定规则：断言翻译成功的测试必须同时断言此不变量。缺少此断言的测试不得合并。**
 
-1. **jsdom integration tests** — after calling `addTranslatedContent` or `translateResults`, assert `parent.querySelectorAll("translated").length <= 1` for each content block.
-2. **E2E tests** — call `assertNoDuplicateTranslations(page)` after every translation operation (Google, AI, dynamic content). This function is in `setup.mjs`.
-3. **AI translation soak test** — after AI translation completes, wait 3 seconds and re-assert no duplicates. This catches serial feedback loops that `isDynamicTranslating` guard cannot prevent.
+2. **【时间稳定不变量】** 翻译完成后等待 ≥ 3 秒，DOM 结构不应变化
+   - Soak 测试捕获 serial feedback loop（`isDynamicTranslating` guard 无法防止的类型）
+   - E2E: `assertNoDuplicateTranslationElements(page)` → `sleep(5000)` → 再次断言
+
+3. **【副作用不变量】** 翻译操作不应修改未被翻译的节点
+   - 记录翻译前的非翻译节点集合，翻译 + soak 后断言集合不变
+
+4. **【Observer 不变量】** 翻译输出不应被 MutationObserver 当作新内容
+   - jsdom: 模拟 observer 拾取 → 断言 `getNewNodes()` 不含 DualTran 生成元素
+   - 使用 `_isDualTranGeneratedNode(node)` 进行判定
+
+### 模式对称性规则
+
+**任何翻译行为测试（jsdom 或 E2E）必须同时覆盖 newLine 和 replaceOriginal 两种模式。如果只测了一种模式，PR 不得合并。**
+
+- 使用 `assertNoDuplicateTranslationElements(page)`（模式感知，自动选择正确的断言策略）
+- 替代旧的 `assertNoDuplicateTranslations(page)`（仅检查 `<translated>` 元素，对 replaceOriginal 无效）
+- E2E 矩阵测试：`observer-feedback-loop.mjs` 覆盖 {newLine, replaceOriginal} × {showOriginal=yes, no}
+
+### 通用规则
+
+1. **jsdom integration tests** — after calling `addTranslatedContent` or `translateResults`, assert element count invariant (#1).
+2. **E2E tests** — call `assertNoDuplicateTranslationElements(page)` after every translation operation (Google, AI, dynamic content). This function is in `setup.mjs`.
+3. **AI translation soak test** — after AI translation completes, wait 3 seconds and re-assert no duplicates (#2).
 4. **Never use placeholder tests** like `expect(true).toBe(true)` for translation correctness. If the real test requires E2E, mark it with `it.todo("description")` instead.
-5. **replaceOriginal mode** — AI text nodes are NOT inside `<translated>` elements, so `isDescendantOfTranslated` doesn't catch them. Verify via E2E if affected.
+5. **replaceOriginal mode** — AI text nodes are NOT inside `<translated>` elements. Use `assertReplaceOriginalNoDuplicates()` or `assertNoDuplicateTranslationElements()` (mode-aware) for assertions. The `_isDualTranGeneratedNode` hook verifies observer filter logic.
 
 ## Test Naming Conventions
 

@@ -78,6 +78,8 @@ const SCENARIO_MODULE_PATHS = [
   "./ai-nav-restore.mjs",
   "./dynamic-content-ai-translation.mjs",
   "./dynamic-content-showmore.mjs",
+  "./translation-replace-original.mjs",
+  "./observer-feedback-loop.mjs",
 ];
 
 /**

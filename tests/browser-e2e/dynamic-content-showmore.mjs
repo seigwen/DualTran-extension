@@ -87,6 +87,4 @@ export async function run(scope) {
   await assertNoDuplicateTranslations(page);
   console.log("[showmore] Step 6: No duplicate translations after dynamic translation.");
 
-  // 清理
-  await context.close();
 }
