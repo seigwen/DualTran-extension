@@ -161,10 +161,10 @@ async function clickAiButton(page) {
 }
 
 /**
- * 等待 AI 按钮进入指定状态（loading / success / error / idle）。
+ * 等待 AI 按钮进入高亮状态（三态模型：点击即高亮，无 loading/success/error 态）。
  *
  * @param {import("playwright").Page} page - Playwright 页面对象
- * @param {string} expectedState - 期望状态："loading"|"success"|"error"|"idle"
+ * @param {string} expectedState - 期望状态："highlighted"（唯一有效值，兼容旧调用）
  * @param {number} timeoutMs - 超时毫秒数
  */
 async function waitForAiButtonState(page, expectedState, timeoutMs = 30_000) {
@@ -174,15 +174,11 @@ async function waitForAiButtonState(page, expectedState, timeoutMs = 30_000) {
       const host = document.getElementById("dualtran-floating-btn-host");
       const btn = host?.shadowRoot?.getElementById("btnAi");
       if (!btn) return "not-found";
-      const text = (btn.textContent || "").trim();
-      if (text.includes("…")) return "loading";
-      if (text.includes("✓")) return "success";
-      if (text.includes("✗")) return "error";
-      if (text === "AI") return "idle";
-      return "unknown";
+      if (btn.classList.contains("dualtran-floating-btn-active")) return "highlighted";
+      return "idle";
     });
-    if (state === expectedState) {
-      console.log(`  AI button state: ${expectedState}`);
+    if (state === expectedState || (expectedState === "success" && state === "highlighted")) {
+      console.log(`  AI button state: ${state}`);
       return;
     }
     await page.waitForTimeout(500);

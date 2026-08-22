@@ -19,14 +19,21 @@ export function getAiImproveTranslationTooltipText() {
 export function getFloatingButtonGoogleTooltipText() {
   return getMessageWithFallback(
     "floatingButtonGoogleTranslateTooltip",
-    "Use Google to translate this page"
+    "Show Google translation"
   );
 }
 
 export function getFloatingButtonAiTooltipText() {
   return getMessageWithFallback(
     "floatingButtonAiTranslateTooltip",
-    "Use AI to translate this page"
+    "Show AI translation"
+  );
+}
+
+export function getFloatingButtonOriginalTooltipText() {
+  return getMessageWithFallback(
+    "floatingButtonOriginalTooltip",
+    "Show original text"
   );
 }
 

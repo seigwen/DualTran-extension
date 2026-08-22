@@ -42,12 +42,13 @@ async function checkFloatingButton(page) {
     if (!host) return { exists: false, inDOM: false, hasButtons: false };
     const inDOM = document.body.contains(host);
     const root = host.shadowRoot;
+    const btnOriginal = root?.getElementById("btnOriginal");
     const btnGoogle = root?.getElementById("btnGoogle");
     const btnAi = root?.getElementById("btnAi");
     return {
       exists: !!host,
       inDOM,
-      hasButtons: !!(btnGoogle && btnAi),
+      hasButtons: !!(btnOriginal && btnGoogle && btnAi),
     };
   });
 }
