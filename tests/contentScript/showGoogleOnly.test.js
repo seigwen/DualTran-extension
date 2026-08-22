@@ -17,7 +17,7 @@ import {
   getAllProxies,
   getBlockState,
 } from "../../src/contentScript/singletonBtnGroup.js";
-import { applyShowGoogleOnlyState } from "../../src/contentScript/aiUiState.js";
+import { applyShowGoogleOnlyState, applyShowAiOnlyState } from "../../src/contentScript/aiUiState.js";
 
 /**
  * Create translated blocks in newLine mode using the GLOBAL document.
@@ -324,6 +324,78 @@ describe("behavior 4 full flow: AI → Google+AI → Google only → AI again", 
         `Block ${idx}: text node should keep Google translation, not revert to original`);
       expect(translatedTextNode.textContent).toBe("",
         `Block ${idx}: AI translatedTextNode should be cleared`);
+    });
+
+    cleanup(container);
+  });
+});
+
+describe("showAiOnly — page-level local switch to AI display (Q10a/Q17)", () => {
+  afterEach(() => {
+    document.querySelectorAll("#test-newline-container, #test-replace-container")
+      .forEach(el => el.remove());
+  });
+
+  it("newLine mode: showAiOnly shows aiSpan and hides googleSpan", () => {
+    const { container, blocks } = createNewLineModeBlocks();
+
+    // Simulate Google translation shown (AI result available in aiSpan)
+    blocks.forEach(({ googleSpan, aiSpan }) => {
+      googleSpan.style.display = "block";
+      aiSpan.style.display = "none";
+      aiSpan.textContent = "AI translation";
+    });
+
+    // Act: apply per-block showAiOnly logic
+    getAllProxies().forEach((p) => applyShowAiOnlyState(p));
+
+    // Assert: AI visible, Google hidden
+    blocks.forEach(({ googleSpan, aiSpan }, idx) => {
+      expect(aiSpan.style.display).toBe("block",
+        `Block ${idx}: aiSpan should be visible`);
+      expect(googleSpan.style.display).toBe("none",
+        `Block ${idx}: googleSpan should be hidden`);
+    });
+
+    cleanup(container);
+  });
+
+  it("newLine mode: showAiOnly keeps aiStatus translated (result reusable, no re-request)", () => {
+    const { container, blocks } = createNewLineModeBlocks();
+
+    blocks.forEach(({ translatedEl, aiSpan }) => {
+      aiSpan.style.display = "none";
+      aiSpan.textContent = "AI translation";
+      const state = getBlockState(translatedEl);
+      state.aiStatus = "translated";
+    });
+
+    // Act
+    getAllProxies().forEach((p) => applyShowAiOnlyState(p));
+
+    // Assert: aiStatus stays translated → getProxiesForTranslation returns 0
+    // (no re-request needed — the local switch is zero-request by design)
+    const blocksNeedingAi = getProxiesForTranslation();
+    expect(blocksNeedingAi.length).toBe(0,
+      "showAiOnly must NOT reset aiStatus — the AI result is already available locally");
+
+    cleanup(container);
+  });
+
+  it("newLine mode: showAiOnly syncs displayMode to ai", () => {
+    const { container, blocks } = createNewLineModeBlocks();
+
+    blocks.forEach(({ translatedEl, aiSpan }) => {
+      aiSpan.style.display = "none";
+      aiSpan.textContent = "AI translation";
+    });
+
+    getAllProxies().forEach((p) => applyShowAiOnlyState(p));
+
+    blocks.forEach(({ translatedEl }, idx) => {
+      const state = getBlockState(translatedEl);
+      expect(state.displayMode).toBe("ai",
+        `Block ${idx}: displayMode should be "ai" after showAiOnly`);
     });
 
     cleanup(container);

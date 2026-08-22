@@ -7,10 +7,12 @@ console.log("floatingBtn.js is running")
 
 import twpConfig from "../lib/config.js"
 import { pageTranslator } from "./pageTranslator.js"
+import { resolveFloatingBtnClick } from "./floatingBtnClickResolver.js"
 import {
   getFloatingButtonAiTooltipText,
   getFloatingButtonGoogleTooltipText,
   getFloatingButtonMoreOptionsText,
+  getFloatingButtonOriginalTooltipText,
 } from "./i18n.js"
 
 var floatingBtn = {};
@@ -90,6 +92,7 @@ if (window.self !== window.top) {
           <div id="dragHandle" style="height: 12px; cursor: grab; background: #f3f4f6; border-radius: 999px; display: flex; justify-content: center; align-items: center;">
           <div style="width: 22px; height: 2px; background: #9ca3af; border-radius: 999px;"></div>
           </div>
+          <button id="btnOriginal" type="button" style="cursor: pointer; border: 1px solid #d1d5db; background: #f3f4f6; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; color: #6b7280; transition: all 0.2s ease; width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Original</button>
           <button id="btnGoogle" type="button" style="cursor: pointer; border: 1px solid #bfdbfe; background: #eff6ff; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; color: #1d4ed8; transition: all 0.2s ease; width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Google</button>
           <button id="btnAi" type="button" style="cursor: pointer; border: 1px solid #ddd6fe; background: #f5f3ff; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; color: #7c3aed; transition: all 0.2s ease; width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">AI</button>
         </div>
@@ -246,12 +249,20 @@ if (window.self !== window.top) {
     const dragHandleEl = getElemById("dragHandle");
     const btnGoogleEl = getElemById("btnGoogle");
     const btnAiEl = getElemById("btnAi");
+    const btnOriginalEl = getElemById("btnOriginal");
     const btnOptionsShortcutEl = getElemById("btnOptionsShortcut");
     lastViewportWidth = window.innerWidth;
 
-    let pageTranslated = false;
     let currentFloatingBtnWidth = twpConfig.get("floatingBtnWidth");
     let suppressNextClick = false;
+    // Three-state model state (Q28 behavior table)
+    let highlight = "original"; // "original" | "google" | "ai" — user selection
+    let displayMode = "original"; // what the page actually shows: "original" | "google" | "ai"
+    let intervention = false; // user has clicked a button on this page
+    let googleInFlight = false;
+    let aiInFlight = false;
+    let aiRenderState = "idle"; // "idle" | "loading" | "success" | "error"
+    let pageRenderState = "idle"; // "idle" | "loading" | "success" | "error"
 
     const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
@@ -315,7 +326,7 @@ if (window.self !== window.top) {
       currentFloatingBtnWidth = normalizedWidth;
       containerEl.style.width = normalizedWidth + "px";
       updateShortcutPlacement();
-      updateButtons(pageTranslated);
+      updateButtons();
       if (saveAfterChange) {
         persistFloatingBtnWidth(normalizedWidth);
       }
@@ -373,6 +384,8 @@ if (window.self !== window.top) {
     btnGoogleEl.setAttribute("aria-label", btnGoogleEl.title);
     btnAiEl.title = getFloatingButtonAiTooltipText();
     btnAiEl.setAttribute("aria-label", btnAiEl.title);
+    btnOriginalEl.title = getFloatingButtonOriginalTooltipText();
+    btnOriginalEl.setAttribute("aria-label", btnOriginalEl.title);
     btnOptionsShortcutEl.title = getFloatingButtonMoreOptionsText();
     btnOptionsShortcutEl.setAttribute("aria-label", btnOptionsShortcutEl.title);
 
@@ -630,64 +643,209 @@ if (window.self !== window.top) {
       pageTranslator.translatePage();
     }
 
-    btnGoogleEl.addEventListener("click", (e) => {
+    // ── Three-state click handling (Q28 behavior table) ──────────────
+
+    function setHighlight(next) {
+      if (highlight !== next) {
+        highlight = next;
+        updateButtons();
+      }
+    }
+
+    function buildUiState() {
+      return {
+        pageLanguageState: pageLanguageState,
+        displayMode,
+        highlight,
+        intervention,
+        googleInFlight,
+        aiInFlight,
+        hasGoogleFailedBlocks: pageRenderState === "error",
+        hasAiFailedBlocks: aiRenderState === "error",
+        aiResultAvailable: pageTranslator.hasAiResults ? pageTranslator.hasAiResults() : false,
+        hasApiKey: true, // translatePageAi returns false when no key — handled below
+        whereToDisplayTranslatedText: twpConfig.get("whereToDisplayTranslatedText"),
+      };
+    }
+
+    function handleButtonClick(buttonId) {
       if (suppressNextClick) {
         suppressNextClick = false;
-        e.preventDefault();
-        e.stopImmediatePropagation();
         return;
       }
-      console.log("Google translate button clicked");
-      if (pageLanguageState === "original") {
-        translatePage();
-      } else {
-        pageTranslator.restorePage();
+      console.log(`${buttonId} button clicked`);
+      intervention = true;
+      setHighlight(buttonId);
+      // Q5: engine needs to know whether the user is in AI mode when an AI
+      // response arrives (decides display switch vs discard).
+      pageTranslator.setAiModeActive?.(buttonId === "ai");
+
+      const action = resolveFloatingBtnClick(buildUiState(), buttonId);
+      switch (action.type) {
+        case "noop":
+          break;
+        case "translatePage":
+          googleInFlight = true;
+          translatePage();
+          break;
+        case "translatePageAi": {
+          const started = pageTranslator.translatePageAi();
+          if (started === false) {
+            // No API key: prompt shown by translatePageAi; AI stays highlighted (Q4)
+            aiInFlight = false;
+          } else {
+            aiInFlight = true;
+          }
+          break;
+        }
+        case "restorePage":
+          googleInFlight = false;
+          aiInFlight = false;
+          displayMode = "original";
+          pageTranslator.restorePage();
+          break;
+        case "showGoogleOnly":
+          pageTranslator.stopAiAutoTranslate();
+          pageTranslator.showGoogleOnly();
+          displayMode = "google";
+          break;
+        case "showAiOnly":
+          pageTranslator.showAiOnly();
+          displayMode = "ai";
+          break;
+        case "retryAi":
+          aiInFlight = true;
+          pageTranslator.translatePageAi();
+          break;
+        case "promptConfig":
+          pageTranslator.translatePageAi(); // shows config prompt, returns false
+          break;
+        default:
+          break;
       }
+    }
+
+    btnOriginalEl.addEventListener("click", (e) => {
+      e.preventDefault();
+      handleButtonClick("original");
+    });
+
+    btnGoogleEl.addEventListener("click", (e) => {
+      e.preventDefault();
+      handleButtonClick("google");
     });
 
     btnAiEl.addEventListener("click", (e) => {
-      if (suppressNextClick) {
-        suppressNextClick = false;
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        return;
-      }
-      console.log("AI translate button clicked");
-      if (pageLanguageState === "original") {
-        pageTranslator.translatePageAi();
-      } else {
-        pageTranslator.restorePage();
-      }
+      e.preventDefault();
+      handleButtonClick("ai");
     });
 
     console.log("updating buttons");
 
-    function updateButtons(translated) {
-      console.log("updateButtons() called with", translated);
+    // Three-state highlight rendering (Q13/Q20 visual spec)
+    const BUTTON_STYLES = {
+      original: {
+        active: { color: "#ffffff", background: "#374151", borderColor: "#374151" },
+        inactive: { color: "#6b7280", background: "#f3f4f6", borderColor: "#d1d5db" },
+        label: "Original",
+        compactLabel: "O",
+      },
+      google: {
+        active: { color: "#ffffff", background: "#1d4ed8", borderColor: "#1d4ed8" },
+        inactive: { color: "#1d4ed8", background: "#eff6ff", borderColor: "#bfdbfe" },
+        label: "Google",
+        compactLabel: "G",
+      },
+      ai: {
+        active: { color: "#ffffff", background: "#7c3aed", borderColor: "#7c3aed" },
+        inactive: { color: "#7c3aed", background: "#f5f3ff", borderColor: "#ddd6fe" },
+        label: "AI",
+        compactLabel: "A",
+      },
+    };
+
+    function updateButtons() {
+      console.log("updateButtons() called, highlight =", highlight);
 
       const isCompact = btnGoogleEl.clientWidth < 58;
-      if (translated) {
-        btnGoogleEl.textContent = isCompact ? "G ✓" : "Google ✓";
-        btnAiEl.textContent = isCompact ? "A ✓" : "AI ✓";
-      } else {
-        btnGoogleEl.textContent = isCompact ? "Go" : "Google";
-        btnAiEl.textContent = isCompact ? "AI" : "AI";
-      }
-      btnGoogleEl.style.color = "#1d4ed8";
-      btnGoogleEl.style.background = "#eff6ff";
-      btnGoogleEl.style.borderColor = "#bfdbfe";
-      btnAiEl.style.color = "#7c3aed";
-      btnAiEl.style.background = "#f5f3ff";
-      btnAiEl.style.borderColor = "#ddd6fe";
+      const buttons = [
+        { el: btnOriginalEl, key: "original" },
+        { el: btnGoogleEl, key: "google" },
+        { el: btnAiEl, key: "ai" },
+      ];
+      buttons.forEach(({ el, key }) => {
+        const spec = BUTTON_STYLES[key];
+        const active = highlight === key;
+        el.textContent = isCompact ? spec.compactLabel : spec.label;
+        const style = active ? spec.active : spec.inactive;
+        el.style.color = style.color;
+        el.style.background = style.background;
+        el.style.borderColor = style.borderColor;
+        el.classList.toggle("dualtran-floating-btn-active", active);
+      });
     }
 
-    updateButtons(pageTranslated);
+    updateButtons();
 
     // Watch page translation state
+    // Guard: translatePage() internally calls restorePage(), which fires
+    // pageLanguageState observers unconditionally — including "original" when
+    // the page was already original. Ignore no-change events, otherwise a
+    // click on AI/Google (which triggers translatePage → restorePage) would
+    // reset the highlight right after the click set it.
+    let lastPageLanguageState = "original";
     pageTranslator.onPageLanguageStateChange((_pageLanguageState) => {
+      if (_pageLanguageState === lastPageLanguageState) return;
+      lastPageLanguageState = _pageLanguageState;
       pageLanguageState = _pageLanguageState;
-      pageTranslated = pageLanguageState === "translated";
-      updateButtons(pageTranslated);
+      if (pageLanguageState === "original") {
+        // Page restored (button click or external action): reset to Original
+        // highlight + clear intervention (Q12/Q19/Q24). In-flight flags reset
+        // here too — restorePage cancels in-flight requests.
+        googleInFlight = false;
+        aiInFlight = false;
+        intervention = false;
+        displayMode = "original";
+        pageTranslator.setAiModeActive?.(false);
+        setHighlight("original");
+      } else if (!intervention) {
+        // Auto-translate without user intervention → content-driven highlight (Q6/Q16)
+        displayMode = "google";
+        setHighlight("google");
+      }
+      updateButtons();
+    });
+
+    // Google render state → in-flight tracking + failure detection (Q14)
+    pageTranslator.onPageRenderStateChange((state) => {
+      pageRenderState = state;
+      if (state === "loading") {
+        googleInFlight = true;
+      } else if (state === "idle" || state === "success" || state === "error") {
+        googleInFlight = false;
+        if (state === "success" && displayMode !== "ai") {
+          // Google translation completed and is displayed. Q2: when AI is the
+          // user's selection, Google still shows first (intermediate state).
+          // If AI is already displayed, don't overwrite it.
+          displayMode = "google";
+        }
+      }
+    });
+
+    // AI render state → in-flight tracking + failure detection (Q3/Q8)
+    pageTranslator.onAiRenderStateChange((state) => {
+      aiRenderState = state;
+      if (state === "loading") {
+        aiInFlight = true;
+      } else if (state === "idle" || state === "success" || state === "error") {
+        aiInFlight = false;
+        if (state === "success" && highlight === "ai") {
+          // AI completed and user still selected AI → AI display takes over (Q2).
+          // If the user switched away (highlight !== "ai"), the result is
+          // discarded (Q5) — displayMode stays as-is.
+          displayMode = "ai";
+        }
+      }
     });
 
   };

@@ -176,18 +176,9 @@ async function verifyAiRestoreAfterSpaBackNav(page, serviceWorker, spaSourceUrl,
   console.log("  Google translation completed.");
 
   // autoImproveByAI 已在 eecfb00 移除：AI 翻译由用户点击 AI 按钮触发。
-  // 这里显式点击悬浮按钮组的 #btnAi 再等待 mock 响应。
-  // 新两态模型：Google 翻译完成后 pageLanguageState="translated"，
-  // 点击 AI 按钮会 toggle 到"未翻译"态（restorePage）。
-  // 需要点击两次：第一次恢复原文，第二次触发 AI 翻译。
-  // 第一次点击：恢复原文
-  await page.evaluate(() => {
-    const host = document.getElementById("dualtran-floating-btn-host");
-    host?.shadowRoot?.getElementById("btnAi")?.click();
-  });
-  await page.waitForTimeout(1000);
-
-  // 第二次点击：触发 AI 翻译（Google+AI 并发）
+  // 三态模型：Google 翻译完成后 pageLanguageState="translated"，
+  // 点击 AI 按钮 = 直接发起 AI 翻译（Google 已翻译过，不重复调）。
+  // 一次点击即可，无需先恢复原文。
   await page.evaluate(() => {
     const host = document.getElementById("dualtran-floating-btn-host");
     host?.shadowRoot?.getElementById("btnAi")?.click();

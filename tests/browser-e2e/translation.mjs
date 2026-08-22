@@ -425,25 +425,17 @@ async function verifyAiTranslation(page, serviceWorker, verifyPageUrl, mockServe
     console.log("  Post-Google-Translate: " + postGoogleState.translatedCount + " translated nodes, singleton host: " + postGoogleState.singletonHost);
 
     // ── AI 翻译轮询（显式触发）──
-    // 新两态模型：Google 翻译完成后 pageLanguageState="translated"，
-    // 点击 AI 按钮会 toggle 到"未翻译"态（restorePage）。
-    // 需要点击两次：第一次恢复原文，第二次触发 AI 翻译。
-    console.log("  Clicking #btnAi to restore page (toggle off)...");
+    // 三态模型：Google 翻译完成后 pageLanguageState="translated"，
+    // 点击 AI 按钮 = 直接发起 AI 翻译（Google 已翻译过，不重复调）。
+    // 一次点击即可，无需先恢复原文。
+    console.log("  Clicking #btnAi to trigger AI translation via mock server...");
 
     await page.waitForFunction(() => {
       const host = document.getElementById("dualtran-floating-btn-host");
       return !!host?.shadowRoot?.getElementById("btnAi");
     }, null, { timeout: 10000 });
 
-    // 第一次点击：恢复原文
-    await page.evaluate(() => {
-      const host = document.getElementById("dualtran-floating-btn-host");
-      host?.shadowRoot?.getElementById("btnAi")?.click();
-    });
-    await page.waitForTimeout(1000);
-
-    // 第二次点击：触发 AI 翻译（Google+AI 并发）
-    console.log("  Clicking #btnAi again to trigger AI translation via mock server...");
+    // 点击 AI：触发 AI 翻译（Google+AI 并发，Google 已有译文不重复调）
     await page.evaluate(() => {
       const host = document.getElementById("dualtran-floating-btn-host");
       host?.shadowRoot?.getElementById("btnAi")?.click();
@@ -1021,25 +1013,29 @@ async function verifyFloatingButtons(page, serviceWorker, testPageUrl, mockServe
     await sendMessageToTab(serviceWorker, page.url(), { action: "translatePage", targetLanguage: "fr" });
     await page.waitForFunction(() => document.querySelectorAll("translated").length > 0, null, { timeout: 15000 });
 
-    // 验证两个按钮均可见
+    // 验证三个按钮均可见
     const btnVisibility = await page.evaluate(() => {
       const host = document.getElementById("dualtran-floating-btn-host");
       const root = host?.shadowRoot || null;
+      const btnOriginal = root?.getElementById("btnOriginal") || null;
       const btnGoogle = root?.getElementById("btnGoogle") || null;
       const btnAi = root?.getElementById("btnAi") || null;
       const isVisible = (el) => el && el.offsetParent !== null && getComputedStyle(el).display !== "none";
       return {
+        originalExists: !!btnOriginal,
         googleExists: !!btnGoogle,
         aiExists: !!btnAi,
+        originalVisible: isVisible(btnOriginal),
         googleVisible: isVisible(btnGoogle),
         aiVisible: isVisible(btnAi),
       };
     });
+    console.log(`    #btnOriginal: exists=${btnVisibility.originalExists}, visible=${btnVisibility.originalVisible}`);
     console.log(`    #btnGoogle: exists=${btnVisibility.googleExists}, visible=${btnVisibility.googleVisible}`);
     console.log(`    #btnAi: exists=${btnVisibility.aiExists}, visible=${btnVisibility.aiVisible}`);
 
-    if (!btnVisibility.googleVisible || !btnVisibility.aiVisible) {
-      throw new Error(`Floating buttons not visible after Google Translate. Google=${btnVisibility.googleVisible}, AI=${btnVisibility.aiVisible}`);
+    if (!btnVisibility.originalVisible || !btnVisibility.googleVisible || !btnVisibility.aiVisible) {
+      throw new Error(`Floating buttons not visible after Google Translate. Original=${btnVisibility.originalVisible}, Google=${btnVisibility.googleVisible}, AI=${btnVisibility.aiVisible}`);
     }
 
     // ── 场景 2：点击触发翻译 ──
@@ -1060,13 +1056,14 @@ async function verifyFloatingButtons(page, serviceWorker, testPageUrl, mockServe
 
     // ── 场景 3：AI 按钮状态流转 ──
     console.log("  Scene 3: AI button state transitions...");
-    // Google 翻译完成后，autoImproveByAI=yes 会自动触发 AI 翻译
-    // 等待 AI 按钮进入终态（成功或错误）
+    // 点击 AI 后，等待 AI 翻译完成（per-block 指示器消失或出现错误图标）
+    // 新三态模型：页面级按钮只有高亮/非高亮，进度由 per-block 指示器承担
     await page.waitForFunction(() => {
       const host = document.getElementById("dualtran-floating-btn-host");
       const btn = host?.shadowRoot?.getElementById("btnAi") || null;
       if (!btn) return false;
-      return !!btn.querySelector(".dualtran-ai-success-check") || !!btn.querySelector(".dualtran-ai-error-cross");
+      // AI 按钮应高亮（点击即高亮）
+      return btn.classList.contains("dualtran-floating-btn-active");
     }, null, { timeout: 30000 }).catch(() => null);
 
     const aiState = await page.evaluate(() => {
@@ -1076,11 +1073,10 @@ async function verifyFloatingButtons(page, serviceWorker, testPageUrl, mockServe
       return {
         exists: true,
         text: (btn.textContent || "").trim(),
-        hasSuccess: !!btn.querySelector(".dualtran-ai-success-check"),
-        hasError: !!btn.querySelector(".dualtran-ai-error-cross"),
+        highlighted: btn.classList.contains("dualtran-floating-btn-active"),
       };
     });
-    console.log(`    #btnAi state: text="${aiState.text}", success=${aiState.hasSuccess}, error=${aiState.hasError}`);
+    console.log(`    #btnAi state: text="${aiState.text}", highlighted=${aiState.highlighted}`);
 
     // 测试错误场景：临时设置无效 API key
     console.log("  Scene 3b: AI error state with invalid key...");
@@ -1100,20 +1096,18 @@ async function verifyFloatingButtons(page, serviceWorker, testPageUrl, mockServe
     });
     await page.waitForTimeout(300);
 
-    // 触发翻译 → 等待 AI 错误状态
+    // 触发翻译 → 等待 per-block AI 错误指示器出现
     await sendMessageToTab(serviceWorker, page.url(), { action: "translatePage", targetLanguage: "fr" });
     await page.waitForFunction(() => document.querySelectorAll("translated").length > 0, null, { timeout: 15000 });
 
     await page.waitForFunction(() => {
-      const host = document.getElementById("dualtran-floating-btn-host");
-      const btn = host?.shadowRoot?.getElementById("btnAi") || null;
-      return btn && !!btn.querySelector(".dualtran-ai-error-cross");
+      return !!document.querySelector(".dualtran-block-indicator.dualtran-block-error[data-type=\"ai\"]");
     }, null, { timeout: 30000 }).catch(() => null);
 
     const errorState = await page.evaluate(() => {
-      const host = document.getElementById("dualtran-floating-btn-host");
-      const btn = host?.shadowRoot?.getElementById("btnAi") || null;
-      return { hasError: btn ? !!btn.querySelector(".dualtran-ai-error-cross") : false };
+      return {
+        hasError: !!document.querySelector(".dualtran-block-indicator.dualtran-block-error[data-type=\"ai\"]"),
+      };
     });
     console.log(`    AI error state after invalid key: hasError=${errorState.hasError}`);
 
@@ -1125,13 +1119,7 @@ async function verifyFloatingButtons(page, serviceWorker, testPageUrl, mockServe
 
     // ── 场景 4：Google/AI 译文切换 ──
     console.log("  Scene 4: Google/AI translation switching...");
-    // 临时关闭 autoImproveByAI，确保可以先记录纯 Google 译文
-    await serviceWorker.evaluate(async () => {
-      await chrome.storage.local.set({ autoImproveByAI: "no" });
-    });
-    await page.waitForTimeout(300);
-
-    // 恢复页面并触发纯 Google 翻译
+    // 恢复页面并触发纯 Google 翻译（不点 AI，保持 Google 译文）
     await sendMessageToTab(serviceWorker, page.url(), { action: "restorePage" });
     await page.waitForTimeout(500);
     await sendMessageToTab(serviceWorker, page.url(), { action: "translatePage", targetLanguage: "fr" });
@@ -1144,11 +1132,11 @@ async function verifyFloatingButtons(page, serviceWorker, testPageUrl, mockServe
     });
     console.log(`    Google text sample: "${googleText}"`);
 
-    // 重新启用 AI 并等待 AI 翻译完成
-    await serviceWorker.evaluate(async () => {
-      await chrome.storage.local.set({ autoImproveByAI: "yes" });
+    // 点击 AI 按钮 → 触发 AI 翻译（Google 已翻译过，不重复调）
+    await page.evaluate(() => {
+      const host = document.getElementById("dualtran-floating-btn-host");
+      host?.shadowRoot?.getElementById("btnAi")?.click();
     });
-    await page.waitForTimeout(300);
 
     const snippet = mockServerConfig.expectedAiSnippet;
     await page.waitForFunction((s) => {
@@ -1169,10 +1157,6 @@ async function verifyFloatingButtons(page, serviceWorker, testPageUrl, mockServe
     }
 
   } finally {
-    // 确保 autoImproveByAI 恢复
-    await serviceWorker.evaluate(async () => {
-      await chrome.storage.local.set({ autoImproveByAI: "yes" });
-    }).catch(() => {});
     detach();
   }
 }

@@ -80,6 +80,7 @@ const SCENARIO_MODULE_PATHS = [
   "./dynamic-content-showmore.mjs",
   "./translation-replace-original.mjs",
   "./observer-feedback-loop.mjs",
+  "./floating-btn-three-state.mjs",
 ];
 
 /**

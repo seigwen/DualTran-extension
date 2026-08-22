@@ -46,9 +46,11 @@ import {
 import {
   applyAiErrorState,
   applyAiSuccessState,
+  applyAiSuccessWithModeCheck,
   applyAiTranslatingState,
   applyGoogleIdle,
   applyGoogleSuccess,
+  applyShowAiOnlyState,
   applyGoogleTranslating,
   applyShowGoogleOnlyState,
   ERROR_CROSS_COLOR,
@@ -156,6 +158,11 @@ let openAiRateLimitCountDown = 0
 let timerAiTran
 let hadGoogleTranslationError = false
 let shouldForceAiAfterPageTranslation = false
+// Q5: whether AI results should switch the display when they arrive.
+// Default true (engine applies results); the floating button sets it false
+// when the user explicitly switches away to Google/Original while a request
+// is in-flight, and true again when the user clicks AI.
+let aiModeActive = true
 
 // ── AI translation state persistence (sessionStorage) ──────────────────────────
 // Used to restore AI translation state after Turbo/pjax navigation.
@@ -838,12 +845,12 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
   // 1. Check in-memory cache first (fast path)
   let cacheItem = aiCache.find(item => btnAi.sourceString === item.original && item.targetLanguage === targetLanguageCodeForAI)
     if (cacheItem) {
-      applyAiSuccessState(btnAi, {
+      applyAiSuccessWithModeCheck(btnAi, {
         translatedText: cacheItem.translated || "",
         translatedTextColor: twpConfig.get("aiTranslatedColor"),
         tooltipText: "Translated, click to translate again",
         titleText: null,
-      })
+      }, aiModeActive)
        // newLine mode: ensure AI translation color overrides Google translation color
       _applyAiColorToTranslatedElement(btnAi, twpConfig.get("aiTranslatedColor"));
       _registerAiForShowOriginal(btnAi);
@@ -862,12 +869,12 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
       providerId, modelId, btnAi.sourceString
     );
     if (cached) {
-      applyAiSuccessState(btnAi, {
+      applyAiSuccessWithModeCheck(btnAi, {
         translatedText: cached,
         translatedTextColor: twpConfig.get("aiTranslatedColor"),
         tooltipText: "Translated (cached), click to translate again",
         titleText: null,
-      });
+      }, aiModeActive);
        // newLine mode: ensure AI translation color overrides Google translation color
       _applyAiColorToTranslatedElement(btnAi, twpConfig.get("aiTranslatedColor"));
       _registerAiForShowOriginal(btnAi);
@@ -1011,11 +1018,11 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
         if (progress.remainingAccumulatedText !== null) {
           accumulatedText = progress.remainingAccumulatedText
           console.log("accumulatedText is changed to:", accumulatedText)
-          applyAiSuccessState(btnAi, {
+          applyAiSuccessWithModeCheck(btnAi, {
             translatedTextColor: twpConfig.get("aiTranslatedColor"),
             tooltipText: "translated, click to translate again",
             titleText: null,
-          })
+          }, aiModeActive)
            // newLine mode: ensure AI translation color overrides Google translation color
           _applyAiColorToTranslatedElement(btnAi, twpConfig.get("aiTranslatedColor"));
           _registerAiForShowOriginal(btnAi);
@@ -3545,6 +3552,16 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   };
 
   /**
+   * Q5: set whether the user is currently in AI mode. The floating button calls
+   * this when the user clicks AI (true) or switches away to Google/Original
+   * (false). The engine checks it when an AI response arrives to decide whether
+   * to switch the display or discard the result.
+   */
+  pageTranslator.setAiModeActive = function (active) {
+    aiModeActive = !!active;
+  };
+
+  /**
    * Show only Google translations (hide AI spans). Called when user clicks Google button
    * while AI is active — switches from AI view to Google-only view without re-translating.
    */
@@ -3556,6 +3573,36 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       applyShowGoogleOnlyState(p, nodesToRestore);
     });
     shouldForceAiAfterPageTranslation = false;
+  };
+
+  /**
+   * Show only AI translations (hide Google spans). Called when user clicks AI button
+   * while Google is active and AI results are already available (newLine mode).
+   * Local switch only — zero network requests (Q10a/Q17).
+   */
+  pageTranslator.showAiOnly = function () {
+    getAllProxies().forEach((p) => {
+      // Per-block logic lives in aiUiState.applyShowAiOnlyState so the
+      // local-switch semantics (zero requests, aiStatus preserved) are
+      // locked down by a unit test at the same seam the bug occurs.
+      applyShowAiOnlyState(p);
+    });
+    shouldForceAiAfterPageTranslation = true;
+  };
+
+  /**
+   * Whether any registered block has an AI result available for local re-show
+   * (newLine mode: aiSpan has text). Used by the floating button to decide
+   * between local switch (showAiOnly) and re-request (Q10a).
+   */
+  pageTranslator.hasAiResults = function () {
+    return getAllProxies().some((p) => {
+      try {
+        return !!(p.aiSpan && p.aiSpan.textContent && p.aiSpan.textContent.trim().length > 0);
+      } catch (_) {
+        return false;
+      }
+    });
   };
 
   function setPageRenderState(state) {

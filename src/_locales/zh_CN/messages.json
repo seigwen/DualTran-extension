@@ -207,10 +207,13 @@
     "message": "该文件似乎已损坏"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "使用 AI 翻译页面"
+    "message": "显示 AI 译文"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "使用谷歌翻译页面"
+    "message": "显示 Google 译文"
+  },
+  "floatingButtonOriginalTooltip": {
+    "message": "显示原文"
   },
   "floatingButtonTooltip": {
     "message": "点击可切换翻译状态；拖动可改变本按钮位置"

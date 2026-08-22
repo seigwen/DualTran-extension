@@ -209,6 +209,9 @@ describe("floatingBtn", () => {
   function getGoogleButton() {
     return getHost()?.shadowRoot?.getElementById("btnGoogle");
   }
+  function getOriginalButton() {
+    return getHost()?.shadowRoot?.getElementById("btnOriginal");
+  }
   function getDragHandle() {
     return getHost()?.shadowRoot?.getElementById("dragHandle");
   }
@@ -285,89 +288,90 @@ describe("floatingBtn", () => {
     expect(pageTranslatorMock.restorePage).not.toHaveBeenCalled();
   });
 
-  it("clicking the Google button restores the page in the translated state", async () => {
+  it("clicking the Google button is a no-op in the translated state (Google already shown)", async () => {
     await loadModule();
     emitPageLanguageStateChange("translated");
 
     getIcon().click();
 
-    expect(pageTranslatorMock.restorePage).toHaveBeenCalledOnce();
+    expect(pageTranslatorMock.restorePage).not.toHaveBeenCalled();
     expect(pageTranslatorMock.translatePage).not.toHaveBeenCalled();
   });
 
-  it("buttons toggle between two states driven by pageLanguageState only", async () => {
+  it("buttons highlight per three-state model driven by pageLanguageState + intervention", async () => {
     Object.defineProperty(HTMLElement.prototype, "clientWidth", {
       configurable: true,
       get: function() {
-        if (this.id === "btnGoogle" || this.id === "btnAi") return 100;
+        if (this.id === "btnGoogle" || this.id === "btnAi" || this.id === "btnOriginal") return 100;
         return 0;
       }
     });
     await loadModule();
 
-    // Initial state: "未翻译"
+    // Initial state: Original highlighted
+    expect(getOriginalButton().textContent).toBe("Original");
     expect(getIcon().textContent).toBe("Google");
     expect(getAiButton().textContent).toBe("AI");
-    expect(getIcon().style.color).toBe("rgb(29, 78, 216)"); // blue
-    expect(getAiButton().style.color).toBe("rgb(124, 58, 237)"); // purple
+    expect(getOriginalButton().classList.contains("dualtran-floating-btn-active")).toBe(true);
+    expect(getIcon().classList.contains("dualtran-floating-btn-active")).toBe(false);
+    expect(getAiButton().classList.contains("dualtran-floating-btn-active")).toBe(false);
 
-    // Switch to "已要求翻译" — same colors, text gets ✓
+    // Auto-translate (no intervention) → Google highlighted (content-driven)
     emitPageLanguageStateChange("translated");
-    expect(getIcon().textContent).toBe("Google ✓");
-    expect(getAiButton().textContent).toBe("AI ✓");
-    expect(getIcon().style.color).toBe("rgb(29, 78, 216)"); // blue — unchanged
-    expect(getAiButton().style.color).toBe("rgb(124, 58, 237)"); // purple — unchanged
+    expect(getIcon().classList.contains("dualtran-floating-btn-active")).toBe(true);
+    expect(getOriginalButton().classList.contains("dualtran-floating-btn-active")).toBe(false);
 
-    // Switch back to "未翻译"
+    // Switch back to original → Original highlighted
     emitPageLanguageStateChange("original");
-    expect(getIcon().textContent).toBe("Google");
-    expect(getAiButton().textContent).toBe("AI");
-    expect(getIcon().style.color).toBe("rgb(29, 78, 216)"); // blue
-    expect(getAiButton().style.color).toBe("rgb(124, 58, 237)"); // purple
+    expect(getOriginalButton().classList.contains("dualtran-floating-btn-active")).toBe(true);
+    expect(getIcon().classList.contains("dualtran-floating-btn-active")).toBe(false);
   });
 
-  it("compact mode shows G ✓ / A ✓ in translated state", async () => {
+  it("compact mode shows O / G / A labels", async () => {
     Object.defineProperty(HTMLElement.prototype, "clientWidth", {
       configurable: true,
       get: function() {
-        if (this.id === "btnGoogle" || this.id === "btnAi") return 40;
+        if (this.id === "btnGoogle" || this.id === "btnAi" || this.id === "btnOriginal") return 40;
         return 0;
       }
     });
     await loadModule();
 
-    // Initial compact: Go / AI
-    expect(getIcon().textContent).toBe("Go");
-    expect(getAiButton().textContent).toBe("AI");
+    // Initial compact: O / G / A
+    expect(getOriginalButton().textContent).toBe("O");
+    expect(getIcon().textContent).toBe("G");
+    expect(getAiButton().textContent).toBe("A");
 
-    // Translated compact: G ✓ / A ✓
+    // Translated compact: labels unchanged (highlight is the state indicator)
     emitPageLanguageStateChange("translated");
-    expect(getIcon().textContent).toBe("G ✓");
-    expect(getAiButton().textContent).toBe("A ✓");
+    expect(getOriginalButton().textContent).toBe("O");
+    expect(getIcon().textContent).toBe("G");
+    expect(getAiButton().textContent).toBe("A");
 
     // Back to original compact
     emitPageLanguageStateChange("original");
-    expect(getIcon().textContent).toBe("Go");
-    expect(getAiButton().textContent).toBe("AI");
+    expect(getOriginalButton().textContent).toBe("O");
+    expect(getIcon().textContent).toBe("G");
+    expect(getAiButton().textContent).toBe("A");
   });
 
-  it("clicking the AI button restores the page in translated state", async () => {
+  it("clicking the AI button in the translated state starts AI translation (Google not re-called)", async () => {
     await loadModule();
     emitPageLanguageStateChange("translated");
 
     getAiButton().click();
 
-    expect(pageTranslatorMock.restorePage).toHaveBeenCalledOnce();
-    expect(pageTranslatorMock.translatePageAi).not.toHaveBeenCalled();
+    expect(pageTranslatorMock.translatePageAi).toHaveBeenCalledOnce();
+    expect(pageTranslatorMock.restorePage).not.toHaveBeenCalled();
   });
 
-  it("clicking the Google button restores the page in translated state", async () => {
+  it("clicking the Google button in the translated state is a no-op (Google already shown)", async () => {
     await loadModule();
     emitPageLanguageStateChange("translated");
 
     getGoogleButton().click();
 
-    expect(pageTranslatorMock.restorePage).toHaveBeenCalledOnce();
+    expect(pageTranslatorMock.restorePage).not.toHaveBeenCalled();
     expect(pageTranslatorMock.showGoogleOnly).not.toHaveBeenCalled();
     expect(pageTranslatorMock.stopAiAutoTranslate).not.toHaveBeenCalled();
   });
@@ -449,7 +453,7 @@ describe("floatingBtn", () => {
     Object.defineProperty(HTMLElement.prototype, "clientWidth", {
       configurable: true,
       get: function() {
-        if (this.id === "btnGoogle" || this.id === "btnAi") return 100;
+        if (this.id === "btnGoogle" || this.id === "btnAi" || this.id === "btnOriginal") return 100;
         return 0;
       }
     });
@@ -458,20 +462,17 @@ describe("floatingBtn", () => {
     // bfcache 恢复后 pageLanguageState 仍为 "translated"
     emitPageLanguageStateChange("translated");
 
-    // 两个按钮都显示 ✓
-    expect(getIcon().textContent).toBe("Google ✓");
-    expect(getAiButton().textContent).toBe("AI ✓");
-
-    // 颜色保持不变（蓝色/紫色）
-    expect(getIcon().style.color).toBe("rgb(29, 78, 216)");
-    expect(getAiButton().style.color).toBe("rgb(124, 58, 237)");
+    // 未介入 → Google 高亮（内容驱动）
+    expect(getIcon().classList.contains("dualtran-floating-btn-active")).toBe(true);
+    expect(getOriginalButton().classList.contains("dualtran-floating-btn-active")).toBe(false);
+    expect(getAiButton().classList.contains("dualtran-floating-btn-active")).toBe(false);
   });
 
   it("buttons reset to idle when pageLanguageState changes to original after bfcache restore", async () => {
     Object.defineProperty(HTMLElement.prototype, "clientWidth", {
       configurable: true,
       get: function() {
-        if (this.id === "btnGoogle" || this.id === "btnAi") return 100;
+        if (this.id === "btnGoogle" || this.id === "btnAi" || this.id === "btnOriginal") return 100;
         return 0;
       }
     });
@@ -479,22 +480,22 @@ describe("floatingBtn", () => {
 
     // 模拟页面已翻译
     emitPageLanguageStateChange("translated");
-    expect(getIcon().textContent).toBe("Google ✓");
-    expect(getAiButton().textContent).toBe("AI ✓");
+    expect(getIcon().classList.contains("dualtran-floating-btn-active")).toBe(true);
 
     // pageLanguageState 变回 original（用户点击恢复原始或 bfcache 内容丢失）
     emitPageLanguageStateChange("original");
 
-    // 两个按钮都恢复到 idle
-    expect(getIcon().textContent).toBe("Google");
-    expect(getAiButton().textContent).toBe("AI");
+    // Original 高亮
+    expect(getOriginalButton().classList.contains("dualtran-floating-btn-active")).toBe(true);
+    expect(getIcon().classList.contains("dualtran-floating-btn-active")).toBe(false);
+    expect(getAiButton().classList.contains("dualtran-floating-btn-active")).toBe(false);
   });
 
-  it("handles bfcache restore — pageLanguageState translated drives both buttons", async () => {
+  it("handles bfcache restore — pageLanguageState translated drives Google highlight", async () => {
     Object.defineProperty(HTMLElement.prototype, "clientWidth", {
       configurable: true,
       get: function() {
-        if (this.id === "btnGoogle" || this.id === "btnAi") return 100;
+        if (this.id === "btnGoogle" || this.id === "btnAi" || this.id === "btnOriginal") return 100;
         return 0;
       }
     });
@@ -503,13 +504,10 @@ describe("floatingBtn", () => {
     // 模拟场景：页面已翻译，pageLanguageState = "translated"
     emitPageLanguageStateChange("translated");
 
-    // 两个按钮都显示 ✓，颜色保持不变
-    expect(getIcon().textContent).toBe("Google ✓");
-    expect(getAiButton().textContent).toBe("AI ✓");
-
-    // Google 蓝色，AI 紫色（与 idle 态颜色一致）
-    expect(getIcon().style.color).toBe("rgb(29, 78, 216)");
-    expect(getAiButton().style.color).toBe("rgb(124, 58, 237)");
+    // 未介入 → Google 高亮（内容驱动）
+    expect(getIcon().classList.contains("dualtran-floating-btn-active")).toBe(true);
+    expect(getOriginalButton().classList.contains("dualtran-floating-btn-active")).toBe(false);
+    expect(getAiButton().classList.contains("dualtran-floating-btn-active")).toBe(false);
   });
 
   // ──────────────────────────────────────────────────────────────
