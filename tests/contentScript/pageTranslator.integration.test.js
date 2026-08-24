@@ -576,6 +576,11 @@ describe("replaceOriginal 模式：完整翻译流程回归测试", () => {
     mockState.configValues.whereToDisplayTranslatedText = "replaceOriginal";
   });
 
+  afterEach(() => {
+    // 重置可能被测试修改的全局状态，防止污染其他测试
+    mockState.showOriginalIsEnabled = false;
+  });
+
   it("replaceOriginal 模式：Google 翻译后原文应被替换为译文（模拟完整 callback 流程）", async () => {
     // 模拟用户场景：页面有多个段落，Google 翻译后应替换原文
     const textNode1 = document.createTextNode("Hello world");
@@ -629,8 +634,9 @@ describe("replaceOriginal 模式：完整翻译流程回归测试", () => {
     expect(textNode2.textContent).toContain("phrase");
   });
 
-  it("replaceOriginal 模式：translateResults 应正确调用 applyTranslatedColorToNode", async () => {
+  it("replaceOriginal 模式：Google 译文不应应用\"谷歌译文颜色\"（译文颜色规则：replaceOriginal → 原文颜色）", async () => {
     mockState.configValues.translatedColor = "rgba(11, 112, 33, 1)";
+    mockState.configValues.whereToDisplayTranslatedText = "replaceOriginal";
 
     const textNode = document.createTextNode("Hello");
     const span = document.createElement("span");
@@ -646,11 +652,60 @@ describe("replaceOriginal 模式：完整翻译流程回归测试", () => {
 
     // 译文应已替换原文
     expect(textNode.textContent).toBe("Bonjour ");
-    // hasCustomTranslatedColor 为 true 时，applyTranslatedColorToNode 应设置颜色
-    // 注意：如果 hasCustomTranslatedColor 未正确 mock，颜色不会被设置
-    if (span.style.color) {
-      expect(span.style.color).toBe("rgba(11, 112, 33, 1)");
-    }
+    // 译文颜色规则：replaceOriginal 模式 → 译文颜色为原文颜色，
+    // 不得应用 options 页的"谷歌译文颜色"（translatedColor）
+    // 注意：文本节点本身无 style；若节点被 encapsulate 成元素节点（showOriginal 启用），
+    // applyTranslatedColorToNode 也会尝试染色——见下方 encapsulate 场景测试
+    expect(span.style.color).toBe("");
+  });
+
+  it("replaceOriginal 模式：showOriginal 启用时 encapsulate 的 <font> 元素也不应被染成\"谷歌译文颜色\"（真实用户症状）", async () => {
+    mockState.configValues.translatedColor = "rgba(11, 112, 33, 1)";
+    mockState.configValues.whereToDisplayTranslatedText = "replaceOriginal";
+    mockState.showOriginalIsEnabled = true;
+
+    const textNode = document.createTextNode("Hello");
+    const p = document.createElement("p");
+    p.appendChild(textNode);
+    document.body.appendChild(p);
+
+    translateResults(
+      [{ nodes: [textNode] }],
+      [["Bonjour"]]
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    // showOriginal 启用时节点被 encapsulateTextNode 包装为 <font>
+    const fontEl = p.querySelector("font");
+    expect(fontEl).not.toBeNull();
+    expect(fontEl.textContent).toBe("Bonjour ");
+    // 译文颜色规则：replaceOriginal 模式 → 不得应用"谷歌译文颜色"
+    expect(fontEl.style.color).toBe("");
+
+    // 恢复全局状态，避免污染其他测试
+    mockState.showOriginalIsEnabled = false;
+  });
+
+  it("replaceOriginal 模式：元素节点（如 <b>）Google 译文也不应被染成\"谷歌译文颜色\"", async () => {
+    mockState.configValues.translatedColor = "rgba(11, 112, 33, 1)";
+    mockState.configValues.whereToDisplayTranslatedText = "replaceOriginal";
+
+    const textNode = document.createTextNode("Hello");
+    const bold = document.createElement("b");
+    bold.appendChild(textNode);
+    document.body.appendChild(bold);
+
+    translateResults(
+      [{ nodes: [textNode] }],
+      [["Bonjour"]]
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(textNode.textContent).toBe("Bonjour ");
+    // 元素节点同样不得被染色
+    expect(bold.style.color).toBe("");
   });
 });
 
@@ -827,6 +882,8 @@ describe("newLine 模式：原始文本不应被清除", () => {
       [["Bonjour le monde"]]
     );
 
+    // 译文颜色规则：newLine 模式 → 谷歌译文颜色遵循 options 页配置项 translatedColor
+    expect(translatedElement.style.color).toBe("rgb(0, 255, 0)");
     // 谷歌译文颜色应被应用到 translatedElement
     // 注意：applyTranslatedColorToNode 在 addTranslatedContent 中被调用
 

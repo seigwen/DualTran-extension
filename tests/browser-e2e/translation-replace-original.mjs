@@ -108,6 +108,28 @@ export async function run(scope) {
   const googleCount = await assertReplaceOriginalNoDuplicates(page);
   console.log(`[replace-original] Step 2: ${googleCount} AI spans, no duplicates ✓`);
 
+  // 译文颜色规则：replaceOriginal 模式 → 译文颜色为原文颜色（不得应用"谷歌译文颜色"）
+  const colorState = await page.evaluate(() => {
+    const container = document.querySelector(".dualtran-result-container");
+    const el = container || document.querySelector("p");
+    return {
+      hasContainer: !!container,
+      containerColor: container ? getComputedStyle(container).color : null,
+      bodyTextSample: (document.body.innerText || "").substring(0, 60),
+    };
+  });
+  console.log(`[replace-original] Step 2 color check: container=${colorState.hasContainer}, color=${colorState.containerColor}`);
+  // 若容器存在且 computed color 是"谷歌译文颜色"绿色（rgba(11,112,33)），则违反译文颜色规则
+  if (colorState.hasContainer) {
+    const rgb = colorState.containerColor || "";
+    const isDefaultGreen = rgb.includes("11, 112, 33") || rgb.includes("11,112,33");
+    if (isDefaultGreen) {
+      throw new Error(
+        "[replace-original] 译文颜色规则被违反：replaceOriginal 模式下 Google 译文不应应用\"谷歌译文颜色\"（translatedColor），实际颜色为 " + rgb
+      );
+    }
+  }
+
   // ═══════════════════════════════════════════════════════════════
   // Step 3: Soak 测试（5 秒）— 捕获 serial feedback loop
   // ═══════════════════════════════════════════════════════════════
