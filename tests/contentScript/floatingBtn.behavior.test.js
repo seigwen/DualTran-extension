@@ -1,11 +1,12 @@
 /**
- * Tests for the floating button's two-state toggle behavior.
+ * Tests for the floating button's three-state behavior (Original / Google / AI).
  *
- * New simplified model:
- *   - Two states: "未翻译" (original) ↔ "已要求翻译" (translated)
- *   - Both buttons toggle: click in original → translate; click in translated → restore
- *   - No intermediate "loading" state on buttons
- *   - No showGoogleOnly / stopAiAutoTranslate — simple restore instead
+ * Model (Q28 behavior table):
+ *   - Exactly one button highlighted at all times
+ *   - Click always switches highlight; no-op only means no translation action
+ *   - Intervention flag: after user clicks, highlight is click-driven;
+ *     before, content-driven (auto-translate → Google highlight)
+ *   - No loading state on buttons (per-block indicators show progress)
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -27,17 +28,31 @@ const {
     showFloatingBtn: "yes",
     floatingBtnPosition: null,
     darkMode: "no",
+    whereToDisplayTranslatedText: "newLine",
   },
   configChangeCallbacks: [],
   pageTranslatorCallbacks: {
     onPageLanguageStateChange: [],
+    onPageRenderStateChange: [],
+    onAiRenderStateChange: [],
   },
   pageTranslatorMock: {
     translatePage: vi.fn(),
     translatePageAi: vi.fn(() => true),
     restorePage: vi.fn(),
+    showGoogleOnly: vi.fn(),
+    showAiOnly: vi.fn(),
+    stopAiAutoTranslate: vi.fn(),
+    setAiModeActive: vi.fn(),
+    hasAiResults: vi.fn(() => false),
     onPageLanguageStateChange: vi.fn((callback) => {
       pageTranslatorCallbacks.onPageLanguageStateChange.push(callback);
+    }),
+    onPageRenderStateChange: vi.fn((callback) => {
+      pageTranslatorCallbacks.onPageRenderStateChange.push(callback);
+    }),
+    onAiRenderStateChange: vi.fn((callback) => {
+      pageTranslatorCallbacks.onAiRenderStateChange.push(callback);
     }),
   },
   platformState: {
@@ -89,12 +104,18 @@ vi.mock("../../src/contentScript/pageTranslator.js", () => ({
 function emitPageLanguageStateChange(value) {
   pageTranslatorCallbacks.onPageLanguageStateChange.forEach((cb) => cb(value));
 }
+function emitPageRenderStateChange(value) {
+  pageTranslatorCallbacks.onPageRenderStateChange.forEach((cb) => cb(value));
+}
+function emitAiRenderStateChange(value) {
+  pageTranslatorCallbacks.onAiRenderStateChange.forEach((cb) => cb(value));
+}
 
 async function flushMicrotasks(times = 6) {
   for (let i = 0; i < times; i++) await Promise.resolve();
 }
 
-describe("floatingBtn — two-state toggle behavior", () => {
+describe("floatingBtn — three-state behavior", () => {
   let attachShadowSpy;
 
   beforeEach(() => {
@@ -104,6 +125,8 @@ describe("floatingBtn — two-state toggle behavior", () => {
 
     configChangeCallbacks.length = 0;
     pageTranslatorCallbacks.onPageLanguageStateChange.length = 0;
+    pageTranslatorCallbacks.onPageRenderStateChange.length = 0;
+    pageTranslatorCallbacks.onAiRenderStateChange.length = 0;
     configValues.targetLanguage = "fr";
     configValues.pageTranslatorService = "google";
     configValues.alwaysTranslateSites = [];
@@ -112,13 +135,22 @@ describe("floatingBtn — two-state toggle behavior", () => {
     configValues.showFloatingBtn = "yes";
     configValues.floatingBtnPosition = null;
     configValues.darkMode = "no";
+    configValues.whereToDisplayTranslatedText = "newLine";
 
     setMock.mockClear();
     pageTranslatorMock.translatePage.mockReset();
     pageTranslatorMock.translatePageAi.mockReset();
     pageTranslatorMock.translatePageAi.mockReturnValue(true);
     pageTranslatorMock.restorePage.mockReset();
+    pageTranslatorMock.showGoogleOnly.mockReset();
+    pageTranslatorMock.showAiOnly.mockReset();
+    pageTranslatorMock.stopAiAutoTranslate.mockReset();
+    pageTranslatorMock.setAiModeActive.mockReset();
+    pageTranslatorMock.hasAiResults.mockReset();
+    pageTranslatorMock.hasAiResults.mockReturnValue(false);
     pageTranslatorMock.onPageLanguageStateChange.mockClear();
+    pageTranslatorMock.onPageRenderStateChange.mockClear();
+    pageTranslatorMock.onAiRenderStateChange.mockClear();
 
     document.body.innerHTML = "";
     document.head.innerHTML = "";
@@ -164,139 +196,255 @@ describe("floatingBtn — two-state toggle behavior", () => {
     return module.default;
   }
 
+  function getHost() {
+    return document.body.querySelector("div.notranslate");
+  }
+  function getOriginalButton() {
+    return getHost()?.shadowRoot?.getElementById("btnOriginal");
+  }
   function getGoogleButton() {
-    return document.body.querySelector("div.notranslate")?.shadowRoot?.getElementById("btnGoogle");
+    return getHost()?.shadowRoot?.getElementById("btnGoogle");
   }
-
   function getAiButton() {
-    return document.body.querySelector("div.notranslate")?.shadowRoot?.getElementById("btnAi");
+    return getHost()?.shadowRoot?.getElementById("btnAi");
+  }
+  function isHighlighted(btn) {
+    return btn?.classList.contains("dualtran-floating-btn-active") ?? false;
   }
 
-  // ──────────────────────────────────────────────────────────────
-  // Behavior 1: Google → Google (restore)
-  // ──────────────────────────────────────────────────────────────
+  // ──────────────────────────────────────────────
+  // Initial state
+  // ──────────────────────────────────────────────
 
-  it("behavior 1: Google → Google restores original", async () => {
+  it("initial state: three buttons exist, Original highlighted", async () => {
     await loadModule();
-
-    // Click Google: start Google translation
-    getGoogleButton().click();
-    expect(pageTranslatorMock.translatePage).toHaveBeenCalledOnce();
-
-    // Simulate translation done
-    emitPageLanguageStateChange("translated");
-
-    // Click Google again: should restore
-    getGoogleButton().click();
-    expect(pageTranslatorMock.restorePage).toHaveBeenCalledOnce();
+    expect(getOriginalButton()).toBeTruthy();
+    expect(getGoogleButton()).toBeTruthy();
+    expect(getAiButton()).toBeTruthy();
+    expect(isHighlighted(getOriginalButton())).toBe(true);
+    expect(isHighlighted(getGoogleButton())).toBe(false);
+    expect(isHighlighted(getAiButton())).toBe(false);
   });
 
-  // ──────────────────────────────────────────────────────────────
-  // Behavior 2: Google → AI (restore, not add-on-top)
-  // ──────────────────────────────────────────────────────────────
+  // ──────────────────────────────────────────────
+  // Scenario 2: page original → Google click
+  // ──────────────────────────────────────────────
 
-  it("behavior 2: Google → AI restores original (simple toggle)", async () => {
+  it("scenario 2: page original + Google click → translatePage + Google highlighted", async () => {
     await loadModule();
-
-    // Click Google: start translation
     getGoogleButton().click();
     expect(pageTranslatorMock.translatePage).toHaveBeenCalledOnce();
-
-    // Simulate translation done
-    emitPageLanguageStateChange("translated");
-
-    // Click AI: should restore (toggle off)
-    getAiButton().click();
-    expect(pageTranslatorMock.restorePage).toHaveBeenCalledOnce();
-    expect(pageTranslatorMock.translatePageAi).not.toHaveBeenCalled();
+    expect(isHighlighted(getGoogleButton())).toBe(true);
+    expect(isHighlighted(getOriginalButton())).toBe(false);
   });
 
-  // ──────────────────────────────────────────────────────────────
-  // Behavior 3: AI → AI (restore)
-  // ──────────────────────────────────────────────────────────────
+  // ──────────────────────────────────────────────
+  // Scenario 4: page original → AI click (has key)
+  // ──────────────────────────────────────────────
 
-  it("behavior 3: AI → AI restores original", async () => {
+  it("scenario 4: page original + AI click → translatePageAi + AI highlighted", async () => {
     await loadModule();
-
-    // Click AI: start concurrent Google+AI
     getAiButton().click();
     expect(pageTranslatorMock.translatePageAi).toHaveBeenCalledOnce();
-
-    // Simulate translation done
-    emitPageLanguageStateChange("translated");
-
-    // Click AI again: should restore
-    getAiButton().click();
-    expect(pageTranslatorMock.restorePage).toHaveBeenCalledOnce();
+    expect(isHighlighted(getAiButton())).toBe(true);
+    expect(isHighlighted(getOriginalButton())).toBe(false);
   });
 
-  // ──────────────────────────────────────────────────────────────
-  // Behavior 4: AI → Google (restore, not showGoogleOnly)
-  // ──────────────────────────────────────────────────────────────
+  // ──────────────────────────────────────────────
+  // Scenario 3: page original → AI click (no key)
+  // ──────────────────────────────────────────────
 
-  it("behavior 4: AI → Google restores original (simple toggle)", async () => {
+  it("scenario 3: page original + AI click (no key) → prompt, AI highlighted, no translation", async () => {
+    pageTranslatorMock.translatePageAi.mockReturnValue(false);
     await loadModule();
-
-    // Click AI: start concurrent Google+AI
     getAiButton().click();
-    emitPageLanguageStateChange("translated");
+    expect(pageTranslatorMock.translatePageAi).toHaveBeenCalledOnce();
+    expect(isHighlighted(getAiButton())).toBe(true);
+  });
 
-    // Click Google: should restore (toggle off)
+  // ──────────────────────────────────────────────
+  // Scenario 6: Google displayed + Google highlighted → Google click noop
+  // ──────────────────────────────────────────────
+
+  it("scenario 6: Google displayed + Google click → noop (no restore, no re-translate)", async () => {
+    await loadModule();
     getGoogleButton().click();
-    expect(pageTranslatorMock.restorePage).toHaveBeenCalledOnce();
-  });
-
-  // ──────────────────────────────────────────────────────────────
-  // State reset: pageLanguageState → original resets both buttons
-  // ──────────────────────────────────────────────────────────────
-
-  it("resetting pageLanguageState to original resets both buttons to idle", async () => {
-    Object.defineProperty(HTMLElement.prototype, "clientWidth", {
-      configurable: true,
-      get() {
-        if (this.id === "btnGoogle" || this.id === "btnAi") return 100;
-        return 0;
-      },
-    });
-    await loadModule();
-
     emitPageLanguageStateChange("translated");
-    expect(getGoogleButton().textContent).toBe("Google ✓");
-    expect(getAiButton().textContent).toBe("AI ✓");
-
-    emitPageLanguageStateChange("original");
-    expect(getGoogleButton().textContent).toBe("Google");
-    expect(getAiButton().textContent).toBe("AI");
-  });
-
-  // ──────────────────────────────────────────────────────────────
-  // Full cycle: AI → Google → AI → AI (restore)
-  // ──────────────────────────────────────────────────────────────
-
-  it("full cycle: AI → translate done → Google (restore) → AI → translate done → AI (restore)", async () => {
-    await loadModule();
-
-    // 1. Click AI → translatePageAi
-    getAiButton().click();
-    expect(pageTranslatorMock.translatePageAi).toHaveBeenCalledTimes(1);
-    emitPageLanguageStateChange("translated");
-
-    // 2. Click Google → restore (toggle off)
+    pageTranslatorMock.translatePage.mockClear();
+    pageTranslatorMock.restorePage.mockClear();
     getGoogleButton().click();
+    expect(pageTranslatorMock.restorePage).not.toHaveBeenCalled();
+    expect(pageTranslatorMock.translatePage).not.toHaveBeenCalled();
+    expect(isHighlighted(getGoogleButton())).toBe(true);
+  });
+
+  // ──────────────────────────────────────────────
+  // Scenario 7: Google displayed + Google highlighted → AI click
+  // ──────────────────────────────────────────────
+
+  it("scenario 7: Google displayed + AI click → translatePageAi (Google not re-called)", async () => {
+    await loadModule();
+    getGoogleButton().click();
+    emitPageLanguageStateChange("translated");
+    pageTranslatorMock.translatePage.mockClear();
+    getAiButton().click();
+    expect(pageTranslatorMock.translatePageAi).toHaveBeenCalledOnce();
+    expect(pageTranslatorMock.translatePage).not.toHaveBeenCalled();
+    expect(isHighlighted(getAiButton())).toBe(true);
+  });
+
+  // ──────────────────────────────────────────────
+  // Scenario 12/13: Original click restores
+  // ──────────────────────────────────────────────
+
+  it("scenario 12: AI displayed + Original click → restorePage + Original highlighted", async () => {
+    await loadModule();
+    getAiButton().click();
+    emitPageLanguageStateChange("translated");
+    emitAiRenderStateChange("success");
+    getOriginalButton().click();
     expect(pageTranslatorMock.restorePage).toHaveBeenCalledOnce();
+    expect(isHighlighted(getOriginalButton())).toBe(true);
+  });
 
-    // 3. Page restored → pageLanguageState back to original
-    emitPageLanguageStateChange("original");
+  // ──────────────────────────────────────────────
+  // Scenario 11: AI displayed + Google click → showGoogleOnly, no requests
+  // ──────────────────────────────────────────────
 
-    // 4. Click AI → translatePageAi again
+  it("scenario 11: AI displayed + Google click → showGoogleOnly + Google highlighted", async () => {
+    await loadModule();
+    getAiButton().click();
+    emitPageLanguageStateChange("translated");
+    emitAiRenderStateChange("success");
+    pageTranslatorMock.translatePage.mockClear();
+    getGoogleButton().click();
+    expect(pageTranslatorMock.showGoogleOnly).toHaveBeenCalledOnce();
+    expect(pageTranslatorMock.translatePage).not.toHaveBeenCalled();
+    expect(pageTranslatorMock.restorePage).not.toHaveBeenCalled();
+    expect(isHighlighted(getGoogleButton())).toBe(true);
+  });
+
+  // ──────────────────────────────────────────────
+  // Scenario 16: auto-translate (no intervention) → Google highlighted
+  // ──────────────────────────────────────────────
+
+  it("scenario 16: auto-translate without intervention → Google highlighted (content-driven)", async () => {
+    await loadModule();
+    emitPageLanguageStateChange("translated");
+    expect(isHighlighted(getGoogleButton())).toBe(true);
+    expect(isHighlighted(getOriginalButton())).toBe(false);
+  });
+
+  // ──────────────────────────────────────────────
+  // Scenario 14: intervention + auto-translate event → highlight unchanged
+  // ──────────────────────────────────────────────
+
+  it("scenario 14: after AI click, pageLanguageState translated → AI stays highlighted (click priority)", async () => {
+    await loadModule();
+    getAiButton().click();
+    emitPageLanguageStateChange("translated");
+    expect(isHighlighted(getAiButton())).toBe(true);
+    expect(isHighlighted(getGoogleButton())).toBe(false);
+  });
+
+  // ──────────────────────────────────────────────
+  // Scenario 8: AI in-flight + AI click → noop
+  // ──────────────────────────────────────────────
+
+  it("scenario 8: AI in-flight + AI click → noop (no duplicate request)", async () => {
+    await loadModule();
+    getAiButton().click();
+    emitPageLanguageStateChange("translated");
+    emitAiRenderStateChange("loading");
+    pageTranslatorMock.translatePageAi.mockClear();
+    getAiButton().click();
+    expect(pageTranslatorMock.translatePageAi).not.toHaveBeenCalled();
+    expect(isHighlighted(getAiButton())).toBe(true);
+  });
+
+  // ──────────────────────────────────────────────
+  // Scenario 9: AI failed + AI click → retry
+  // ──────────────────────────────────────────────
+
+  it("scenario 9: AI failed blocks + AI click → retry (translatePageAi called again)", async () => {
+    await loadModule();
+    getAiButton().click();
+    emitPageLanguageStateChange("translated");
+    emitAiRenderStateChange("error");
     pageTranslatorMock.translatePageAi.mockClear();
     getAiButton().click();
     expect(pageTranslatorMock.translatePageAi).toHaveBeenCalledOnce();
-    emitPageLanguageStateChange("translated");
+  });
 
-    // 5. Click AI → restore (toggle off)
-    pageTranslatorMock.restorePage.mockClear();
+  // ──────────────────────────────────────────────
+  // Scenario 10: AI displayed + AI click → noop
+  // ──────────────────────────────────────────────
+
+  it("scenario 10: AI displayed + AI click → noop", async () => {
+    await loadModule();
     getAiButton().click();
+    emitPageLanguageStateChange("translated");
+    emitAiRenderStateChange("success");
+    pageTranslatorMock.translatePageAi.mockClear();
+    getAiButton().click();
+    expect(pageTranslatorMock.translatePageAi).not.toHaveBeenCalled();
+    expect(pageTranslatorMock.restorePage).not.toHaveBeenCalled();
+  });
+
+  // ──────────────────────────────────────────────
+  // Scenario 5: page original + AI highlighted + AI click → translatePageAi
+  // ──────────────────────────────────────────────
+
+  it("scenario 5: page original + AI highlighted (no-key then key configured) + AI click → translatePageAi", async () => {
+    pageTranslatorMock.translatePageAi.mockReturnValue(false);
+    await loadModule();
+    getAiButton().click(); // no-key click: AI highlighted, no translation
+    expect(isHighlighted(getAiButton())).toBe(true);
+    pageTranslatorMock.translatePageAi.mockReturnValue(true);
+    pageTranslatorMock.translatePageAi.mockClear();
+    getAiButton().click(); // now has key: should start AI translation
+    expect(pageTranslatorMock.translatePageAi).toHaveBeenCalledOnce();
+  });
+
+  // ──────────────────────────────────────────────
+  // Scenario 10a: Google displayed + newLine + AI result available + AI click → showAiOnly
+  // ──────────────────────────────────────────────
+
+  it("scenario 10a: Google displayed + AI result available (newLine) + AI click → showAiOnly, zero requests", async () => {
+    pageTranslatorMock.hasAiResults.mockReturnValue(true);
+    await loadModule();
+    getGoogleButton().click();
+    emitPageLanguageStateChange("translated");
+    pageTranslatorMock.translatePageAi.mockClear();
+    getAiButton().click();
+    expect(pageTranslatorMock.translatePageAi).not.toHaveBeenCalled();
+    expect(isHighlighted(getAiButton())).toBe(true);
+  });
+
+  // ──────────────────────────────────────────────
+  // Scenario 15: AI in-flight + Original click → restorePage
+  // ──────────────────────────────────────────────
+
+  it("scenario 15: AI in-flight + Original click → restorePage + Original highlighted", async () => {
+    await loadModule();
+    getAiButton().click();
+    emitPageLanguageStateChange("translated");
+    emitAiRenderStateChange("loading");
+    getOriginalButton().click();
     expect(pageTranslatorMock.restorePage).toHaveBeenCalledOnce();
+    expect(isHighlighted(getOriginalButton())).toBe(true);
+  });
+
+  // ──────────────────────────────────────────────
+  // Scenario 19: external restore (pageLanguageState → original) resets highlight
+  // ──────────────────────────────────────────────
+
+  it("scenario 19: pageLanguageState → original resets highlight to Original", async () => {
+    await loadModule();
+    getGoogleButton().click();
+    emitPageLanguageStateChange("translated");
+    emitPageLanguageStateChange("original");
+    expect(isHighlighted(getOriginalButton())).toBe(true);
+    expect(isHighlighted(getGoogleButton())).toBe(false);
   });
 });

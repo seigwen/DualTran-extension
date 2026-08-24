@@ -207,10 +207,13 @@
     "message": "The file appears to be corrupted"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "Use AI to translate this page"
+    "message": "Show AI translation"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "Use Google to translate this page"
+    "message": "Show Google translation"
+  },
+  "floatingButtonOriginalTooltip": {
+    "message": "Show original text"
   },
   "floatingButtonTooltip": {
     "message": "Click to toggle translation state; drag to move this button"

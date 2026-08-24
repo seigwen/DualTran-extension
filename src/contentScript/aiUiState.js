@@ -151,7 +151,14 @@ export function applyAiTranslatingState(btnAi, {
   }
 }
 
-export function applyAiSuccessState(btnAi, {
+/**
+ * Apply the AI translation result to a block WITHOUT switching the display.
+ * Writes text + status only. Display switching is switchToAiDisplay's job.
+ * This split enables Q5/Q22: when the user switched away from AI while a
+ * request was in-flight, the result is kept (newLine) without stealing the
+ * display; a later AI click re-shows it locally with zero requests.
+ */
+export function applyAiResult(btnAi, {
   translatedText,
   translatedTextColor,
   tooltipText = "AI translated successfully!",
@@ -161,41 +168,18 @@ export function applyAiSuccessState(btnAi, {
 } = {}) {
   if (!btnAi) return;
 
-  // replaceOriginal mode: clear original text nodes when AI translation succeeds.
-  // Only clear text content — do NOT hide parent elements, as restoration may
-  // fail to find matching nodesToRestore entries, leaving parents permanently hidden.
-  try {
-    const blockState = btnAi._st ? btnAi._st() : null;
-    if (blockState && Array.isArray(blockState.nodesToClear) && blockState.nodesToClear.length > 0) {
-      blockState.nodesToClear.forEach((node) => {
-        try {
-          if (node.nodeType === 3) {
-            node.textContent = "";
-          } else if (node.nodeType === 1 && node.style) {
-            node.style.display = "none";
-          }
-        } catch (_) {}
-      });
-    }
-  } catch (_) {}
-
   try {
     if (btnAi.translatedTextNode && btnAi.translatedTextNode.classList) {
       btnAi.translatedTextNode.classList.remove("dualtran-loading");
     }
-    // Dual-span mode: write AI translation to aiSpan, toggle visibility
+    // Dual-span mode: write AI translation to aiSpan (visibility untouched)
     if (btnAi.aiSpan) {
       if (typeof translatedText === "string") {
         btnAi.aiSpan.textContent = translatedText;
       }
-      btnAi.aiSpan.style.display = "block";
-      if (btnAi.googleSpan) {
-        btnAi.googleSpan.style.display = "none";
-      }
     } else if (typeof translatedText === "string" && btnAi.translatedTextNode) {
-      // Legacy single-span mode
+      // Legacy single-span / replaceOriginal mode: write AI text
       btnAi.translatedTextNode.textContent = translatedText;
-      // Un-hide in case a previous "show Google only" hid it (hover-button flow)
       if (btnAi.translatedTextNode.style) {
         btnAi.translatedTextNode.style.display = "";
       }
@@ -227,6 +211,117 @@ export function applyAiSuccessState(btnAi, {
       btnAi.setAttribute("title", titleText);
     } catch (_) {
     }
+  }
+}
+
+/**
+ * Switch the block's display to the AI translation (visibility only).
+ * newLine: show aiSpan, hide googleSpan.
+ * replaceOriginal: clear the original/Google text nodes — the physical act
+ * of "showing AI" in this mode (the AI text is already in translatedTextNode).
+ */
+export function switchToAiDisplay(btnAi) {
+  if (!btnAi) return;
+
+  // replaceOriginal mode: clear original text nodes when AI translation succeeds.
+  // Only clear text content — do NOT hide parent elements, as restoration may
+  // fail to find matching nodesToRestore entries, leaving parents permanently hidden.
+  try {
+    const blockState = btnAi._st ? btnAi._st() : null;
+    if (blockState && Array.isArray(blockState.nodesToClear) && blockState.nodesToClear.length > 0) {
+      blockState.nodesToClear.forEach((node) => {
+        try {
+          if (node.nodeType === 3) {
+            node.textContent = "";
+          } else if (node.nodeType === 1 && node.style) {
+            node.style.display = "none";
+          }
+        } catch (_) {}
+      });
+    }
+  } catch (_) {}
+
+  try {
+    // Dual-span mode: toggle visibility
+    if (btnAi.aiSpan) {
+      btnAi.aiSpan.style.display = "block";
+      if (btnAi.googleSpan) {
+        btnAi.googleSpan.style.display = "none";
+      }
+    }
+  } catch (_) {
+  }
+}
+
+/**
+ * Per-block "show AI only" logic. Called by pageTranslator.showAiOnly() for
+ * each registered block (Q10a/Q17). Local switch only — zero network requests.
+ *
+ * newLine mode (googleSpan/aiSpan present):
+ *   - show aiSpan, hide googleSpan
+ *   - sync displayMode to "ai" (hover-button state machine)
+ *
+ * replaceOriginal mode: NOT supported here — AI text was cleared by
+ * applyShowGoogleOnlyState, so re-showing requires a re-request
+ * (pageTranslator.showAiOnly branches to translatePageAi in that mode).
+ *
+ * Does NOT reset aiStatus — the AI result is already available locally and
+ * must stay reusable (a reset would re-admit the block to the AI loop).
+ */
+export function applyShowAiOnlyState(btnAi) {
+  if (!btnAi) return;
+
+  try {
+    if (btnAi.aiSpan) {
+      btnAi.aiSpan.style.display = "block";
+      if (btnAi.googleSpan) {
+        btnAi.googleSpan.style.display = "none";
+      }
+    }
+  } catch (_) {}
+
+  // Keep the hover-button display state machine in sync: AI takes over the display
+  try {
+    const st = btnAi._st ? btnAi._st() : null;
+    if (st && st.displayMode !== undefined) {
+      st.displayMode = "ai";
+      st.googleBtnState = st.googleBtnState || "idle";
+    }
+  } catch (_) {}
+}
+
+export function applyAiSuccessState(btnAi, options = {}) {
+  applyAiResult(btnAi, options);
+  switchToAiDisplay(btnAi);
+}
+
+/**
+ * Q5 arrival-time check: apply an AI success with knowledge of whether the
+ * user is still in AI mode. Called by the engine when an AI response arrives.
+ *
+ * - aiModeActive=true  → full success (result + display switch)
+ * - aiModeActive=false + newLine → result kept (aiSpan text + status), display
+ *   NOT switched — a later AI click re-shows it locally with zero requests (Q22)
+ * - aiModeActive=false + replaceOriginal → fully discarded: original/Google
+ *   text untouched, status reset to idle so a later AI click re-requests
+ *   (cache-backed, zero token cost) (Q23)
+ */
+export function applyAiSuccessWithModeCheck(btnAi, options = {}, aiModeActive) {
+  if (!btnAi) return;
+  if (aiModeActive) {
+    applyAiSuccessState(btnAi, options);
+    return;
+  }
+  // User switched away from AI while the request was in-flight.
+  const isNewLine = !!btnAi.aiSpan;
+  if (isNewLine) {
+    // Keep the result, don't switch the display (Q22).
+    applyAiResult(btnAi, options);
+  } else {
+    // replaceOriginal: fully discard — result goes to cache only (Q23).
+    // Reset status so the block is re-requestable (cache hit = zero tokens).
+    btnAi.translationStatus = "idle";
+    btnAi.translationId = "";
   }
 }
 

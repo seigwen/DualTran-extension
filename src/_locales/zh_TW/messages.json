@@ -201,10 +201,13 @@
     "message": "這個檔案似乎毀損了"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "使用 AI 翻譯頁面"
+    "message": "顯示 AI 譯文"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "使用 Google 翻譯頁面"
+    "message": "顯示 Google 譯文"
+  },
+  "floatingButtonOriginalTooltip": {
+    "message": "顯示原文"
   },
   "floatingButtonTooltip": {
     "message": "點擊可切換翻譯狀態；拖曳可變更此按鈕位置"
