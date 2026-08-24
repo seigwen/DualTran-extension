@@ -210,6 +210,14 @@ function hasCustomTranslatedColor() {
 }
 
 function applyTranslatedColorToNode(node) {
+  // 译文颜色规则：when whereToDisplayTranslatedText is "replaceOriginal"
+  // (用译文替换原文), the translation color MUST be the original text color —
+  // never apply the options-page "谷歌译文颜色" (translatedColor) to the
+  // in-place Google translation. Only newLine mode ("在新行显示译文") applies
+  // translatedColor / aiTranslatedColor. See CLAUDE.md "Translation Invariants".
+  if (twpConfig.get("whereToDisplayTranslatedText") === "replaceOriginal") {
+    return
+  }
   if (!hasCustomTranslatedColor() || !node?.style) {
     return
   }
