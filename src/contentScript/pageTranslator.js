@@ -210,6 +210,15 @@ function hasCustomTranslatedColor() {
 }
 
 function applyTranslatedColorToNode(node) {
+  // Translation color rule: when whereToDisplayTranslatedText is "replaceOriginal"
+  // (replace original text with translation), the translation color MUST be the
+  // original text color — never apply the options-page "Google translation color"
+  // (translatedColor) to the in-place Google translation. Only newLine mode
+  // (show translation on a new line) applies translatedColor / aiTranslatedColor.
+  // See CLAUDE.md "Translation Invariants" for the full rule.
+  if (twpConfig.get("whereToDisplayTranslatedText") === "replaceOriginal") {
+    return
+  }
   if (!hasCustomTranslatedColor() || !node?.style) {
     return
   }

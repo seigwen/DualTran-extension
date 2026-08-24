@@ -143,6 +143,12 @@ Content Script (fetchSSE.js)
 
 **RULE: Every content block must have at most 1 `<translated>` element.** This is a hard invariant — any violation indicates a feedback loop (translation output being re-translated). All translation tests (jsdom + E2E) must assert this after any translation operation.
 
+**RULE: 译文颜色规则（translation color rule）—— 颜色只由"译文显示位置"决定：**
+- 当 `whereToDisplayTranslatedText` 配置项的值为 **`replaceOriginal`（"用译文替换原文"）** 时，译文颜色为**原文颜色**——Google 译文和 AI 译文都不得应用 options 页的"谷歌译文颜色"（`translatedColor`）或"AI 译文颜色"（`aiTranslatedColor`）。
+- 当 `whereToDisplayTranslatedText` 配置项的值为 **`newLine`（"在新行显示译文"）** 时，译文颜色遵循 options 页配置项"谷歌译文颜色"（`translatedColor`）和"AI 译文颜色"（`aiTranslatedColor`）。
+- 实现位置：`applyTranslatedColorToNode()`（pageTranslator.js）在 replaceOriginal 模式下必须跳过；`_applyAiColorToTranslatedElement()` 已有 replaceOriginal 跳过逻辑（通过 `nodesToClear` 非空判断），不得移除。
+- 测试：任何颜色相关测试必须同时覆盖两种模式（模式对称性规则）。
+
 **PR Checklist for translation core changes** (MutationObserver callback, `updatePiecesToTranslateWithNewNodes`, `getPiecesToTranslate`, `addTranslatedContent`, `translateDynamically`):
 - [ ] New/modified tests cover "translation output is not re-translated" scenario
 - [ ] `assertNoDuplicateTranslations` E2E assertion still passes
