@@ -705,3 +705,85 @@ describe("AI 翻译 → sessionStorage 标记 — 行为验证", () => {
     expect(sessionStorage.getItem("dualtran:aiApplied:" + url)).toBeNull();
   });
 });
+
+describe("译文颜色规则对称性：_applyAiColorToTranslatedElement（issue #21 P1-2）", () => {
+  // 规则：replaceOriginal 模式 → 译文颜色 = 原文颜色（不得应用配置颜色）
+  // 实现点：_applyAiColorToTranslatedElement（pageTranslator.js，nodesToClear 非空判断）
+  // 本测试直接锁定该实现点的 replaceOriginal 跳过逻辑。
+
+  beforeEach(() => {
+    vi.resetModules();
+    const dom = new JSDOM("<!DOCTYPE html><html><head></head><body></body></html>", {
+      url: "https://example.com/article",
+    });
+    globalThis.window = dom.window;
+    globalThis.document = dom.window.document;
+    globalThis.location = dom.window.location;
+    Object.defineProperty(globalThis, "navigator", {
+      configurable: true,
+      writable: true,
+      value: dom.window.navigator,
+    });
+    globalThis.alert = vi.fn();
+    globalThis.prompt = vi.fn();
+    globalThis.confirm = vi.fn(() => false);
+    globalThis.chrome = {
+      runtime: { sendMessage: vi.fn() },
+      i18n: { getMessage: vi.fn(() => "") },
+    };
+  });
+
+  it("replaceOriginal 模式（nodesToClear 非空）：不得应用 AI 译文颜色", async () => {
+    const { _applyAiColorToTranslatedElement } = await import("../../src/contentScript/pageTranslator.js");
+
+    const translatedElement = document.createElement("translated");
+    document.body.appendChild(translatedElement);
+
+    const btnAi = {
+      aiSpan: null, // replaceOriginal 模式无 aiSpan
+      translatedTextNode: translatedElement,
+      _st: () => ({ nodesToClear: [document.createTextNode("original")] }),
+    };
+
+    _applyAiColorToTranslatedElement(btnAi, "#FF0000");
+
+    expect(translatedElement.style.color).toBe("");
+  });
+
+  it("newLine 模式（aiSpan 存在）：应用 AI 译文颜色到 aiSpan", async () => {
+    const { _applyAiColorToTranslatedElement } = await import("../../src/contentScript/pageTranslator.js");
+
+    const aiSpan = document.createElement("span");
+    aiSpan.className = "dualtran-ai";
+    document.body.appendChild(aiSpan);
+
+    const btnAi = {
+      aiSpan,
+      translatedTextNode: document.createElement("span"),
+      _st: () => ({ nodesToClear: null }),
+    };
+
+    _applyAiColorToTranslatedElement(btnAi, "#FF0000");
+
+    expect(aiSpan.style.color).toBe("rgb(255, 0, 0)");
+  });
+
+  it("newLine 模式（无 aiSpan，nodesToClear 为空）：向上找到 <translated> 应用颜色", async () => {
+    const { _applyAiColorToTranslatedElement } = await import("../../src/contentScript/pageTranslator.js");
+
+    const translatedElement = document.createElement("translated");
+    document.body.appendChild(translatedElement);
+    const textNode = document.createTextNode("text");
+    translatedElement.appendChild(textNode);
+
+    const btnAi = {
+      aiSpan: null,
+      translatedTextNode: textNode,
+      _st: () => ({ nodesToClear: null }),
+    };
+
+    _applyAiColorToTranslatedElement(btnAi, "#FF0000");
+
+    expect(translatedElement.style.color).toBe("rgb(255, 0, 0)");
+  });
+});

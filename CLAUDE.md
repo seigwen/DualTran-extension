@@ -148,6 +148,7 @@ Content Script (fetchSSE.js)
 - 当 `whereToDisplayTranslatedText` 配置项的值为 **`newLine`（"在新行显示译文"）** 时，译文颜色遵循 options 页配置项"谷歌译文颜色"（`translatedColor`）和"AI 译文颜色"（`aiTranslatedColor`）。
 - 实现位置：`applyTranslatedColorToNode()`（pageTranslator.js）在 replaceOriginal 模式下必须跳过；`_applyAiColorToTranslatedElement()` 已有 replaceOriginal 跳过逻辑（通过 `nodesToClear` 非空判断），不得移除。
 - 测试：任何颜色相关测试必须同时覆盖两种模式（模式对称性规则）。
+- **实现点清单（规则对称性）**：`applyTranslatedColorToNode`（Google 侧，PR #20 已加守卫）、`_applyAiColorToTranslatedElement`（AI 侧，已有守卫）、`applyAiTranslatedTextColor`（aiUiState.js，`data-dualtran-block` 检测）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 
 **PR Checklist for translation core changes** (MutationObserver callback, `updatePiecesToTranslateWithNewNodes`, `getPiecesToTranslate`, `addTranslatedContent`, `translateDynamically`):
 - [ ] New/modified tests cover "translation output is not re-translated" scenario

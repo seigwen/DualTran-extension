@@ -120,3 +120,19 @@ jobs:
 
     - name: Check for accidental Chinese in source (hard failure)
       run: node scripts/check-no-chinese.js
+
+  test-architecture-check:
+    name: Test Architecture Checks (hard failure)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Assertion strength (no false-green / no-assertion tests)
+      run: node scripts/check-assertion-strength.js
+
+    - name: Mode symmetry (newLine/replaceOriginal + color matrix)
+      run: node scripts/check-mode-symmetry.mjs
+
+    - name: Rule symmetry (implementation points have test references)
+      run: node scripts/check-rule-symmetry.js
