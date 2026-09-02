@@ -46,6 +46,7 @@ describe("commented handler detection", () => {
       }
     }
 
+    // assertion-strength-allow: 负向断言（无违规时 expect.fail 不执行，属正常）
     if (commentedHandlers.length > 0) {
       const details = commentedHandlers
         .map((h) => `  Line ${h.line}: #${h.id} — ${h.text}`)
