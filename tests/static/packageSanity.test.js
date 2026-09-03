@@ -124,6 +124,7 @@ describe("manifest.json sanity", () => {
     it("content_scripts entries reference existing files", () => {
       if (!manifest.content_scripts) return;
       for (const cs of manifest.content_scripts) {
+        // assertion-strength-allow: 可选字段（manifest 允许省略），存在时才验证
         if (cs.js) {
           for (const jsFile of cs.js) {
             const relativePath = jsFile.replace(/^\//, "");

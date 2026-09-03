@@ -1437,7 +1437,11 @@ describe("replaceOriginal 模式 — 重复翻译元素防护", () => {
     expect(aiSpansAfterFirst.length).toBe(1);
 
     // Step 2: 模拟 observer 拾取 <font> 元素
+    // 前置断言：font 元素必须存在（showOriginal 启用时 encapsulate 生成），
+    // 否则后续断言全部跳过 = 假绿
     const fontNode = p.querySelector("font");
+    expect(fontNode, "font element must exist (showOriginal encapsulate)").not.toBeNull();
+    // assertion-strength-allow: 前置断言已保证 fontNode 非空，此 if 是防御性守卫
     if (fontNode) {
       const newNodes = getNewNodes();
       newNodes.push(fontNode);

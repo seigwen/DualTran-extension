@@ -5,7 +5,7 @@ export const ERROR_CROSS_COLOR = "#dc2626";
 export const AI_SUCCESS_CHECK_CLASS = "dualtran-ai-success-check";
 export const AI_ERROR_CROSS_CLASS = "dualtran-ai-error-cross";
 
-function applyAiTranslatedTextColor(btnAi, translatedTextColor) {
+export function applyAiTranslatedTextColor(btnAi, translatedTextColor) {
   const aiTranslatedColor = translatedTextColor;
   if (["", "rgba(0, 0, 0, 1)", undefined, null].includes(aiTranslatedColor)) {
     return;

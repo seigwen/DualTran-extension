@@ -69,6 +69,67 @@ tests/
 - 替代旧的 `assertNoDuplicateTranslations(page)`（仅检查 `<translated>` 元素，对 replaceOriginal 无效）
 - E2E 矩阵测试：`observer-feedback-loop.mjs` 覆盖 {newLine, replaceOriginal} × {showOriginal=yes, no}
 
+### 断言强度分级（Assertion Strength Ladder）
+
+**任何测试断言必须无条件执行。禁止条件包裹 expect 的假绿模式。**
+
+| 级别 | 模式 | 状态 | 规则 |
+|---|---|---|---|
+| L0 | 无断言 | ❌ 禁止 | 测试必须至少有一个断言 |
+| L1 | 条件断言 `if (x) { expect(...) }` | ❌ 禁止 | 假绿模式，`check-assertion-strength.js` CI 强制 |
+| L2 | 无条件断言 | ✅ 最低要求 | 功能测试标准 |
+| L3 | 负向不变量断言 | ✅ 呈现测试要求 | 样式/呈现类测试必须达到 |
+| L4 | computed style 断言（真实渲染） | ✅ E2E 要求 | 浏览器层验证 |
+
+**豁免机制**：合法条件断言（可选字段验证、数据驱动分支、负向断言、条件测试注册）在 if 行或上一行加 `// assertion-strength-allow` 注释。
+
+**CI 检查**：`node scripts/check-assertion-strength.js`（hard failure）。
+
+### 样式断言分层（Style Assertion Layering）
+
+**任何样式相关 bug 修复必须同时加 jsdom inline 断言 + E2E computed 断言。单层断言不满足要求。**
+
+| 层 | 位置 | 断言方式 | 可靠性 | 用途 |
+|---|---|---|---|---|
+| 单元层 | jsdom | `el.style.color`（inline style） | 可靠 | 锁定代码行为 |
+| 集成层 | E2E | `getComputedStyle(el).color` | 真实浏览器 | 锁定用户可见行为 |
+| 视觉层（长期） | Playwright screenshot diff | `toHaveScreenshot` | 最真实 | 捕获布局/颜色回归 |
+
+**jsdom 假绿陷阱**：纯文本节点没有 `.style`，对 `textNode` 断言颜色必然通过。样式断言必须落在**元素节点**上（`<font>`、`<b>`、`<translated>` 等）。
+
+### 样式不变量（负向断言）
+
+翻译操作不应：
+- 改变未翻译节点的样式
+- 应用配置外的颜色（replaceOriginal 模式不得应用 translatedColor/aiTranslatedColor）
+- 改变原文节点的字体/大小/布局
+
+**规则：每个翻译成功测试必须至少一个负向断言。**
+
+### 测试意图审查
+
+**测试名必须描述期望行为，而非实现细节。**
+
+- ❌ "replaceOriginal 模式：translateResults 应正确调用 applyTranslatedColorToNode"（实现）
+- ✅ "replaceOriginal 模式：Google 译文不应应用'谷歌译文颜色'"（行为）
+
+### jsdom 限制 → E2E 映射
+
+`it.todo` 记录 jsdom 限制（如 getComputedStyle 不可靠）必须关联对应的 E2E 测试。禁止 todo 永久化——todo 必须关联 issue 或 E2E 测试文件。
+
+### 呈现测试维度（Presentation Test Dimension）
+
+测试体系显式区分两个维度：
+
+| 维度 | 功能测试 | 呈现测试 |
+|---|---|---|
+| 问题 | 翻译是否发生 | 翻译是否按规范呈现 |
+| 断言 | 文本替换、元素创建 | 颜色、字体、布局、可见性 |
+| 位置 | jsdom 单元 + E2E | jsdom inline + E2E computed + 视觉回归（长期） |
+| 规则 | 模式对称性 | 模式对称性 + 配置矩阵 + 断言强度 |
+
+**规则：任何翻译行为变更（新增/修改/删除）必须同时评估两个维度。只测功能不测呈现的 PR 不得合并。**
+
 ### 通用规则
 
 1. **jsdom integration tests** — after calling `addTranslatedContent` or `translateResults`, assert element count invariant (#1).

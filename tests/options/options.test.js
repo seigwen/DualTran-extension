@@ -818,6 +818,7 @@ describe("options/options", () => {
       // 断言 1: DOM 元素存在（若 HTML 被注释掉则 FAIL）
       expect(el, `#${ctrl.id} should exist in DOM`).not.toBeNull();
 
+      // assertion-strength-allow: 数据驱动分支测试（每种控件类型有独立断言）
       if (ctrl.type === "checkbox") {
         // Checkbox: 切换 checked 状态
         el.checked = ctrl.testValue === "yes";

@@ -57,6 +57,7 @@ describeIfBuilt("dist/chrome file references all resolve", () => {
 
   it("popup HTML exists", () => {
     const m = readDistManifest();
+    // assertion-strength-allow: 可选字段（manifest 允许省略），存在时才验证
     if (m.action?.default_popup) {
       expectDistFile(m.action.default_popup, "action.default_popup");
     }
@@ -64,6 +65,7 @@ describeIfBuilt("dist/chrome file references all resolve", () => {
 
   it("default_icon exists", () => {
     const m = readDistManifest();
+    // assertion-strength-allow: 可选字段（manifest 允许省略），存在时才验证
     if (typeof m.action?.default_icon === "string") {
       expectDistFile(m.action.default_icon, "action.default_icon");
     }
@@ -71,6 +73,7 @@ describeIfBuilt("dist/chrome file references all resolve", () => {
 
   it("options page exists", () => {
     const m = readDistManifest();
+    // assertion-strength-allow: 可选字段（manifest 允许省略），存在时才验证
     if (m.options_ui?.page) {
       expectDistFile(m.options_ui.page, "options_ui.page");
     }
@@ -85,6 +88,7 @@ describeIfBuilt("dist/chrome file references all resolve", () => {
 
   it("default_locale messages.json exists", () => {
     const m = readDistManifest();
+    // assertion-strength-allow: 可选字段（manifest 允许省略），存在时才验证
     if (m.default_locale) {
       const messagesPath = path.join(DIST_DIR, "_locales", m.default_locale, "messages.json");
       expect(fs.existsSync(messagesPath), `missing ${messagesPath}`).toBe(true);

@@ -193,18 +193,21 @@ describe("manifest file references exist in src/", () => {
   });
 
   it("action popup file exists", () => {
+    // assertion-strength-allow: 可选字段（manifest 允许省略），存在时才验证
     if (manifest.action?.default_popup) {
       expectFileExists(manifest.action.default_popup, "action.default_popup");
     }
   });
 
   it("action default_icon file exists", () => {
+    // assertion-strength-allow: 可选字段（manifest 允许省略），存在时才验证
     if (typeof manifest.action?.default_icon === "string") {
       expectFileExists(manifest.action.default_icon, "action.default_icon");
     }
   });
 
   it("options_ui page file exists", () => {
+    // assertion-strength-allow: 可选字段（manifest 允许省略），存在时才验证
     if (manifest.options_ui?.page) {
       expectFileExists(manifest.options_ui.page, "options_ui.page");
     }

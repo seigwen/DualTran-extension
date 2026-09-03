@@ -7,6 +7,7 @@ import {
   SUCCESS_CHECK_COLOR,
   applyAiErrorState,
   applyAiSuccessState,
+  applyAiTranslatedTextColor,
   applyAiTranslatingState,
   applyGoogleIdle,
   applyGoogleSuccess,
@@ -195,5 +196,66 @@ describe("block state transitions (pure functions)", () => {
     expect(state.googleBtnState).toBe("idle");
     // displayMode should NOT change
     expect(state.displayMode).toBe("google");
+  });
+});
+
+describe("译文颜色规则对称性（issue #21 P1-2）", () => {
+  // 规则：replaceOriginal 模式 → 译文颜色 = 原文颜色（不得应用配置颜色）
+  // 实现点：applyAiTranslatedTextColor（aiUiState.js，data-dualtran-block 检测）
+  // 本测试直接锁定该实现点的 replaceOriginal 跳过逻辑。
+
+  function makeReplaceOriginalBtn() {
+    const document = new JSDOM(
+      '<button><span class="translated"></span></button>'
+    ).window.document;
+    const btn = document.querySelector("button");
+    const translatedTextNode = btn.querySelector(".translated");
+    btn.translatedTextNode = translatedTextNode;
+    // replaceOriginal 模式：AI span 的祖先带 data-dualtran-block 属性
+    const container = document.createElement("div");
+    container.dataset.dualtranBlock = "true";
+    container.appendChild(btn);
+    document.body.appendChild(container);
+    return { btn, translatedTextNode };
+  }
+
+  function makeNewLineBtn() {
+    const document = new JSDOM(
+      '<button><span class="translated"></span></button>'
+    ).window.document;
+    const btn = document.querySelector("button");
+    const translatedTextNode = btn.querySelector(".translated");
+    btn.translatedTextNode = translatedTextNode;
+    btn.aiSpan = document.createElement("span");
+    btn.aiSpan.className = "dualtran-ai";
+    btn.appendChild(btn.aiSpan);
+    return { btn, translatedTextNode };
+  }
+
+  it("replaceOriginal 模式：applyAiTranslatedTextColor 不得应用 AI 译文颜色（原文颜色）", () => {
+    const { btn, translatedTextNode } = makeReplaceOriginalBtn();
+
+    applyAiTranslatedTextColor(btn, "#FF0000");
+
+    expect(translatedTextNode.style.color).toBe("");
+  });
+
+  it("newLine 模式：applyAiTranslatedTextColor 应用 AI 译文颜色到 aiSpan", () => {
+    const { btn, translatedTextNode } = makeNewLineBtn();
+
+    applyAiTranslatedTextColor(btn, "#FF0000");
+
+    expect(btn.aiSpan.style.color).toBe("rgb(255, 0, 0)");
+    // 原文节点不受影响
+    expect(translatedTextNode.style.color).toBe("");
+  });
+
+  it("空颜色值：applyAiTranslatedTextColor 直接返回（不染色）", () => {
+    const { btn, translatedTextNode } = makeNewLineBtn();
+
+    applyAiTranslatedTextColor(btn, "");
+
+    expect(btn.aiSpan.style.color).toBe("");
+    expect(translatedTextNode.style.color).toBe("");
   });
 });
