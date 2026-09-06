@@ -168,6 +168,12 @@ Content Script (fetchSSE.js)
 - [ ] 涉及 SPA 导航？E2E 是否断言了导航后状态一致性？（`assertUiStateMatchesEngine`）
 - [ ] 初始化是否从引擎状态派生（`resolveInitialUiState`），而非硬编码？（`check-ui-state-init.js` CI 强制）
 
+**UI 状态架构原则（计划文档 08-ui-state-ssot-plan.md）：**
+- **SSOT**：UI 状态（highlight/displayMode/intervention/inFlight）唯一事实源是 `uiStateStore`，禁止闭包持有状态副本。floatingBtn 等组件是纯渲染器，从 `getState()` 读取。
+- **Watchdog**：引擎驱动状态必须可自愈（不一致时 setState 纠正）；用户选择状态（intervention=true）必须保留，watchdog 不得干预。
+- **状态机**：状态转换必须通过显式合法表，非法转换（如 pageLanguageState=original 时 highlight=ai）在开发/测试期报错。
+- **变更日志**：所有 setState 记录（时间戳/来源/调用栈/前后快照），`dumpLog()` 可导出，诊断状态 bug 的第一工具。
+
 **Known blind spot:** replaceOriginal mode AI text nodes (inside `.dualtran-aitranslatedtext-replacemode` spans) are NOT inside `<translated>` elements, so `isDescendantOfTranslated` does not catch them. The `addTranslatedContent` last defense also doesn't apply since replaceOriginal mode uses `translateResults`. This is a known limitation — verify via E2E if affected.
 
 ### i18n
