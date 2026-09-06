@@ -39,7 +39,8 @@
     "i18n:sync": "node scripts/sync-locales.js --prune-extras",
     "i18n:apply": "node scripts/apply-i18n-translations.js",
     "i18n:verify": "node scripts/check-i18n-equals-en.js --strict",
-    "map": "npm merge-source-maps --inline-sources --inline-source-map all.min.js"
+    "map": "npm merge-source-maps --inline-sources --inline-source-map all.min.js",
+    "verify": "bash scripts/pre-push-verify.sh"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^4.0.117",
