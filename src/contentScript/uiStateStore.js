@@ -46,11 +46,37 @@ const changeLog = []; // { ts, source, patch, before, after }
 const subscribers = new Set();
 
 /**
- * Resolve what the UI state MUST be when no user intervention happened.
- * Mirrors resolveInitialUiState in floatingBtnClickResolver.js (single
- * derivation rule — keep in sync).
+ * Resolve what the UI state MUST be when no user intervention happened
+ * (live event arbitration, conservative — mirrors floatingBtn's event
+ * callback semantics):
+ *
+ *   - pageLanguageState === "original" → Original
+ *   - pageLanguageState === "translated" → Google
+ *
+ * AI highlight is strictly a user choice (intervention=true, click on AI).
+ * Live events never drive highlight to ai — the auto-translate path
+ * highlights Google even when an AI result arrives (Q5: engine applies
+ * the result via aiModeActive but the button stays Google until the user
+ * clicks AI). Deriving ai here would change existing behavior.
  */
-function deriveExpectedUi(engine) {
+function deriveEngineDrivenUi(engine) {
+  const mode = engine.pageLanguageState === "translated" ? "google" : "original";
+  return { highlight: mode, displayMode: mode };
+}
+
+/**
+ * Resolve the initial UI state after an SPA rebuild (resetForRebuild).
+ * Full derivation INCLUDING the AI flow: on rebuild the page may already
+ * show AI translations (user clicked AI before navigating), and the
+ * rebuilt button group must restore that. Mirrors resolveInitialUiState
+ * in floatingBtnClickResolver.js (keep in sync):
+ *
+ *   - page untranslated → Original
+ *   - translated + AI flow started (aiRenderState !== "idle" AND
+ *     aiModeActive) → AI
+ *   - translated + otherwise → Google
+ */
+function deriveRebuildUi(engine) {
   const aiFlowStarted = engine.aiRenderState !== "idle" && engine.aiModeActive;
   const mode =
     engine.pageLanguageState === "translated"
@@ -74,12 +100,13 @@ function pushLog(source, patch, before, after) {
 
 /**
  * Watchdog arbitration (L2): when the user has NOT intervened, the UI
- * highlight/displayMode must match the engine-derived expectation.
+ * highlight/displayMode must match the engine-driven expectation
+ * (conservative — AI highlight is a user choice, never derived live).
  * Returns the corrected patch (empty when consistent).
  */
 function arbitrateEngineDrivenState(state) {
   if (state.intervention) return {};
-  const expected = deriveExpectedUi(state);
+  const expected = deriveEngineDrivenUi(state);
   const patch = {};
   if (state.highlight !== expected.highlight) {
     patch.highlight = expected.highlight;
@@ -161,7 +188,7 @@ export function resetForRebuild() {
   uiState.intervention = false;
   uiState.googleInFlight = false;
   uiState.aiInFlight = false;
-  const { highlight, displayMode } = deriveExpectedUi(engineState);
+  const { highlight, displayMode } = deriveRebuildUi(engineState);
   uiState.highlight = highlight;
   uiState.displayMode = displayMode;
   pushLog("resetForRebuild", { reset: true }, uiState, uiState);
