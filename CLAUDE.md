@@ -150,6 +150,13 @@ Content Script (fetchSSE.js)
 - 测试：任何颜色相关测试必须同时覆盖两种模式（模式对称性规则）。
 - **实现点清单（规则对称性）**：`applyTranslatedColorToNode`（Google 侧，PR #20 已加守卫）、`_applyAiColorToTranslatedElement`（AI 侧，已有守卫）、`applyAiTranslatedTextColor`（aiUiState.js，`data-dualtran-block` 检测）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 
+**RULE: SPA 导航重建状态规则（UI rebuild state rule）—— 悬浮按钮重建时必须从 pageTranslator 实时状态初始化，不得硬编码初始态：**
+- 场景：GitHub (Turbo Drive) 等 SPA 站点，页面已翻译后导航再回退，floatingBtn host 随 body 被替换 → `floatingBtn.show()` 重建新闭包。
+- pageTranslator 的状态（`pageLanguageState`/`pageRenderState`/`aiRenderState`/`aiModeActive`）在 SPA 导航中**保留且不广播事件**（状态无变化不触发 observer），所以重建的按钮组必须通过 getter（`getPageLanguageState`/`getPageRenderState`/`getAiRenderState`/`getAiModeActive`）查询实时状态。
+- 初始化规则：`pageLanguageState === "translated"` 时 `highlight` 与 `displayMode` 应为 `aiModeActive && aiRenderState !== "idle" ? "ai" : "google"`（aiModeActive 默认 true，必须叠加 aiRenderState 判定）；`lastPageLanguageState` guard 必须同步初始化为 live 状态，否则下一次 "original" 事件会错误穿透 guard。
+- 实现点清单（规则对称性）：`getPageLanguageState`、`getPageRenderState`、`getAiRenderState`、`getAiModeActive` 四个 getter。floatingBtn.js show() 内的 liveLanguageState / liveAiRenderState / liveAiModeActive / lastPageLanguageState 为闭包局部实现细节，由 floatingBtn.behavior.test.js 两个 SPA rebuild 场景 + E2E navigation-recovery.mjs Scene 5 的行为断言覆盖。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- 测试：jsdom `floatingBtn.behavior.test.js`（SPA back-nav rebuild 高亮保持 Google/AI）+ E2E `navigation-recovery.mjs` Scene 5（真实浏览器 Google 高亮回归）。
+
 **PR Checklist for translation core changes** (MutationObserver callback, `updatePiecesToTranslateWithNewNodes`, `getPiecesToTranslate`, `addTranslatedContent`, `translateDynamically`):
 - [ ] New/modified tests cover "translation output is not re-translated" scenario
 - [ ] `assertNoDuplicateTranslations` E2E assertion still passes
