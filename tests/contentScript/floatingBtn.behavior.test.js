@@ -45,6 +45,10 @@ const {
     stopAiAutoTranslate: vi.fn(),
     setAiModeActive: vi.fn(),
     hasAiResults: vi.fn(() => false),
+    getPageLanguageState: vi.fn(() => "original"),
+    getPageRenderState: vi.fn(() => "idle"),
+    getAiRenderState: vi.fn(() => "idle"),
+    getAiModeActive: vi.fn(() => true),
     onPageLanguageStateChange: vi.fn((callback) => {
       pageTranslatorCallbacks.onPageLanguageStateChange.push(callback);
     }),
@@ -148,6 +152,14 @@ describe("floatingBtn — three-state behavior", () => {
     pageTranslatorMock.setAiModeActive.mockReset();
     pageTranslatorMock.hasAiResults.mockReset();
     pageTranslatorMock.hasAiResults.mockReturnValue(false);
+    pageTranslatorMock.getPageLanguageState.mockReset();
+    pageTranslatorMock.getPageLanguageState.mockReturnValue("original");
+    pageTranslatorMock.getPageRenderState.mockReset();
+    pageTranslatorMock.getPageRenderState.mockReturnValue("idle");
+    pageTranslatorMock.getAiRenderState.mockReset();
+    pageTranslatorMock.getAiRenderState.mockReturnValue("idle");
+    pageTranslatorMock.getAiModeActive.mockReset();
+    pageTranslatorMock.getAiModeActive.mockReturnValue(true);
     pageTranslatorMock.onPageLanguageStateChange.mockClear();
     pageTranslatorMock.onPageRenderStateChange.mockClear();
     pageTranslatorMock.onAiRenderStateChange.mockClear();
@@ -443,8 +455,78 @@ describe("floatingBtn — three-state behavior", () => {
     await loadModule();
     getGoogleButton().click();
     emitPageLanguageStateChange("translated");
+    expect(isHighlighted(getGoogleButton())).toBe(true);
     emitPageLanguageStateChange("original");
     expect(isHighlighted(getOriginalButton())).toBe(true);
+  });
+
+  // ──────────────────────────────────────────────
+  // Bug: SPA 导航后退后重建，高亮重置为 Original（用户报告）
+  // 场景：页面已 Google 翻译（pageLanguageState="translated"），
+  //       用户 SPA 导航到别页再后退（popstate → host 重建），
+  //       Google 译文自动恢复，但重建后的按钮组高亮错误地回到 Original。
+  // ──────────────────────────────────────────────
+
+  it("bug: SPA back-nav rebuild after Google translation → Google stays highlighted", async () => {
+    await loadModule();
+    // 用户点 Google → 翻译完成 → Google 高亮
+    getGoogleButton().click();
+    emitPageLanguageStateChange("translated");
+    emitPageRenderStateChange("success");
+    expect(isHighlighted(getGoogleButton())).toBe(true);
+
+    // 模拟 SPA 导航（Turbo 替换 body，floatingBtn host 被移除）
+    const originalHost = getHost();
+    originalHost.remove();
+    expect(getHost()).toBeNull();
+
+    // pageTranslator 侧状态仍是 translated（SPA 不重置）
+    pageTranslatorMock.getPageLanguageState.mockReturnValue("translated");
+    pageTranslatorMock.getPageRenderState.mockReturnValue("success");
+    // 用户点过 Google 按钮 → aiModeActive=false（Q5：setAiModeActive(false)）
+    pageTranslatorMock.getAiModeActive.mockReturnValue(false);
+
+    // 后退 → popstate → host 重建
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    vi.advanceTimersByTime(250);
+    await flushMicrotasks();
+
+    // 重建成功
+    expect(getHost()).not.toBeNull();
+    expect(getHost()).not.toBe(originalHost);
+    // Google 译文自动恢复（MutationObserver 路径，pageTranslator 广播 render success）
+    emitPageRenderStateChange("success");
+
+    // 用户症状：页面是 Google 译文，但按钮高亮应该是 Google
+    expect(isHighlighted(getGoogleButton())).toBe(true);
+    expect(isHighlighted(getOriginalButton())).toBe(false);
+  });
+
+  it("bug: SPA back-nav rebuild after AI translation → AI stays highlighted", async () => {
+    await loadModule();
+    // 用户点 Google → AI → Google+AI 翻译完成 → AI 高亮
+    getGoogleButton().click();
+    emitPageLanguageStateChange("translated");
+    getAiButton().click();
+    emitAiRenderStateChange("success");
+    expect(isHighlighted(getAiButton())).toBe(true);
+
+    // SPA 导航：host 移除
+    const originalHost = getHost();
+    originalHost.remove();
+
+    // pageTranslator 侧状态仍是 translated + AI success
+    pageTranslatorMock.getPageLanguageState.mockReturnValue("translated");
+    pageTranslatorMock.getAiRenderState.mockReturnValue("success");
+    pageTranslatorMock.getPageRenderState.mockReturnValue("success");
+
+    // 后退 → popstate → 重建
+    window.dispatchEvent(new PopStateEvent("popstate"));
+    vi.advanceTimersByTime(250);
+    await flushMicrotasks();
+
+    // 用户症状：页面 AI 译文恢复，AI 按钮应高亮
+    expect(isHighlighted(getAiButton())).toBe(true);
     expect(isHighlighted(getGoogleButton())).toBe(false);
   });
 });

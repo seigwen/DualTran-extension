@@ -256,13 +256,47 @@ if (window.self !== window.top) {
     let currentFloatingBtnWidth = twpConfig.get("floatingBtnWidth");
     let suppressNextClick = false;
     // Three-state model state (Q28 behavior table)
-    let highlight = "original"; // "original" | "google" | "ai" — user selection
-    let displayMode = "original"; // what the page actually shows: "original" | "google" | "ai"
+    // On re-show (SPA navigation rebuild), initialize from pageTranslator's
+    // live state instead of hardcoding "original". pageTranslator's state
+    // survives SPA navigation (same page context) while this module's closure
+    // state does not, so without this the rebuilt button group would show
+    // "Original" highlighted on a page that is actually translated (bug:
+    // GitHub Turbo back-nav leaves Google translation on page but highlights
+    // Original button).
+    const liveLanguageState = pageTranslator.getPageLanguageState
+      ? pageTranslator.getPageLanguageState()
+      : "original";
+    const livePageRenderState = pageTranslator.getPageRenderState
+      ? pageTranslator.getPageRenderState()
+      : "idle";
+    const liveAiRenderState = pageTranslator.getAiRenderState
+      ? pageTranslator.getAiRenderState()
+      : "idle";
+    const liveAiModeActive = pageTranslator.getAiModeActive
+      ? pageTranslator.getAiModeActive()
+      : true;
+    // Rebuild after SPA navigation: page may already be translated (Google
+    // and/or AI), so highlight must reflect what the user was last viewing.
+    // - page untranslated → Original
+    // - translated + AI flow started (user clicked AI at some point) → AI
+    //   aiModeActive alone is not enough: it defaults to true when the user
+    //   never clicked anything (auto-translate path). Require the AI flow to
+    //   have started — aiRenderState !== "idle" covers success/loading/error,
+    //   so a rebuilding during AI re-restore (popstate sets "loading") or
+    //   after a failure (click = retry) still highlights AI.
+    // - translated + otherwise → Google (auto-translate or user picked Google)
+    const aiFlowStarted = liveAiRenderState !== "idle" && liveAiModeActive;
+    let highlight = liveLanguageState === "translated" ? (aiFlowStarted ? "ai" : "google") : "original"; // "original" | "google" | "ai" — user selection
+    // displayMode mirrors what the page currently shows. Initialize it from
+    // live state too — otherwise a rebuilt button with displayMode="original"
+    // would, when the user clicks Google, re-trigger translatePage() on an
+    // already-translated page (violates "never re-translate" principle).
+    let displayMode = liveLanguageState === "translated" ? (aiFlowStarted ? "ai" : "google") : "original"; // what the page actually shows: "original" | "google" | "ai"
     let intervention = false; // user has clicked a button on this page
     let googleInFlight = false;
     let aiInFlight = false;
-    let aiRenderState = "idle"; // "idle" | "loading" | "success" | "error"
-    let pageRenderState = "idle"; // "idle" | "loading" | "success" | "error"
+    let aiRenderState = liveAiRenderState; // "idle" | "loading" | "success" | "error"
+    let pageRenderState = livePageRenderState; // "idle" | "loading" | "success" | "error"
 
     const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
@@ -793,7 +827,11 @@ if (window.self !== window.top) {
     // the page was already original. Ignore no-change events, otherwise a
     // click on AI/Google (which triggers translatePage → restorePage) would
     // reset the highlight right after the click set it.
-    let lastPageLanguageState = "original";
+    // Initialize from live state: after SPA rebuild the page may already be
+    // "translated" — starting the guard at "original" would let the next
+    // "original" event through even though nothing changed (same stale-state
+    // bug as the highlight init above).
+    let lastPageLanguageState = liveLanguageState;
     pageTranslator.onPageLanguageStateChange((_pageLanguageState) => {
       if (_pageLanguageState === lastPageLanguageState) return;
       lastPageLanguageState = _pageLanguageState;

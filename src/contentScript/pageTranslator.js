@@ -3571,6 +3571,29 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   };
 
   /**
+   * Q: expose current state for UI rebuild (e.g. floating button recreated
+   * after SPA navigation). The UI cannot rely on change events alone: when
+   * state did not change (page stays "translated" across SPA navigation), no
+   * event fires, so a rebuilt UI would fall back to its hardcoded initial
+   * state ("original") and highlight the wrong button.
+   */
+  pageTranslator.getPageLanguageState = function () {
+    return pageLanguageState;
+  };
+
+  pageTranslator.getPageRenderState = function () {
+    return pageRenderState;
+  };
+
+  pageTranslator.getAiRenderState = function () {
+    return aiRenderState;
+  };
+
+  pageTranslator.getAiModeActive = function () {
+    return aiModeActive;
+  };
+
+  /**
    * Show only Google translations (hide AI spans). Called when user clicks Google button
    * while AI is active — switches from AI view to Google-only view without re-translating.
    */
