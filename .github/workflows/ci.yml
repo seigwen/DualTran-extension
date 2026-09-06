@@ -136,3 +136,6 @@ jobs:
 
     - name: Rule symmetry (implementation points have test references)
       run: node scripts/check-rule-symmetry.js
+
+    - name: UI state init (no hardcoded closure state — SPA rebuild bug)
+      run: node scripts/check-ui-state-init.js

@@ -1252,3 +1252,70 @@ export async function assertNoDuplicateTranslationElements(page) {
   }
   return assertNoDuplicateTranslations(page);
 }
+
+/**
+ * Assert UI state matches engine state (A2 — state consistency invariant).
+ *
+ * Reads pageTranslator's live state (via the content script's exposed
+ * getState) and the floating button's highlight, and asserts they agree:
+ *   - engine pageLanguageState === "original" → Original highlighted
+ *   - engine pageLanguageState === "translated" + AI flow started
+ *     (aiRenderState !== "idle" && aiModeActive) → AI highlighted
+ *   - engine pageLanguageState === "translated" + otherwise → Google highlighted
+ *
+ * This is the cross-module consistency check that would have caught the
+ * SPA back-nav highlight bug (PR #23): the page was translated but the
+ * rebuilt button group highlighted Original.
+ *
+ * @param {import("playwright").Page} page
+ * @param {Object} [opts] — { expectTranslated: boolean } to assert the page
+ *   is in the expected language state before checking highlight.
+ */
+export async function assertUiStateMatchesEngine(page, serviceWorker, opts = {}) {
+  const highlight = await page.evaluate(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    const root = host?.shadowRoot || null;
+    const read = (id) => {
+      const el = root?.getElementById(id) || null;
+      return !!el?.classList.contains("dualtran-floating-btn-active");
+    };
+    return {
+      original: read("btnOriginal"),
+      google: read("btnGoogle"),
+      ai: read("btnAi"),
+    };
+  });
+
+  // Query the engine's live state through the content script message
+  // handler (getCurrentUiState) — the same state the floating button
+  // initializes from on rebuild.
+  const engine = await sendMessageToTab(serviceWorker, page.url(), {
+    action: "getCurrentUiState",
+  });
+
+  if (!engine || typeof engine.pageLanguageState !== "string") {
+    throw new Error(
+      `[DualTran Test] Could not read engine state via getCurrentUiState: ${JSON.stringify(engine)}`
+    );
+  }
+
+  const { pageLanguageState, aiRenderState, aiModeActive } = engine;
+  const aiFlowStarted = aiRenderState !== "idle" && aiModeActive;
+  const expected = pageLanguageState === "translated"
+    ? (aiFlowStarted ? "ai" : "google")
+    : "original";
+
+  if (opts.expectTranslated && pageLanguageState !== "translated") {
+    throw new Error(
+      `[DualTran Test] Expected page translated, engine says ${pageLanguageState}`
+    );
+  }
+
+  const actual = highlight.ai ? "ai" : highlight.google ? "google" : "original";
+  if (actual !== expected) {
+    throw new Error(
+      `[DualTran Test] State consistency violation: engine=${JSON.stringify(engine)}, ` +
+      `expected highlight=${expected}, actual=${actual}`
+    );
+  }
+}

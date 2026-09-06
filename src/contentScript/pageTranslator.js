@@ -3576,7 +3576,20 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    * state did not change (page stays "translated" across SPA navigation), no
    * event fires, so a rebuilt UI would fall back to its hardcoded initial
    * state ("original") and highlight the wrong button.
+   *
+   * Single query interface (B2): all UI components initialize from getState()
+   * instead of hardcoding initial values. Individual getters are kept for
+   * backward compatibility with the PR #23 implementation.
    */
+  pageTranslator.getState = function () {
+    return {
+      pageLanguageState,
+      pageRenderState,
+      aiRenderState,
+      aiModeActive,
+    };
+  };
+
   pageTranslator.getPageLanguageState = function () {
     return pageLanguageState;
   };
@@ -3891,6 +3904,15 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       sendResponse(currentPageLanguage);
     } else if (request.action === "getCurrentPageLanguageState") {
       sendResponse(pageLanguageState);
+    } else if (request.action === "getCurrentUiState") {
+      // A2: full engine state for E2E state-consistency assertions
+      // (assertUiStateMatchesEngine). Mirrors pageTranslator.getState().
+      sendResponse({
+        pageLanguageState,
+        pageRenderState,
+        aiRenderState,
+        aiModeActive,
+      });
     } else if (request.action === "getCurrentPageTranslatorService") {
       sendResponse(currentPageTranslatorService);
     } else if (request.action === "swapTranslationService") {

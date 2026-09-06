@@ -38,6 +38,7 @@ import {
   waitForPageStorageValue,
   assertNoDuplicateTranslations,
   assertTranslationCount,
+  assertUiStateMatchesEngine,
 } from "./setup.mjs";
 
 // ─── 模块级闭包代理变量 ──────────────────────────────────────
@@ -162,6 +163,9 @@ async function verifyWholePageTranslation(page, serviceWorker, testPageUrl) {
   // 负面断言：无重复译文 + 至少翻译了预期数量
   await assertNoDuplicateTranslations(page);
   await assertTranslationCount(page, 3);
+
+  // A2: 状态一致性不变量——引擎 translated → 按钮高亮必须 ∈ {google, ai}
+  await assertUiStateMatchesEngine(page, serviceWorker, { expectTranslated: true });
 }
 
 /**

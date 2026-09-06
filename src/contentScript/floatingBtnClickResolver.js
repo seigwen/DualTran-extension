@@ -42,6 +42,36 @@ export function resolveFloatingBtnClick(uiState, buttonId) {
   return { type: "noop" };
 }
 
+/**
+ * Resolve the initial UI state for a (re)built floating button group.
+ *
+ * Pure function (A3 — event-absence testing): the UI cannot rely on change
+ * events alone, because events only fire when engine state CHANGES. After
+ * SPA navigation (GitHub Turbo) the engine state survives unchanged
+ * ("translated" stays "translated"), so no event fires — a rebuilt button
+ * group must query the engine's live state and derive its initial
+ * highlight/displayMode from it.
+ *
+ * Rules:
+ * - page untranslated → Original
+ * - translated + AI flow started (aiRenderState !== "idle" AND aiModeActive)
+ *   → AI. aiModeActive alone is not enough: it defaults to true when the
+ *   user never clicked anything (auto-translate path), so require the AI
+ *   flow to have started. aiRenderState !== "idle" covers success/loading/
+ *   error — a rebuild during AI re-restore (popstate sets "loading") or
+ *   after a failure (click = retry) still highlights AI.
+ * - translated + otherwise → Google (auto-translate or user picked Google)
+ *
+ * @param {Object} engineState — { pageLanguageState, aiRenderState, aiModeActive }
+ * @returns {{ highlight: string, displayMode: string }}
+ */
+export function resolveInitialUiState(engineState) {
+  const { pageLanguageState, aiRenderState, aiModeActive } = engineState;
+  const aiFlowStarted = aiRenderState !== "idle" && aiModeActive;
+  const mode = pageLanguageState === "translated" ? (aiFlowStarted ? "ai" : "google") : "original";
+  return { highlight: mode, displayMode: mode };
+}
+
 function resolveOriginalClick(uiState) {
   const { pageLanguageState, displayMode, googleInFlight, aiInFlight } = uiState;
   // Page already shows original and no request in-flight → nothing to do.

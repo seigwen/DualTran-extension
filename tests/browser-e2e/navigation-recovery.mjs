@@ -171,6 +171,14 @@ async function verifySpaBackNavigation(page, serviceWorker, testPageUrl) {
     );
   }
 
+  // A4: 状态一致性——未翻译页面重建后必须 Original 高亮
+  const hl = await getButtonHighlights(page);
+  if (!hl.original || hl.google || hl.ai) {
+    throw new Error(
+      `Scene 1 FAIL: after SPA back-nav on untranslated page, expected Original highlighted, got ${JSON.stringify(hl)}`
+    );
+  }
+
   // ── 步骤 4：再次前进到 target 页面 ──
   console.log("  Step 4: navigating forward (popstate)...");
   await page.goForward();
@@ -247,6 +255,14 @@ async function verifyMultipleSpaNavigations(page, serviceWorker, testPageUrl) {
   console.log(`  After 3 round-trips: hostCount=${hostCount}`);
   if (hostCount > 1) {
     throw new Error(`Scene 2 FAIL: Found ${hostCount} floating button hosts (expected 1)`);
+  }
+
+  // A4: 状态一致性——多次导航后（未翻译页面）仍应 Original 高亮
+  const hl = await getButtonHighlights(page);
+  if (!hl.original || hl.google || hl.ai) {
+    throw new Error(
+      `Scene 2 FAIL: after 3 round-trips on untranslated page, expected Original highlighted, got ${JSON.stringify(hl)}`
+    );
   }
 
   console.log("  Scene 2 PASSED: floating button survives 3 round-trip SPA navigations");
@@ -387,6 +403,14 @@ async function verifySpaForwardLinkNavigation(page, serviceWorker, testPageUrl) 
   console.log(`  After goBack: exists=${btn.exists}, hasButtons=${btn.hasButtons}, inDOM=${btn.inDOM}`);
   if (!btn.exists || !btn.hasButtons || !btn.inDOM) {
     throw new Error("Scene 4 FAIL: Floating button NOT recovered after goBack from SPA target");
+  }
+
+  // A4: 状态一致性——链接导航 + 回退后（未翻译页面）仍应 Original 高亮
+  const hl = await getButtonHighlights(page);
+  if (!hl.original || hl.google || hl.ai) {
+    throw new Error(
+      `Scene 4 FAIL: after SPA link-nav + goBack on untranslated page, expected Original highlighted, got ${JSON.stringify(hl)}`
+    );
   }
 
   console.log("  Scene 4 PASSED: floating button survives SPA link-nav and goBack");
