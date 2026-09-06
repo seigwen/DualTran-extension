@@ -83,8 +83,14 @@ describe("uiStateStore — watchdog arbitration (L2)", () => {
     expect(getState().highlight).toBe("google");
   });
 
-  it("corrects translated + AI success + aiModeActive → highlight AI", () => {
-    setState(
+  it("does NOT force AI highlight live — AI highlight is a user choice (Q5), watchdog keeps Google on engine-driven path", () => {
+    // Live arbitration contract (M3 refinement): AI highlight is strictly a
+    // user choice (intervention=true, click on AI). The auto-translate path
+    // highlights Google even when an AI result arrives — the engine applies
+    // the result via aiModeActive but the button stays Google until the
+    // user clicks AI. resetForRebuild (SPA rebuild) DOES consider the AI
+    // flow, see resetForRebuild tests.
+    const applied = setState(
       {
         pageLanguageState: "translated",
         aiRenderState: "success",
@@ -92,8 +98,10 @@ describe("uiStateStore — watchdog arbitration (L2)", () => {
       },
       "engine"
     );
-    expect(getState().highlight).toBe("ai");
-    expect(getState().displayMode).toBe("ai");
+    expect(applied.highlight).toBe("google");
+    expect(applied.displayMode).toBe("google");
+    expect(getState().highlight).toBe("google");
+    expect(getState().displayMode).toBe("google");
   });
 
   it("does NOT correct translated + AI idle (auto-translate path, aiModeActive default true) → Google", () => {
