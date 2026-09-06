@@ -1,22 +1,29 @@
 /**
- * uiStateStore.js — UI 状态单一事实源（SSOT, L1）与运行时自愈（L2）。
+ * uiStateStore.js — single source of truth (SSOT, L1) for UI state +
+ * runtime self-healing (L2).
  *
- * 背景（08-ui-state-ssot-plan.md）：「按钮状态与实际不符」已出现 5 次
- * 同类事故（pattern 7/9/22/23/25），共性根因：UI 组件在闭包内维护
- * 引擎状态副本 + 自有状态，靠命令式事件流同步，漏一个赋值点/事件即
- * 失真。本模块把状态收拢到唯一载体，并提供：
+ * Background (08-ui-state-ssot-plan.md): "button state does not match
+ * reality" has occurred 5 times (patterns 7/9/22/23/25). Common root
+ * cause: UI components keep copies of engine state plus their own state
+ * inside closures, synchronized by imperative event streams — a single
+ * missed assignment/event corrupts the copy. This module consolidates
+ * state into one carrier and provides:
  *
- *   1. setState(patch, source) —— 唯一变更入口（校验 + 日志 + 广播）
- *   2. 变更日志（环形缓冲，dumpLog() 导出）—— 状态 bug 诊断第一工具
- *   3. watchdog 仲裁 —— 无 intervention 时 UI 态必须与引擎态一致，
- *      不一致则自愈（纠正为引擎派生值），用户选择（intervention=true）
- *      不干预
+ *   1. setState(patch, source) — the only mutation entry (validate +
+ *      log + broadcast)
+ *   2. Change log (ring buffer, dumpLog()) — first diagnostic tool for
+ *      state bugs
+ *   3. Watchdog arbitration — without intervention, UI state must match
+ *      engine-derived expectation; mismatch self-heals (corrected to the
+ *      engine-derived value). User choices (intervention=true) are not
+ *      overridden.
  *
- * 状态字段分两层：
- *   - 引擎镜像（pageLanguageState/pageRenderState/aiRenderState/
- *     aiModeActive）：由 pageTranslator 事件驱动，UI 不在本层修改
- *   - UI 决策态（highlight/displayMode/intervention/googleInFlight/
- *     aiInFlight）：唯一所有者是本 store
+ * State has two layers:
+ *   - Engine mirrors (pageLanguageState/pageRenderState/aiRenderState/
+ *     aiModeActive): driven by pageTranslator events; UI never mutates
+ *     them directly.
+ *   - UI decision state (highlight/displayMode/intervention/
+ *     googleInFlight/aiInFlight): owned exclusively by this store.
  */
 const MAX_LOG_ENTRIES = 50;
 
