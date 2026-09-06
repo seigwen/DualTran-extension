@@ -7,7 +7,10 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { resolveFloatingBtnClick } from "../../src/contentScript/floatingBtnClickResolver.js";
+import {
+  resolveFloatingBtnClick,
+  resolveInitialUiState,
+} from "../../src/contentScript/floatingBtnClickResolver.js";
 
 function baseState(overrides = {}) {
   return {
@@ -208,5 +211,78 @@ describe("resolveFloatingBtnClick — AI button", () => {
         "ai"
       )
     ).toEqual({ type: "promptConfig" });
+  });
+});
+
+// ──────────────────────────────────────────────
+// resolveInitialUiState — event-absence testing (A3)
+// UI rebuild (SPA navigation) cannot rely on change events: events only
+// fire when engine state CHANGES. After SPA nav the engine state survives
+// unchanged → no event → the rebuilt button group must derive its initial
+// highlight/displayMode from the engine's live state.
+// ──────────────────────────────────────────────
+
+describe("resolveInitialUiState — event-absence initialization", () => {
+  it("engine original → Original highlight + displayMode", () => {
+    expect(
+      resolveInitialUiState({
+        pageLanguageState: "original",
+        aiRenderState: "idle",
+        aiModeActive: true,
+      })
+    ).toEqual({ highlight: "original", displayMode: "original" });
+  });
+
+  it("engine translated + AI flow started (success) → AI highlight + displayMode", () => {
+    expect(
+      resolveInitialUiState({
+        pageLanguageState: "translated",
+        aiRenderState: "success",
+        aiModeActive: true,
+      })
+    ).toEqual({ highlight: "ai", displayMode: "ai" });
+  });
+
+  it("engine translated + AI flow started (loading, re-restore in progress) → AI highlight", () => {
+    expect(
+      resolveInitialUiState({
+        pageLanguageState: "translated",
+        aiRenderState: "loading",
+        aiModeActive: true,
+      })
+    ).toEqual({ highlight: "ai", displayMode: "ai" });
+  });
+
+  it("engine translated + AI flow started (error, click = retry) → AI highlight", () => {
+    expect(
+      resolveInitialUiState({
+        pageLanguageState: "translated",
+        aiRenderState: "error",
+        aiModeActive: true,
+      })
+    ).toEqual({ highlight: "ai", displayMode: "ai" });
+  });
+
+  it("engine translated + aiModeActive default true but AI never started → Google highlight (auto-translate path)", () => {
+    // aiModeActive defaults to true (Q5) even when the user never clicked
+    // anything — the auto-translate path. aiRenderState === "idle" means
+    // the AI flow never started, so the highlight must be Google, not AI.
+    expect(
+      resolveInitialUiState({
+        pageLanguageState: "translated",
+        aiRenderState: "idle",
+        aiModeActive: true,
+      })
+    ).toEqual({ highlight: "google", displayMode: "google" });
+  });
+
+  it("engine translated + user switched away from AI (aiModeActive false) → Google highlight", () => {
+    expect(
+      resolveInitialUiState({
+        pageLanguageState: "translated",
+        aiRenderState: "success",
+        aiModeActive: false,
+      })
+    ).toEqual({ highlight: "google", displayMode: "google" });
   });
 });

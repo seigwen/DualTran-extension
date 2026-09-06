@@ -7,7 +7,7 @@ console.log("floatingBtn.js is running")
 
 import twpConfig from "../lib/config.js"
 import { pageTranslator } from "./pageTranslator.js"
-import { resolveFloatingBtnClick } from "./floatingBtnClickResolver.js"
+import { resolveFloatingBtnClick, resolveInitialUiState } from "./floatingBtnClickResolver.js"
 import {
   getFloatingButtonAiTooltipText,
   getFloatingButtonGoogleTooltipText,
@@ -175,9 +175,13 @@ if (window.self !== window.top) {
   /**
    * Show floating button
    * @param {*} forceShow 
+   * @param {Object} [engineStateOverride] — B3: test-only state injection point.
+   *   When provided, the button group initializes from this state instead of
+   *   querying pageTranslator. Production callers never pass it; tests use it
+   *   to verify the rebuild-initialization contract without mocking getState.
    * @returns 
    */
-  floatingBtn.show = function (forceShow = false) {
+  floatingBtn.show = function (forceShow = false, engineStateOverride = null) {
     console.log("floatingBtn.show() is called")
 
     floatingBtn.hide();
@@ -263,40 +267,25 @@ if (window.self !== window.top) {
     // "Original" highlighted on a page that is actually translated (bug:
     // GitHub Turbo back-nav leaves Google translation on page but highlights
     // Original button).
-    const liveLanguageState = pageTranslator.getPageLanguageState
-      ? pageTranslator.getPageLanguageState()
-      : "original";
-    const livePageRenderState = pageTranslator.getPageRenderState
-      ? pageTranslator.getPageRenderState()
-      : "idle";
-    const liveAiRenderState = pageTranslator.getAiRenderState
-      ? pageTranslator.getAiRenderState()
-      : "idle";
-    const liveAiModeActive = pageTranslator.getAiModeActive
-      ? pageTranslator.getAiModeActive()
-      : true;
-    // Rebuild after SPA navigation: page may already be translated (Google
-    // and/or AI), so highlight must reflect what the user was last viewing.
-    // - page untranslated → Original
-    // - translated + AI flow started (user clicked AI at some point) → AI
-    //   aiModeActive alone is not enough: it defaults to true when the user
-    //   never clicked anything (auto-translate path). Require the AI flow to
-    //   have started — aiRenderState !== "idle" covers success/loading/error,
-    //   so a rebuilding during AI re-restore (popstate sets "loading") or
-    //   after a failure (click = retry) still highlights AI.
-    // - translated + otherwise → Google (auto-translate or user picked Google)
-    const aiFlowStarted = liveAiRenderState !== "idle" && liveAiModeActive;
-    let highlight = liveLanguageState === "translated" ? (aiFlowStarted ? "ai" : "google") : "original"; // "original" | "google" | "ai" — user selection
+    // A3: initialization is a pure function (resolveInitialUiState) so the
+    // event-absence path is unit-testable; show() only queries + renders.
+    // B3: engineStateOverride lets tests inject state directly (no getState
+    // mock needed) to verify the rebuild-initialization contract.
+    const engineState = engineStateOverride || (pageTranslator.getState
+      ? pageTranslator.getState()
+      : { pageLanguageState: "original", pageRenderState: "idle", aiRenderState: "idle", aiModeActive: true });
+    const initialUi = resolveInitialUiState(engineState);
+    let highlight = initialUi.highlight; // "original" | "google" | "ai" — user selection
     // displayMode mirrors what the page currently shows. Initialize it from
     // live state too — otherwise a rebuilt button with displayMode="original"
     // would, when the user clicks Google, re-trigger translatePage() on an
     // already-translated page (violates "never re-translate" principle).
-    let displayMode = liveLanguageState === "translated" ? (aiFlowStarted ? "ai" : "google") : "original"; // what the page actually shows: "original" | "google" | "ai"
+    let displayMode = initialUi.displayMode; // what the page actually shows: "original" | "google" | "ai"
     let intervention = false; // user has clicked a button on this page
     let googleInFlight = false;
     let aiInFlight = false;
-    let aiRenderState = liveAiRenderState; // "idle" | "loading" | "success" | "error"
-    let pageRenderState = livePageRenderState; // "idle" | "loading" | "success" | "error"
+    let aiRenderState = engineState.aiRenderState; // "idle" | "loading" | "success" | "error"
+    let pageRenderState = engineState.pageRenderState; // "idle" | "loading" | "success" | "error"
 
     const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
@@ -831,7 +820,7 @@ if (window.self !== window.top) {
     // "translated" — starting the guard at "original" would let the next
     // "original" event through even though nothing changed (same stale-state
     // bug as the highlight init above).
-    let lastPageLanguageState = liveLanguageState;
+    let lastPageLanguageState = engineState.pageLanguageState;
     pageTranslator.onPageLanguageStateChange((_pageLanguageState) => {
       if (_pageLanguageState === lastPageLanguageState) return;
       lastPageLanguageState = _pageLanguageState;
