@@ -3571,6 +3571,42 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   };
 
   /**
+   * Q: expose current state for UI rebuild (e.g. floating button recreated
+   * after SPA navigation). The UI cannot rely on change events alone: when
+   * state did not change (page stays "translated" across SPA navigation), no
+   * event fires, so a rebuilt UI would fall back to its hardcoded initial
+   * state ("original") and highlight the wrong button.
+   *
+   * Single query interface (B2): all UI components initialize from getState()
+   * instead of hardcoding initial values. Individual getters are kept for
+   * backward compatibility with the PR #23 implementation.
+   */
+  pageTranslator.getState = function () {
+    return {
+      pageLanguageState,
+      pageRenderState,
+      aiRenderState,
+      aiModeActive,
+    };
+  };
+
+  pageTranslator.getPageLanguageState = function () {
+    return pageLanguageState;
+  };
+
+  pageTranslator.getPageRenderState = function () {
+    return pageRenderState;
+  };
+
+  pageTranslator.getAiRenderState = function () {
+    return aiRenderState;
+  };
+
+  pageTranslator.getAiModeActive = function () {
+    return aiModeActive;
+  };
+
+  /**
    * Show only Google translations (hide AI spans). Called when user clicks Google button
    * while AI is active — switches from AI view to Google-only view without re-translating.
    */
@@ -3868,6 +3904,15 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       sendResponse(currentPageLanguage);
     } else if (request.action === "getCurrentPageLanguageState") {
       sendResponse(pageLanguageState);
+    } else if (request.action === "getCurrentUiState") {
+      // A2: full engine state for E2E state-consistency assertions
+      // (assertUiStateMatchesEngine). Mirrors pageTranslator.getState().
+      sendResponse({
+        pageLanguageState,
+        pageRenderState,
+        aiRenderState,
+        aiModeActive,
+      });
     } else if (request.action === "getCurrentPageTranslatorService") {
       sendResponse(currentPageTranslatorService);
     } else if (request.action === "swapTranslationService") {

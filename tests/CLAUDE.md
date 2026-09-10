@@ -130,6 +130,36 @@ tests/
 
 **规则：任何翻译行为变更（新增/修改/删除）必须同时评估两个维度。只测功能不测呈现的 PR 不得合并。**
 
+### 生命周期矩阵测试（Lifecycle Matrix Testing）
+
+**任何 UI 组件（floatingBtn/singletonBtnGroup）必须测试跨生命周期重建的状态保持。**
+
+- 测试模式：`loadModule → 驱动到状态 A → hide/show（或 host 移除+重建）→ 断言状态仍为 A`
+- 覆盖矩阵：`{original, google, ai} × {translated, original} × {intervention, no-intervention}`
+- 背景：SPA 导航（GitHub Turbo）替换 body → floatingBtn host 被移除 → popstate 触发 show() 重建新闭包。闭包状态归零，若初始化硬编码初始值，重建后 UI 状态与页面实际状态不一致（PR #23 bug）。
+- 落地：`floatingBtn.behavior.test.js` describe 块 "lifecycle rebuild state retention"（PR #23 已示范 2 个，需扩展至完整矩阵）。
+
+### 状态一致性不变量（State Consistency Invariant）
+
+**任何涉及"页面状态"的测试（翻译/恢复/导航）必须附带"UI 状态与引擎状态一致"断言。**
+
+- 引擎 `pageLanguageState === "translated"` → 按钮高亮 ∈ {google, ai}
+- 引擎 `pageLanguageState === "original"` → 按钮高亮 = original
+- 引擎 `aiRenderState === "success"` + `aiModeActive` → 按钮高亮 = ai
+- E2E 工具：`assertUiStateMatchesEngine(page)`（读取 pageTranslator getter + 按钮高亮，断言一致）
+- 背景：UI 依赖事件驱动，但事件只在状态**变化**时触发（`setAiRenderState` 有变化 guard）。SPA 导航后状态没变 → 无事件 → 重建的 UI 永远不知道真实状态。**事件是"变化通知"，不是"状态查询"——UI 必须有查询路径。**
+
+### 事件缺失场景测试（Event-Absence Testing）
+
+**任何订阅引擎事件的 UI 组件，必须提供"查询当前状态"的初始化路径 + 测试。**
+
+- 初始化逻辑必须提取为纯函数（如 `resolveInitialUiState(engineState)`），禁止在 show() 内联硬编码
+- 测试必须覆盖"事件不发生时 UI 如何初始化"：
+  - 引擎 translated + aiModeActive + aiRenderState=success → {highlight: ai, displayMode: ai}
+  - 引擎 translated + aiModeActive + aiRenderState=idle → {highlight: google, displayMode: google}（自动翻译路径，aiModeActive 默认 true 陷阱）
+  - 引擎 original → {highlight: original, displayMode: original}
+- 背景：PR #23 修复前 pageTranslator 无状态 getter，UI 无法查询、测试无法断言初始化逻辑——"不可测代码"的典型。
+
 ### 通用规则
 
 1. **jsdom integration tests** — after calling `addTranslatedContent` or `translateResults`, assert element count invariant (#1).

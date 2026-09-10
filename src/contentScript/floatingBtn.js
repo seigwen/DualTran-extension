@@ -7,7 +7,8 @@ console.log("floatingBtn.js is running")
 
 import twpConfig from "../lib/config.js"
 import { pageTranslator } from "./pageTranslator.js"
-import { resolveFloatingBtnClick } from "./floatingBtnClickResolver.js"
+import { resolveFloatingBtnClick, resolveInitialUiState } from "./floatingBtnClickResolver.js"
+import { setState, getState, resetForRebuild } from "./uiStateStore.js"
 import {
   getFloatingButtonAiTooltipText,
   getFloatingButtonGoogleTooltipText,
@@ -145,7 +146,6 @@ if (window.self !== window.top) {
 
   let divElement;
   let getElemById;
-  let pageLanguageState = "original";
   let detachViewportListeners = null;
   let shortcutRevealTimer = null;
   let lastViewportWidth = window.innerWidth;
@@ -175,9 +175,13 @@ if (window.self !== window.top) {
   /**
    * Show floating button
    * @param {*} forceShow 
+   * @param {Object} [engineStateOverride] — B3: test-only state injection point.
+   *   When provided, the button group initializes from this state instead of
+   *   querying pageTranslator. Production callers never pass it; tests use it
+   *   to verify the rebuild-initialization contract without mocking getState.
    * @returns 
    */
-  floatingBtn.show = function (forceShow = false) {
+  floatingBtn.show = function (forceShow = false, engineStateOverride = null) {
     console.log("floatingBtn.show() is called")
 
     floatingBtn.hide();
@@ -254,15 +258,42 @@ if (window.self !== window.top) {
     lastViewportWidth = window.innerWidth;
 
     let currentFloatingBtnWidth = twpConfig.get("floatingBtnWidth");
-    let suppressNextClick = false;
     // Three-state model state (Q28 behavior table)
-    let highlight = "original"; // "original" | "google" | "ai" — user selection
-    let displayMode = "original"; // what the page actually shows: "original" | "google" | "ai"
-    let intervention = false; // user has clicked a button on this page
-    let googleInFlight = false;
-    let aiInFlight = false;
-    let aiRenderState = "idle"; // "idle" | "loading" | "success" | "error"
-    let pageRenderState = "idle"; // "idle" | "loading" | "success" | "error"
+    // On re-show (SPA navigation rebuild), initialize from pageTranslator's
+    // live state instead of hardcoding "original". pageTranslator's state
+    // survives SPA navigation (same page context) while this module's closure
+    // state does not, so without this the rebuilt button group would show
+    // "Original" highlighted on a page that is actually translated (bug:
+    // GitHub Turbo back-nav leaves Google translation on page but highlights
+    // Original button).
+    // A3: initialization is a pure function (resolveInitialUiState) so the
+    // event-absence path is unit-testable; show() only queries + renders.
+    // B3: engineStateOverride lets tests inject state directly (no getState
+    // mock needed) to verify the rebuild-initialization contract.
+    // L1 (M3): UI decision state (highlight/displayMode/intervention/
+    // inFlight) lives in uiStateStore — this closure is a pure renderer.
+    // resetForRebuild() derives initial UI state from the engine mirrors
+    // (which are also owned by the store, fed by pageTranslator events —
+    // see pageTranslatorBridge below).
+    const engineState =
+      engineStateOverride ||
+      (pageTranslator.getState
+        ? pageTranslator.getState()
+        : {
+            pageLanguageState: "original",
+            pageRenderState: "idle",
+            aiRenderState: "idle",
+            aiModeActive: true,
+          });
+    // Seed the store's engine mirrors once at startup so resetForRebuild
+    // (and the render path) reads from the same source everywhere.
+    setState(engineState, "show()");
+    resetForRebuild();
+
+    let suppressNextClick = false;
+    // NOTE: no closure state (highlight/displayMode/intervention/inFlight)
+    // — all UI decision state lives in uiStateStore (L1/M3). Renders read
+    // getState() below.
 
     const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
@@ -646,22 +677,22 @@ if (window.self !== window.top) {
     // ── Three-state click handling (Q28 behavior table) ──────────────
 
     function setHighlight(next) {
-      if (highlight !== next) {
-        highlight = next;
-        updateButtons();
-      }
+      // M3: highlight lives in uiStateStore; watch the change to re-render
+      const patch = setState({ highlight: next }, "setHighlight");
+      if (patch.highlight !== undefined) updateButtons();
     }
 
     function buildUiState() {
+      const s = getState();
       return {
-        pageLanguageState: pageLanguageState,
-        displayMode,
-        highlight,
-        intervention,
-        googleInFlight,
-        aiInFlight,
-        hasGoogleFailedBlocks: pageRenderState === "error",
-        hasAiFailedBlocks: aiRenderState === "error",
+        pageLanguageState: s.pageLanguageState,
+        displayMode: s.displayMode,
+        highlight: s.highlight,
+        intervention: s.intervention,
+        googleInFlight: s.googleInFlight,
+        aiInFlight: s.aiInFlight,
+        hasGoogleFailedBlocks: s.pageRenderState === "error",
+        hasAiFailedBlocks: s.aiRenderState === "error",
         aiResultAvailable: pageTranslator.hasAiResults ? pageTranslator.hasAiResults() : false,
         hasApiKey: true, // translatePageAi returns false when no key — handled below
         whereToDisplayTranslatedText: twpConfig.get("whereToDisplayTranslatedText"),
@@ -674,7 +705,7 @@ if (window.self !== window.top) {
         return;
       }
       console.log(`${buttonId} button clicked`);
-      intervention = true;
+      setState({ intervention: true }, "handleButtonClick");
       setHighlight(buttonId);
       // Q5: engine needs to know whether the user is in AI mode when an AI
       // response arrives (decides display switch vs discard).
@@ -685,36 +716,34 @@ if (window.self !== window.top) {
         case "noop":
           break;
         case "translatePage":
-          googleInFlight = true;
+          setState({ googleInFlight: true }, "handleButtonClick");
           translatePage();
           break;
         case "translatePageAi": {
           const started = pageTranslator.translatePageAi();
           if (started === false) {
             // No API key: prompt shown by translatePageAi; AI stays highlighted (Q4)
-            aiInFlight = false;
+            setState({ aiInFlight: false }, "handleButtonClick");
           } else {
-            aiInFlight = true;
+            setState({ aiInFlight: true }, "handleButtonClick");
           }
           break;
         }
         case "restorePage":
-          googleInFlight = false;
-          aiInFlight = false;
-          displayMode = "original";
+          setState({ googleInFlight: false, aiInFlight: false, displayMode: "original" }, "handleButtonClick");
           pageTranslator.restorePage();
           break;
         case "showGoogleOnly":
           pageTranslator.stopAiAutoTranslate();
           pageTranslator.showGoogleOnly();
-          displayMode = "google";
+          setState({ displayMode: "google" }, "handleButtonClick");
           break;
         case "showAiOnly":
           pageTranslator.showAiOnly();
-          displayMode = "ai";
+          setState({ displayMode: "ai" }, "handleButtonClick");
           break;
         case "retryAi":
-          aiInFlight = true;
+          setState({ aiInFlight: true }, "handleButtonClick");
           pageTranslator.translatePageAi();
           break;
         case "promptConfig":
@@ -765,6 +794,7 @@ if (window.self !== window.top) {
     };
 
     function updateButtons() {
+      const { highlight } = getState();
       console.log("updateButtons() called, highlight =", highlight);
 
       const isCompact = btnGoogleEl.clientWidth < 58;
@@ -793,24 +823,31 @@ if (window.self !== window.top) {
     // the page was already original. Ignore no-change events, otherwise a
     // click on AI/Google (which triggers translatePage → restorePage) would
     // reset the highlight right after the click set it.
-    let lastPageLanguageState = "original";
+    // Initialize from live state: after SPA rebuild the page may already be
+    // "translated" — starting the guard at "original" would let the next
+    // "original" event through even though nothing changed (same stale-state
+    // bug as the highlight init above).
+    // M3: engine mirrors live in uiStateStore; callbacks feed the store and
+    // the watchdog arbitrates engine-driven UI state automatically.
+    let lastPageLanguageState = engineState.pageLanguageState;
     pageTranslator.onPageLanguageStateChange((_pageLanguageState) => {
       if (_pageLanguageState === lastPageLanguageState) return;
       lastPageLanguageState = _pageLanguageState;
-      pageLanguageState = _pageLanguageState;
-      if (pageLanguageState === "original") {
+      setState({ pageLanguageState: _pageLanguageState }, "onPageLanguageStateChange");
+      const s = getState();
+      if (s.pageLanguageState === "original") {
         // Page restored (button click or external action): reset to Original
         // highlight + clear intervention (Q12/Q19/Q24). In-flight flags reset
         // here too — restorePage cancels in-flight requests.
-        googleInFlight = false;
-        aiInFlight = false;
-        intervention = false;
-        displayMode = "original";
+        setState(
+          { googleInFlight: false, aiInFlight: false, intervention: false, displayMode: "original" },
+          "onPageLanguageStateChange"
+        );
         pageTranslator.setAiModeActive?.(false);
         setHighlight("original");
-      } else if (!intervention) {
+      } else if (!s.intervention) {
         // Auto-translate without user intervention → content-driven highlight (Q6/Q16)
-        displayMode = "google";
+        setState({ displayMode: "google" }, "onPageLanguageStateChange");
         setHighlight("google");
       }
       updateButtons();
@@ -818,34 +855,38 @@ if (window.self !== window.top) {
 
     // Google render state → in-flight tracking + failure detection (Q14)
     pageTranslator.onPageRenderStateChange((state) => {
-      pageRenderState = state;
+      setState({ pageRenderState: state }, "onPageRenderStateChange");
       if (state === "loading") {
-        googleInFlight = true;
+        setState({ googleInFlight: true }, "onPageRenderStateChange");
       } else if (state === "idle" || state === "success" || state === "error") {
-        googleInFlight = false;
-        if (state === "success" && displayMode !== "ai") {
+        setState({ googleInFlight: false }, "onPageRenderStateChange");
+        const s = getState();
+        if (state === "success" && s.displayMode !== "ai") {
           // Google translation completed and is displayed. Q2: when AI is the
           // user's selection, Google still shows first (intermediate state).
           // If AI is already displayed, don't overwrite it.
-          displayMode = "google";
+          setState({ displayMode: "google" }, "onPageRenderStateChange");
         }
       }
+      updateButtons();
     });
 
     // AI render state → in-flight tracking + failure detection (Q3/Q8)
     pageTranslator.onAiRenderStateChange((state) => {
-      aiRenderState = state;
+      setState({ aiRenderState: state }, "onAiRenderStateChange");
+      const s = getState();
       if (state === "loading") {
-        aiInFlight = true;
+        setState({ aiInFlight: true }, "onAiRenderStateChange");
       } else if (state === "idle" || state === "success" || state === "error") {
-        aiInFlight = false;
-        if (state === "success" && highlight === "ai") {
+        setState({ aiInFlight: false }, "onAiRenderStateChange");
+        if (state === "success" && s.highlight === "ai") {
           // AI completed and user still selected AI → AI display takes over (Q2).
           // If the user switched away (highlight !== "ai"), the result is
           // discarded (Q5) — displayMode stays as-is.
-          displayMode = "ai";
+          setState({ displayMode: "ai" }, "onAiRenderStateChange");
         }
       }
+      updateButtons();
     });
 
   };

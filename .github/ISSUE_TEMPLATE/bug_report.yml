@@ -84,6 +84,55 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: state-anomaly
+    attributes:
+      label: 是否「按钮状态与实际不符」类问题（高级 QA 专项）
+      description: 按钮显示的翻译状态（Original/Google/AI 高亮）与页面实际内容不一致。
+      options:
+        - "是——按钮高亮与实际页面不符"
+        - "否"
+        - "不确定"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: spa-site
+    attributes:
+      label: 是否在 SPA 站点复现（GitHub/X/Twitter 等）
+      description: 这类站点使用无刷新导航（Turbo/pjax），已知与按钮状态 bug 相关（pattern 25）。
+      options:
+        - "是，请注明站点名"
+        - "否，普通网页"
+        - "不确定"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: state-recover
+    attributes:
+      label: 刷新页面 / 导航离开再回来后状态是否恢复
+      options:
+        - "刷新后恢复"
+        - "刷新后仍错误"
+        - "未测试"
+    validations:
+      required: false
+
+  - type: textarea
+    id: state-steps
+    attributes:
+      label: 状态异常时的精确操作序列（若适用）
+      description: 例如：翻译页面 → 点击 Google → 点击 AI → 页面导航（前进/后退）→ 按钮显示 X
+      placeholder: |
+        1. 打开 GitHub 某仓库页面
+        2. 点击 Google 按钮翻译
+        3. 点击仓库内链接跳转（SPA 导航）
+        4. 浏览器后退
+        5. 页面是译文但按钮高亮 Original
+    validations:
+      required: false
+
   - type: textarea
     id: console
     attributes:

@@ -171,6 +171,14 @@ async function verifySpaBackNavigation(page, serviceWorker, testPageUrl) {
     );
   }
 
+  // A4: 状态一致性——未翻译页面重建后必须 Original 高亮
+  const hl = await getButtonHighlights(page);
+  if (!hl.original || hl.google || hl.ai) {
+    throw new Error(
+      `Scene 1 FAIL: after SPA back-nav on untranslated page, expected Original highlighted, got ${JSON.stringify(hl)}`
+    );
+  }
+
   // ── 步骤 4：再次前进到 target 页面 ──
   console.log("  Step 4: navigating forward (popstate)...");
   await page.goForward();
@@ -247,6 +255,14 @@ async function verifyMultipleSpaNavigations(page, serviceWorker, testPageUrl) {
   console.log(`  After 3 round-trips: hostCount=${hostCount}`);
   if (hostCount > 1) {
     throw new Error(`Scene 2 FAIL: Found ${hostCount} floating button hosts (expected 1)`);
+  }
+
+  // A4: 状态一致性——多次导航后（未翻译页面）仍应 Original 高亮
+  const hl = await getButtonHighlights(page);
+  if (!hl.original || hl.google || hl.ai) {
+    throw new Error(
+      `Scene 2 FAIL: after 3 round-trips on untranslated page, expected Original highlighted, got ${JSON.stringify(hl)}`
+    );
   }
 
   console.log("  Scene 2 PASSED: floating button survives 3 round-trip SPA navigations");
@@ -389,7 +405,115 @@ async function verifySpaForwardLinkNavigation(page, serviceWorker, testPageUrl) 
     throw new Error("Scene 4 FAIL: Floating button NOT recovered after goBack from SPA target");
   }
 
+  // A4: 状态一致性——链接导航 + 回退后（未翻译页面）仍应 Original 高亮
+  const hl = await getButtonHighlights(page);
+  if (!hl.original || hl.google || hl.ai) {
+    throw new Error(
+      `Scene 4 FAIL: after SPA link-nav + goBack on untranslated page, expected Original highlighted, got ${JSON.stringify(hl)}`
+    );
+  }
+
   console.log("  Scene 4 PASSED: floating button survives SPA link-nav and goBack");
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 场景 5：Google 翻译后 SPA 回退 — 按钮高亮保持 Google（bug 回归）
+//
+// 用户报告：在 GitHub (Turbo) 上用 Google 翻译页面后，SPA 导航到
+// 其他页面再回退，页面是已翻译状态，但浮动按钮高亮错误地回到
+// Original。根因：floatingBtn.show() 重建时硬编码初始状态
+// "original"，而 pageTranslator 的状态（pageLanguageState=
+// "translated"）在 SPA 导航中保留且不广播事件（无变化），所以
+// 重建后的按钮组丢失了真实状态。
+// ═══════════════════════════════════════════════════════════════
+
+async function verifyGoogleHighlightAfterSpaBackNav(page, serviceWorker, testPageUrl) {
+  console.log("[nav-recovery] Scene 5: Google highlight survives SPA back-navigation rebuild");
+
+  const spaSourceUrl = buildSpaUrl(testPageUrl, "spa-source.html");
+
+  // ── 步骤 1：加载 source 页面并翻译 ──
+  await page.goto(spaSourceUrl, { waitUntil: "domcontentloaded" });
+  await waitForContentScriptInjected(serviceWorker, page.url());
+  await waitForPageTranslatorReady(serviceWorker, page.url());
+  await writeStorage(serviceWorker, "showFloatingBtn", "yes");
+  await page.waitForTimeout(800);
+
+  // 点击 Google 按钮翻译（与用户操作一致）
+  await page.evaluate(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    host?.shadowRoot?.getElementById("btnGoogle")?.click();
+  });
+
+  // 等待翻译完成
+  await page.waitForFunction(
+    () => document.querySelectorAll("translated").length > 0,
+    null,
+    { timeout: 20_000 }
+  );
+  await page.waitForTimeout(500);
+
+  // 验证：翻译后 Google 按钮高亮
+  let btnState = await getButtonHighlights(page);
+  console.log(`  After translate: ${JSON.stringify(btnState)}`);
+  if (!btnState.google) {
+    throw new Error(`Scene 5: expected Google highlighted after translate, got ${JSON.stringify(btnState)}`);
+  }
+
+  // ── 步骤 2：SPA 导航到 target 页 ──
+  await page.click("a#test-link");
+  await waitForSpaContent(page, "SPA Target Page", 5000);
+  await page.waitForTimeout(600);
+
+  // ── 步骤 3：浏览器回退（popstate → SPA 替换 body → 按钮重建）──
+  await page.goBack();
+  await waitForSpaContent(page, "SPA Source Page", 5000);
+  await page.waitForTimeout(600); // popstate debounce 200ms + 重建
+
+  // 等待按钮重建完成
+  await waitForFloatingButton(page);
+
+  // 等待 Google 翻译自动恢复（MutationObserver 路径）
+  try {
+    await page.waitForFunction(
+      () => document.querySelectorAll("translated").length > 0,
+      null,
+      { timeout: 30_000 }
+    );
+  } catch (_) {
+    throw new Error("Scene 5: Google translation did not auto-restore after SPA back-nav");
+  }
+  await page.waitForTimeout(500);
+
+  // ── 步骤 4：验证按钮高亮仍是 Google（bug 回归断言）──
+  btnState = await getButtonHighlights(page);
+  console.log(`  After back-nav: ${JSON.stringify(btnState)}`);
+  if (!btnState.google) {
+    throw new Error(
+      `Scene 5 FAIL (user-reported bug): after SPA back-nav on a translated page, ` +
+      `expected Google highlighted, got ${JSON.stringify(btnState)}`
+    );
+  }
+  if (btnState.original) {
+    throw new Error(`Scene 5 FAIL: Original should NOT be highlighted after SPA back-nav, got ${JSON.stringify(btnState)}`);
+  }
+
+  console.log("  Scene 5 PASSED: Google highlight survives SPA back-navigation rebuild");
+}
+
+/**
+ * 读取浮动按钮三键高亮状态。
+ */
+async function getButtonHighlights(page) {
+  return page.evaluate(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    const root = host?.shadowRoot || null;
+    const read = (id) => {
+      const el = root?.getElementById(id) || null;
+      return !!el?.classList.contains("dualtran-floating-btn-active");
+    };
+    return { original: read("btnOriginal"), google: read("btnGoogle"), ai: read("btnAi") };
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -417,6 +541,9 @@ export async function run(scope) {
 
     // 场景 4：链接点击（非回退）导航行为
     await verifySpaForwardLinkNavigation(page, serviceWorker, testPageUrl);
+
+    // 场景 5：Google 翻译后 SPA 回退 — 按钮高亮保持 Google（bug 回归）
+    await verifyGoogleHighlightAfterSpaBackNav(page, serviceWorker, testPageUrl);
 
     console.log("\n  All SPA navigation recovery tests passed.\n");
   } catch (err) {
