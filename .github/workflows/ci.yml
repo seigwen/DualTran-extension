@@ -145,3 +145,6 @@ jobs:
 
     - name: Mock fidelity (E2E mock pages declare simulated behavior)
       run: node scripts/check-mock-fidelity.js
+
+    - name: Infra assumptions (every assumption has a test reference)
+      run: node scripts/check-infra-assumptions.js

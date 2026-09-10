@@ -182,6 +182,19 @@ tests/
 - [ ] MOCK FIDELITY 声明是否更新（模拟了什么/未模拟什么/来源）？
 - [ ] 模拟行为变化是否影响依赖它的 E2E 场景（navigation-recovery 等）？
 
+### 基础设施假设 → 测试映射表（M3 issue #33）
+
+**规则：** CLAUDE.md「基础设施假设清单」的每条假设必须有测试引用（`check-infra-assumptions.js` CI 强制）。恢复机制类假设（observer 挂载点/死亡/重建、popstate 定时器、pageshow）100% 必须有测试；非恢复机制类假设 100% 必须有文档条目。新增基础设施假设时同步更新此表 + CLAUDE.md。
+
+| 假设（CLAUDE.md） | 测试引用 | 三要素覆盖 |
+|---|---|---|
+| `document.body` 可能被框架整体替换（Turbo Drive `replaceWith`） | `pageTranslator.navRestore.integration.test.js`「T8」+ `floatingBtn.behavior.test.js`「turbo back-nav」2 个 | 死亡条件（body 替换）✅ 重建条件（host 重建/动态翻译恢复）✅ |
+| `document.documentElement` 在 SPA 导航中存活 | 同上（T8 + turbo back-nav immediate） | 挂载点 ✅ |
+| 挂 documentElement 的 observer 对 `<head>` 变化可见 → 必须过滤 head | `tests/browser-e2e/observer-feedback-loop.mjs`（4 组合 soak 计数稳定） | 过滤条件 ✅ |
+| popstate 定时器不是可靠恢复机制（Turbo fetch 异步） | `floatingBtn.behavior.test.js`「turbo back-nav: body element replaced AFTER popstate 200ms check」 | 时序假设 ✅ |
+| `pageshow` 只在 bfcache（`e.persisted`）触发 | `pageTranslator.navRestore.integration.test.js`「T5」 | 触发条件 ✅ |
+| observer 挂载点必须用 `getObserverRoot()`，禁止 `document.body` | `tests/scripts/checkObserverMount.test.js`（lint 自测 5 个）+ `scripts/check-observer-mount.js`（CI 强制） | 挂载点 ✅ |
+
 ## Test Naming Conventions
 
 ### Unit Tests vs Integration Tests
