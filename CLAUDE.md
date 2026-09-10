@@ -183,6 +183,16 @@ Content Script (fetchSSE.js)
 - [ ] 涉及 SPA 导航？E2E 是否断言了导航后状态一致性？（`assertUiStateMatchesEngine`）
 - [ ] 初始化是否从引擎状态派生（`resolveInitialUiState`），而非硬编码？（`check-ui-state-init.js` CI 强制）
 
+**PR Checklist for SPA/navigation/DOM-lifecycle fixes (M4 issue #34):**
+- [ ] 本次修复是否扩大了观察/监听范围（observer 挂载点、事件监听范围）？如果是，新可见区域（如 head）的过滤是否已验证？（T3）
+- [ ] 本次修复涉及 SPA 导航/DOM 生命周期？如果是，必须运行 `node scripts/real-site-verify.mjs --url <用户报告 URL>` 并在 PR 描述附结果（P1）
+
+**修复前置检查 SOP（Pre-Fix Pattern Check，M4 issue #34）—— 修复任何 bug 前必须执行：**
+1. **对照状态同步失败模式清单（M1-M6）**：`M1 事件丢失 / M2 重建归零 / M3 顺序竞态 / M4 副本失真 / M5 初始化硬编码 / M6 观察者死亡`（完整定义见 dualtran-extension skill「状态同步失败模式清单」）。属于已知模式 → 直接套用修复模板；不属于 → 继续第 2 步。
+2. **对照基础设施假设清单**（本文件「基础设施假设清单」章节）：本次 bug 是否暴露了新的基础设施假设（DOM 元素生命周期/事件触发条件/定时器时序）？如果是 → **先文档化假设 + 测试引用，再修复**（M3 用 check-infra-assumptions.js 强制）。
+3. **对照模拟忠实度**：本次 bug 是否涉及 SPA/导航/DOM 生命周期？如果是 → 修复后必须运行 `real-site-verify.mjs`（P1）+ 检查 E2E 模拟页是否忠实（M2）。
+4. 修复完成后按「复盘四步」落档：根因 → 测试盲区 → 架构裂缝 → 改进项（根 CLAUDE.md / tests/CLAUDE.md / skill pattern 三处）。
+
 **UI 状态架构原则（计划文档 08-ui-state-ssot-plan.md）：**
 - **SSOT**：UI 状态（highlight/displayMode/intervention/inFlight）唯一事实源是 `uiStateStore`，禁止闭包持有状态副本。floatingBtn 等组件是纯渲染器，从 `getState()` 读取。
 - **Watchdog**：引擎驱动状态必须可自愈（不一致时 setState 纠正）；用户选择状态（intervention=true）必须保留，watchdog 不得干预。
