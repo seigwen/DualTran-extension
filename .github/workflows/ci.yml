@@ -142,3 +142,6 @@ jobs:
 
     - name: Observer mount (never document.body — Turbo body replacement bug)
       run: node scripts/check-observer-mount.js
+
+    - name: Mock fidelity (E2E mock pages declare simulated behavior)
+      run: node scripts/check-mock-fidelity.js

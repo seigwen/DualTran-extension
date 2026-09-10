@@ -168,6 +168,20 @@ tests/
 4. **Never use placeholder tests** like `expect(true).toBe(true)` for translation correctness. If the real test requires E2E, mark it with `it.todo("description")` instead.
 5. **replaceOriginal mode** — AI text nodes are NOT inside `<translated>` elements. Use `assertReplaceOriginalNoDuplicates()` or `assertNoDuplicateTranslationElements()` (mode-aware) for assertions. The `_isDualTranGeneratedNode` hook verifies observer filter logic.
 
+### 模拟页 vs 真实框架对照表（Mock Fidelity，M2 issue #32）
+
+**规则：** 每个模拟框架行为的 E2E 模拟页（`extra/e2e/*.html` 中含 pushState/popstate/replaceWith/body.innerHTML 脚本的页面）必须携带 `MOCK FIDELITY` 声明（`check-mock-fidelity.js` CI 强制）。修改模拟页行为前，先对照此表确认与真实框架一致。
+
+| 模拟页 | 模拟的行为 | 真实行为 | 忠实度风险 |
+|---|---|---|---|
+| `spa-source.html` / `spa-target.html` | Turbo Drive 链接导航与回退：fetch → 新 `<body>` 元素 `replaceWith` 旧 `<body>` 元素本身 → pushState/popstate | Turbo Drive 回退时替换 body **元素本身**（2026-09-10 github.com 实测 `document.body !== oldBody`；`<html>` 元素存活） | 已修正（PR #30 前用 `innerHTML` 保留 body 元素，掩盖 observer 死亡 bug——E2E 全绿但真实站点复现） |
+| `spa-source.html` / `spa-target.html`（未模拟） | Turbo 缓存策略（turbo-cache-control）、脚本执行语义（保留 script 不执行）、CSS 合并、进度条动画 | Turbo 有缓存策略与脚本语义 | 低——测试只依赖 body 元素替换行为；若未来测试依赖缓存/脚本语义需重新评估 |
+
+**修改模拟页的检查清单：**
+- [ ] 模拟的行为是否与真实框架一致？（不确定 → 在真实站点用浏览器验证，如 `document.body !== oldBody`）
+- [ ] MOCK FIDELITY 声明是否更新（模拟了什么/未模拟什么/来源）？
+- [ ] 模拟行为变化是否影响依赖它的 E2E 场景（navigation-recovery 等）？
+
 ## Test Naming Conventions
 
 ### Unit Tests vs Integration Tests
