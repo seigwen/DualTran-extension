@@ -157,6 +157,13 @@ Content Script (fetchSSE.js)
 - 实现点清单（规则对称性）：`getState`（pageTranslator 单查询接口，B2）、`resolveInitialUiState`（floatingBtnClickResolver 纯函数，A3）。getCurrentUiState 消息处理为 E2E 断言辅助（被 tests/browser-e2e/setup.mjs 的 assertUiStateMatchesEngine 引用）。floatingBtn.js show() 内的 engineState / initialUi / lastPageLanguageState 为闭包局部实现细节，由 floatingBtn.behavior.test.js 生命周期矩阵测试（A1）+ E2E navigation-recovery.mjs Scene 5 的行为断言覆盖。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - 测试：jsdom `floatingBtn.behavior.test.js`（SPA back-nav rebuild 高亮保持 Google/AI）+ E2E `navigation-recovery.mjs` Scene 5（真实浏览器 Google 高亮回归）。
 
+**RULE: MutationObserver 挂载点（observer mount rule）—— 必须挂 `document.documentElement`，禁止挂 `document.body`：**
+- 真实 Turbo Drive（GitHub）回退导航时用新 `<body>` 元素 `replaceWith` 旧 `<body>` 元素本身（2026-09-10 实测：`document.body !== oldBody`），挂在 body 上的 observer 随旧 body 一起死亡 → host 消失/动态翻译停止后永不恢复（第 7 次同类事故）。
+- `<html>` 元素在 Turbo 导航中存活（实测 `htmlReplaced: false`），挂 `documentElement` + `subtree: true` 能捕获 body 替换。
+- **连带规则：** 挂 documentElement 后 head 变化也可见 → 回调必须过滤 `document.head.contains(addedNode)`（否则 `<title>` 文本被拾取 → `<translated>` 被追加进 `<title>`，soak feedback loop）。
+- 实现点清单（规则对称性）：`floatingBtn.js` `setupFloatingBtnObserver`（PR #30）、`pageTranslator.js` `enableMutatinObserver`（PR #30）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- 测试：floatingBtn.behavior.test.js「turbo back-nav」2 个（body 元素替换后 host 重建）+ E2E navigation-recovery 5 场景（模拟页已忠实化：`replaceWith` 替换 body 元素）。
+
 **PR Checklist for translation core changes** (MutationObserver callback, `updatePiecesToTranslateWithNewNodes`, `getPiecesToTranslate`, `addTranslatedContent`, `translateDynamically`):
 - [ ] New/modified tests cover "translation output is not re-translated" scenario
 - [ ] `assertNoDuplicateTranslations` E2E assertion still passes

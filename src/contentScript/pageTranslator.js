@@ -1924,8 +1924,15 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
        // These are not new content — they're translation results being written.
        if (mutation.type === "characterData") return;
        // New nodes: if a block-level element belonging to translatable tags, add to local tmpNewNodes array
-      mutation.addedNodes.forEach((addedNode) => {
+       mutation.addedNodes.forEach((addedNode) => {
         const nodeName = addedNode.nodeName.toLowerCase();
+        // Skip nodes inside <head> (title/meta/script/style). The observer
+        // watches document.documentElement (bug 2026-09-10: Turbo replaces
+        // the <body> ELEMENT, so a body-scoped observer dies with it), which
+        // also sees <head> mutations — <title> text nodes would otherwise be
+        // picked up as new content and get a <translated> element appended
+        // inside <title> (feedback loop: 19 → 20 translated elements).
+        if (document.head && document.head.contains(addedNode)) return;
         if (nodeName.toLowerCase() !== "translated" && !isDescendantOfTranslated(addedNode)) {
           // Skip DualTran-generated elements in replaceOriginal mode.
           // Without this filter, the MutationObserver picks these up as "new content"
@@ -2024,8 +2031,16 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     if (twpConfig.get("translateDynamicallyCreatedContent") == "yes") {
        // Set up timer: push new nodes into piecesToTranslate array every 2 seconds
       translateNewNodesTimerHandler = setInterval(updatePiecesToTranslateWithNewNodes, 2000);
-       // Listen for document.body updates in real time
-      mutationObserver.observe(document.body, {
+       // Listen for document updates in real time.
+       // CRITICAL (bug 2026-09-10): observe document.documentElement, NOT
+       // document.body. Real Turbo Drive (GitHub) replaces the <body> ELEMENT
+       // itself on back-nav (verified live: document.body !== oldBody after
+       // goBack). An observer on the old body goes dead with it — dynamically
+       // created content (and the fresh body after Turbo back-nav) is never
+       // picked up, so Google translation does not auto-restore. The <html>
+       // element survives Turbo navigation (verified live), so observing it
+       // with subtree:true catches body replacement via childList mutations.
+      mutationObserver.observe(document.documentElement, {
         childList: true,
         characterData: true,
         subtree: true,
