@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SPA Source Page</title>
+  <!-- MOCK FIDELITY: 模拟了 Turbo Drive 链接导航（fetch → 新 <body> 元素 replaceWith 旧 <body> 元素本身 → pushState）与回退（popstate → fetch → replaceWith body 元素本身）（来源：2026-09-10 github.com 实测 document.body !== oldBody）；未模拟 Turbo 缓存策略（turbo-cache-control）、脚本执行语义（保留 script 不执行）、CSS 合并、进度条动画（风险：低——测试只依赖 body 元素替换行为，若未来测试依赖缓存/脚本语义需重新评估） -->
   <style>
     body { font-family: Georgia, serif; line-height: 1.8; margin: 40px auto; max-width: 860px; color: #222; }
     h1 { font-size: 1.6em; }
