@@ -37,7 +37,10 @@
           .then(function (res) { return res.text(); })
           .then(function (html) {
             var doc = new DOMParser().parseFromString(html, "text/html");
-            document.body.innerHTML = doc.body.innerHTML;
+            // 替换 body 元素本身（真实 Turbo Drive 行为，见 spa-source.html 注释）
+            var newBody = document.createElement("body");
+            newBody.innerHTML = doc.body.innerHTML;
+            document.body.replaceWith(newBody);
             document.title = doc.title;
             history.pushState({ spaUrl: href }, "", href);
           })
@@ -51,9 +54,12 @@
           .then(function (res) { return res.text(); })
           .then(function (html) {
             var doc = new DOMParser().parseFromString(html, "text/html");
-            document.body.innerHTML = doc.body.innerHTML;
+            // 替换 body 元素本身（真实 Turbo Drive 行为）
+            var newBody = document.createElement("body");
+            newBody.innerHTML = doc.body.innerHTML;
+            document.body.replaceWith(newBody);
             document.title = doc.title;
-            console.log("[SPA] body replaced with fresh content from " + url);
+            console.log("[SPA] body element replaced with fresh content from " + url);
           })
           .catch(function (err) { console.error("[SPA] popstate fetch error:", err); });
       });

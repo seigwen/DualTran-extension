@@ -725,4 +725,57 @@ describe("floatingBtn — three-state behavior", () => {
     expect(isHighlighted(getGoogleButton())).toBe(true);
     expect(isHighlighted(getAiButton())).toBe(false);
   });
+
+  // ──────────────────────────────────────────────
+  // Turbo body-element replacement (bug report 2026-09-10): on real
+  // GitHub, Turbo Drive replaces the <body> ELEMENT itself on back-nav
+  // (verified live: document.body !== oldBody after goBack). The E2E
+  // mock pages use body.innerHTML (body element survives), so the
+  // observer on document.body never sees the host disappear in real
+  // Turbo — the floating button group is gone after back-nav.
+  // ──────────────────────────────────────────────
+
+  it("turbo back-nav: body element replaced AFTER popstate 200ms check → host must be recreated", async () => {
+    await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    // popstate fires (Turbo back-nav starts) — body not yet replaced
+    window.dispatchEvent(new Event("popstate"));
+    await vi.advanceTimersByTimeAsync(200);
+    // host still present (Turbo still fetching) → popstate check passes, no rebuild
+    expect(document.getElementById("dualtran-floating-btn-host")).toBeTruthy();
+
+    // Clear stale timers from previous test instances (observer debounce
+    // timers set when beforeEach cleared the body would otherwise fire
+    // during advanceTimersByTimeAsync below and mask the bug).
+    vi.clearAllTimers();
+
+    // Turbo finishes fetch → replaces the BODY ELEMENT itself
+    const newBody = document.createElement("body");
+    newBody.innerHTML = "<h1>SPA Source Page</h1>";
+    document.body.replaceWith(newBody);
+    expect(document.getElementById("dualtran-floating-btn-host")).toBeNull();
+
+    // observer debounce (300ms) — observer is on the OLD body (detached),
+    // so it never fires → host is NOT recreated (this is the bug)
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(document.getElementById("dualtran-floating-btn-host")).toBeTruthy();
+  });
+
+  it("turbo back-nav: body element replaced immediately → host must be recreated", async () => {
+    await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    // Clear stale timers from previous test instances (see above).
+    vi.clearAllTimers();
+
+    // Turbo replaces the BODY ELEMENT (no popstate in some SPA paths)
+    const newBody = document.createElement("body");
+    newBody.innerHTML = "<h1>SPA Source Page</h1>";
+    document.body.replaceWith(newBody);
+    expect(document.getElementById("dualtran-floating-btn-host")).toBeNull();
+
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(document.getElementById("dualtran-floating-btn-host")).toBeTruthy();
+  });
 });
