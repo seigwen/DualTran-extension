@@ -171,6 +171,7 @@ Content Script (fetchSSE.js)
 **UI 状态架构原则（计划文档 08-ui-state-ssot-plan.md）：**
 - **SSOT**：UI 状态（highlight/displayMode/intervention/inFlight）唯一事实源是 `uiStateStore`，禁止闭包持有状态副本。floatingBtn 等组件是纯渲染器，从 `getState()` 读取。
 - **Watchdog**：引擎驱动状态必须可自愈（不一致时 setState 纠正）；用户选择状态（intervention=true）必须保留，watchdog 不得干预。
+- **Watchdog 实时派生规则（PR #29 修正）**：无干预时，`highlight`/`displayMode` 必须反映**页面实际显示**——`pageLanguageState === "translated" && aiRenderState === "success" && aiModeActive` → AI；否则 translated → Google；original → Original。**不得**只看 pageLanguageState 派生（刷新/SPA 恢复后页面显示 AI 但按钮 Google 高亮 = 第 6 次同类事故）。AI 在飞（loading）或失败（error）时页面显示 Google，按钮保持 Google。
 - **状态机**：状态转换必须通过显式合法表，非法转换（如 pageLanguageState=original 时 highlight=ai）在开发/测试期报错。
 - **变更日志**：所有 setState 记录（时间戳/来源/调用栈/前后快照），`dumpLog()` 可导出，诊断状态 bug 的第一工具。
 

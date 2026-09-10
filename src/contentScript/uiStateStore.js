@@ -47,20 +47,31 @@ const subscribers = new Set();
 
 /**
  * Resolve what the UI state MUST be when no user intervention happened
- * (live event arbitration, conservative — mirrors floatingBtn's event
- * callback semantics):
+ * (live event arbitration — reflects what the page ACTUALLY shows):
  *
  *   - pageLanguageState === "original" → Original
- *   - pageLanguageState === "translated" → Google
+ *   - pageLanguageState === "translated" + aiRenderState === "success"
+ *     + aiModeActive → AI (the page IS showing AI translations)
+ *   - pageLanguageState === "translated" + otherwise → Google
  *
- * AI highlight is strictly a user choice (intervention=true, click on AI).
- * Live events never drive highlight to ai — the auto-translate path
- * highlights Google even when an AI result arrives (Q5: engine applies
- * the result via aiModeActive but the button stays Google until the user
- * clicks AI). Deriving ai here would change existing behavior.
+ * Why aiRenderState === "success" (not "!== idle"): without intervention,
+ * AI only ever runs when the user previously chose AI (sessionStorage
+ * marker → shouldForceAiAfterPageTranslation). While AI is in flight
+ * (loading) the page still shows Google — the button must stay Google
+ * until AI actually displays. On error the page falls back to Google.
+ * (Bug report: refresh after AI translation → page shows AI but button
+ * stays Google highlighted.)
  */
 function deriveEngineDrivenUi(engine) {
-  const mode = engine.pageLanguageState === "translated" ? "google" : "original";
+  const aiDisplayed =
+    engine.pageLanguageState === "translated" &&
+    engine.aiRenderState === "success" &&
+    engine.aiModeActive;
+  const mode = aiDisplayed
+    ? "ai"
+    : engine.pageLanguageState === "translated"
+      ? "google"
+      : "original";
   return { highlight: mode, displayMode: mode };
 }
 

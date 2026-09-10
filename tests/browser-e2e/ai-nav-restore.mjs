@@ -374,6 +374,99 @@ async function verifyNoAutoTranslateWithoutFlag(page, serviceWorker, spaSourceUr
 }
 
 /**
+ * 读取悬浮按钮组当前高亮按钮。
+ * @param {import("playwright").Page} page
+ * @returns {Promise<"original"|"google"|"ai"|null>}
+ */
+async function getFloatingBtnHighlight(page) {
+  return page.evaluate(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    const root = host?.shadowRoot || null;
+    const read = (id) =>
+      !!root?.getElementById(id)?.classList.contains("dualtran-floating-btn-active");
+    if (read("btnOriginal")) return "original";
+    if (read("btnGoogle")) return "google";
+    if (read("btnAi")) return "ai";
+    return null;
+  });
+}
+
+/**
+ * 场景 3：刷新（full reload）后 AI 翻译自动恢复 → 按钮应 AI 高亮
+ *
+ * 用户报告 bug（2026-09-06）：AI 翻译后点浏览器刷新按钮，页面自动显示
+ * AI 译文，但悬浮按钮组 Google 高亮而非 AI 高亮。
+ * 根因：刷新后无干预（intervention=false），watchdog 实时派生只看
+ * pageLanguageState → google；aiRenderState=success + aiModeActive 时
+ * 页面实际显示 AI，按钮必须跟随（uiStateStore deriveEngineDrivenUi 修复）。
+ */
+async function verifyAiHighlightAfterReload(page, serviceWorker, spaSourceUrl, mockServerConfig) {
+  console.log("[ai-nav-restore] Scene 3: Full reload after AI translation → AI button highlighted");
+
+  const expectedAiSnippet = mockServerConfig.expectedAiSnippet;
+
+  // ── 步骤 1：打开 SPA 源页面 ──
+  console.log("  Step 1: Navigate to SPA source page");
+  await page.goto(spaSourceUrl, { waitUntil: "domcontentloaded" });
+  await waitForContentScriptInjected(serviceWorker, page.url());
+  await waitForPageTranslatorReady(serviceWorker, page.url());
+
+  // ── 步骤 2：触发翻译（Google + AI）──
+  console.log("  Step 2: Trigger translation (Google + AI)");
+  await sendMessageToTab(serviceWorker, page.url(), { action: "translatePage", targetLanguage: "fr" });
+  await page.waitForFunction(
+    () => document.querySelectorAll("translated").length > 0,
+    null,
+    { timeout: 15_000 }
+  );
+  await page.evaluate(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    host?.shadowRoot?.getElementById("btnAi")?.click();
+  });
+  await waitForAiTranslation(page, expectedAiSnippet);
+
+  // 确认 AI 高亮（用户点击后）
+  const highlightBefore = await getFloatingBtnHighlight(page);
+  console.log(`  Highlight after AI click: ${highlightBefore}`);
+  if (highlightBefore !== "ai") {
+    throw new Error(`Expected AI highlighted after AI click, got: ${highlightBefore}`);
+  }
+
+  // ── 步骤 3：刷新页面（full reload，模拟用户点刷新按钮）──
+  console.log("  Step 3: Reload page (full reload)");
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await waitForContentScriptInjected(serviceWorker, page.url());
+  await waitForPageTranslatorReady(serviceWorker, page.url());
+
+  // ── 步骤 4：等待 AI 翻译自动恢复（pageshow → sessionStorage 标记）──
+  console.log("  Step 4: Wait for AI translation auto-restore after reload");
+  await waitForAiTranslation(page, expectedAiSnippet);
+
+  // ── 步骤 5：断言按钮 AI 高亮（bug 修复点）──
+  console.log("  Step 5: Assert AI button highlighted after reload");
+  await page.waitForFunction(
+    () => {
+      const host = document.getElementById("dualtran-floating-btn-host");
+      const root = host?.shadowRoot || null;
+      return !!root?.getElementById("btnAi")?.classList.contains("dualtran-floating-btn-active");
+    },
+    null,
+    { timeout: 15_000 }
+  );
+  const highlightAfter = await getFloatingBtnHighlight(page);
+  console.log(`  Highlight after reload: ${highlightAfter}`);
+  if (highlightAfter !== "ai") {
+    throw new Error(
+      `BUG: after reload the page shows AI translations but the floating button ` +
+      `highlights "${highlightAfter}" instead of "ai". ` +
+      `This is the reported bug: button state does not match page reality.`
+    );
+  }
+
+  console.log("  AI button correctly highlighted after reload.");
+}
+
+/**
  * 主运行入口
  * @param {Object} scope — setup 框架传入的作用域对象
  */
@@ -397,6 +490,9 @@ export async function run(scope) {
 
     // 场景 2: 无 AI 标记的页面 SPA 回退后不应自动触发 AI 翻译
     await verifyNoAutoTranslateWithoutFlag(page, serviceWorker, spaSourceUrl, spaTargetUrl);
+
+    // 场景 3: 刷新（full reload）后 AI 翻译自动恢复 → 按钮应 AI 高亮
+    await verifyAiHighlightAfterReload(page, serviceWorker, spaSourceUrl, mockServerConfig);
 
     console.log("\n  All AI navigation restore tests passed.\n");
   } catch (err) {

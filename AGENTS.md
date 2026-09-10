@@ -2,6 +2,10 @@
 
 此文件对任何在本仓库工作的 agent/协作者生效（Claude Code、其他 AI 工具、人类协作者）。CLAUDE.md 是完整规则，此文件是不可违反的铁律子集。
 
+## Git 提交铁律
+
+**所有 git message 统一使用英文**（commit message、PR 标题、PR 正文）。禁止中文 commit message。仓库文档（CLAUDE.md / 计划文档）可用中文，但 git 历史必须全英文。
+
 ## 状态架构铁律（最高优先级）
 
 1. **SSOT（单一事实源）**：UI 状态（`highlight` / `displayMode` / `intervention` / `googleInFlight` / `aiInFlight`）唯一事实源是 `src/contentScript/uiStateStore.js`。**禁止在闭包/组件内持有状态副本**，禁止裸赋值（`highlight = ...` / `displayMode = ...`），所有变更必须走 `setState()`。
