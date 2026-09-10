@@ -733,6 +733,8 @@ describe("floatingBtn — three-state behavior", () => {
   // mock pages use body.innerHTML (body element survives), so the
   // observer on document.body never sees the host disappear in real
   // Turbo — the floating button group is gone after back-nav.
+  // Covers implementation point: setupFloatingBtnObserver (floatingBtn.js)
+  // — observer must mount on document.documentElement, never body.
   // ──────────────────────────────────────────────
 
   it("turbo back-nav: body element replaced AFTER popstate 200ms check → host must be recreated", async () => {
