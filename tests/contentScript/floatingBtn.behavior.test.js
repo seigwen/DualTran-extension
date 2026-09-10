@@ -690,4 +690,39 @@ describe("floatingBtn — three-state behavior", () => {
     expect(isHighlighted(getGoogleButton())).toBe(false);
     expect(isHighlighted(getAiButton())).toBe(false);
   });
+
+  // ──────────────────────────────────────────────
+  // Reload-restore path (bug report 2026-09-06): refresh after AI
+  // translation → page auto-shows AI (sessionStorage marker) but the
+  // button stays Google highlighted. Event sequence without intervention:
+  // translated → Google highlight (page shows Google while AI in flight),
+  // then aiRenderState=success → button must switch to AI highlight.
+  // ──────────────────────────────────────────────
+
+  it("reload-restore: AI success after auto-translate (no intervention) → AI highlighted", async () => {
+    await loadModule();
+    // pageshow restore: pageLanguageState → translated (Google shows first)
+    emitPageLanguageStateChange("translated");
+    expect(isHighlighted(getGoogleButton())).toBe(true);
+    // AI translation completes → page now shows AI → button must follow
+    emitAiRenderStateChange("success");
+    expect(isHighlighted(getAiButton())).toBe(true);
+    expect(isHighlighted(getGoogleButton())).toBe(false);
+  });
+
+  it("reload-restore: AI in flight (loading) → Google stays highlighted (page still shows Google)", async () => {
+    await loadModule();
+    emitPageLanguageStateChange("translated");
+    emitAiRenderStateChange("loading");
+    expect(isHighlighted(getGoogleButton())).toBe(true);
+    expect(isHighlighted(getAiButton())).toBe(false);
+  });
+
+  it("reload-restore: AI error after auto-translate → Google stays highlighted (page falls back to Google)", async () => {
+    await loadModule();
+    emitPageLanguageStateChange("translated");
+    emitAiRenderStateChange("error");
+    expect(isHighlighted(getGoogleButton())).toBe(true);
+    expect(isHighlighted(getAiButton())).toBe(false);
+  });
 });
