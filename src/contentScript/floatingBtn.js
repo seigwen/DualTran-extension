@@ -6,6 +6,7 @@
 console.log("floatingBtn.js is running")
 
 import twpConfig from "../lib/config.js"
+import { getObserverRoot } from "../lib/dom.js"
 import { pageTranslator } from "./pageTranslator.js"
 import { resolveFloatingBtnClick, resolveInitialUiState } from "./floatingBtnClickResolver.js"
 import { setState, getState, resetForRebuild } from "./uiStateStore.js"
@@ -915,8 +916,8 @@ if (window.self !== window.top) {
     // Observer detects host removal and auto-rebuilds, debounce 300ms to prevent loops.
     // Distinguish active hide() from passive DOM replacement: hide() sets
     // divElement to null, so Observer skips rebuild.
-    // CRITICAL (bug 2026-09-10): observe document.documentElement, NOT
-    // document.body. Real Turbo Drive (GitHub) replaces the <body> ELEMENT
+    // CRITICAL (bug 2026-09-10): observe getObserverRoot() (document.documentElement),
+    // NOT document.body. Real Turbo Drive (GitHub) replaces the <body> ELEMENT
     // itself on back-nav (verified live: document.body !== oldBody after
     // goBack). An observer on the old body goes dead with it — the host
     // removal is never seen and the button group never rebuilds. The <html>
@@ -941,7 +942,7 @@ if (window.self !== window.top) {
           }
         }, 300);
       });
-      floatingBtnObserver.observe(document.documentElement, {
+      floatingBtnObserver.observe(getObserverRoot(), {
         childList: true,
         subtree: true,
       });

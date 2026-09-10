@@ -32,6 +32,7 @@ console.log("pageTranslator.js is running")
 
 import twpLang from "../lib/languages.js"
 import twpConfig from "../lib/config.js"
+import { getObserverRoot } from "../lib/dom.js"
 import { createProviderRegistry, BUILT_IN_PROVIDERS } from "../lib/ai/providerRegistry.js"
 import platformInfo from "../lib/platformInfo.js"
 
@@ -2032,15 +2033,15 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
        // Set up timer: push new nodes into piecesToTranslate array every 2 seconds
       translateNewNodesTimerHandler = setInterval(updatePiecesToTranslateWithNewNodes, 2000);
        // Listen for document updates in real time.
-       // CRITICAL (bug 2026-09-10): observe document.documentElement, NOT
-       // document.body. Real Turbo Drive (GitHub) replaces the <body> ELEMENT
+       // CRITICAL (bug 2026-09-10): observe getObserverRoot() (document.documentElement),
+       // NOT document.body. Real Turbo Drive (GitHub) replaces the <body> ELEMENT
        // itself on back-nav (verified live: document.body !== oldBody after
        // goBack). An observer on the old body goes dead with it — dynamically
        // created content (and the fresh body after Turbo back-nav) is never
        // picked up, so Google translation does not auto-restore. The <html>
        // element survives Turbo navigation (verified live), so observing it
        // with subtree:true catches body replacement via childList mutations.
-      mutationObserver.observe(document.documentElement, {
+       mutationObserver.observe(getObserverRoot(), {
         childList: true,
         characterData: true,
         subtree: true,

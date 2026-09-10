@@ -139,3 +139,6 @@ jobs:
 
     - name: UI state init (no hardcoded closure state — SPA rebuild bug)
       run: node scripts/check-ui-state-init.js
+
+    - name: Observer mount (never document.body — Turbo body replacement bug)
+      run: node scripts/check-observer-mount.js

@@ -164,6 +164,14 @@ Content Script (fetchSSE.js)
 - 实现点清单（规则对称性）：`floatingBtn.js` `setupFloatingBtnObserver`（PR #30）、`pageTranslator.js` `enableMutatinObserver`（PR #30）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - 测试：floatingBtn.behavior.test.js「turbo back-nav」2 个（body 元素替换后 host 重建）+ E2E navigation-recovery 5 场景（模拟页已忠实化：`replaceWith` 替换 body 元素）。
 
+**基础设施假设清单（Infrastructure Assumptions，M1 issue #31）—— 每个假设必须有测试引用（M3 用 check-infra-assumptions.js 强制）：**
+- **假设：** `document.body` 元素可能被框架整体替换（Turbo Drive 回退导航 `replaceWith`，2026-09-10 github.com 实测）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav」2 个
+- **假设：** `document.documentElement`（`<html>`）在 SPA 导航中存活（实测 `htmlReplaced: false`）→ 测试：同上（observer 挂 documentElement 后 body 替换仍触发）
+- **假设：** 挂 documentElement 的 observer 对 `<head>` 变化可见 → 回调必须过滤 `document.head.contains(addedNode)`（否则 `<title>` 被翻译，soak feedback loop）→ 测试：`tests/browser-e2e/observer-feedback-loop.mjs`（4 组合 soak 计数稳定）
+- **假设：** popstate 定时器不是可靠的恢复机制（Turbo fetch 异步，200ms 检查时 host 可能还在）→ 测试：`tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav: body element replaced AFTER popstate 200ms check」
+- **假设：** `pageshow` 只在 bfcache（`e.persisted`）触发，Turbo 回退不是 bfcache → 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T5: pageshow（bfcache 恢复，persisted=true）」
+- **假设：** MutationObserver 挂载点必须用 `getObserverRoot()`（`src/lib/dom.js`），禁止 `document.body` → 测试：`tests/scripts/checkObserverMount.test.js`（lint 自测 5 个）+ `scripts/check-observer-mount.js`（CI 强制）
+
 **PR Checklist for translation core changes** (MutationObserver callback, `updatePiecesToTranslateWithNewNodes`, `getPiecesToTranslate`, `addTranslatedContent`, `translateDynamically`):
 - [ ] New/modified tests cover "translation output is not re-translated" scenario
 - [ ] `assertNoDuplicateTranslations` E2E assertion still passes
