@@ -41,6 +41,7 @@ const mockState = vi.hoisted(() => {
     neverTranslateSites: [],
     neverTranslateLangs: [],
     customDictionary: new Map(),
+    translateDynamicallyCreatedContent: "yes",
   };
 
   return {
@@ -527,5 +528,54 @@ describe("restorePage → 清除 AI 标记", () => {
     pageTranslator.restorePage();
 
     expect(mock.getItem("dualtran:aiApplied:" + testUrl)).toBeNull();
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // Test 8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活
+  // 行为锁定测试（M1, issue #31）：observer 挂载点必须能承受 body 元素
+  // 本身被 replaceWith 替换（真实 Turbo Drive 行为，2026-09-10 github.com
+  // 实测：document.body !== oldBody after goBack）。PR #30 修复后此测试
+  // GREEN；M1 重构（getObserverRoot 提取）后必须保持 GREEN。
+  // ═══════════════════════════════════════════════════════════
+
+  it("T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活", async () => {
+    const testUrl = "https://github.com/obra/superpowers/projects";
+    const dom = new JSDOM("<!DOCTYPE html><html><body><p>hello world</p></body></html>", { url: testUrl });
+    globalThis.window = dom.window;
+    globalThis.document = dom.window.document;
+    globalThis.location = dom.window.location;
+    Object.defineProperty(globalThis, "navigator", {
+      configurable: true, writable: true, value: dom.window.navigator,
+    });
+    patchSessionStorage(dom);
+    createTestGlobals();
+
+    const { pageTranslator } = await import("../../src/contentScript/pageTranslator.js");
+    await vi.waitFor(() => {
+      expect(pageTranslator.translatePage).toBeTypeOf("function");
+    }, { timeout: 5000 });
+
+    // 1. 翻译页面 → enableMutatinObserver() 挂载 observer（translateDynamicallyCreatedContent=yes）
+    pageTranslator.translatePage();
+
+    // 2. 模拟 Turbo back-nav：替换 body 元素本身（真实行为，2026-09-10 github.com 实测）
+    const oldBody = document.body;
+    const newBody = document.createElement("body");
+    newBody.innerHTML = "<p>fresh body after turbo back-nav</p>";
+    oldBody.replaceWith(newBody);
+
+    // 3. 新 body 添加动态内容
+    const p = document.createElement("p");
+    p.textContent = "dynamically added after body replacement";
+    newBody.appendChild(p);
+
+    // 4. observer 必须存活：新节点被拾取进 newNodes
+    //    （observer 若挂在旧 body 上，替换后死亡，newNodes 永远为空）
+    await vi.waitFor(() => {
+      expect(pageTranslator._getNewNodes().length).toBeGreaterThan(0);
+    }, { timeout: 5000 });
+
+    // 清理：停止定时器 + 断开 observer
+    pageTranslator.restorePage();
   });
 });
