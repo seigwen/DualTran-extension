@@ -780,4 +780,109 @@ describe("floatingBtn — three-state behavior", () => {
     await vi.advanceTimersByTimeAsync(1000);
     expect(document.getElementById("dualtran-floating-btn-host")).toBeTruthy();
   });
+
+  // ──────────────────────────────────────────────
+  // Turbo snapshot shell (bug report 2026-09-??): Turbo Drive caches a
+  // cloneNode() snapshot of the body when leaving a page (source verified:
+  // PageSnapshot.clone() → cloneNode(true)). cloneNode does NOT clone
+  // shadow roots, so when Turbo renders the cached snapshot on
+  // back/forward, the page contains a shadow-less SHELL of
+  // #dualtran-floating-btn-host. All rebuild checks only test
+  // `!host || !document.body.contains(host)` — a shell passes every check,
+  // so the button is NEVER rebuilt → user-visible disappearance (page
+  // still shows translations cloned into the snapshot). Real-site
+  // reproduction: /obra/superpowers/security (turbo-cache-control:
+  // no-preview only, so it stays cached) after a forward nav — 12/12
+  // rounds ended with a shell host and no rebuild.
+  //
+  // Fix contract: a host is only "functional" when it has a shadowRoot
+  // with the buttons. Every rebuild path must treat a shadow-less shell
+  // as a missing host and recreate it.
+  // Implementation point: hasFunctionalHost (floatingBtn.js) — the shared
+  // predicate used by all three rebuild paths (popstate / observer /
+  // pageshow). Tests below lock its contract from the outside.
+  // ──────────────────────────────────────────────
+
+  it("turbo snapshot shell: shadow-less host on popstate must be rebuilt", async () => {
+    await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    // Simulate Turbo rendering a cached snapshot: cloneNode of the host
+    // (no shadow root) replaces the healthy host.
+    const healthyHost = document.getElementById("dualtran-floating-btn-host");
+    const shell = healthyHost.cloneNode(true);
+    expect(shell.shadowRoot).toBeNull();
+    healthyHost.replaceWith(shell);
+
+    // popstate fires on the back/forward navigation
+    window.dispatchEvent(new Event("popstate"));
+    await vi.advanceTimersByTimeAsync(300);
+    await flushMicrotasks();
+
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host).toBeTruthy();
+    expect(host.shadowRoot).toBeTruthy();
+    expect(host.shadowRoot.getElementById("btnGoogle")).toBeTruthy();
+  });
+
+  it("turbo snapshot shell: observer must rebuild a shell host after unrelated mutation", async () => {
+    await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    const healthyHost = document.getElementById("dualtran-floating-btn-host");
+    const shell = healthyHost.cloneNode(true);
+    healthyHost.replaceWith(shell);
+
+    // Any unrelated DOM mutation (Turbo render keeps mutating the page)
+    document.body.appendChild(document.createElement("p"));
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(400);
+    await flushMicrotasks();
+
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host).toBeTruthy();
+    expect(host.shadowRoot).toBeTruthy();
+    // No duplicate hosts
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
+  });
+
+  it("turbo snapshot shell: pageshow (persisted) with shell host must rebuild", async () => {
+    await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    const healthyHost = document.getElementById("dualtran-floating-btn-host");
+    const shell = healthyHost.cloneNode(true);
+    healthyHost.replaceWith(shell);
+
+    window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+    await flushMicrotasks();
+
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host).toBeTruthy();
+    expect(host.shadowRoot).toBeTruthy();
+  });
+
+  it("turbo snapshot shell: body replaced with snapshot containing shell → rebuilt (no duplicate hosts)", async () => {
+    await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    // Simulate Turbo's full snapshot render shape: body element replaced,
+    // with a shell (shadow-less) copy of the host inside. This is exactly
+    // what cloneNode(true) of the body produces.
+    const newBody = document.createElement("body");
+    const shell = document.createElement("div");
+    shell.id = "dualtran-floating-btn-host";
+    shell.className = "notranslate";
+    newBody.appendChild(shell);
+    document.body.replaceWith(newBody);
+
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(400);
+    await flushMicrotasks();
+
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host).toBeTruthy();
+    expect(host.shadowRoot).toBeTruthy();
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
+  });
 });

@@ -223,6 +223,14 @@ export function createSingletonButtonGroup() {
   }
   if (window.self !== window.top) return;
 
+  // Clear stale host copies before creating a new one (bug 2026-09-14):
+  // Turbo snapshot renders can leave a shadow-less SHELL of this host in
+  // the DOM (cloneNode does not clone shadow roots). The _singleton.host
+  // reference points at the old detached host, so the rebuild proceeds —
+  // without this cleanup the page would end up with two hosts (stale
+  // shell + fresh one).
+  document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
+
   const host = document.createElement("div");
   host.id = "dualtran-singleton-btn-host";
   host.style.cssText = "all:initial;position:fixed;top:-9999px;left:-9999px;z-index:2147483646;";

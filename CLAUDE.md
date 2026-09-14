@@ -162,7 +162,13 @@ Content Script (fetchSSE.js)
 - `<html>` 元素在 Turbo 导航中存活（实测 `htmlReplaced: false`），挂 `documentElement` + `subtree: true` 能捕获 body 替换。
 - **连带规则：** 挂 documentElement 后 head 变化也可见 → 回调必须过滤 `document.head.contains(addedNode)`（否则 `<title>` 文本被拾取 → `<translated>` 被追加进 `<title>`，soak feedback loop）。
 - 实现点清单（规则对称性）：`floatingBtn.js` `setupFloatingBtnObserver`（PR #30）、`pageTranslator.js` `enableMutatinObserver`（PR #30）。修改任一实现点必须同步检查其他实现点 + 对应测试。
-- 测试：floatingBtn.behavior.test.js「turbo back-nav」2 个（body 元素替换后 host 重建）+ E2E navigation-recovery 5 场景（模拟页已忠实化：`replaceWith` 替换 body 元素）。
+- 测试：floatingBtn.behavior.test.js「turbo back-nav」2 个（body 元素替换后 host 重建）+ E2E navigation-recovery 6 场景（模拟页已忠实化：`replaceWith` 替换 body 元素 + 快照缓存渲染）。
+
+**RULE: 重建检查必须验证 host "功能完好"（有 shadowRoot），禁止只查存在性：**
+- Turbo 快照是 `cloneNode(true)` 缓存（**shadow root 不被克隆**）；restore 恢复（back/forward 到可缓存页）渲染快照且不发请求 → 快照中的 `#dualtran-floating-btn-host` 是无 shadowRoot 的空壳，`!host || !document.body.contains(host)` 检查全部通过 → 按钮永不重建（第 8 次事故，2026-09-14）。
+- 所有重建路径（popstate/observer/pageshow）必须用 `hasFunctionalHost()`（floatingBtn.js）：`host && document.body.contains(host) && host.shadowRoot`。singleton 的 `createSingletonButtonGroup` 重建前清除残留同名 host（避免 shell + 新 host 双元素）。
+- 实现点清单（规则对称性）：`floatingBtn.js` `hasFunctionalHost`（PR 待合入）、`singletonBtnGroup.js` `createSingletonButtonGroup`。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- 测试：floatingBtn.behavior.test.js「turbo snapshot shell」4 个 + singletonBtnGroup.test.js「快照残留的 shadow-less shell host 在重建时被清除」+ E2E navigation-recovery Scene 6。
 
 **基础设施假设清单（Infrastructure Assumptions，M1 issue #31）—— 每个假设必须有测试引用（M3 用 check-infra-assumptions.js 强制）：**
 - **假设：** `document.body` 元素可能被框架整体替换（Turbo Drive 回退导航 `replaceWith`，2026-09-10 github.com 实测）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav」2 个
@@ -171,6 +177,7 @@ Content Script (fetchSSE.js)
 - **假设：** popstate 定时器不是可靠的恢复机制（Turbo fetch 异步，200ms 检查时 host 可能还在）→ 测试：`tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav: body element replaced AFTER popstate 200ms check」
 - **假设：** `pageshow` 只在 bfcache（`e.persisted`）触发，Turbo 回退不是 bfcache → 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T5: pageshow（bfcache 恢复，persisted=true）」
 - **假设：** MutationObserver 挂载点必须用 `getObserverRoot()`（`src/lib/dom.js`），禁止 `document.body` → 测试：`tests/scripts/checkObserverMount.test.js`（lint 自测 5 个）+ `scripts/check-observer-mount.js`（CI 强制）
+- **假设：** Turbo Drive 快照缓存是 `cloneNode(true)`（**不克隆 shadow root**）且 restore 恢复（back/forward 到可缓存页）渲染快照**不发请求**（`turbo-cache-control: no-preview` 可缓存、`no-cache` 不可缓存；2026-09-14 github.com 实测 + @hotwired/turbo@8 源码 `PageSnapshot.clone()`）→ **重建检查必须把"无 shadowRoot 的 host"当作缺失**（`hasFunctionalHost()`），否则快照渲染后的空壳 host 永久存活、按钮消失（第 8 次事故）→ 测试：`tests/contentScript/floatingBtn.behavior.test.js`「turbo snapshot shell」4 个 + `tests/contentScript/singletonBtnGroup.test.js`「快照残留的 shadow-less shell host 在重建时被清除」+ E2E `tests/browser-e2e/navigation-recovery.mjs` Scene 6（两页翻译 + 快速往返）
 
 **PR Checklist for translation core changes** (MutationObserver callback, `updatePiecesToTranslateWithNewNodes`, `getPiecesToTranslate`, `addTranslatedContent`, `translateDynamically`):
 - [ ] New/modified tests cover "translation output is not re-translated" scenario

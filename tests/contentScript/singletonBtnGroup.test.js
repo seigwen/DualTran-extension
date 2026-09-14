@@ -546,6 +546,37 @@ describe("createSingletonButtonGroup — detached host recovery", () => {
     expect(() => destroySingletonButtonGroup()).not.toThrow();
   });
 
+  // ──────────────────────────────────────────────────────────────
+  // Turbo snapshot shell (bug 2026-09-14): Turbo renders a cloneNode
+  // snapshot on back/forward; cloneNode does NOT clone shadow roots, so
+  // the snapshot contains a shadow-less SHELL of the host. The JS
+  // reference (_singleton.host) points at the old (detached) host, so the
+  // contains() check rebuilds — but the stale shell from the snapshot is
+  // still in the DOM. Without cleanup the page ends up with TWO hosts:
+  // the shadow-less shell + the fresh one.
+  // ──────────────────────────────────────────────────────────────
+
+  test("快照残留的 shadow-less shell host 在重建时被清除（无重复 host）", () => {
+    createSingletonButtonGroup();
+    const originalHost = document.getElementById("dualtran-singleton-btn-host");
+    expect(originalHost).not.toBeNull();
+
+    // Simulate Turbo snapshot render: body replaced; the snapshot contains
+    // a shadow-less clone of the host; the JS reference still points at
+    // the old host which is now detached.
+    originalHost.remove();
+    const shell = document.createElement("div");
+    shell.id = "dualtran-singleton-btn-host";
+    document.body.appendChild(shell);
+
+    createSingletonButtonGroup();
+
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    expect(host).not.toBe(shell);
+    expect(host.shadowRoot).not.toBeNull();
+  });
+
   test("destroy 后再次 create 能正常重建 host", () => {
     createSingletonButtonGroup();
     destroySingletonButtonGroup();
