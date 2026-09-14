@@ -21,6 +21,9 @@ node scripts/check-mode-symmetry.mjs
 node scripts/check-rule-symmetry.js
 node scripts/check-no-chinese.js
 node scripts/check-ui-state-init.js
+node scripts/check-observer-mount.js
+node scripts/check-mock-fidelity.js
+node scripts/check-infra-assumptions.js
 
 echo ""
 echo "── 2/3 全量单元测试 ──"

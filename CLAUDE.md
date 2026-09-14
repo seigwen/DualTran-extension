@@ -157,6 +157,21 @@ Content Script (fetchSSE.js)
 - 实现点清单（规则对称性）：`getState`（pageTranslator 单查询接口，B2）、`resolveInitialUiState`（floatingBtnClickResolver 纯函数，A3）。getCurrentUiState 消息处理为 E2E 断言辅助（被 tests/browser-e2e/setup.mjs 的 assertUiStateMatchesEngine 引用）。floatingBtn.js show() 内的 engineState / initialUi / lastPageLanguageState 为闭包局部实现细节，由 floatingBtn.behavior.test.js 生命周期矩阵测试（A1）+ E2E navigation-recovery.mjs Scene 5 的行为断言覆盖。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - 测试：jsdom `floatingBtn.behavior.test.js`（SPA back-nav rebuild 高亮保持 Google/AI）+ E2E `navigation-recovery.mjs` Scene 5（真实浏览器 Google 高亮回归）。
 
+**RULE: MutationObserver 挂载点（observer mount rule）—— 必须挂 `document.documentElement`，禁止挂 `document.body`：**
+- 真实 Turbo Drive（GitHub）回退导航时用新 `<body>` 元素 `replaceWith` 旧 `<body>` 元素本身（2026-09-10 实测：`document.body !== oldBody`），挂在 body 上的 observer 随旧 body 一起死亡 → host 消失/动态翻译停止后永不恢复（第 7 次同类事故）。
+- `<html>` 元素在 Turbo 导航中存活（实测 `htmlReplaced: false`），挂 `documentElement` + `subtree: true` 能捕获 body 替换。
+- **连带规则：** 挂 documentElement 后 head 变化也可见 → 回调必须过滤 `document.head.contains(addedNode)`（否则 `<title>` 文本被拾取 → `<translated>` 被追加进 `<title>`，soak feedback loop）。
+- 实现点清单（规则对称性）：`floatingBtn.js` `setupFloatingBtnObserver`（PR #30）、`pageTranslator.js` `enableMutatinObserver`（PR #30）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- 测试：floatingBtn.behavior.test.js「turbo back-nav」2 个（body 元素替换后 host 重建）+ E2E navigation-recovery 5 场景（模拟页已忠实化：`replaceWith` 替换 body 元素）。
+
+**基础设施假设清单（Infrastructure Assumptions，M1 issue #31）—— 每个假设必须有测试引用（M3 用 check-infra-assumptions.js 强制）：**
+- **假设：** `document.body` 元素可能被框架整体替换（Turbo Drive 回退导航 `replaceWith`，2026-09-10 github.com 实测）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav」2 个
+- **假设：** `document.documentElement`（`<html>`）在 SPA 导航中存活（实测 `htmlReplaced: false`）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav: body element replaced immediately → host must be recreated」
+- **假设：** 挂 documentElement 的 observer 对 `<head>` 变化可见 → 回调必须过滤 `document.head.contains(addedNode)`（否则 `<title>` 被翻译，soak feedback loop）→ 测试：`tests/browser-e2e/observer-feedback-loop.mjs`（4 组合 soak 计数稳定）
+- **假设：** popstate 定时器不是可靠的恢复机制（Turbo fetch 异步，200ms 检查时 host 可能还在）→ 测试：`tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav: body element replaced AFTER popstate 200ms check」
+- **假设：** `pageshow` 只在 bfcache（`e.persisted`）触发，Turbo 回退不是 bfcache → 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T5: pageshow（bfcache 恢复，persisted=true）」
+- **假设：** MutationObserver 挂载点必须用 `getObserverRoot()`（`src/lib/dom.js`），禁止 `document.body` → 测试：`tests/scripts/checkObserverMount.test.js`（lint 自测 5 个）+ `scripts/check-observer-mount.js`（CI 强制）
+
 **PR Checklist for translation core changes** (MutationObserver callback, `updatePiecesToTranslateWithNewNodes`, `getPiecesToTranslate`, `addTranslatedContent`, `translateDynamically`):
 - [ ] New/modified tests cover "translation output is not re-translated" scenario
 - [ ] `assertNoDuplicateTranslations` E2E assertion still passes
@@ -167,6 +182,16 @@ Content Script (fetchSSE.js)
 - [ ] 涉及引擎状态？UI 是否有查询路径（`pageTranslator.getState()`）+ 事件缺失测试？（A3）
 - [ ] 涉及 SPA 导航？E2E 是否断言了导航后状态一致性？（`assertUiStateMatchesEngine`）
 - [ ] 初始化是否从引擎状态派生（`resolveInitialUiState`），而非硬编码？（`check-ui-state-init.js` CI 强制）
+
+**PR Checklist for SPA/navigation/DOM-lifecycle fixes (M4 issue #34):**
+- [ ] 本次修复是否扩大了观察/监听范围（observer 挂载点、事件监听范围）？如果是，新可见区域（如 head）的过滤是否已验证？（T3）
+- [ ] 本次修复涉及 SPA 导航/DOM 生命周期？如果是，必须运行 `node scripts/real-site-verify.mjs --url <用户报告 URL>` 并在 PR 描述附结果（P1）
+
+**修复前置检查 SOP（Pre-Fix Pattern Check，M4 issue #34）—— 修复任何 bug 前必须执行：**
+1. **对照状态同步失败模式清单（M1-M6）**：`M1 事件丢失 / M2 重建归零 / M3 顺序竞态 / M4 副本失真 / M5 初始化硬编码 / M6 观察者死亡`（完整定义见 dualtran-extension skill「状态同步失败模式清单」）。属于已知模式 → 直接套用修复模板；不属于 → 继续第 2 步。
+2. **对照基础设施假设清单**（本文件「基础设施假设清单」章节）：本次 bug 是否暴露了新的基础设施假设（DOM 元素生命周期/事件触发条件/定时器时序）？如果是 → **先文档化假设 + 测试引用，再修复**（M3 用 check-infra-assumptions.js 强制）。
+3. **对照模拟忠实度**：本次 bug 是否涉及 SPA/导航/DOM 生命周期？如果是 → 修复后必须运行 `real-site-verify.mjs`（P1）+ 检查 E2E 模拟页是否忠实（M2）。
+4. 修复完成后按「复盘四步」落档：根因 → 测试盲区 → 架构裂缝 → 改进项（根 CLAUDE.md / tests/CLAUDE.md / skill pattern 三处）。
 
 **UI 状态架构原则（计划文档 08-ui-state-ssot-plan.md）：**
 - **SSOT**：UI 状态（highlight/displayMode/intervention/inFlight）唯一事实源是 `uiStateStore`，禁止闭包持有状态副本。floatingBtn 等组件是纯渲染器，从 `getState()` 读取。

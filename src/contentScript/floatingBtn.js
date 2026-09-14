@@ -6,6 +6,7 @@
 console.log("floatingBtn.js is running")
 
 import twpConfig from "../lib/config.js"
+import { getObserverRoot } from "../lib/dom.js"
 import { pageTranslator } from "./pageTranslator.js"
 import { resolveFloatingBtnClick, resolveInitialUiState } from "./floatingBtnClickResolver.js"
 import { setState, getState, resetForRebuild } from "./uiStateStore.js"
@@ -909,12 +910,19 @@ if (window.self !== window.top) {
       }, 200);
     });
 
-    // Use MutationObserver to watch body DOM replacement, as a complement to popstate:
+    // Use MutationObserver to watch DOM replacement, as a complement to popstate:
     // 1. SPA link navigation (non-back, pushState only) does not trigger popstate
     // 2. When SPA framework loads slowly, popstate's 200ms delay may not be enough
     // Observer detects host removal and auto-rebuilds, debounce 300ms to prevent loops.
     // Distinguish active hide() from passive DOM replacement: hide() sets
     // divElement to null, so Observer skips rebuild.
+    // CRITICAL (bug 2026-09-10): observe getObserverRoot() (document.documentElement),
+    // NOT document.body. Real Turbo Drive (GitHub) replaces the <body> ELEMENT
+    // itself on back-nav (verified live: document.body !== oldBody after
+    // goBack). An observer on the old body goes dead with it — the host
+    // removal is never seen and the button group never rebuilds. The <html>
+    // element survives Turbo navigation (verified live), so observing it
+    // with subtree:true catches body replacement via childList mutations.
     let floatingBtnObserver = null;
     let floatingBtnObserverTimer = null;
     function setupFloatingBtnObserver() {
@@ -934,7 +942,10 @@ if (window.self !== window.top) {
           }
         }, 300);
       });
-      floatingBtnObserver.observe(document.body, { childList: true });
+      floatingBtnObserver.observe(getObserverRoot(), {
+        childList: true,
+        subtree: true,
+      });
     }
     setupFloatingBtnObserver();
 
