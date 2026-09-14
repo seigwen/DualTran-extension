@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SPA Source Page</title>
-  <!-- MOCK FIDELITY: 模拟了 Turbo Drive 链接导航（fetch → 新 <body> 元素 replaceWith 旧 <body> 元素本身 → pushState）与回退（popstate → fetch → replaceWith body 元素本身）（来源：2026-09-10 github.com 实测 document.body !== oldBody）；未模拟 Turbo 缓存策略（turbo-cache-control）、脚本执行语义（保留 script 不执行）、CSS 合并、进度条动画（风险：低——测试只依赖 body 元素替换行为，若未来测试依赖缓存/脚本语义需重新评估） -->
+  <meta name="turbo-cache-control" content="no-cache" data-turbo-transient>
+  <!-- MOCK FIDELITY: 模拟了 Turbo Drive 链接导航（fetch → 新 <body> 元素 replaceWith 旧 <body> 元素本身 → pushState）（来源：2026-09-10 github.com 实测 document.body !== oldBody）；模拟了 Turbo 快照缓存与恢复（离开可缓存页时按 cloneNode(true) 语义缓存 body——shadow root 不进入序列化——恢复访问（back/forward）到有快照的页面时渲染快照且不发请求，等价 @hotwired/turbo@8 getCachedSnapshot + action == "restore" 语义）（来源：2026-09-14 github.com 实测 /obra/superpowers/security 往返后出现无 shadowRoot 的 host 空壳 + turbo 源码 PageSnapshot.clone() → cloneNode(true)）；本页 turbo-cache-control: no-cache → 不可缓存，恢复访问必 fetch（对应 github.com /obra/superpowers/projects 实测行为）；未模拟 turbo-cache-control: no-preview（另一策略，见 spa-target.html）、快照预览渲染（advance 导航的中间态，最终状态一致）、LRU 缓存淘汰、脚本执行语义（替换的 script 不执行）、CSS 合并、进度条动画（风险：低——测试依赖两种恢复路径的最终状态，未模拟项不影响断言） -->
   <style>
     body { font-family: Georgia, serif; line-height: 1.8; margin: 40px auto; max-width: 860px; color: #222; }
     h1 { font-size: 1.6em; }
@@ -20,24 +21,80 @@
   <p><a id="test-link" href="spa-target.html">Go to SPA Target Page</a></p>
 
   <!--
-    模拟 Turbo Drive 的 SPA 导航脚本。
+    模拟 Turbo Drive 的 SPA 导航脚本（spa-source.html 与 spa-target.html 各自持有副本，逻辑一致）。
 
     Turbo Drive 核心行为：
-      1. 拦截同域链接点击事件
-      2. fetch 获取目标页面的 HTML
-      3. 解析 HTML，提取 <body> 内容
-      4. 替换当前页面的 <body> 内容（保留 <script> 不执行）
-      5. history.pushState 改变 URL
-      6. 回退时 popstate 事件 → fetch 原页面 → 替换 <body>
+      1. 拦截同域链接点击事件 → fetch 获取目标页 HTML → 解析提取 <body> → 用新
+         <body> 元素 replaceWith 旧 <body> 元素本身 → pushState
+      2. 恢复访问（back/forward，popstate）：
+         a. 目标位置有快照且页面可缓存 → 渲染快照（无 shadow root 的 host 空壳）、不发请求
+         b. 否则 → fetch 目标页 → 替换 <body> 元素本身
 
-    这与 GitHub 的 Turbo Drive + turbo-cache-control=no-cache 行为一致：
-    回退时从服务器重新获取页面内容（而非从缓存恢复），DOM 是全新的原始 HTML。
+    快照缓存语义（2026-09-14 新增；bug 根因所在）：
+      离开可缓存页面时，Turbo 缓存 body 的 cloneNode(true) 快照
+      （源码 verified：@hotwired/turbo@8 dist/turbo.es2017-esm.js，
+      PageSnapshot.clone() → cloneNode(true)）。cloneNode 不克隆 shadow root。
+      本模拟页用 document.body.innerHTML 字符串存储快照——shadow 内容同样
+      不进入 innerHTML 序列化——忠实复刻"快照中的 #dualtran-floating-btn-host
+      是在 DOM 中但无 shadowRoot 的空壳"这一关键事实。
+
+      恢复访问到有快照的页面时直接渲染快照且不发请求（等价 turbo 源码
+      getCachedSnapshot + shouldIssueRequest：action == "restore" 且
+      hasCachedSnapshot → 不发起请求）→ 空壳 host 永久留在页面上 →
+      扩展的重建检查若不把"无 shadowRoot"当作缺失，按钮将永久消失。
+
+      真实站点对照（2026-09-14 github.com 实测）：
+        - /obra/superpowers/security 仅设 turbo-cache-control: no-preview
+          （可缓存）→ 往返 12 轮后空壳 host 永久存在、按钮消失（修复前）
+        - /obra/superpowers/projects 带 no-cache → 恢复时 fetch 新 HTML →
+          host 缺失 → 重建成功
+      本模拟页：spa-source.html = no-cache（fetch 路径）；
+      spa-target.html = 可缓存（快照路径）。
+
+    替换的 <script> 不执行属预期（与真实 Turbo 一致）。
   -->
   <script>
     (function () {
       "use strict";
 
-      // 拦截同域链接点击
+      // ── 页面缓存策略（镜像各页面的 turbo-cache-control meta 声明）──
+      // spa-source.html: no-cache   → 不可缓存，恢复访问必 fetch
+      // spa-target.html: 可缓存（no-preview 语义）→ 恢复访问渲染快照
+      var PAGE_CACHE_CONTROL = {
+        "/spa-source.html": "no-cache",
+        "/spa-target.html": "no-preview",
+      };
+
+      // URL → { bodyHTML, title }；bodyHTML 以字符串模拟 cloneNode 快照
+      // （shadow root 不进入序列化）
+      var snapshotCache = {};
+
+      // 最近一次渲染（= 当前屏幕上显示）的页面路径，用于"离开时缓存"
+      var lastRenderedPath = location.pathname;
+
+      function isCacheable(path) {
+        return PAGE_CACHE_CONTROL[path] !== "no-cache";
+      }
+
+      // 模拟 Turbo cacheSnapshot()：离开页面时缓存（仅可缓存页；no-cache 页不缓存）
+      function cacheCurrentPageSnapshot() {
+        if (isCacheable(lastRenderedPath)) {
+          snapshotCache[lastRenderedPath] = {
+            bodyHTML: document.body.innerHTML,
+            title: document.title,
+          };
+        }
+      }
+
+      function replaceBodyWithHTML(html, title) {
+        var doc = new DOMParser().parseFromString(html, "text/html");
+        var newBody = document.createElement("body");
+        newBody.innerHTML = doc.body.innerHTML;
+        document.body.replaceWith(newBody);
+        document.title = doc.title;
+      }
+
+      // 拦截同域链接点击（advance 导航：始终 fetch 新内容，最终状态为服务端 HTML）
       document.addEventListener("click", function (e) {
         var link = e.target.closest("a[href]");
         if (!link) return;
@@ -45,10 +102,11 @@
         if (!href || href.startsWith("#") || href.startsWith("http")) return;
 
         e.preventDefault();
+        cacheCurrentPageSnapshot(); // 离开当前页 → 缓存快照
         navigateTo(href);
       });
 
-      // SPA 导航：fetch → 替换 body 元素 → pushState
+      // advance 导航：fetch → 替换 body 元素 → pushState
       // 真实 Turbo Drive 行为（2026-09-10 在 github.com 实测验证）：
       // 导航时 Turbo 用新 <body> 元素 replaceWith 旧 <body> 元素本身
       // （document.body !== oldBody），而不是 innerHTML 替换子节点。
@@ -58,16 +116,9 @@
         fetch(url)
           .then(function (res) { return res.text(); })
           .then(function (html) {
-            var doc = new DOMParser().parseFromString(html, "text/html");
-            // 替换 body 元素本身（真实 Turbo Drive 行为）
-            var newBody = document.createElement("body");
-            newBody.innerHTML = doc.body.innerHTML;
-            document.body.replaceWith(newBody);
-            // 更新标题
-            document.title = doc.title;
-            // pushState 改变 URL（不触发完整页面加载）
+            replaceBodyWithHTML(html);
             history.pushState({ spaUrl: url }, "", url);
-            // 重新绑定链接拦截（因为 body 内容被替换了）
+            lastRenderedPath = location.pathname;
             rebindLinks();
           })
           .catch(function (err) { console.error("[SPA] navigateTo error:", err); });
@@ -79,19 +130,33 @@
         // 但为了兼容性，确保新链接也能被拦截
       }
 
-      // popstate 事件：浏览器回退/前进 → fetch 原页面 → 替换 body 元素
-      window.addEventListener("popstate", function (e) {
-        var url = location.pathname.split("/").pop() || "spa-source.html";
-        console.log("[SPA] popstate → fetching " + url);
+      // 恢复访问（back/forward）：Turbo restore 语义
+      //   有快照 → 渲染快照（无 shadow root 的 host 空壳）；不发请求
+      //   无快照 → fetch → 替换 body 元素
+      window.addEventListener("popstate", function () {
+        cacheCurrentPageSnapshot(); // 离开当前页（lastRenderedPath）→ 缓存其快照
+
+        var targetPath = location.pathname;
+
+        if (snapshotCache[targetPath]) {
+          // ── 快照渲染路径（restore 语义，不发请求）──
+          // cloneNode 快照无 shadow root → host 空壳
+          var snap = snapshotCache[targetPath];
+          console.log("[SPA] popstate → rendering CACHED SNAPSHOT for " + targetPath + " (no fetch; shadow-less host shell)");
+          replaceBodyWithHTML(snap.bodyHTML, snap.title);
+          lastRenderedPath = targetPath;
+          return;
+        }
+
+        // ── 无快照路径：fetch + 替换 body 元素 ──
+        var url = targetPath.split("/").pop() || "spa-source.html";
+        console.log("[SPA] popstate → fetching " + url + " (no cached snapshot)");
         fetch(url)
           .then(function (res) { return res.text(); })
           .then(function (html) {
-            var doc = new DOMParser().parseFromString(html, "text/html");
             // 替换 body 元素本身（真实 Turbo Drive 行为，见 navigateTo 注释）
-            var newBody = document.createElement("body");
-            newBody.innerHTML = doc.body.innerHTML;
-            document.body.replaceWith(newBody);
-            document.title = doc.title;
+            replaceBodyWithHTML(html);
+            lastRenderedPath = targetPath;
             console.log("[SPA] body element replaced with fresh content from " + url);
           })
           .catch(function (err) { console.error("[SPA] popstate fetch error:", err); });
