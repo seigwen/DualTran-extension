@@ -194,7 +194,7 @@ tests/
 | popstate 定时器不是可靠恢复机制（Turbo fetch 异步） | `floatingBtn.behavior.test.js`「turbo back-nav: body element replaced AFTER popstate 200ms check」 | 时序假设 ✅ |
 | `pageshow` 只在 bfcache（`e.persisted`）触发 | `pageTranslator.navRestore.integration.test.js`「T5」 | 触发条件 ✅ |
 | observer 挂载点必须用 `getObserverRoot()`，禁止 `document.body` | `tests/scripts/checkObserverMount.test.js`（lint 自测 5 个）+ `scripts/check-observer-mount.js`（CI 强制） | 挂载点 ✅ |
-| Turbo 快照是 `cloneNode(true)`（不克隆 shadow root）；restore 恢复渲染快照不发请求 → 重建检查必须把"无 shadowRoot host"当作缺失 | `floatingBtn.behavior.test.js`「turbo snapshot shell」4 个 + `singletonBtnGroup.test.js`「快照残留的 shadow-less shell host 在重建时被清除」+ `navigation-recovery.mjs` Scene 6 | 死亡条件（快照渲染产生 shell）✅ 重建条件（三条路径重建 + singleton 清理）✅ 恢复条件（无重复 host）✅ |
+| Turbo 快照是 `cloneNode(true)`（不克隆 shadow root）；restore 恢复渲染快照不发请求 → 重建检查必须把"无 shadowRoot host"当作缺失 | `floatingBtn.behavior.test.js`「turbo snapshot shell」4 个 + `singletonBtnGroup.test.js`「快照残留的 shadow-less shell host 在重建时被清除」+ `singletonBtnGroup.test.js`「singleton hover recovery — 失败态注入矩阵」3 个 + `navigation-recovery.mjs` Scene 6 | 死亡条件（快照渲染产生 shell）✅ 重建条件（三条路径重建 + singleton 清理 + 悬停自愈）✅ 恢复条件（无重复 host）✅ |
 
 ## Test Naming Conventions
 

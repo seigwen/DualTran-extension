@@ -14,6 +14,8 @@
  *     2. highlight is consistent with the page state
  *     3. page is still translated after back-nav (dynamic translation
  *        observer survived the body replacement)
+ *     4. singleton hover button group self-heals a degraded host
+ *        (snapshot-shell injection, issue #40)
  *
  * Assertions are deliberately LOOSE (button exists + highlight
  * consistency + translated content present) — real site structure
@@ -220,6 +222,52 @@ async function main() {
       throw new Error("FAIL: highlight is Original but page is translated (state inconsistency)");
     }
     log(`Highlight consistent with page state (${actual})`);
+
+    // 9. Singleton hover self-heal (issue #40): inject the exact Turbo
+    //    snapshot shell state — cloneNode does NOT clone shadow roots —
+    //    then dispatch a hover on a translated block. The hover path must
+    //    rebuild a functional host (it is the singleton's only recovery
+    //    entry point in degraded states).
+    const inject = await page.evaluate(() => {
+      const host = document.getElementById("dualtran-singleton-btn-host");
+      if (!host) return { skipped: true, reason: "no singleton host (was the page translated?)" };
+      // Same semantics as Turbo PageSnapshot.clone(): shadow root survives NOT
+      const shell = host.cloneNode(true);
+      host.replaceWith(shell);
+      const target = document.querySelector("translated") || document.querySelector("[data-dualtran-block]");
+      if (!target) return { skipped: true, reason: "no translated block to hover" };
+      target.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+      return { skipped: false };
+    });
+    if (inject.skipped) {
+      log(`Singleton hover self-heal: SKIPPED (${inject.reason})`);
+    } else {
+      await page
+        .waitForFunction(
+          () => !!document.getElementById("dualtran-singleton-btn-host")?.shadowRoot?.querySelector(".dualtran-btn-group"),
+          null,
+          { timeout: 3000 }
+        )
+        .catch(() => {}); // detailed diagnosis below
+      const singletonState = await page.evaluate(() => {
+        const hosts = [...document.querySelectorAll("#dualtran-singleton-btn-host")];
+        const h = hosts[0] || null;
+        const root = h?.shadowRoot || null;
+        return {
+          count: hosts.length,
+          state: !h ? "absent" : root ? "healthy" : "shell",
+          hasButtons: !!(root?.querySelector(".dualtran-btn-group")),
+        };
+      });
+      log(`Singleton after shell injection + hover: ${JSON.stringify(singletonState)}`);
+      if (singletonState.state !== "healthy" || !singletonState.hasButtons) {
+        throw new Error(
+          `FAIL: singleton hover path did not self-heal an injected snapshot shell — ${JSON.stringify(singletonState)} ` +
+            `(hover must rebuild when the host is detached or shadow-less, issue #40)`
+        );
+      }
+      log("Singleton host self-healed via hover (no snapshot shell)");
+    }
 
     log("✅ REAL-SITE VERIFY PASSED");
     process.exit(0);
