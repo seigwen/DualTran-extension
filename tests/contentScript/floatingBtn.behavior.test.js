@@ -782,6 +782,64 @@ describe("floatingBtn — three-state behavior", () => {
   });
 
   // ──────────────────────────────────────────────
+  // Absent host (S1 matrix coverage, issue #45): the host is completely
+  // gone from the DOM — no shell, no duplicate, nothing (e.g. Turbo fetch
+  // path renders a fresh body without any host). Every recovery trigger
+  // must notice the absence and rebuild. This is the "absent" row of the
+  // state-space matrix; the shell row (shadow-less copy present) lives in
+  // the tests below.
+  // ──────────────────────────────────────────────
+
+  it("absent host: popstate must rebuild (host removed, nothing left behind)", async () => {
+    await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    // Remove every host copy — the page has no host element at all.
+    document.querySelectorAll("#dualtran-floating-btn-host").forEach((el) => el.remove());
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(0);
+
+    window.dispatchEvent(new Event("popstate"));
+    await vi.advanceTimersByTimeAsync(300);
+    await flushMicrotasks();
+
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host.shadowRoot).toBeTruthy();
+    expect(host.shadowRoot.getElementById("btnGoogle")).toBeTruthy();
+  });
+
+  it("absent host: observer must rebuild after unrelated mutation", async () => {
+    await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    document.querySelectorAll("#dualtran-floating-btn-host").forEach((el) => el.remove());
+
+    // Any unrelated DOM mutation (SPA render keeps mutating the page)
+    document.body.appendChild(document.createElement("p"));
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(400);
+    await flushMicrotasks();
+
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host.shadowRoot).toBeTruthy();
+  });
+
+  it("absent host: pageshow (persisted) must rebuild", async () => {
+    await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    document.querySelectorAll("#dualtran-floating-btn-host").forEach((el) => el.remove());
+
+    window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+    await flushMicrotasks();
+
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host.shadowRoot).toBeTruthy();
+  });
+
+  // ──────────────────────────────────────────────
   // Turbo snapshot shell (bug report 2026-09-??): Turbo Drive caches a
   // cloneNode() snapshot of the body when leaving a page (source verified:
   // PageSnapshot.clone() → cloneNode(true)). cloneNode does NOT clone

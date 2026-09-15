@@ -638,6 +638,24 @@ describe("singleton hover recovery — 失败态注入矩阵 (issue #40)", () =>
     vi.restoreAllMocks();
   });
 
+  test("absent host（无任何 host 残留）+ 悬停 → 创建（单实例、功能完好、已定位）", () => {
+    // No createSingletonButtonGroup() call: the host is absent from the
+    // start (fresh page / hide() ran / body replacement left nothing).
+    // The hover entry point must create it on demand.
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(0);
+
+    hover(translatedEl);
+
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    expect(host).not.toBeNull();
+    expect(document.body.contains(host)).toBe(true);
+    expect(host.shadowRoot).not.toBeNull();
+    expect(host.shadowRoot.querySelector(".dualtran-btn-group")).not.toBeNull();
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(1);
+    // Hover must have positioned the created host (not left off-screen parked)
+    expect(host.style.top).not.toBe("-9999px");
+  });
+
   test("detached host（body 替换后）+ 悬停 → 就地重建（单实例、功能完好、已定位）", () => {
     createSingletonButtonGroup();
     const originalHost = document.getElementById("dualtran-singleton-btn-host");

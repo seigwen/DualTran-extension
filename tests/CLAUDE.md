@@ -196,6 +196,33 @@ tests/
 | observer 挂载点必须用 `getObserverRoot()`，禁止 `document.body` | `tests/scripts/checkObserverMount.test.js`（lint 自测 5 个）+ `scripts/check-observer-mount.js`（CI 强制） | 挂载点 ✅ |
 | Turbo 快照是 `cloneNode(true)`（不克隆 shadow root）；restore 恢复渲染快照不发请求 → 重建检查必须把"无 shadowRoot host"当作缺失，且必须要求"恰好一个" host 副本（duplicate 收敛，issue #43） | `floatingBtn.behavior.test.js`「turbo snapshot shell」4 个 +「duplicate hosts」2 个 + `singletonBtnGroup.test.js`「快照残留的 shadow-less shell host 在重建时被清除」+「singleton hover recovery — 失败态注入矩阵」3 个 +「duplicate hosts」2 个 + `navigation-recovery.mjs` Scene 6 | 死亡条件（快照渲染产生 shell）✅ 重建条件（三条路径重建 + singleton 清理 + 悬停自愈 + duplicate 收敛）✅ 恢复条件（无重复 host）✅ |
 
+### 组件状态空间 → 可达性 → 测试引用矩阵（S1 失败状态可达性审计，issue #45）
+
+**规则：** 每个持久 host 组件的每个失败状态（五态）必须引用**真实存在**的测试；失败态不可达 = 测试能力乘法模型中「状态可达性」因子为零（13-plan §2，第 8 次 bug 根因）。`scripts/check-state-reachability.js`（CI 强制）校验：
+- **检查 A：** 矩阵每行的测试引用必须指向存在的测试文件（引用伪造/测试删除 = 硬失败）；
+- **检查 B：** `src/` 下每个 `attachShadow` 调用点必须**要么**是矩阵组件行、**要么**在下方豁免列表——新 host 组件逃逸审计 = 硬失败（机制驱动枚举，Q2 定案）。
+
+**五态定义：** `absent`（无 host）/ `detached`（host 脱离 DOM，句柄存活）/ `shell`（host 在但无 shadowRoot——Turbo 快照 cloneNode 产物）/ `healthy`（功能完好）/ `duplicate`（多副本，含 healthy-first / shell-first 双 flavor）。
+
+| 组件 | 状态 | 可达性（单元 / E2E） | 测试引用 |
+|---|---|---|---|
+| floatingBtn | absent | 单元（E2E 待 S2） | `floatingBtn.behavior.test.js`「absent host」3 个（popstate / observer / pageshow 触发路径各重建） |
+| floatingBtn | detached | 单元 | `floatingBtn.behavior.test.js`「turbo back-nav」2 个 |
+| floatingBtn | shell | 单元 | `floatingBtn.behavior.test.js`「turbo snapshot shell」4 个 |
+| floatingBtn | healthy | 单元 | `floatingBtn.behavior.test.js`「three-state」行为组（初始态/scenario 1-19） |
+| floatingBtn | duplicate | 单元 | `floatingBtn.behavior.test.js`「duplicate hosts」2 个（healthy-first / shell-first） |
+| singletonBtnGroup | absent | 单元（E2E 待 S2） | `singletonBtnGroup.test.js`「absent host（无任何 host 残留）+ 悬停 → 创建」 |
+| singletonBtnGroup | detached | 单元 | `singletonBtnGroup.test.js`「createSingletonButtonGroup — detached host recovery」+「singleton hover recovery」detached 例 |
+| singletonBtnGroup | shell | 单元 | `singletonBtnGroup.test.js`「快照残留的 shadow-less shell host 在重建时被清除」+「singleton hover recovery」shell 例 |
+| singletonBtnGroup | healthy | 单元 | `singletonBtnGroup.test.js`「singleton hover recovery」healthy 对照 |
+| singletonBtnGroup | duplicate | 单元 | `singletonBtnGroup.test.js`「duplicate hosts」2 个（健康优先 / 空壳优先） |
+
+**豁免记录（transient 组件，4 条，各含理由 + 上游影响评估）：**
+- `showOriginal` — 理由：transient tooltip，`absent` 为设计正常态、无持久 host id、每次 `show()` 重挂天然自愈；上游影响：失败形态为不可见 ghost，无用户可见故障。若 S3 分支枚举发现反例再升级为覆盖。
+- `showTranslated` — 理由：同 showOriginal（transient tooltip，无导航监听，重挂自愈）；上游影响：无用户可见故障。
+- `translateSelected` — 理由：transient（宿主为按需创建/销毁的选区工具条）；上游影响：无用户可见故障。
+- `popupMobile` — 理由：transient（popup 上下文内的一次性 host）；上游影响：无用户可见故障。
+
 ## Test Naming Conventions
 
 ### Unit Tests vs Integration Tests

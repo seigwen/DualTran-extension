@@ -148,3 +148,6 @@ jobs:
 
     - name: Infra assumptions (every assumption has a test reference)
       run: node scripts/check-infra-assumptions.js
+
+    - name: State reachability (S1 matrix rows reference real tests; no attachShadow escape)
+      run: node scripts/check-state-reachability.js
