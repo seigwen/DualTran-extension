@@ -885,4 +885,61 @@ describe("floatingBtn — three-state behavior", () => {
     expect(host.shadowRoot).toBeTruthy();
     expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
   });
+
+  // ──────────────────────────────────────────────
+  // Duplicate convergence (issue #43): the predicate must require EXACTLY
+  // ONE functional host, not just "a functional host exists". With a
+  // duplicate present, "a" predicate let the invisible copy survive
+  // indefinitely when the first match happened to be healthy (healthy-first
+  // flavor). Tests below lock the tightened contract from the outside.
+  // Implementation point: hasFunctionalHost (floatingBtn.js) — shared by
+  // all three rebuild paths (popstate / observer / pageshow).
+  // ──────────────────────────────────────────────
+
+  it("duplicate hosts: healthy-first (trailing shell copy) on popstate must converge to a single functional host", async () => {
+    await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    // Duplicate flavor "healthy-first": Turbo snapshot semantics — cloneNode
+    // does not clone shadow roots — produce a shadow-less copy appended AFTER
+    // the healthy host, so document order is [healthy, shell] and the old
+    // first-match predicate accepted the state as functional.
+    const healthyHost = document.getElementById("dualtran-floating-btn-host");
+    const shell = healthyHost.cloneNode(true);
+    expect(shell.shadowRoot).toBeNull();
+    document.body.appendChild(shell);
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(2);
+
+    window.dispatchEvent(new Event("popstate"));
+    await vi.advanceTimersByTimeAsync(300);
+    await flushMicrotasks();
+
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host.shadowRoot).toBeTruthy();
+    expect(host.shadowRoot.getElementById("btnGoogle")).toBeTruthy();
+  });
+
+  it("duplicate hosts: shell-first (leading shell copy) on popstate must converge to a single functional host", async () => {
+    await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    // Duplicate flavor "shell-first": the shell copy precedes the healthy
+    // host in document order, so the old first-match predicate already
+    // detected the degraded state. Regression guard for the tightened
+    // predicate — this flavor must keep converging after the change.
+    const healthyHost = document.getElementById("dualtran-floating-btn-host");
+    const shell = healthyHost.cloneNode(true);
+    healthyHost.parentNode.insertBefore(shell, healthyHost);
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(2);
+
+    window.dispatchEvent(new Event("popstate"));
+    await vi.advanceTimersByTimeAsync(300);
+    await flushMicrotasks();
+
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host.shadowRoot).toBeTruthy();
+    expect(host.shadowRoot.getElementById("btnGoogle")).toBeTruthy();
+  });
 });

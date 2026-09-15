@@ -269,6 +269,52 @@ async function main() {
       log("Singleton host self-healed via hover (no snapshot shell)");
     }
 
+    // 9b. Duplicate convergence (issue #43): append a shadow-less cloneNode
+    //     copy of the host (healthy-first flavor) and poke the hover path.
+    //     The predicate requires EXACTLY ONE host, so the duplicate must
+    //     trigger a rebuild that converges back to a single functional host.
+    const dup = await page.evaluate(() => {
+      const host = document.getElementById("dualtran-singleton-btn-host");
+      if (!host) return { skipped: true, reason: "no singleton host (was the page translated?)" };
+      const copy = host.cloneNode(true);
+      document.body.appendChild(copy);
+      // Count BEFORE poking the hover path — the rebuild (when it happens)
+      // is synchronous inside the mouseover dispatch.
+      const before = document.querySelectorAll("#dualtran-singleton-btn-host").length;
+      const target = document.querySelector("translated") || document.querySelector("[data-dualtran-block]");
+      if (!target) return { skipped: true, reason: "no translated block to hover" };
+      target.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+      return { skipped: false, before };
+    });
+    if (dup.skipped) {
+      log(`Duplicate convergence: SKIPPED (${dup.reason})`);
+    } else {
+      await page
+        .waitForFunction(
+          () => document.querySelectorAll("#dualtran-singleton-btn-host").length === 1,
+          null,
+          { timeout: 3000 }
+        )
+        .catch(() => {}); // detailed diagnosis below
+      const dupState = await page.evaluate(() => {
+        const hosts = [...document.querySelectorAll("#dualtran-singleton-btn-host")];
+        const root = hosts[0]?.shadowRoot || null;
+        return {
+          count: hosts.length,
+          state: hosts.length === 0 ? "absent" : root ? "healthy" : "shell",
+          hasButtons: !!(root?.querySelector(".dualtran-btn-group")),
+        };
+      });
+      log(`Singleton after duplicate injection + hover: ${JSON.stringify(dupState)} (before=${dup.before})`);
+      if (dupState.count !== 1 || dupState.state !== "healthy" || !dupState.hasButtons) {
+        throw new Error(
+          `FAIL: singleton did not converge to a single functional host after duplicate injection — ${JSON.stringify(dupState)} ` +
+            `(predicate must require exactly one host, issue #43)`
+        );
+      }
+      log("Singleton converged to a single functional host (duplicate removed)");
+    }
+
     log("✅ REAL-SITE VERIFY PASSED");
     process.exit(0);
   } catch (e) {

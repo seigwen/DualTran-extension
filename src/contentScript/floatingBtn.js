@@ -164,11 +164,16 @@ if (window.self !== window.top) {
    * the button group is never rebuilt → the group "disappears" while the
    * translated page content (also cloned) stays visible.
    *
-   * A host is functional only when it is connected AND has a shadow root.
+   * A host is functional only when it is connected AND has a shadow root
+   * AND is the ONLY host copy in the DOM (issue #43: a "one exists" check
+   * let an invisible duplicate survive indefinitely when the first match
+   * happened to be healthy — the healthy-first duplicate flavor).
    */
   function hasFunctionalHost() {
-    const host = document.getElementById("dualtran-floating-btn-host");
-    return !!(host && document.body.contains(host) && host.shadowRoot);
+    const hosts = document.querySelectorAll("#dualtran-floating-btn-host");
+    if (hosts.length !== 1) return false;
+    const host = hosts[0];
+    return !!(document.body.contains(host) && host.shadowRoot);
   }
 
   /**
