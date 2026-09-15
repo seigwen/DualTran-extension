@@ -205,18 +205,22 @@ tests/
 
 **五态定义：** `absent`（无 host）/ `detached`（host 脱离 DOM，句柄存活）/ `shell`（host 在但无 shadowRoot——Turbo 快照 cloneNode 产物）/ `healthy`（功能完好）/ `duplicate`（多副本，含 healthy-first / shell-first 双 flavor）。
 
+**层次分工（S2, issue #49）：** E2E 证「态可达 + 可愈」（`self-heal-matrix.mjs` 注入 DOM 形状直造，快一个数量级）；**路径级归因只在单元层**（E2E 里 observer 必被注入 mutation 被动触发，无法与显式触发严格分离）。句柄状态（null / 陈旧）无法从页面注入——absent 与 detached 在 DOM 层同形，句柄维度归单元层 jsdom 构造。
+
 | 组件 | 状态 | 可达性（单元 / E2E） | 测试引用 |
 |---|---|---|---|
-| floatingBtn | absent | 单元（E2E 待 S2） | `floatingBtn.behavior.test.js`「absent host」3 个（popstate / observer / pageshow 触发路径各重建） |
-| floatingBtn | detached | 单元 | `floatingBtn.behavior.test.js`「turbo back-nav」2 个 |
-| floatingBtn | shell | 单元 | `floatingBtn.behavior.test.js`「turbo snapshot shell」4 个 |
-| floatingBtn | healthy | 单元 | `floatingBtn.behavior.test.js`「three-state」行为组（初始态/scenario 1-19） |
-| floatingBtn | duplicate | 单元 | `floatingBtn.behavior.test.js`「duplicate hosts」2 个（healthy-first / shell-first） |
-| singletonBtnGroup | absent | 单元（E2E 待 S2） | `singletonBtnGroup.test.js`「absent host（无任何 host 残留）+ 悬停 → 创建」 |
-| singletonBtnGroup | detached | 单元 | `singletonBtnGroup.test.js`「createSingletonButtonGroup — detached host recovery」+「singleton hover recovery」detached 例 |
-| singletonBtnGroup | shell | 单元 | `singletonBtnGroup.test.js`「快照残留的 shadow-less shell host 在重建时被清除」+「singleton hover recovery」shell 例 |
-| singletonBtnGroup | healthy | 单元 | `singletonBtnGroup.test.js`「singleton hover recovery」healthy 对照 |
-| singletonBtnGroup | duplicate | 单元 | `singletonBtnGroup.test.js`「duplicate hosts」2 个（健康优先 / 空壳优先） |
+| floatingBtn | absent | 单元 ×3 路径 + E2E ×2 触发 | `floatingBtn.behavior.test.js`「absent host」3 个；`self-heal-matrix.mjs` absent 行 |
+| floatingBtn | detached | 单元 ×3 路径 + E2E ×2 触发 | `floatingBtn.behavior.test.js`「detached host」3 个 +「turbo back-nav」2 个；`self-heal-matrix.mjs` detached 行 |
+| floatingBtn | shell | 单元 ×3 路径 + E2E ×2 触发 | `floatingBtn.behavior.test.js`「turbo snapshot shell」4 个；`self-heal-matrix.mjs` shell 行 |
+| floatingBtn | healthy | 单元（负向对照）+ E2E（同实例标记法） | `floatingBtn.behavior.test.js`「healthy host: observer must NOT rebuild」+「three-state」行为组；`self-heal-matrix.mjs` healthy 对照行 |
+| floatingBtn | duplicate | 单元 ×3 路径 + E2E ×2 触发 + 复用 | `floatingBtn.behavior.test.js`「duplicate hosts」4 个（双 flavor × popstate/observer/pageshow）；`self-heal-matrix.mjs` duplicate 行；`navigation-recovery.mjs` Scene 1 Step 5 |
+| singletonBtnGroup | absent | 单元 + E2E ×2 触发 | `singletonBtnGroup.test.js`「absent host」+「lazy trigger: absent host + NO interaction」；`self-heal-matrix.mjs` absent 行 |
+| singletonBtnGroup | detached | 单元 + E2E ×2 触发 | `singletonBtnGroup.test.js`「detached host」+「createSingletonButtonGroup — detached host recovery」；`self-heal-matrix.mjs` detached 行 |
+| singletonBtnGroup | shell | 单元 + E2E ×2 触发 | `singletonBtnGroup.test.js`「快照空壳 shell」+「lazy trigger: shell host + NO interaction」；`self-heal-matrix.mjs` shell 行 |
+| singletonBtnGroup | healthy | 单元（负向对照）+ E2E（同实例标记法） | `singletonBtnGroup.test.js`「healthy host + 悬停 → 不重建」；`self-heal-matrix.mjs` healthy 对照行 |
+| singletonBtnGroup | duplicate | 单元（双 flavor + 懒触发保持）+ E2E ×2 触发 | `singletonBtnGroup.test.js`「duplicate hosts」3 个（健康优先 / 空壳优先 / NO interaction 保持）；`self-heal-matrix.mjs` duplicate 行 |
+
+**注入器（S2, issue #49）：** `injectHostState(page, component, state)` / `readHostState(page, component)` 落 `tests/browser-e2e/setup.mjs`——DOM 形状直造失败态，不复现旅程。复用 2 处：`self-heal-matrix.mjs`（主矩阵）+ `navigation-recovery.mjs`（Scene 1 Step 5）。
 
 **豁免记录（transient 组件，4 条，各含理由 + 上游影响评估）：**
 - `showOriginal` — 理由：transient tooltip，`absent` 为设计正常态、无持久 host id、每次 `show()` 重挂天然自愈；上游影响：失败形态为不可见 ghost，无用户可见故障。若 S3 分支枚举发现反例再升级为覆盖。

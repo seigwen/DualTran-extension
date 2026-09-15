@@ -1254,6 +1254,118 @@ export async function assertNoDuplicateTranslationElements(page) {
 }
 
 /**
+ * Read the three-state classification of a host component on the page.
+ *
+ * Shared classifier (S2, issue #49): `absent` (no host at all) / `shell`
+ * (host present but no shadowRoot — Turbo snapshot cloneNode artifact) /
+ * `healthy` (host with shadowRoot). Mirrors the established classifier in
+ * navigation-recovery.mjs Scene 6 and real-site-verify.mjs step 9.
+ *
+ * @param {import("playwright").Page} page
+ * @param {"floating"|"singleton"} component
+ * @returns {Promise<{count: number, state: "absent"|"shell"|"healthy", hasButtons: boolean, hostFound: boolean}>}
+ */
+export async function readHostState(page, component) {
+  const hostId = component === "floating" ? "dualtran-floating-btn-host" : "dualtran-singleton-btn-host";
+  return page.evaluate((id) => {
+    const hosts = [...document.querySelectorAll(`#${id}`)];
+    const host = hosts[0] || null;
+    const root = host?.shadowRoot || null;
+    let hasButtons = false;
+    if (root) {
+      if (id === "dualtran-floating-btn-host") {
+        hasButtons = !!(root.getElementById("btnOriginal") && root.getElementById("btnGoogle") && root.getElementById("btnAi"));
+      } else {
+        hasButtons = !!root.querySelector(".dualtran-btn-group");
+      }
+    }
+    return {
+      count: hosts.length,
+      state: !host ? "absent" : root ? "healthy" : "shell",
+      hasButtons,
+      hostFound: !!host,
+    };
+  }, hostId);
+}
+
+/**
+ * Inject a failure state for a persistent host component (S2, issue #49).
+ *
+ * Injection method (from the 8th bug diagnosis): produce the failure DOM
+ * SHAPE directly instead of replaying a multi-step navigation journey —
+ * an order of magnitude faster, and the trigger under test is poked
+ * explicitly afterwards.
+ *
+ * Injection semantics (DOM shape):
+ *   - absent    : remove every host copy.
+ *   - detached  : remove the host (DOM-identical to absent — the handle
+ *                 difference, null vs stale JS reference, cannot be
+ *                 injected from the page; that dimension lives in the
+ *                 jsdom unit layer by design).
+ *   - shell     : cloneNode(true) replaceWith — real Turbo snapshot
+ *                 semantics (shadow root is NOT cloned). Do NOT use
+ *                 remove+recreate: the missing shadowRoot is the very
+ *                 thing that makes a shell pass existence checks.
+ *   - duplicate : cloneNode(true) append after the healthy host
+ *                 (healthy-first; the flavor that used to survive
+ *                 indefinitely), or before it with order="shell-first".
+ *
+ * Returns the post-injection classification so the caller can assert the
+ * injected shape before proceeding.
+ *
+ * @param {import("playwright").Page} page
+ * @param {"floating"|"singleton"} component
+ * @param {"absent"|"detached"|"shell"|"duplicate"} state
+ * @param {{order?: "healthy-first"|"shell-first"}} [opts]
+ * @returns {Promise<{count: number, state: "absent"|"shell"|"healthy"}>} post-injection classification
+ */
+export async function injectHostState(page, component, state, opts = {}) {
+  const hostId = component === "floating" ? "dualtran-floating-btn-host" : "dualtran-singleton-btn-host";
+  const order = opts.order === "shell-first" ? "shell-first" : "healthy-first";
+
+  const result = await page.evaluate(({ id, state, order }) => {
+    const hosts = [...document.querySelectorAll(`#${id}`)];
+    const healthyHost = hosts.find((h) => h.shadowRoot) || hosts[0] || null;
+
+    const classify = () => {
+      const now = [...document.querySelectorAll(`#${id}`)];
+      const host = now[0] || null;
+      const root = host?.shadowRoot || null;
+      return { count: now.length, state: !host ? "absent" : root ? "healthy" : "shell" };
+    };
+
+    if (state === "absent" || state === "detached") {
+      hosts.forEach((el) => el.remove());
+      return classify();
+    }
+
+    if (!healthyHost) {
+      throw new Error(`[injectHostState] cannot inject "${state}" for #${id}: no host present (inject on a healthy page)`);
+    }
+
+    if (state === "shell") {
+      const shell = healthyHost.cloneNode(true);
+      healthyHost.replaceWith(shell);
+      return classify();
+    }
+
+    if (state === "duplicate") {
+      const copy = healthyHost.cloneNode(true);
+      if (order === "shell-first") {
+        healthyHost.parentNode.insertBefore(copy, healthyHost);
+      } else {
+        healthyHost.parentNode.appendChild(copy);
+      }
+      return classify();
+    }
+
+    throw new Error(`[injectHostState] unknown state "${state}"`);
+  }, { id: hostId, state, order });
+
+  return result;
+}
+
+/**
  * Assert UI state matches engine state (A2 — state consistency invariant).
  *
  * Reads pageTranslator's live state (via the content script's exposed

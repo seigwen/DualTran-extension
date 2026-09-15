@@ -764,6 +764,62 @@ describe("singleton hover recovery — 失败态注入矩阵 (issue #40)", () =>
     expect(host.shadowRoot.querySelector(".dualtran-btn-group")).not.toBeNull();
     expect(host.style.top).not.toBe("-9999px");
   });
+
+  // ──────────────────────────────────────────────────────────────
+  // Path-isolation matrix (S2, issue #49)
+  //
+  // singleton's user-facing trigger is the hover delegation, and the lazy
+  // contract is the other half of its state machine: with NO interaction
+  // the host must stay in whatever state the page left it (no self-heal
+  // ghosts) — the button group is created on demand, never spontaneously.
+  // Cells below separate "created by hover" from "created by nothing".
+  // ──────────────────────────────────────────────────────────────
+
+  test("lazy trigger: absent host + NO interaction → stays absent (no ghost creation)", () => {
+    // Nothing creates the host: no createSingletonButtonGroup() call, no
+    // hover. The module must not spontaneously inject the button group.
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(0);
+
+    // Time passing and unrelated DOM activity must not change that.
+    document.body.appendChild(document.createElement("p"));
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(0);
+  });
+
+  test("lazy trigger: shell host + NO interaction → state preserved (no ghost rebuild)", () => {
+    createSingletonButtonGroup();
+    const healthyHost = document.getElementById("dualtran-singleton-btn-host");
+    expect(healthyHost).not.toBeNull();
+
+    // Turbo snapshot semantics: a shadow-less copy replaces the healthy
+    // host (cloneNode does not clone shadow roots). Without a hover there
+    // is no reason for the module to rebuild anything.
+    const shell = healthyHost.cloneNode(true);
+    expect(shell.shadowRoot).toBeNull();
+    healthyHost.replaceWith(shell);
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(1);
+    expect(document.getElementById("dualtran-singleton-btn-host").shadowRoot).toBeNull();
+
+    document.body.appendChild(document.createElement("p"));
+
+    // Still exactly the shell — no rebuild, no duplicate.
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(1);
+    expect(document.getElementById("dualtran-singleton-btn-host").shadowRoot).toBeNull();
+  });
+
+  test("duplicate hosts（healthy-first）+ NO interaction → state preserved (lazy contract)", () => {
+    createSingletonButtonGroup();
+    const healthyHost = document.getElementById("dualtran-singleton-btn-host");
+    expect(healthyHost).not.toBeNull();
+
+    const shell = healthyHost.cloneNode(true);
+    document.body.appendChild(shell);
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(2);
+
+    document.body.appendChild(document.createElement("p"));
+
+    // No hover → no convergence. Duplicate cleanup is hover-driven.
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(2);
+  });
 });
 
 describe("createBlockState", () => {

@@ -237,6 +237,39 @@ describe("floatingBtn — three-state behavior", () => {
     return btn?.classList.contains("dualtran-floating-btn-active") ?? false;
   }
 
+  it("absent host after active hide(): observer must NOT rebuild (hidden by choice)", async () => {
+    const floatingBtn = await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    // MUST remain the FIRST test in this describe. Prior tests in this file
+    // leave behind live module instances whose MutationObservers are still
+    // watching documentElement (vi.resetModules() does not disconnect
+    // them); on any mutation those stale instances see "no functional
+    // host" with a non-null closure handle and rebuild (a test-harness
+    // artifact — production has exactly one instance). This cell asserts
+    // the strictest negative expectation (0 hosts must STAY 0), so it
+    // needs an unpolluted environment. It is safe for the tests after it:
+    // it ends with 0 hosts and a null handle, so its own observers no-op.
+    //
+    // Active hide() is user/config-driven removal — deliberately different
+    // from a passive DOM replacement. hide() nulls the closure handle
+    // (divElement), which is the documented signal the observer uses to
+    // distinguish the two cases; a rebuild here would resurrect a button
+    // the user just hid.
+    floatingBtn.hide();
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(0);
+
+    // Drop timers armed by hide()'s own DOM removal, then arm fresh ones
+    // via a genuinely unrelated mutation.
+    vi.clearAllTimers();
+    document.body.appendChild(document.createElement("p"));
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(500);
+    await flushMicrotasks();
+
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(0);
+  });
+
   // ──────────────────────────────────────────────
   // Initial state
   // ──────────────────────────────────────────────
@@ -999,5 +1032,134 @@ describe("floatingBtn — three-state behavior", () => {
     const host = document.getElementById("dualtran-floating-btn-host");
     expect(host.shadowRoot).toBeTruthy();
     expect(host.shadowRoot.getElementById("btnGoogle")).toBeTruthy();
+  });
+
+  // ──────────────────────────────────────────────
+  // Path-isolation matrix (S2, issue #49): the five states must each be
+  // proven against EVERY recovery trigger, one cell at a time — a cell
+  // that is only covered via another trigger is "incidentally passing"
+  // and cannot attribute a regression to a path.
+  //
+  // Triggers for floatingBtn: popstate (200ms) / observer (300ms,
+  // documentElement) / pageshow(bfcache). The state dimensions are the
+  // five-state matrix from tests/CLAUDE.md; detached here means the host
+  // element left the DOM while the closure handle (divElement) still
+  // points at it.
+  // ──────────────────────────────────────────────
+
+  it("detached host: popstate must rebuild (stale handle, node out of tree)", async () => {
+    await loadModule();
+    const originalHost = document.getElementById("dualtran-floating-btn-host");
+    expect(originalHost).toBeTruthy();
+
+    // Handle-keeping flavor of the failure: the host element is removed
+    // from the tree but the module's divElement reference survives.
+    originalHost.remove();
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(0);
+
+    window.dispatchEvent(new Event("popstate"));
+    await vi.advanceTimersByTimeAsync(300);
+    await flushMicrotasks();
+
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host).not.toBe(originalHost);
+    expect(host.shadowRoot).toBeTruthy();
+    expect(host.shadowRoot.getElementById("btnGoogle")).toBeTruthy();
+  });
+
+  it("detached host: observer must rebuild after unrelated mutation", async () => {
+    await loadModule();
+    const originalHost = document.getElementById("dualtran-floating-btn-host");
+    expect(originalHost).toBeTruthy();
+
+    originalHost.remove();
+
+    document.body.appendChild(document.createElement("p"));
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(400);
+    await flushMicrotasks();
+
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host).not.toBe(originalHost);
+    expect(host.shadowRoot).toBeTruthy();
+  });
+
+  it("detached host: pageshow (persisted) must rebuild", async () => {
+    await loadModule();
+    const originalHost = document.getElementById("dualtran-floating-btn-host");
+    expect(originalHost).toBeTruthy();
+
+    originalHost.remove();
+
+    window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+    await flushMicrotasks();
+
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host).not.toBe(originalHost);
+    expect(host.shadowRoot).toBeTruthy();
+  });
+
+  it("duplicate hosts: observer must converge to a single functional host", async () => {
+    await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    // healthy-first duplicate: invisible copy appended AFTER the healthy
+    // host, so a first-match predicate still accepts the state.
+    const healthyHost = document.getElementById("dualtran-floating-btn-host");
+    const shell = healthyHost.cloneNode(true);
+    expect(shell.shadowRoot).toBeNull();
+    document.body.appendChild(shell);
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(2);
+
+    // Observer path (no popstate): any unrelated mutation triggers the
+    // 300ms debounced check.
+    document.body.appendChild(document.createElement("p"));
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(400);
+    await flushMicrotasks();
+
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host.shadowRoot).toBeTruthy();
+    expect(host.shadowRoot.getElementById("btnGoogle")).toBeTruthy();
+  });
+
+  it("duplicate hosts: pageshow (persisted) must converge to a single functional host", async () => {
+    await loadModule();
+    expect(getHost()).toBeTruthy();
+
+    const healthyHost = document.getElementById("dualtran-floating-btn-host");
+    const shell = healthyHost.cloneNode(true);
+    document.body.appendChild(shell);
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(2);
+
+    window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }));
+    await flushMicrotasks();
+
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-floating-btn-host");
+    expect(host.shadowRoot).toBeTruthy();
+  });
+
+  it("healthy host: observer must NOT rebuild or duplicate (negative control)", async () => {
+    await loadModule();
+    const originalHost = document.getElementById("dualtran-floating-btn-host");
+    expect(originalHost).toBeTruthy();
+
+    // Unrelated mutations while the host is functional: the observer must
+    // see a functional host and leave it alone (no rebuild, no duplicate).
+    for (let i = 0; i < 3; i++) {
+      document.body.appendChild(document.createElement("p"));
+    }
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(400);
+    await flushMicrotasks();
+
+    expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
+    expect(document.getElementById("dualtran-floating-btn-host")).toBe(originalHost);
+    expect(originalHost.shadowRoot).toBeTruthy();
   });
 });

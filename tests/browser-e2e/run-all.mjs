@@ -81,6 +81,7 @@ const SCENARIO_MODULE_PATHS = [
   "./translation-replace-original.mjs",
   "./observer-feedback-loop.mjs",
   "./floating-btn-three-state.mjs",
+  "./self-heal-matrix.mjs",
 ];
 
 /**
