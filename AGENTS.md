@@ -4,6 +4,7 @@
 
 ## Git 提交铁律
 
+**代码改动完成后，应提交github。
 **所有 git message 统一使用英文**（commit message、PR 标题、PR 正文）。禁止中文 commit message。仓库文档（CLAUDE.md / 计划文档）可用中文，但 git 历史必须全英文。
 
 ## 状态架构铁律（最高优先级）
