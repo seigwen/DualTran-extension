@@ -1,9 +1,10 @@
 # AGENTS.md — DualTran 协作者铁律
 
-此文件对任何在本仓库工作的 agent/协作者生效（Claude Code、其他 AI 工具、人类协作者）。CLAUDE.md 是完整规则，此文件是不可违反的铁律子集。
+此文件对任何在本仓库工作的 agent/协作者生效（Claude Code、其他 AI 工具、人类协作者）。CLAUDE.md 和 AGENTS.md 是完整规则，此文件是不可违反的铁律子集。
 
 ## Git 提交铁律
 
+**代码改动完成后，应提交github。
 **所有 git message 统一使用英文**（commit message、PR 标题、PR 正文）。禁止中文 commit message。仓库文档（CLAUDE.md / 计划文档）可用中文，但 git 历史必须全英文。
 
 ## 状态架构铁律（最高优先级）
@@ -25,7 +26,7 @@
 
 1. **精确补丁**：只用 patch 工具 + 精确上下文。禁止 sed/awk 批量替换（历史上有 3 次事故）。
 2. **i18n**：`src/` 下所有字符串必须走 i18n（`_locales/`），注释必须纯英文（CI hard failure）。
-3. **规则落档**：任何新规则/新教训必须写入根 `CLAUDE.md` 或 `tests/CLAUDE.md` 或 dualtran-extension skill，禁止只存在口头/临时记忆中。
+3. **规则落档**：任何新规则/新教训必须写入根 `CLAUDE.md`  和 AGENTS.md 或 `tests/CLAUDE.md` 或 dualtran-extension skill，禁止只存在口头/临时记忆中。
 
 ## 诊断铁律（状态 bug）
 
@@ -42,7 +43,7 @@
 ---
 
 参考：
-- 完整规则：`CLAUDE.md`
+- 完整规则：`CLAUDE.md`和`AGENTS.md`
 - 测试规则：`tests/CLAUDE.md`
 - 架构计划：`/root/DualTran-manage/08-ui-state-ssot-plan.md`
 - 复盘分析：`/root/DualTran-manage/07-spa-highlight-bug-test-architecture-analysis.md`
