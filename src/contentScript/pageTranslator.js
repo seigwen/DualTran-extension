@@ -4055,6 +4055,15 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
      // Listen for main page visibility and set up visibility change callback
     setTimeout(function () {
+      // Teardown guard (issue #47): this module-load visibility timer cannot be
+      // cancelled and may fire after the DOM context is gone. In vitest, the
+      // jsdom environment can be torn down before the 120ms elapses (the test
+      // file imports a fresh module per test); a bare `document` access then
+      // throws ReferenceError, reported as an unhandled error that fails the
+      // zero-tolerance CI job even when every test passes (PR #46 CI, run
+      // 34965080915). No document context → nothing to check → no-op.
+      // Symmetric with the module-load guard in singletonBtnGroup.js (DUMMY_NODE).
+      if (typeof document === "undefined") return;
       if (document.visibilityState == "visible") {
         onTabVisible();
       } else {
