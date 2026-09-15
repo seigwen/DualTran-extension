@@ -24,6 +24,8 @@ import {
   writeStorage,
   sendMessageToTab,
   assertUiStateMatchesEngine,
+  readHostState,
+  injectHostState,
 } from "./setup.mjs";
 
 export const name = "navigation-recovery";
@@ -194,6 +196,28 @@ async function verifySpaBackNavigation(page, serviceWorker, testPageUrl) {
       `exists=${btn.exists}, hasButtons=${btn.hasButtons}, inDOM=${btn.inDOM}`
     );
   }
+
+  // ── 步骤 5：注入式自愈断言（S2, issue #49 — 注入器复用处 2/2） ──
+  // 前置步骤走的是真实 SPA 旅程（fetch + body 替换 + popstate）。
+  // 本步骤把 duplicate 失败态用 DOM 形状直造（healthy + shadow-less 副本），
+  // 显式 poke popstate，断言收敛为单 healthy —— 与 self-heal-matrix 共享
+  // 同一注入器（injectHostState），在真实浏览器上下文里证明收敛路径。
+  console.log("  Step 5: injection-based duplicate convergence (reuses injectHostState)");
+  const injected = await injectHostState(page, "floating", "duplicate");
+  if (injected.count !== 2 || injected.state !== "healthy") {
+    throw new Error(
+      `Scene 1 FAIL: duplicate injection produced unexpected shape: ${JSON.stringify(injected)}`
+    );
+  }
+  await page.evaluate(() => window.dispatchEvent(new Event("popstate")));
+  await page.waitForTimeout(800);
+  const recovered = await readHostState(page, "floating");
+  if (recovered.count !== 1 || recovered.state !== "healthy" || !recovered.hasButtons) {
+    throw new Error(
+      `Scene 1 FAIL: duplicate injection did not converge to 1 healthy host: ${JSON.stringify(recovered)}`
+    );
+  }
+  console.log("  Step 5 result: duplicate converged → 1 healthy ✓");
 
   console.log("  Scene 1 PASSED: floating button survives round-trip SPA navigation");
 }
