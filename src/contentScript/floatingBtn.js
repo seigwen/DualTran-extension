@@ -153,10 +153,35 @@ if (window.self !== window.top) {
   const MIN_FLOATING_BTN_WIDTH = 48;
 
   /**
+   * Check whether a functional floating-button host exists.
+   *
+   * Existence alone is not enough (bug 2026-09-14): Turbo Drive caches a
+   * cloneNode() snapshot of the page when leaving it, and cloneNode does
+   * NOT clone shadow roots. When the snapshot is rendered (back/forward on
+   * a cached page), the DOM contains a shadow-less SHELL of
+   * #dualtran-floating-btn-host — present, connected, but with no buttons.
+   * A `!host || !document.body.contains(host)` check accepts that shell and
+   * the button group is never rebuilt → the group "disappears" while the
+   * translated page content (also cloned) stays visible.
+   *
+   * A host is functional only when it is connected AND has a shadow root.
+   */
+  function hasFunctionalHost() {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    return !!(host && document.body.contains(host) && host.shadowRoot);
+  }
+
+  /**
    * Hide floating button
    * @returns 
    */
   floatingBtn.hide = function () {
+    // Clear host copies from the DOM even when divElement is null. Turbo
+    // snapshot renders can leave a shadow-less shell behind while this
+    // closure's divElement points to a detached node (bug 2026-09-14);
+    // removing every copy guarantees a single healthy host after a rebuild.
+    document.querySelectorAll("#dualtran-floating-btn-host").forEach((el) => el.remove());
+
     if (!divElement) return;
 
     if (detachViewportListeners) {
@@ -902,9 +927,8 @@ if (window.self !== window.top) {
     window.addEventListener("popstate", () => {
       if (floatingBtnPopstateTimer) clearTimeout(floatingBtnPopstateTimer);
       floatingBtnPopstateTimer = setTimeout(() => {
-        const host = document.getElementById("dualtran-floating-btn-host");
-        if (!host || !document.body.contains(host)) {
-          console.log("[floatingBtn] host missing after popstate, recreating");
+        if (!hasFunctionalHost()) {
+          console.log("[floatingBtn] host missing or shadow-less after popstate, recreating");
           floatingBtn.show();
         }
       }, 200);
@@ -933,9 +957,8 @@ if (window.self !== window.top) {
           floatingBtnObserverTimer = null;
           // divElement is null means hide() already removed it, skip rebuild
           if (!divElement) return;
-          const host = document.getElementById("dualtran-floating-btn-host");
-          if (!host || !document.body.contains(host)) {
-            console.log("[floatingBtn] host removed from DOM, recreating");
+          if (!hasFunctionalHost()) {
+            console.log("[floatingBtn] host removed or shadow-less, recreating");
             floatingBtnObserver.disconnect();
             floatingBtn.show();
             setupFloatingBtnObserver();
@@ -955,10 +978,9 @@ if (window.self !== window.top) {
     // where DOM is partially replaced under bfcache.
     window.addEventListener("pageshow", (e) => {
       if (e.persisted) {
-        // bfcache restore: check if host still exists
-        const host = document.getElementById("dualtran-floating-btn-host");
-        if (!host || !document.body.contains(host)) {
-          console.log("[floatingBtn] host missing after bfcache restore, recreating");
+        // bfcache restore: check if host still exists and is functional
+        if (!hasFunctionalHost()) {
+          console.log("[floatingBtn] host missing or shadow-less after bfcache restore, recreating");
           floatingBtn.show();
         }
       }

@@ -174,8 +174,8 @@ tests/
 
 | 模拟页 | 模拟的行为 | 真实行为 | 忠实度风险 |
 |---|---|---|---|
-| `spa-source.html` / `spa-target.html` | Turbo Drive 链接导航与回退：fetch → 新 `<body>` 元素 `replaceWith` 旧 `<body>` 元素本身 → pushState/popstate | Turbo Drive 回退时替换 body **元素本身**（2026-09-10 github.com 实测 `document.body !== oldBody`；`<html>` 元素存活） | 已修正（PR #30 前用 `innerHTML` 保留 body 元素，掩盖 observer 死亡 bug——E2E 全绿但真实站点复现） |
-| `spa-source.html` / `spa-target.html`（未模拟） | Turbo 缓存策略（turbo-cache-control）、脚本执行语义（保留 script 不执行）、CSS 合并、进度条动画 | Turbo 有缓存策略与脚本语义 | 低——测试只依赖 body 元素替换行为；若未来测试依赖缓存/脚本语义需重新评估 |
+| `spa-source.html` / `spa-target.html` | Turbo Drive 链接导航与回退：fetch → 新 `<body>` 元素 `replaceWith` 旧 `<body>` 元素本身 → pushState/popstate；**快照缓存与恢复**：离开可缓存页时按 `cloneNode(true)` 语义缓存 body（shadow root 不进入 innerHTML 序列化），restore 恢复渲染快照且不发请求——source 页 `no-cache`（恢复必 fetch，对应 /projects）、target 页可缓存（恢复渲染快照，对应 /security） | Turbo Drive 回退时替换 body **元素本身**（2026-09-10 实测 `document.body !== oldBody`；`<html>` 元素存活）；快照 cloneNode 不克隆 shadow root、restore 不发请求（2026-09-14 实测 /security 空壳 host + @hotwired/turbo@8 源码） | 已修正（PR #30 前用 `innerHTML` 保留 body 元素，掩盖 observer 死亡 bug——E2E 全绿但真实站点复现；2026-09-14 前未模拟快照，掩盖 shell 空壳 bug——再次 E2E 全绿但真实站点复现） |
+| `spa-source.html` / `spa-target.html`（未模拟） | 快照预览渲染（advance 导航的中间态——最终状态一致）、LRU 缓存淘汰、脚本执行语义（替换的 script 不执行）、CSS 合并、进度条动画 | Turbo 有预览渲染与缓存淘汰、脚本语义 | 低——测试依赖两种恢复路径的最终状态（fetch 替代 vs 快照渲染）；若未来测试依赖中间态/淘汰行为需重新评估 |
 
 **修改模拟页的检查清单：**
 - [ ] 模拟的行为是否与真实框架一致？（不确定 → 在真实站点用浏览器验证，如 `document.body !== oldBody`）
@@ -194,6 +194,7 @@ tests/
 | popstate 定时器不是可靠恢复机制（Turbo fetch 异步） | `floatingBtn.behavior.test.js`「turbo back-nav: body element replaced AFTER popstate 200ms check」 | 时序假设 ✅ |
 | `pageshow` 只在 bfcache（`e.persisted`）触发 | `pageTranslator.navRestore.integration.test.js`「T5」 | 触发条件 ✅ |
 | observer 挂载点必须用 `getObserverRoot()`，禁止 `document.body` | `tests/scripts/checkObserverMount.test.js`（lint 自测 5 个）+ `scripts/check-observer-mount.js`（CI 强制） | 挂载点 ✅ |
+| Turbo 快照是 `cloneNode(true)`（不克隆 shadow root）；restore 恢复渲染快照不发请求 → 重建检查必须把"无 shadowRoot host"当作缺失 | `floatingBtn.behavior.test.js`「turbo snapshot shell」4 个 + `singletonBtnGroup.test.js`「快照残留的 shadow-less shell host 在重建时被清除」+ `singletonBtnGroup.test.js`「singleton hover recovery — 失败态注入矩阵」3 个 + `navigation-recovery.mjs` Scene 6 | 死亡条件（快照渲染产生 shell）✅ 重建条件（三条路径重建 + singleton 清理 + 悬停自愈）✅ 恢复条件（无重复 host）✅ |
 
 ## Test Naming Conventions
 

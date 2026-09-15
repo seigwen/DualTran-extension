@@ -204,24 +204,49 @@ let _singleton = {
 };
 
 /**
+ * A singleton host is functional only when the JS handle points at a host
+ * that is connected to the document AND carries its shadow root.
+ *
+ * Two degraded states a bare truthiness check accepts (issue #40):
+ *  - detached: Turbo/SPA body replacement removes the element while the
+ *    handle keeps pointing at it (hover then operates on an invisible node);
+ *  - shell: Turbo snapshot cloneNode does NOT clone shadow roots, so the
+ *    restored DOM can contain a shadow-less copy of the host.
+ * Same predicate semantics as floatingBtn.js hasFunctionalHost().
+ */
+function hasFunctionalHost() {
+  return !!(_singleton.host && document.body.contains(_singleton.host) && _singleton.host.shadowRoot);
+}
+
+/**
  * Create the singleton button group host (Shadow DOM) on document.body.
  */
 export function createSingletonButtonGroup() {
-  // If host has been detached from DOM tree (body replaced by Turbo/SPA navigation), reset references to allow rebuilding
+  // Keep the live host when it is still functional — rebuilding would
+  // drop the current UI for no reason.
+  if (hasFunctionalHost()) return;
+
+  // The handle is stale: detached from the DOM tree (body replaced by
+  // Turbo/SPA navigation) or shadow-less. Reset references to allow
+  // rebuilding.
   if (_singleton.host) {
-    if (!document.body.contains(_singleton.host)) {
-      if (_singleton._pendingHideTimer) {
-        clearTimeout(_singleton._pendingHideTimer);
-        _singleton._pendingHideTimer = null;
-      }
-      _singleton.host = null;
-      _singleton.currentTarget = null;
-      _singleton._visible = false;
-    } else {
-      return;
+    if (_singleton._pendingHideTimer) {
+      clearTimeout(_singleton._pendingHideTimer);
+      _singleton._pendingHideTimer = null;
     }
+    _singleton.host = null;
+    _singleton.currentTarget = null;
+    _singleton._visible = false;
   }
   if (window.self !== window.top) return;
+
+  // Clear stale host copies before creating a new one (bug 2026-09-14):
+  // Turbo snapshot renders can leave a shadow-less SHELL of this host in
+  // the DOM (cloneNode does not clone shadow roots). The _singleton.host
+  // reference points at the old detached host, so the rebuild proceeds —
+  // without this cleanup the page would end up with two hosts (stale
+  // shell + fresh one).
+  document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
 
   const host = document.createElement("div");
   host.id = "dualtran-singleton-btn-host";
@@ -396,8 +421,18 @@ export function hasAncestorTransform() {
 
 /**
  * Show and position the button group for a translated element.
+ *
+ * Self-heal (issue #40): hover/touch is the singleton's only recovery
+ * entry point in degraded host states. After a Turbo body replacement /
+ * snapshot render the handle is stale (detached or shadow-less) — a bare
+ * truthiness check would silently operate on an invisible node and the
+ * hover path would stay dead until a page re-translation. Rebuild in
+ * place instead, mirroring floatingBtn's hasFunctionalHost() checks.
  */
 export function showButtonGroup(translatedElement) {
+  if (!hasFunctionalHost()) {
+    createSingletonButtonGroup();
+  }
   if (!_singleton.host) return;
   if (_singleton._pendingHideTimer) {
     clearTimeout(_singleton._pendingHideTimer);

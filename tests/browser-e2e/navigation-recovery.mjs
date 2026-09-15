@@ -23,6 +23,7 @@ import {
   waitForPageTranslatorReady,
   writeStorage,
   sendMessageToTab,
+  assertUiStateMatchesEngine,
 } from "./setup.mjs";
 
 export const name = "navigation-recovery";
@@ -501,6 +502,120 @@ async function verifyGoogleHighlightAfterSpaBackNav(page, serviceWorker, testPag
   console.log("  Scene 5 PASSED: Google highlight survives SPA back-navigation rebuild");
 }
 
+// ═══════════════════════════════════════════════════════════════
+// 场景 6：两页都翻译过 + 反复快速往返 — 悬浮按钮组永不消失
+//
+// 用户报告（2026-09-14，github.com/obra/superpowers）：
+//   /projects 和 /security 两页都点过 Google 翻译，然后在两页间
+//   反复 back/forward，/security 页的悬浮按钮组"大概率消失"。
+//
+// 根因：Turbo 用 cloneNode(true) 缓存离开页的快照（shadow root
+// 不被克隆）；从历史恢复（restore）时渲染快照且不发请求，快照中
+// 的 #dualtran-floating-btn-host 是无 shadowRoot 的空壳。旧重建
+// 检查（host 存在 + 在 body 中）接受空壳 → 永不重建 → 按钮消失。
+//
+// 本场景断言：无论往返多少轮、以何种节奏（含快速连点），每次
+// settle 后按钮组必须"功能完好"——shell（有 host 无按钮）即失败，
+// 这正是旧 E2E 缺失的断言（只查 exists/hasButtons 的旧检查对
+// 快照页同样失败，但模拟页此前不渲染快照，测不到）。
+// ═══════════════════════════════════════════════════════════════
+
+async function verifySnapshotShellSurvival(page, serviceWorker, testPageUrl) {
+  console.log("[nav-recovery] Scene 6: both pages translated + rapid back/forward (snapshot shell regression)");
+
+  const spaSourceUrl = buildSpaUrl(testPageUrl, "spa-source.html");
+  const spaTargetUrl = buildSpaUrl(testPageUrl, "spa-target.html");
+
+  // 断言 host 功能完好：存在 + 有 shadowRoot + 三大按钮齐备
+  const assertFunctional = async (where) => {
+    const state = await page.evaluate(() => {
+      const hosts = [...document.querySelectorAll("#dualtran-floating-btn-host")];
+      const host = hosts[0] || null;
+      const root = host?.shadowRoot || null;
+      return {
+        count: hosts.length,
+        state: !host ? "absent" : root ? "healthy" : "shell",
+        hasButtons: !!(root?.getElementById("btnOriginal") && root?.getElementById("btnGoogle") && root?.getElementById("btnAi")),
+        url: location.pathname,
+      };
+    });
+    console.log(`  ${where}: ${JSON.stringify(state)}`);
+    if (state.state !== "healthy" || !state.hasButtons) {
+      throw new Error(
+        `Scene 6 FAIL (${where}): floating button not functional — ${JSON.stringify(state)} ` +
+        `(shell = host leaked from Turbo cloneNode snapshot, shadow root not cloned)`
+      );
+    }
+    if (state.count !== 1) {
+      throw new Error(`Scene 6 FAIL (${where}): expected exactly 1 host, found ${state.count}`);
+    }
+  };
+
+  // ── 步骤 1：加载 source、翻译 ──
+  await page.goto(spaSourceUrl, { waitUntil: "domcontentloaded" });
+  await waitForContentScriptInjected(serviceWorker, page.url());
+  await waitForPageTranslatorReady(serviceWorker, page.url());
+  await writeStorage(serviceWorker, "showFloatingBtn", "yes");
+  await page.waitForTimeout(800);
+
+  await page.evaluate(() => {
+    document.getElementById("dualtran-floating-btn-host")?.shadowRoot?.getElementById("btnGoogle")?.click();
+  });
+  await page.waitForFunction(() => document.querySelectorAll("translated").length > 0, null, { timeout: 20_000 });
+  await page.waitForTimeout(500);
+  await assertFunctional("source translated");
+
+  // ── 步骤 2：SPA 导航到 target、翻译 ──
+  await page.click("a#test-link");
+  await waitForSpaContent(page, "SPA Target Page", 8000);
+  await page.waitForTimeout(800);
+  await page.evaluate(() => {
+    document.getElementById("dualtran-floating-btn-host")?.shadowRoot?.getElementById("btnGoogle")?.click();
+  });
+  await page.waitForFunction(() => document.querySelectorAll("translated").length > 0, null, { timeout: 20_000 });
+  await page.waitForTimeout(500);
+  await assertFunctional("target translated");
+
+  // ── 步骤 3：5 轮 back/forward（每轮交替：慢速 settle + 快速连点）──
+  // 注意：source 页含 no-cache 策略（恢复必 fetch），target 页可缓存
+  // （恢复渲染快照）——两者路径都被用户场景覆盖。
+  for (let i = 1; i <= 5; i++) {
+    if (i % 2 === 1) {
+      // 慢速：back → settle 2s
+      await page.goBack();
+      await waitForSpaContent(page, "SPA Source Page", 8000);
+      await page.waitForTimeout(2000);
+      await assertFunctional(`round ${i} back (settled)`);
+
+      // forward → settle 2s（快照渲染路径）
+      await page.goForward();
+      await waitForSpaContent(page, "SPA Target Page", 8000);
+      await page.waitForTimeout(2000);
+      await assertFunctional(`round ${i} fwd (settled)`);
+    } else {
+      // 快速：背靠背 back + forward（无 settle），最后统一 settle 2s
+      await page.goBack().catch(() => {});
+      await page.waitForTimeout(150);
+      await page.goForward().catch(() => {});
+      await page.waitForTimeout(150);
+      await page.goBack().catch(() => {});
+      await page.waitForTimeout(2500); // settle
+      await assertFunctional(`round ${i} rapid back (settled)`);
+
+      await page.goForward().catch(() => {});
+      await page.waitForTimeout(2000); // settle
+      await assertFunctional(`round ${i} rapid fwd (settled)`);
+    }
+  }
+
+  // ── 步骤 4：最终稳定性 soak —— 翻译状态 + 按钮功能 + 引擎一致性 ──
+  await page.waitForTimeout(3000);
+  await assertFunctional("final soak");
+  await assertUiStateMatchesEngine(page, serviceWorker, { expectTranslated: true });
+
+  console.log("  Scene 6 PASSED: floating button survives both-translated rapid back/forward (no snapshot shell)");
+}
+
 /**
  * 读取浮动按钮三键高亮状态。
  */
@@ -544,6 +659,9 @@ export async function run(scope) {
 
     // 场景 5：Google 翻译后 SPA 回退 — 按钮高亮保持 Google（bug 回归）
     await verifyGoogleHighlightAfterSpaBackNav(page, serviceWorker, testPageUrl);
+
+    // 场景 6：两页都翻译过 + 反复快速往返 — 快照 shell 回归（bug 2026-09-14）
+    await verifySnapshotShellSurvival(page, serviceWorker, testPageUrl);
 
     console.log("\n  All SPA navigation recovery tests passed.\n");
   } catch (err) {

@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
-import { BtnAiProxy, createBlockState, getProxiesForTranslation, getAllProxies, registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup } from "../../src/contentScript/singletonBtnGroup.js";
+import { BtnAiProxy, createBlockState, getProxiesForTranslation, getAllProxies, registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation } from "../../src/contentScript/singletonBtnGroup.js";
 
 describe("BtnAiProxy", () => {
   let dom, doc, singleton, stateMap, element;
@@ -546,6 +546,37 @@ describe("createSingletonButtonGroup — detached host recovery", () => {
     expect(() => destroySingletonButtonGroup()).not.toThrow();
   });
 
+  // ──────────────────────────────────────────────────────────────
+  // Turbo snapshot shell (bug 2026-09-14): Turbo renders a cloneNode
+  // snapshot on back/forward; cloneNode does NOT clone shadow roots, so
+  // the snapshot contains a shadow-less SHELL of the host. The JS
+  // reference (_singleton.host) points at the old (detached) host, so the
+  // contains() check rebuilds — but the stale shell from the snapshot is
+  // still in the DOM. Without cleanup the page ends up with TWO hosts:
+  // the shadow-less shell + the fresh one.
+  // ──────────────────────────────────────────────────────────────
+
+  test("快照残留的 shadow-less shell host 在重建时被清除（无重复 host）", () => {
+    createSingletonButtonGroup();
+    const originalHost = document.getElementById("dualtran-singleton-btn-host");
+    expect(originalHost).not.toBeNull();
+
+    // Simulate Turbo snapshot render: body replaced; the snapshot contains
+    // a shadow-less clone of the host; the JS reference still points at
+    // the old host which is now detached.
+    originalHost.remove();
+    const shell = document.createElement("div");
+    shell.id = "dualtran-singleton-btn-host";
+    document.body.appendChild(shell);
+
+    createSingletonButtonGroup();
+
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    expect(host).not.toBe(shell);
+    expect(host.shadowRoot).not.toBeNull();
+  });
+
   test("destroy 后再次 create 能正常重建 host", () => {
     createSingletonButtonGroup();
     destroySingletonButtonGroup();
@@ -557,6 +588,109 @@ describe("createSingletonButtonGroup — detached host recovery", () => {
     const newHost = document.getElementById("dualtran-singleton-btn-host");
     expect(newHost).not.toBeNull();
     expect(newHost.shadowRoot).not.toBeNull();
+  });
+});
+
+// ──────────────────────────────────────────────────────────────
+// Singleton hover-path self-healing (issue #40, 2026-09-14)
+//
+// Failure-state injection matrix (mirrors the S2 self-heal matrix):
+// the hover path must recover from every degraded host state. Turbo
+// body replacement / snapshot renders produce states that a bare
+// truthiness check accepts but the user cannot see:
+//   - detached: the JS host handle survives; the element left the DOM
+//   - shell:    snapshot cloneNode lands a shadow-less host in the DOM
+// The fix uses the same functional predicate as floatingBtn.js
+// hasFunctionalHost(): host && document.body.contains(host) && host.shadowRoot.
+// Entry point under test: showButtonGroup (via the real document-level
+// mouseover delegation).
+// ──────────────────────────────────────────────────────────────
+
+describe("singleton hover recovery — 失败态注入矩阵 (issue #40)", () => {
+  let attachShadowSpy;
+  let translatedEl;
+
+  const hover = (el) => el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+
+  beforeEach(() => {
+    attachShadowSpy = vi
+      .spyOn(HTMLElement.prototype, "attachShadow")
+      .mockImplementation(function attachShadow(init) {
+        return Element.prototype.attachShadow.call(this, { ...init, mode: "open" });
+      });
+
+    document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
+    destroySingletonButtonGroup();
+    attachHoverDelegation();
+
+    translatedEl = document.createElement("translated");
+    translatedEl.textContent = "Bonjour";
+    document.body.appendChild(translatedEl);
+    registerBlock(translatedEl, "Hello", document.createTextNode("Bonjour"), "Bonjour", null);
+  });
+
+  afterEach(() => {
+    document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
+    destroySingletonButtonGroup();
+    if (translatedEl) translatedEl.remove();
+    vi.restoreAllMocks();
+  });
+
+  test("detached host（body 替换后）+ 悬停 → 就地重建（单实例、功能完好、已定位）", () => {
+    createSingletonButtonGroup();
+    const originalHost = document.getElementById("dualtran-singleton-btn-host");
+    expect(originalHost).not.toBeNull();
+
+    // Turbo/SPA body replacement: the host element leaves the document
+    // while the JS handle (_singleton.host) keeps pointing at it.
+    originalHost.remove();
+
+    hover(translatedEl);
+
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    expect(host).not.toBeNull();
+    expect(host).not.toBe(originalHost);
+    expect(document.body.contains(host)).toBe(true);
+    expect(host.shadowRoot).not.toBeNull();
+    expect(host.shadowRoot.querySelector(".dualtran-btn-group")).not.toBeNull();
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(1);
+    // Hover must have positioned the rebuilt host (not left off-screen parked)
+    expect(host.style.top).not.toBe("-9999px");
+  });
+
+  test("快照空壳 shell（无 shadowRoot）+ 悬停 → 清壳重建（无重复 host）", () => {
+    createSingletonButtonGroup();
+    const originalHost = document.getElementById("dualtran-singleton-btn-host");
+    expect(originalHost).not.toBeNull();
+
+    // Turbo snapshot restore: the snapshot contains a cloneNode copy of
+    // the host WITHOUT its shadow root; the JS handle still points at the
+    // old (detached) host.
+    originalHost.remove();
+    const shell = document.createElement("div");
+    shell.id = "dualtran-singleton-btn-host";
+    document.body.appendChild(shell);
+
+    hover(translatedEl);
+
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    expect(host).not.toBe(shell);
+    expect(host.shadowRoot).not.toBeNull();
+    expect(host.shadowRoot.querySelector(".dualtran-btn-group")).not.toBeNull();
+    expect(host.style.top).not.toBe("-9999px");
+  });
+
+  test("healthy host + 悬停 → 不重建（同一实例复用，回归保护）", () => {
+    createSingletonButtonGroup();
+    const originalHost = document.getElementById("dualtran-singleton-btn-host");
+
+    hover(translatedEl);
+
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    expect(host).toBe(originalHost);
+    expect(host.shadowRoot).not.toBeNull();
+    expect(host.style.top).not.toBe("-9999px");
   });
 });
 
