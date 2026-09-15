@@ -213,9 +213,16 @@ let _singleton = {
  *  - shell: Turbo snapshot cloneNode does NOT clone shadow roots, so the
  *    restored DOM can contain a shadow-less copy of the host.
  * Same predicate semantics as floatingBtn.js hasFunctionalHost().
+ * The predicate also requires EXACTLY ONE host copy (issue #43): a "handle
+ * is functional" check let an invisible duplicate survive indefinitely
+ * (healthy-first flavor). Any count != 1 → not functional → rebuild, which
+ * removes every stale copy first and converges to a single host.
  */
 function hasFunctionalHost() {
-  return !!(_singleton.host && document.body.contains(_singleton.host) && _singleton.host.shadowRoot);
+  const hosts = document.querySelectorAll("#dualtran-singleton-btn-host");
+  if (hosts.length !== 1) return false;
+  const host = hosts[0];
+  return !!(document.body.contains(host) && host.shadowRoot);
 }
 
 /**

@@ -164,11 +164,11 @@ Content Script (fetchSSE.js)
 - 实现点清单（规则对称性）：`floatingBtn.js` `setupFloatingBtnObserver`（PR #30）、`pageTranslator.js` `enableMutatinObserver`（PR #30）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - 测试：floatingBtn.behavior.test.js「turbo back-nav」2 个（body 元素替换后 host 重建）+ E2E navigation-recovery 6 场景（模拟页已忠实化：`replaceWith` 替换 body 元素 + 快照缓存渲染）。
 
-**RULE: 重建检查必须验证 host "功能完好"（有 shadowRoot），禁止只查存在性：**
+**RULE: 重建检查必须验证 host "功能完好"（有 shadowRoot），禁止只查存在性；且必须验证「恰好一个」host 副本（duplicate 收敛）：**
 - Turbo 快照是 `cloneNode(true)` 缓存（**shadow root 不被克隆**）；restore 恢复（back/forward 到可缓存页）渲染快照且不发请求 → 快照中的 `#dualtran-floating-btn-host` 是无 shadowRoot 的空壳，`!host || !document.body.contains(host)` 检查全部通过 → 按钮永不重建（第 8 次事故，2026-09-14）。
-- 所有重建路径（popstate/observer/pageshow）必须用 `hasFunctionalHost()`（floatingBtn.js，PR #39）：`host && document.body.contains(host) && host.shadowRoot`。singleton 侧同一谓词有两个实现点（issue #40）：`createSingletonButtonGroup`（重建入口，重建前清除残留同名 host 避免 shell + 新 host 双元素）与 `showButtonGroup`（悬停/触摸入口——降级状态下悬停是 singleton 唯一的恢复入口，必须当场自愈重建）。
-- 实现点清单（规则对称性）：`floatingBtn.js` `hasFunctionalHost`（PR #39）、`singletonBtnGroup.js` `hasFunctionalHost`（issue #40）、`createSingletonButtonGroup`（PR #39 + issue #40）、`showButtonGroup`（悬停/触摸入口自愈，issue #40）。修改任一实现点必须同步检查其他实现点 + 对应测试。
-- 测试：floatingBtn.behavior.test.js「turbo snapshot shell」4 个 + singletonBtnGroup.test.js「快照残留的 shadow-less shell host 在重建时被清除」+ singletonBtnGroup.test.js「singleton hover recovery — 失败态注入矩阵」3 个（detached/shell/healthy 悬停自愈）+ real-site-verify.mjs step 9（真实页面空壳注入 + 悬停自愈）+ E2E navigation-recovery Scene 3（重译恢复路径）/ Scene 6。
+- 所有重建路径（popstate/observer/pageshow）必须用 `hasFunctionalHost()`（floatingBtn.js，PR #39）：`count === 1 && document.body.contains(host) && host.shadowRoot`（issue #43 收紧：旧「存在一个功能 host」谓词在 healthy-first duplicate flavor 下（副本在健康 host 之后）会通过检查 → 隐形空壳副本永久存活；总量判定使任何 duplicate 都触发重建，重建路径自带清全部副本 → 收敛为单实例）。singleton 侧同一谓词有两个实现点（issue #40）：`createSingletonButtonGroup`（重建入口，重建前清除残留同名 host 避免 shell + 新 host 双元素）与 `showButtonGroup`（悬停/触摸入口——降级状态下悬停是 singleton 唯一的恢复入口，必须当场自愈重建）。
+- 实现点清单（规则对称性）：`floatingBtn.js` `hasFunctionalHost`（PR #39 + issue #43）、`singletonBtnGroup.js` `hasFunctionalHost`（issue #40 + issue #43）、`createSingletonButtonGroup`（PR #39 + issue #40）、`showButtonGroup`（悬停/触摸入口自愈，issue #40）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- 测试：floatingBtn.behavior.test.js「turbo snapshot shell」4 个 + 「duplicate hosts」2 个（healthy-first / shell-first 收敛）+ singletonBtnGroup.test.js「快照残留的 shadow-less shell host 在重建时被清除」+「singleton hover recovery — 失败态注入矩阵」3 个（detached/shell/healthy 悬停自愈）+「duplicate hosts」2 个（悬停收敛）+ real-site-verify.mjs step 9（真实页面空壳注入 + 悬停自愈）+ E2E navigation-recovery Scene 3（重译恢复路径）/ Scene 6。
 
 **基础设施假设清单（Infrastructure Assumptions，M1 issue #31）—— 每个假设必须有测试引用（M3 用 check-infra-assumptions.js 强制）：**
 - **假设：** `document.body` 元素可能被框架整体替换（Turbo Drive 回退导航 `replaceWith`，2026-09-10 github.com 实测）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav」2 个

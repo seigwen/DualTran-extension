@@ -601,7 +601,9 @@ describe("createSingletonButtonGroup — detached host recovery", () => {
 //   - detached: the JS host handle survives; the element left the DOM
 //   - shell:    snapshot cloneNode lands a shadow-less host in the DOM
 // The fix uses the same functional predicate as floatingBtn.js
-// hasFunctionalHost(): host && document.body.contains(host) && host.shadowRoot.
+// hasFunctionalHost(): count === 1 && document.body.contains(host)
+// && host.shadowRoot (the count check was added by issue #43 so any
+// duplicate also converges back to a single host).
 // Entry point under test: showButtonGroup (via the real document-level
 // mouseover delegation).
 // ──────────────────────────────────────────────────────────────
@@ -690,6 +692,58 @@ describe("singleton hover recovery — 失败态注入矩阵 (issue #40)", () =>
     const host = document.getElementById("dualtran-singleton-btn-host");
     expect(host).toBe(originalHost);
     expect(host.shadowRoot).not.toBeNull();
+    expect(host.style.top).not.toBe("-9999px");
+  });
+
+  // ──────────────────────────────────────────────────────────────
+  // Duplicate convergence (issue #43): the predicate must require EXACTLY
+  // ONE functional host, not just "the handle is functional". With a
+  // duplicate present the invisible copy could survive indefinitely
+  // (healthy-first flavor). Same contract as floatingBtn.
+  // Implementation point: hasFunctionalHost (singletonBtnGroup.js) —
+  // shared by the hover entry (showButtonGroup) and the create entry.
+  // ──────────────────────────────────────────────────────────────
+
+  test("duplicate hosts（healthy-first）+ 悬停 → 收敛为单实例", () => {
+    createSingletonButtonGroup();
+    const healthyHost = document.getElementById("dualtran-singleton-btn-host");
+    expect(healthyHost).not.toBeNull();
+
+    // Duplicate flavor "healthy-first": a shadow-less cloneNode copy (Turbo
+    // snapshot semantics) is appended AFTER the healthy host. The handle
+    // still points at the healthy host, so the old predicate passed.
+    const shell = healthyHost.cloneNode(true);
+    expect(shell.shadowRoot).toBeNull();
+    document.body.appendChild(shell);
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(2);
+
+    hover(translatedEl);
+
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    expect(host.shadowRoot).not.toBeNull();
+    expect(host.shadowRoot.querySelector(".dualtran-btn-group")).not.toBeNull();
+    expect(host.style.top).not.toBe("-9999px");
+  });
+
+  test("duplicate hosts（shell-first）+ 悬停 → 收敛为单实例", () => {
+    createSingletonButtonGroup();
+    const healthyHost = document.getElementById("dualtran-singleton-btn-host");
+    expect(healthyHost).not.toBeNull();
+
+    // Duplicate flavor "shell-first": the shadow-less copy precedes the
+    // healthy host in document order. The handle-based predicate is blind
+    // to order, so this flavor is also expected to converge.
+    const shell = healthyHost.cloneNode(true);
+    healthyHost.parentNode.insertBefore(shell, healthyHost);
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(2);
+
+    hover(translatedEl);
+
+    expect(document.querySelectorAll("#dualtran-singleton-btn-host")).toHaveLength(1);
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    expect(host.shadowRoot).not.toBeNull();
+    expect(host.shadowRoot.querySelector(".dualtran-btn-group")).not.toBeNull();
     expect(host.style.top).not.toBe("-9999px");
   });
 });
