@@ -578,4 +578,56 @@ describe("restorePage → 清除 AI 标记", () => {
     // 清理：停止定时器 + 断开 observer
     pageTranslator.restorePage();
   });
+
+  // ═══════════════════════════════════════════════════════════
+  // Test 9: 模块加载期 120ms 可见性定时器在环境拆除后触发必须是 no-op
+  // 行为锁定测试（issue #47，PR #46 CI 实锤）：本文件 beforeEach 中
+  // vi.resetModules() + 每个测试重复 import 模块 → 每个模块实例都在
+  // 加载期调度一个 120ms 一次性定时器（不可取消）。当测试文件结束、
+  // vitest 拆除 jsdom 环境后，最后一个未触发的定时器会在 document
+  // 已不存在时执行 → ReferenceError → vitest 记 1 个 unhandled error
+  // → CI zero-tolerance 硬失败（1703 passed 仍 exit 1）。
+  // 修复：产品代码回调必须带 teardown 守卫（typeof document === "undefined"）。
+  // ═══════════════════════════════════════════════════════════
+
+  it("T9: 模块加载期 120ms 定时器在环境拆除后触发不得抛 ReferenceError", async () => {
+    const testUrl = "https://github.com/obra/superpowers/issues";
+    const dom = new JSDOM("<!DOCTYPE html><html><body><p>teardown guard</p></body></html>", { url: testUrl });
+    globalThis.window = dom.window;
+    globalThis.document = dom.window.document;
+    globalThis.location = dom.window.location;
+    Object.defineProperty(globalThis, "navigator", {
+      configurable: true, writable: true, value: dom.window.navigator,
+    });
+    patchSessionStorage(dom);
+    createTestGlobals();
+
+    // 1. 捕获模块加载期调度的 120ms 定时器回调（证明加载期确实调度了它）
+    let timerCallback = null;
+    const originalSetTimeout = globalThis.setTimeout;
+    globalThis.setTimeout = function (fn, ms, ...args) {
+      if (ms === 120) timerCallback = fn;
+      return originalSetTimeout(fn, ms, ...args);
+    };
+    try {
+      const { pageTranslator } = await import("../../src/contentScript/pageTranslator.js");
+      await vi.waitFor(() => {
+        expect(pageTranslator).toBeDefined();
+        expect(pageTranslator.restorePage).toBeTypeOf("function");
+      }, { timeout: 5000 });
+    } finally {
+      globalThis.setTimeout = originalSetTimeout;
+    }
+    expect(timerCallback).toBeTypeOf("function");
+
+    // 2. 模拟 vitest 环境拆除：jsdom 拆除后 document 全局不存在
+    const savedDocument = globalThis.document;
+    delete globalThis.document;
+    try {
+      // 3. 拆除后触发定时器回调：必须是 no-op（修复前抛 ReferenceError）
+      expect(() => timerCallback()).not.toThrow();
+    } finally {
+      globalThis.document = savedDocument;
+    }
+  });
 });
