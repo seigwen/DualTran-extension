@@ -304,7 +304,7 @@ host 类元素的断言**必须**区分三态，禁止双态存在性布尔（`e
 
 **迁移指引：** 等待宿主出现 `waitForFunction(!!host)` → `waitForHostState(page, component, "healthy", {timeoutMs})`（语义升级：shell 出现必须超时失败）；存在性断言 → `assertHostState(page, component, "healthy"[, {count, label}])`；负向（验证未创建 / 保持注入态）→ `assertHostState(..., "absent"|"shell", {count})`。按钮级读取（shadowRoot 内 `getElementById("btnGoogle")` 等）不属于 host 分类，不迁移。
 
-**真实站点工具残留（Q4 定案）：** `scripts/real-site-verify.mjs` 保持内联三态分类（工具层，不跑 CI，不在 lint 面内）——抽共享模块属独立 issue 候选（S4 spec §一 记录）。
+**真实站点工具（S5 升级，issue #57）：** `scripts/real-site-verify.mjs` 已执行器化——三态分类/注入原语抽至 `tests/shared/host-state.mjs`（与 `tests/browser-e2e/setup.mjs` 共享，S4 Q4 残留消解）；场景库 = `scripts/canary-scenarios.mjs`（声明式数据，`source` 字段追溯用户报告/事故编号）；CLI：`--scenario=<name>` 单跑 / `--list` 列场景 / 无参=全库 / `--url=` ad-hoc 保留 / `--self-test` hermetic（未映射场景 SKIP）。常态化：`.github/workflows/canary.yml`（周一 3:00 UTC + 手动，失败自动开 issue——去重/自动关闭）+ `release.yml` 发布硬门禁。
 
 ## Test Naming Conventions
 
