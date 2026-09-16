@@ -25,6 +25,7 @@
 - [ ] Unit tests added/updated (`npm test`)
 - [ ] Build succeeds (`npm run build`)
 - [ ] Manual testing performed (describe below)
+- [ ] **用户报告场景已转化为永久回归测试（引用场景文件；13 号文档 P4）** — 无用户报告时填 N/A
 
 ### Manual Testing Steps
 
