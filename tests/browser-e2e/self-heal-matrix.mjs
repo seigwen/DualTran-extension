@@ -30,8 +30,8 @@ import {
   waitForPageTranslatorReady,
   writeStorage,
   sendMessageToTab,
-  readHostState,
   injectHostState,
+  assertHostState,
 } from "./setup.mjs";
 
 export const name = "self-heal-matrix";
@@ -53,27 +53,6 @@ const INJECTED_SHAPE = {
 
 function fail(label, message) {
   throw new Error(`[self-heal] ${label}: ${message}`);
-}
-
-function assertShape(label, actual, expected) {
-  if (actual.count !== expected.count || actual.state !== expected.state) {
-    fail(
-      label,
-      `injection produced unexpected DOM shape — expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`
-    );
-  }
-}
-
-/**
- * 断言「恢复后」的单实例健康态。
- * @param {string} label
- * @param {{count: number, state: string}} host
- * @param {boolean} requirePositioned singleton 额外要求（-9999px 停驻 = 未定位）
- */
-function assertRecovered(label, host, requirePositioned) {
-  if (host.count !== 1) fail(label, `expected exactly 1 host after recovery, got ${host.count}`);
-  if (host.state !== "healthy") fail(label, `expected healthy host after recovery, got state="${host.state}"`);
-  if (!host.hasButtons) fail(label, "recovered host has no buttons inside its shadow root");
 }
 
 async function waitForTranslator(page, serviceWorker, url) {
@@ -155,35 +134,37 @@ async function runFloatingMatrix(page, serviceWorker, url) {
     // ── 显式 popstate 行 ──
     let label = `floating/${state}/popstate`;
     await loadWithFloatingHost(page, serviceWorker, url);
-    let injected = await injectHostState(page, "floating", state);
-    assertShape(label, injected, INJECTED_SHAPE[state]);
+    await injectHostState(page, "floating", state);
+    await assertHostState(page, "floating", INJECTED_SHAPE[state].state, {
+      count: INJECTED_SHAPE[state].count,
+      label: `${label}/injected`,
+    });
     await pokePopstate(page);
     await page.waitForTimeout(800); // 200ms debounce + rebuild margin
-    let host = await readHostState(page, "floating");
-    assertRecovered(label, host);
+    await assertHostState(page, "floating", "healthy", { count: 1, label });
     console.log(`  ${label}: recovered → 1 healthy ✓`);
 
     // ── 静默 observer 被动行（注入本身是 mutation，observer 300ms debounce） ──
     label = `floating/${state}/observer-passive`;
     await loadWithFloatingHost(page, serviceWorker, url);
-    injected = await injectHostState(page, "floating", state);
-    assertShape(label, injected, INJECTED_SHAPE[state]);
+    await injectHostState(page, "floating", state);
+    await assertHostState(page, "floating", INJECTED_SHAPE[state].state, {
+      count: INJECTED_SHAPE[state].count,
+      label: `${label}/injected`,
+    });
     await page.waitForTimeout(1200); // no explicit poke — observer must notice
-    host = await readHostState(page, "floating");
-    assertRecovered(label, host);
+    await assertHostState(page, "floating", "healthy", { count: 1, label });
     console.log(`  ${label}: recovered → 1 healthy ✓`);
   }
 
   // ── healthy 对照组：功能完好 → 触发不得重建（同一实例） ──
   const label = "floating/healthy/popstate-no-rebuild";
   await loadWithFloatingHost(page, serviceWorker, url);
-  const before = await readHostState(page, "floating");
-  assertShape(`${label}/precondition`, before, { count: 1, state: "healthy" });
+  await assertHostState(page, "floating", "healthy", { count: 1, label: `${label}/precondition` });
   await markHost(page, "floating");
   await pokePopstate(page);
   await page.waitForTimeout(800);
-  const after = await readHostState(page, "floating");
-  assertShape(`${label}/count`, after, { count: 1, state: "healthy" });
+  await assertHostState(page, "floating", "healthy", { count: 1, label: `${label}/count` });
   if (!(await markerSurvived(page, "floating"))) {
     fail(label, "healthy host was rebuilt even though it was functional (marker attribute lost)");
   }
@@ -200,12 +181,14 @@ async function runSingletonMatrix(page, serviceWorker, url) {
     // ── 显式悬停行 ──
     let label = `singleton/${state}/hover`;
     await loadWithSingletonHost(page, serviceWorker, url);
-    let injected = await injectHostState(page, "singleton", state);
-    assertShape(label, injected, INJECTED_SHAPE[state]);
+    await injectHostState(page, "singleton", state);
+    await assertHostState(page, "singleton", INJECTED_SHAPE[state].state, {
+      count: INJECTED_SHAPE[state].count,
+      label: `${label}/injected`,
+    });
     await pokeHover(page);
     await page.waitForTimeout(600);
-    let host = await readHostState(page, "singleton");
-    assertRecovered(label, host);
+    await assertHostState(page, "singleton", "healthy", { count: 1, label });
     const positioned = await page.evaluate(
       (id) => document.getElementById(id)?.style.top !== "-9999px",
       HOST_IDS.singleton
@@ -216,24 +199,27 @@ async function runSingletonMatrix(page, serviceWorker, url) {
     // ── 静默负向控制行：无交互 → 必须保持注入态（懒触发契约，不鬼重建） ──
     label = `singleton/${state}/silent-no-ghost-rebuild`;
     await loadWithSingletonHost(page, serviceWorker, url);
-    injected = await injectHostState(page, "singleton", state);
-    assertShape(label, injected, INJECTED_SHAPE[state]);
+    await injectHostState(page, "singleton", state);
+    await assertHostState(page, "singleton", INJECTED_SHAPE[state].state, {
+      count: INJECTED_SHAPE[state].count,
+      label: `${label}/injected`,
+    });
     await page.waitForTimeout(1000); // no hover — nothing may self-heal
-    host = await readHostState(page, "singleton");
-    assertShape(label, host, INJECTED_SHAPE[state]);
+    await assertHostState(page, "singleton", INJECTED_SHAPE[state].state, {
+      count: INJECTED_SHAPE[state].count,
+      label,
+    });
     console.log(`  ${label}: state preserved (no ghost rebuild) ✓`);
   }
 
   // ── healthy 对照组：功能完好 → 悬停不得重建（同一实例） ──
   const label = "singleton/healthy/hover-no-rebuild";
   await loadWithSingletonHost(page, serviceWorker, url);
-  const before = await readHostState(page, "singleton");
-  assertShape(`${label}/precondition`, before, { count: 1, state: "healthy" });
+  await assertHostState(page, "singleton", "healthy", { count: 1, label: `${label}/precondition` });
   await markHost(page, "singleton");
   await pokeHover(page);
   await page.waitForTimeout(600);
-  const after = await readHostState(page, "singleton");
-  assertShape(`${label}/count`, after, { count: 1, state: "healthy" });
+  await assertHostState(page, "singleton", "healthy", { count: 1, label: `${label}/count` });
   if (!(await markerSurvived(page, "singleton"))) {
     fail(label, "healthy singleton host was rebuilt even though it was functional (marker attribute lost)");
   }

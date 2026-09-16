@@ -21,6 +21,7 @@ import {
   sendMessageToTab,
   writeStorage,
   readStorage,
+  waitForHostState,
 } from "./setup.mjs";
 
 /** 场景名称 */
@@ -133,7 +134,7 @@ async function obShowOriginalOnHover(page, serviceWorker, testPageUrl) {
   let singletonAppeared = false;
   let originalAppeared = false;
   try {
-    await page.waitForFunction(() => !!document.getElementById("dualtran-singleton-btn-host"), null, { timeout: 3000 });
+    await waitForHostState(page, "singleton", "healthy", { timeoutMs: 3000 });
     singletonAppeared = true;
   } catch { /* 稍后统一报错 */ }
   try {

@@ -15,6 +15,7 @@ import {
   waitForPageTranslatorReady,
   sendMessageToTab,
   writeStorage,
+  waitForHostState,
 } from "./setup.mjs";
 
 /** 场景名称 */
@@ -174,11 +175,7 @@ async function pbShowOriginalOnHover(page, serviceWorker, testPageUrl) {
   let singletonAppeared = false;
   let originalAppeared = false;
   try {
-    await page.waitForFunction(
-      () => !!document.getElementById("dualtran-singleton-btn-host"),
-      null,
-      { timeout: 3000 }
-    );
+    await waitForHostState(page, "singleton", "healthy", { timeoutMs: 3000 });
     singletonAppeared = true;
   } catch {
     /* hover 按钮组未出现，稍后统一报错 */

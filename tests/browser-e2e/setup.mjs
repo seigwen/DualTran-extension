@@ -1366,6 +1366,118 @@ export async function injectHostState(page, component, state, opts = {}) {
 }
 
 /**
+ * Assert the tri-state classification of a persistent host component (S4, issue #53).
+ *
+ * Wraps readHostState with an assertion matrix over the three meaningful
+ * states (absent / shell / healthy). A two-state `exists` boolean cannot
+ * distinguish a Turbo snapshot shell (host present, shadow root absent)
+ * from a functional host — exactly how the Scene 3 false-green survived.
+ * `"healthy"` additionally requires hasButtons (component-aware readiness:
+ * floating needs btnOriginal/btnGoogle/btnAi; singleton needs
+ * .dualtran-btn-group).
+ *
+ * Semantics:
+ *   - "healthy" : state === "healthy" && hasButtons === true
+ *   - "shell"   : state === "shell" (hasButtons structurally false, unchecked)
+ *   - "absent"  : state === "absent"
+ *   - "any"     : state/hasButtons unchecked (opts.count still enforced)
+ *   - opts.count: assert exact replica count (e.g. 1 to enforce convergence)
+ *
+ * On failure, throws with the full classification JSON + optional label.
+ * Returns the classification object so callers can reuse it (logging,
+ * downstream reads).
+ *
+ * @param {import("playwright").Page} page
+ * @param {"floating"|"singleton"} component
+ * @param {"healthy"|"shell"|"absent"|"any"} expected
+ * @param {{count?: number, label?: string}} [opts]
+ * @returns {Promise<{count: number, state: "absent"|"shell"|"healthy", hasButtons: boolean, hostFound: boolean}>}
+ */
+export async function assertHostState(page, component, expected, opts = {}) {
+  const state = await readHostState(page, component);
+  const label = opts.label ? `[${opts.label}] ` : "";
+  const detail = JSON.stringify(state);
+
+  if (typeof opts.count === "number" && state.count !== opts.count) {
+    throw new Error(
+      `${label}assertHostState: host "${component}" count mismatch — expected count=${opts.count}, got ${detail}`
+    );
+  }
+
+  if (expected === "any") return state;
+
+  if (expected === "healthy") {
+    if (state.state !== "healthy") {
+      throw new Error(
+        `${label}assertHostState: host "${component}" expected healthy, got ${detail} ` +
+          `(shell = host leaked from Turbo cloneNode snapshot, shadow root not cloned)`
+      );
+    }
+    if (!state.hasButtons) {
+      throw new Error(
+        `${label}assertHostState: host "${component}" is healthy but hasButtons=false — ${detail}`
+      );
+    }
+    return state;
+  }
+
+  if (state.state !== expected) {
+    throw new Error(
+      `${label}assertHostState: host "${component}" expected ${JSON.stringify(expected)}, got ${detail}`
+    );
+  }
+  return state;
+}
+
+/** Pure predicate shared by assertHostState / waitForHostState (no page access). */
+function hostStateMatches(state, expected, count) {
+  if (typeof count === "number" && state.count !== count) return false;
+  if (expected === "any") return true;
+  if (expected === "healthy") return state.state === "healthy" && state.hasButtons === true;
+  return state.state === expected;
+}
+
+/**
+ * Poll readHostState until the expected tri-state classification appears (S4, issue #53).
+ *
+ * The wait counterpart of assertHostState. Sites that previously waited on
+ * `!!document.getElementById(host)` now wait on a HEALTHY host: a shell
+ * appearing on the hover path is a failure state and must time out rather
+ * than silently pass. Polling tolerates the millisecond-scale creation gap
+ * between <translated> entering the DOM and the host being created in a
+ * later async batch.
+ *
+ * On timeout, throws with the last observed classification JSON.
+ *
+ * @param {import("playwright").Page} page
+ * @param {"floating"|"singleton"} component
+ * @param {"healthy"|"shell"|"absent"|"any"} [expected="healthy"]
+ * @param {{count?: number, timeoutMs?: number, pollMs?: number, label?: string}} [opts]
+ * @returns {Promise<{count: number, state: "absent"|"shell"|"healthy", hasButtons: boolean, hostFound: boolean}>} last (matching) classification
+ */
+export async function waitForHostState(page, component, expected = "healthy", opts = {}) {
+  const timeoutMs = typeof opts.timeoutMs === "number" ? opts.timeoutMs : 10000;
+  const pollMs = typeof opts.pollMs === "number" ? opts.pollMs : 200;
+  const label = opts.label ? `[${opts.label}] ` : "";
+  const start = Date.now();
+  let last = null;
+
+  while (Date.now() - start < timeoutMs) {
+    last = await readHostState(page, component);
+    if (hostStateMatches(last, expected, opts.count)) return last;
+    await page.waitForTimeout(pollMs);
+  }
+
+  last = await readHostState(page, component);
+  if (hostStateMatches(last, expected, opts.count)) return last;
+  throw new Error(
+    `${label}waitForHostState timed out after ${timeoutMs}ms — expected ${JSON.stringify(expected)}` +
+      (typeof opts.count === "number" ? ` with count=${opts.count}` : "") +
+      `, last observed: ${JSON.stringify(last)}`
+  );
+}
+
+/**
  * Assert UI state matches engine state (A2 — state consistency invariant).
  *
  * Reads pageTranslator's live state (via the content script's exposed

@@ -39,6 +39,8 @@ import {
   assertNoDuplicateTranslations,
   assertTranslationCount,
   assertUiStateMatchesEngine,
+  readHostState,
+  waitForHostState,
 } from "./setup.mjs";
 
 // ─── 模块级闭包代理变量 ──────────────────────────────────────
@@ -412,21 +414,20 @@ async function verifyAiTranslation(page, serviceWorker, verifyPageUrl, mockServe
       return document.querySelectorAll("translated").length > 0;
     }, null, { timeout: 30000 });
 
-    // 等待 singleton 按钮组出现。第一个 <translated> 在 getPiecesToTranslate
-    // 阶段就进入 DOM，而 singleton 宿主在 addTranslatedContent 的异步批次中创建，
-    // 二者存在毫秒级竞态——必须显式等待，不能立即断言。
-    await page.waitForFunction(
-      () => !!document.getElementById("dualtran-singleton-btn-host"),
-      null,
-      { timeout: 10000 }
-    );
+    // 等待 singleton 按钮组出现且功能完好（三态等待：healthy）。第一个
+    // <translated> 在 getPiecesToTranslate 阶段就进入 DOM，而 singleton 宿主
+    // 在 addTranslatedContent 的异步批次中创建，二者存在毫秒级竞态——
+    // 必须显式等待，不能立即断言；shell 出现即视为失败（超时报错）。
+    await waitForHostState(page, "singleton", "healthy", { timeoutMs: 10000 });
 
     // 记录 Google 翻译后的状态
-    const postGoogleState = await page.evaluate(() => ({
-      translatedCount: document.querySelectorAll("translated").length,
-      singletonHost: !!document.getElementById("dualtran-singleton-btn-host"),
-    }));
-    console.log("  Post-Google-Translate: " + postGoogleState.translatedCount + " translated nodes, singleton host: " + postGoogleState.singletonHost);
+    const postGoogleState = await readHostState(page, "singleton");
+    const postGoogleTranslatedCount = await page.evaluate(
+      () => document.querySelectorAll("translated").length
+    );
+    console.log(
+      "  Post-Google-Translate: " + postGoogleTranslatedCount + " translated nodes, singleton host: " + postGoogleState.state
+    );
 
     // ── AI 翻译轮询（显式触发）──
     // 三态模型：Google 翻译完成后 pageLanguageState="translated"，

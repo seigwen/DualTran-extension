@@ -26,6 +26,8 @@ import {
   assertUiStateMatchesEngine,
   readHostState,
   injectHostState,
+  assertHostState,
+  waitForHostState,
 } from "./setup.mjs";
 
 export const name = "navigation-recovery";
@@ -35,56 +37,6 @@ export const smoke = true;
 // ═══════════════════════════════════════════════════════════════
 // 工具函数
 // ═══════════════════════════════════════════════════════════════
-
-/**
- * 验证浮动按钮（#dualtran-floating-btn-host）在 shadow DOM 中存在且可用。
- */
-async function checkFloatingButton(page) {
-  return page.evaluate(() => {
-    const host = document.getElementById("dualtran-floating-btn-host");
-    if (!host) return { exists: false, inDOM: false, hasButtons: false };
-    const inDOM = document.body.contains(host);
-    const root = host.shadowRoot;
-    const btnOriginal = root?.getElementById("btnOriginal");
-    const btnGoogle = root?.getElementById("btnGoogle");
-    const btnAi = root?.getElementById("btnAi");
-    return {
-      exists: !!host,
-      inDOM,
-      hasButtons: !!(btnOriginal && btnGoogle && btnAi),
-    };
-  });
-}
-
-/**
- * 验证 singleton 按钮组（#dualtran-singleton-btn-host）是否存在。
- */
-async function checkSingletonButtonGroup(page) {
-  return page.evaluate(() => {
-    const host = document.getElementById("dualtran-singleton-btn-host");
-    if (!host) return { exists: false, inDOM: false };
-    return {
-      exists: true,
-      inDOM: document.body.contains(host),
-    };
-  });
-}
-
-/**
- * 等待浮动按钮出现（带超时重试）。
- */
-async function waitForFloatingButton(page, timeoutMs = 10000) {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    const btn = await checkFloatingButton(page);
-    if (btn.exists && btn.hasButtons && btn.inDOM) return btn;
-    await page.waitForTimeout(200);
-  }
-  const last = await checkFloatingButton(page);
-  throw new Error(
-    `Floating button did not appear within ${timeoutMs}ms. Last check: exists=${last.exists}, hasButtons=${last.hasButtons}, inDOM=${last.inDOM}`
-  );
-}
 
 /**
  * 等待 SPA 导航完成（body 中出现新的 H1 文本）。
@@ -133,12 +85,9 @@ async function verifySpaBackNavigation(page, serviceWorker, testPageUrl) {
   await writeStorage(serviceWorker, "showFloatingBtn", "yes");
   await page.waitForTimeout(800);
 
-  // 验证浮动按钮初始存在
-  let btn = await checkFloatingButton(page);
-  console.log(`  Step 1 (source page): exists=${btn.exists}, hasButtons=${btn.hasButtons}`);
-  if (!btn.exists || !btn.hasButtons) {
-    throw new Error("Scene 1 Step 1: Floating button not found on source page load");
-  }
+  // 验证浮动按钮初始存在（三态断言：healthy）
+  const btn = await assertHostState(page, "floating", "healthy", { label: "Scene 1 Step 1: source page load" });
+  console.log(`  Step 1 (source page): state=${btn.state}, hasButtons=${btn.hasButtons}`);
 
   // ── 步骤 2：点击链接进行 SPA 导航到 target 页面 ──
   // SPA 脚本拦截点击 → fetch target.html → 替换 body.innerHTML → pushState
@@ -164,15 +113,11 @@ async function verifySpaBackNavigation(page, serviceWorker, testPageUrl) {
   // 等待浮动按钮的 popstate handler 完成恢复（200ms debounce + 重建）
   await page.waitForTimeout(600);
 
-  // ── 验证：浮动按钮已恢复 ──
-  btn = await checkFloatingButton(page);
-  console.log(`  Step 3 result: exists=${btn.exists}, hasButtons=${btn.hasButtons}, inDOM=${btn.inDOM}`);
-  if (!btn.exists || !btn.hasButtons || !btn.inDOM) {
-    throw new Error(
-      `Scene 1 FAIL: Floating button NOT recovered after SPA back-navigation. ` +
-      `exists=${btn.exists}, hasButtons=${btn.hasButtons}, inDOM=${btn.inDOM}`
-    );
-  }
+  // ── 验证：浮动按钮已恢复（三态断言：healthy）──
+  const btnBack = await assertHostState(page, "floating", "healthy", {
+    label: "Scene 1 Step 3: after SPA back-navigation",
+  });
+  console.log(`  Step 3 result: state=${btnBack.state}, hasButtons=${btnBack.hasButtons}`);
 
   // A4: 状态一致性——未翻译页面重建后必须 Original 高亮
   const hl = await getButtonHighlights(page);
@@ -188,14 +133,10 @@ async function verifySpaBackNavigation(page, serviceWorker, testPageUrl) {
   await waitForSpaContent(page, "SPA Target Page", 5000);
   await page.waitForTimeout(600);
 
-  btn = await checkFloatingButton(page);
-  console.log(`  Step 4 result: exists=${btn.exists}, hasButtons=${btn.hasButtons}, inDOM=${btn.inDOM}`);
-  if (!btn.exists || !btn.hasButtons || !btn.inDOM) {
-    throw new Error(
-      `Scene 1 FAIL: Floating button NOT recovered after SPA forward-navigation. ` +
-      `exists=${btn.exists}, hasButtons=${btn.hasButtons}, inDOM=${btn.inDOM}`
-    );
-  }
+  const btnFwd = await assertHostState(page, "floating", "healthy", {
+    label: "Scene 1 Step 4: after SPA forward-navigation",
+  });
+  console.log(`  Step 4 result: state=${btnFwd.state}, hasButtons=${btnFwd.hasButtons}`);
 
   // ── 步骤 5：注入式自愈断言（S2, issue #49 — 注入器复用处 2/2） ──
   // 前置步骤走的是真实 SPA 旅程（fetch + body 替换 + popstate）。
@@ -203,20 +144,11 @@ async function verifySpaBackNavigation(page, serviceWorker, testPageUrl) {
   // 显式 poke popstate，断言收敛为单 healthy —— 与 self-heal-matrix 共享
   // 同一注入器（injectHostState），在真实浏览器上下文里证明收敛路径。
   console.log("  Step 5: injection-based duplicate convergence (reuses injectHostState)");
-  const injected = await injectHostState(page, "floating", "duplicate");
-  if (injected.count !== 2 || injected.state !== "healthy") {
-    throw new Error(
-      `Scene 1 FAIL: duplicate injection produced unexpected shape: ${JSON.stringify(injected)}`
-    );
-  }
+  await injectHostState(page, "floating", "duplicate");
+  await assertHostState(page, "floating", "healthy", { count: 2, label: "Scene 1 Step 5: after duplicate injection" });
   await page.evaluate(() => window.dispatchEvent(new Event("popstate")));
   await page.waitForTimeout(800);
-  const recovered = await readHostState(page, "floating");
-  if (recovered.count !== 1 || recovered.state !== "healthy" || !recovered.hasButtons) {
-    throw new Error(
-      `Scene 1 FAIL: duplicate injection did not converge to 1 healthy host: ${JSON.stringify(recovered)}`
-    );
-  }
+  await assertHostState(page, "floating", "healthy", { count: 1, label: "Scene 1 Step 5: after convergence" });
   console.log("  Step 5 result: duplicate converged → 1 healthy ✓");
 
   console.log("  Scene 1 PASSED: floating button survives round-trip SPA navigation");
@@ -251,36 +183,20 @@ async function verifyMultipleSpaNavigations(page, serviceWorker, testPageUrl) {
     await waitForSpaContent(page, "SPA Source Page", 5000);
     await page.waitForTimeout(600);
 
-    let btn = await checkFloatingButton(page);
-    if (!btn.exists || !btn.hasButtons) {
-      throw new Error(
-        `Scene 2 FAIL: Floating button missing after goBack #${i + 1}. ` +
-        `exists=${btn.exists}, hasButtons=${btn.hasButtons}`
-      );
-    }
+    await assertHostState(page, "floating", "healthy", { label: `Scene 2: after goBack #${i + 1}` });
 
     // forward to target
     await page.goForward();
     await waitForSpaContent(page, "SPA Target Page", 5000);
     await page.waitForTimeout(600);
 
-    btn = await checkFloatingButton(page);
-    if (!btn.exists || !btn.hasButtons) {
-      throw new Error(
-        `Scene 2 FAIL: Floating button missing after goForward #${i + 1}. ` +
-        `exists=${btn.exists}, hasButtons=${btn.hasButtons}`
-      );
-    }
+    await assertHostState(page, "floating", "healthy", { label: `Scene 2: after goForward #${i + 1}` });
   }
 
-  // 验证没有重复的 host 元素
-  const hostCount = await page.evaluate(
-    () => document.querySelectorAll("#dualtran-floating-btn-host").length
-  );
-  console.log(`  After 3 round-trips: hostCount=${hostCount}`);
-  if (hostCount > 1) {
-    throw new Error(`Scene 2 FAIL: Found ${hostCount} floating button hosts (expected 1)`);
-  }
+  // 验证没有重复的 host 元素（三态断言 + 精确单例计数）
+  await assertHostState(page, "floating", "healthy", { count: 1, label: "Scene 2: after 3 round-trips" });
+  const hostCount = await readHostState(page, "floating");
+  console.log(`  After 3 round-trips: hostCount=${hostCount.count}`);
 
   // A4: 状态一致性——多次导航后（未翻译页面）仍应 Original 高亮
   const hl = await getButtonHighlights(page);
@@ -330,12 +246,11 @@ async function verifySingletonSpaRecovery(page, serviceWorker, testPageUrl) {
   );
   await page.waitForTimeout(500);
 
-  // 验证 singleton host 存在
-  let singleton = await checkSingletonButtonGroup(page);
-  console.log(`  After translation: singleton exists=${singleton.exists}, inDOM=${singleton.inDOM}`);
-  if (!singleton.exists) {
-    throw new Error("Scene 3 FAIL: Singleton button group not created after translation");
-  }
+  // 验证 singleton host 存在且功能完好（三态断言：healthy — 消除旧双态存在性假绿）
+  const singleton = await assertHostState(page, "singleton", "healthy", {
+    label: "Scene 3: after translation",
+  });
+  console.log(`  After translation: singleton state=${singleton.state}, hasButtons=${singleton.hasButtons}`);
 
   // SPA 导航到 target → DOM 替换 → singleton 丢失
   await page.click("a#test-link");
@@ -364,14 +279,12 @@ async function verifySingletonSpaRecovery(page, serviceWorker, testPageUrl) {
   );
   await page.waitForTimeout(1000);
 
-  singleton = await checkSingletonButtonGroup(page);
-  console.log(`  After SPA back + retranslate: singleton exists=${singleton.exists}, inDOM=${singleton.inDOM}`);
-  if (!singleton.exists || !singleton.inDOM) {
-    throw new Error(
-      `Scene 3 FAIL: Singleton button group NOT recovered after SPA navigation + retranslate. ` +
-      `exists=${singleton.exists}, inDOM=${singleton.inDOM}`
-    );
-  }
+  const singletonRecovered = await assertHostState(page, "singleton", "healthy", {
+    label: "Scene 3: after SPA back + retranslate",
+  });
+  console.log(
+    `  After SPA back + retranslate: singleton state=${singletonRecovered.state}, hasButtons=${singletonRecovered.hasButtons}`
+  );
 
   console.log("  Scene 3 PASSED: singleton button group recovers after SPA back + retranslate");
 }
@@ -395,12 +308,9 @@ async function verifySpaForwardLinkNavigation(page, serviceWorker, testPageUrl) 
   await writeStorage(serviceWorker, "showFloatingBtn", "yes");
   await page.waitForTimeout(800);
 
-  // 验证初始浮动按钮存在
-  let btn = await checkFloatingButton(page);
-  console.log(`  Before SPA nav: exists=${btn.exists}, hasButtons=${btn.hasButtons}`);
-  if (!btn.exists || !btn.hasButtons) {
-    throw new Error("Scene 4 FAIL: Floating button not found on source page");
-  }
+  // 验证初始浮动按钮存在（三态断言：healthy）
+  const btn = await assertHostState(page, "floating", "healthy", { label: "Scene 4: source page" });
+  console.log(`  Before SPA nav: state=${btn.state}, hasButtons=${btn.hasButtons}`);
 
   // 点击 SPA 链接前进到 target（非 popstate，仅 pushState）
   await page.click("a#test-link");
@@ -408,27 +318,21 @@ async function verifySpaForwardLinkNavigation(page, serviceWorker, testPageUrl) 
   // MutationObserver 需要 300ms debounce
   await page.waitForTimeout(600);
 
-  btn = await checkFloatingButton(page);
-  console.log(`  After SPA link nav: exists=${btn.exists}, hasButtons=${btn.hasButtons}, inDOM=${btn.inDOM}`);
-
-  // MutationObserver 应检测到 body 替换 → host 丢失 → 自动重建
-  if (!btn.exists || !btn.hasButtons) {
-    throw new Error(
-      `Scene 4 FAIL: Floating button not recovered after SPA link-navigation. ` +
-      `exists=${btn.exists}, hasButtons=${btn.hasButtons}`
-    );
-  }
+  // MutationObserver 应检测到 body 替换 → host 丢失 → 自动重建（三态断言：healthy）
+  const btnAfterNav = await assertHostState(page, "floating", "healthy", {
+    label: "Scene 4: after SPA link-nav",
+  });
+  console.log(`  After SPA link nav: state=${btnAfterNav.state}, hasButtons=${btnAfterNav.hasButtons}`);
 
   // 回退验证（确保 popstate 恢复仍然有效）
   await page.goBack();
   await waitForSpaContent(page, "SPA Source Page", 5000);
   await page.waitForTimeout(600);
 
-  btn = await checkFloatingButton(page);
-  console.log(`  After goBack: exists=${btn.exists}, hasButtons=${btn.hasButtons}, inDOM=${btn.inDOM}`);
-  if (!btn.exists || !btn.hasButtons || !btn.inDOM) {
-    throw new Error("Scene 4 FAIL: Floating button NOT recovered after goBack from SPA target");
-  }
+  const btnAfterBack = await assertHostState(page, "floating", "healthy", {
+    label: "Scene 4: after goBack from SPA target",
+  });
+  console.log(`  After goBack: state=${btnAfterBack.state}, hasButtons=${btnAfterBack.hasButtons}`);
 
   // A4: 状态一致性——链接导航 + 回退后（未翻译页面）仍应 Original 高亮
   const hl = await getButtonHighlights(page);
@@ -495,8 +399,8 @@ async function verifyGoogleHighlightAfterSpaBackNav(page, serviceWorker, testPag
   await waitForSpaContent(page, "SPA Source Page", 5000);
   await page.waitForTimeout(600); // popstate debounce 200ms + 重建
 
-  // 等待按钮重建完成
-  await waitForFloatingButton(page);
+  // 等待按钮重建完成（三态等待：healthy）
+  await waitForHostState(page, "floating", "healthy", { label: "Scene 5: rebuild after SPA back-nav" });
 
   // 等待 Google 翻译自动恢复（MutationObserver 路径）
   try {
@@ -550,29 +454,10 @@ async function verifySnapshotShellSurvival(page, serviceWorker, testPageUrl) {
   const spaSourceUrl = buildSpaUrl(testPageUrl, "spa-source.html");
   const spaTargetUrl = buildSpaUrl(testPageUrl, "spa-target.html");
 
-  // 断言 host 功能完好：存在 + 有 shadowRoot + 三大按钮齐备
+  // 断言 host 功能完好：三态断言库（healthy + 精确单例计数）
   const assertFunctional = async (where) => {
-    const state = await page.evaluate(() => {
-      const hosts = [...document.querySelectorAll("#dualtran-floating-btn-host")];
-      const host = hosts[0] || null;
-      const root = host?.shadowRoot || null;
-      return {
-        count: hosts.length,
-        state: !host ? "absent" : root ? "healthy" : "shell",
-        hasButtons: !!(root?.getElementById("btnOriginal") && root?.getElementById("btnGoogle") && root?.getElementById("btnAi")),
-        url: location.pathname,
-      };
-    });
-    console.log(`  ${where}: ${JSON.stringify(state)}`);
-    if (state.state !== "healthy" || !state.hasButtons) {
-      throw new Error(
-        `Scene 6 FAIL (${where}): floating button not functional — ${JSON.stringify(state)} ` +
-        `(shell = host leaked from Turbo cloneNode snapshot, shadow root not cloned)`
-      );
-    }
-    if (state.count !== 1) {
-      throw new Error(`Scene 6 FAIL (${where}): expected exactly 1 host, found ${state.count}`);
-    }
+    await assertHostState(page, "floating", "healthy", { count: 1, label: `Scene 6: ${where}` });
+    console.log(`  ${where}: healthy (count=1)`);
   };
 
   // ── 步骤 1：加载 source、翻译 ──
