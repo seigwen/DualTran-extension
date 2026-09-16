@@ -16,11 +16,6 @@ on:
   schedule:
     - cron: '0 3 * * 1'  # Every Monday at 3:00 AM UTC
   workflow_dispatch:      # Allow manual trigger
-  # TEMPORARY (S5 rehearsal, removed before merge): push trigger to
-  # exercise this workflow end-to-end on the feature branch in a real
-  # Actions environment.
-  push:
-    branches: [feat/s5-real-site-canary]
 
 permissions:
   contents: read
