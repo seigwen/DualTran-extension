@@ -106,8 +106,10 @@ jobs:
         fi
         echo "closed #$FOUND"
 
-        echo "── step 6: cleanup — delete the rehearsal issue"
-        gh issue delete "$FOUND" --yes
-        echo "deleted #$FOUND"
+        echo "── step 6: cleanup (close-only — GITHUB_TOKEN cannot delete issues)"
+        # GITHUB_TOKEN has issues:write but NOT permission to delete
+        # (deleteIssue is GraphQL-admin territory). The rehearsal issue
+        # stays closed; it is harmless and clearly marked.
+        echo "rehearsal complete — issue #$FOUND left closed (cannot delete with GITHUB_TOKEN)"
 
-        echo "✅ REHEARSAL PASSED: create / dedup-comment / close / delete all behave as designed in Actions"
+        echo "✅ REHEARSAL PASSED: create / dedup-comment / close all behave as designed in Actions"
