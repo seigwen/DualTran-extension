@@ -16,6 +16,11 @@ on:
   schedule:
     - cron: '0 3 * * 1'  # Every Monday at 3:00 AM UTC
   workflow_dispatch:      # Allow manual trigger
+  # TEMPORARY (S5 rehearsal, removed before merge): push trigger to
+  # exercise this workflow end-to-end on the feature branch in a real
+  # Actions environment.
+  push:
+    branches: [feat/s5-real-site-canary]
 
 permissions:
   contents: read
@@ -48,15 +53,24 @@ jobs:
     # Failure here means the extension may be broken on the real site.
     # One retry first: real-site runs have environmental noise (network,
     # site flakiness) — a single failure is not yet a signal.
+    #
+    # `set -o pipefail` is REQUIRED: the default Actions shell is plain
+    # `bash -e` without pipefail, so `node ... | tee` would return tee's
+    # exit code (0) and silently mask canary failures — breaking both the
+    # retry logic and the issue mechanism.
     - name: Run canary (attempt 1)
       id: canary-attempt-1
       continue-on-error: true
-      run: xvfb-run -a node scripts/real-site-verify.mjs
+      run: |
+        set -o pipefail
+        xvfb-run -a node scripts/real-site-verify.mjs 2>&1 | tee /tmp/canary-attempt1.log
 
     - name: Run canary (retry)
       id: canary-attempt-2
       if: steps.canary-attempt-1.outcome == 'failure'
-      run: xvfb-run -a node scripts/real-site-verify.mjs
+      run: |
+        set -o pipefail
+        xvfb-run -a node scripts/real-site-verify.mjs 2>&1 | tee /tmp/canary-attempt2.log
 
     - name: Upload canary logs
       if: always()
