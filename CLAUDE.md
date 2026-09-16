@@ -26,6 +26,24 @@ npx vitest run tests/ai/sseClient.test.js  # run a single test file
 
 Tests use vitest + jsdom. Files in `tests/`. Mock `chrome.*` APIs are set up per-test via `vi.stubGlobal()`.
 
+### Real-site canary (S5, issue #57)
+
+```bash
+npm run build                                        # first — the tool loads dist/chrome/
+node scripts/real-site-verify.mjs --list             # list scenarios
+node scripts/real-site-verify.mjs                    # run the full scenario library (real github.com)
+node scripts/real-site-verify.mjs --scenario=bug8-double-page-roundtrip   # one scenario
+node scripts/real-site-verify.mjs --url=<user URL>   # ad-hoc single-URL journey (PR checklist)
+xvfb-run -a node scripts/real-site-verify.mjs --self-test                 # hermetic (local mock pages)
+```
+
+- **Scenario library:** `scripts/canary-scenarios.mjs` — declarative data (`source` field traces each scenario to its user report / incident). Adding a scenario = adding one entry; the executor (`scripts/real-site-verify.mjs`) owns the step loop + tri-state assertions (healthy ∧ count===1 per settled step).
+- **Assertions use the shared tri-state primitives** in `tests/shared/host-state.mjs` (same classifier as the E2E suite).
+- **Cadence:** `.github/workflows/canary.yml` — every Monday 3:00 UTC + manual dispatch; fails open/comment on an issue (`canary:` title prefix, dedup; auto-closed when green again). **Not a PR gate** — real-site runs need human judgment.
+- **Release gate:** `.github/workflows/release.yml` runs the canary before producing the ZIP — a release cannot ship if the real site is broken.
+- **Platform fact:** GitHub pauses `schedule` triggers after 60 days of repo inactivity — if the canary looks "silent", check workflow activity before assuming health.
+- **CLI form:** always use `=` (`--url=<URL>`, `--scenario=<name>`) — space forms are silently ignored (same trap as PR #30's `--scenario name`).
+
 ### MCP E2E testing (Steps 7-9)
 
 Uses `chrome-devtools-mcp-for-extension` MCP to test AI translation, floating buttons, and multi-provider support directly from Claude Code — no Playwright or display required.
@@ -193,7 +211,7 @@ Content Script (fetchSSE.js)
 
 **PR Checklist for SPA/navigation/DOM-lifecycle fixes (M4 issue #34):**
 - [ ] 本次修复是否扩大了观察/监听范围（observer 挂载点、事件监听范围）？如果是，新可见区域（如 head）的过滤是否已验证？（T3）
-- [ ] 本次修复涉及 SPA 导航/DOM 生命周期？如果是，必须运行 `node scripts/real-site-verify.mjs --url <用户报告 URL>` 并在 PR 描述附结果（P1）
+- [ ] 本次修复涉及 SPA 导航/DOM 生命周期？如果是，必须运行 `node scripts/real-site-verify.mjs --url=<用户报告 URL>` 并在 PR 描述附结果（P1；**注意 `=` 形式**——空格形式 `--url <URL>` 会被静默忽略跑默认站点，与 PR #30 `--scenario name` 同类陷阱）
 
 **修复前置检查 SOP（Pre-Fix Pattern Check，M4 issue #34）—— 修复任何 bug 前必须执行：**
 1. **对照状态同步失败模式清单（M1-M6）**：`M1 事件丢失 / M2 重建归零 / M3 顺序竞态 / M4 副本失真 / M5 初始化硬编码 / M6 观察者死亡`（完整定义见 dualtran-extension skill「状态同步失败模式清单」）。属于已知模式 → 直接套用修复模板；不属于 → 继续第 2 步。

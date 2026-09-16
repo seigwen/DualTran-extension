@@ -22,6 +22,14 @@ import {
   stopStaticServer as _stopStaticServer,
 } from "../shared/test-server-manager.mjs";
 
+// 导入共享 host 三态原语（S5, issue #57）：classifier / injector 的唯一
+// 浏览器层实现，同时被本文件与 scripts/real-site-verify.mjs（canary 执行器）导入。
+import {
+  classifyHostStateInPage,
+  injectHostStateInPage,
+  hostSelectorFor,
+} from "../shared/host-state.mjs";
+
 // ─── 路径常量 ────────────────────────────────────────────────
 
 /** 项目根目录（运行脚本时的工作目录） */
@@ -1266,26 +1274,8 @@ export async function assertNoDuplicateTranslationElements(page) {
  * @returns {Promise<{count: number, state: "absent"|"shell"|"healthy", hasButtons: boolean, hostFound: boolean}>}
  */
 export async function readHostState(page, component) {
-  const hostId = component === "floating" ? "dualtran-floating-btn-host" : "dualtran-singleton-btn-host";
-  return page.evaluate((id) => {
-    const hosts = [...document.querySelectorAll(`#${id}`)];
-    const host = hosts[0] || null;
-    const root = host?.shadowRoot || null;
-    let hasButtons = false;
-    if (root) {
-      if (id === "dualtran-floating-btn-host") {
-        hasButtons = !!(root.getElementById("btnOriginal") && root.getElementById("btnGoogle") && root.getElementById("btnAi"));
-      } else {
-        hasButtons = !!root.querySelector(".dualtran-btn-group");
-      }
-    }
-    return {
-      count: hosts.length,
-      state: !host ? "absent" : root ? "healthy" : "shell",
-      hasButtons,
-      hostFound: !!host,
-    };
-  }, hostId);
+  const hostId = hostSelectorFor(component);
+  return page.evaluate(classifyHostStateInPage, hostId);
 }
 
 /**
@@ -1320,49 +1310,10 @@ export async function readHostState(page, component) {
  * @returns {Promise<{count: number, state: "absent"|"shell"|"healthy"}>} post-injection classification
  */
 export async function injectHostState(page, component, state, opts = {}) {
-  const hostId = component === "floating" ? "dualtran-floating-btn-host" : "dualtran-singleton-btn-host";
+  const hostId = hostSelectorFor(component);
   const order = opts.order === "shell-first" ? "shell-first" : "healthy-first";
 
-  const result = await page.evaluate(({ id, state, order }) => {
-    const hosts = [...document.querySelectorAll(`#${id}`)];
-    const healthyHost = hosts.find((h) => h.shadowRoot) || hosts[0] || null;
-
-    const classify = () => {
-      const now = [...document.querySelectorAll(`#${id}`)];
-      const host = now[0] || null;
-      const root = host?.shadowRoot || null;
-      return { count: now.length, state: !host ? "absent" : root ? "healthy" : "shell" };
-    };
-
-    if (state === "absent" || state === "detached") {
-      hosts.forEach((el) => el.remove());
-      return classify();
-    }
-
-    if (!healthyHost) {
-      throw new Error(`[injectHostState] cannot inject "${state}" for #${id}: no host present (inject on a healthy page)`);
-    }
-
-    if (state === "shell") {
-      const shell = healthyHost.cloneNode(true);
-      healthyHost.replaceWith(shell);
-      return classify();
-    }
-
-    if (state === "duplicate") {
-      const copy = healthyHost.cloneNode(true);
-      if (order === "shell-first") {
-        healthyHost.parentNode.insertBefore(copy, healthyHost);
-      } else {
-        healthyHost.parentNode.appendChild(copy);
-      }
-      return classify();
-    }
-
-    throw new Error(`[injectHostState] unknown state "${state}"`);
-  }, { id: hostId, state, order });
-
-  return result;
+  return page.evaluate(injectHostStateInPage, { id: hostId, state, order });
 }
 
 /**

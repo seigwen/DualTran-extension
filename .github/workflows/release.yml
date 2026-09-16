@@ -31,6 +31,23 @@ jobs:
     - name: Build extension
       run: npm run build
 
+    # Release gate (S5, issue #57): the canary must pass against the real
+    # site before a release artifact is produced. Real-site runs have
+    # environmental noise, so one retry first; a second failure blocks the
+    # release. Emergency bypass: re-run the failed job, or intentionally
+    # edit this workflow — bypassing a hard gate must be a deliberate act.
+    - name: Install Playwright Chromium (canary gate)
+      run: npx playwright install --with-deps chromium
+
+    - name: Canary gate (attempt 1)
+      id: canary-attempt-1
+      continue-on-error: true
+      run: xvfb-run -a node scripts/real-site-verify.mjs
+
+    - name: Canary gate (retry)
+      if: steps.canary-attempt-1.outcome == 'failure'
+      run: xvfb-run -a node scripts/real-site-verify.mjs
+
     - name: Create ZIP archive
       run: |
         cd dist/chrome
