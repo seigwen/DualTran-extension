@@ -151,3 +151,6 @@ jobs:
 
     - name: State reachability (S1 matrix rows reference real tests; no attachShadow escape)
       run: node scripts/check-state-reachability.js
+
+    - name: Host state assertions (E2E must use tri-state assertHostState; no raw exists booleans)
+      run: node scripts/check-host-state-assertions.js

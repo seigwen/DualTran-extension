@@ -280,6 +280,32 @@ tests/
 - `translateSelected` — 理由：transient（宿主为按需创建/销毁的选区工具条）；上游影响：无用户可见故障。
 - `popupMobile` — 理由：transient（popup 上下文内的一次性 host）；上游影响：无用户可见故障。
 
+### 三态断言库（Tri-state Assertion Library，S4 issue #53）
+
+host 类元素的断言**必须**区分三态，禁止双态存在性布尔（`exists` / `inDOM`）。三件套落 `tests/browser-e2e/setup.mjs`：
+
+| API | 角色 | 签名 |
+|---|---|---|
+| `readHostState(page, component)` | 纯读取（S2） | → `{count, state: "absent"\|"shell"\|"healthy", hasButtons, hostFound}` |
+| `assertHostState(page, component, expected, opts)` | 断言 | `expected ∈ "healthy"\|"shell"\|"absent"\|"any"`；`opts = {count?, label?}` |
+| `waitForHostState(page, component, expected="healthy", opts)` | 轮询等待 | `opts = {count?, timeoutMs?, pollMs?, label?}`；超时报最后状态 JSON |
+
+**语义矩阵：**
+- `"healthy"` → `state === "healthy" && hasButtons === true`（组件感知就绪：floating = btnOriginal/btnGoogle/btnAi 三键齐备；singleton = `.dualtran-btn-group`）
+- `"shell"` → `state === "shell"`（Turbo 快照 cloneNode 产物：host 在、shadowRoot 不在）
+- `"absent"` → `state === "absent"`（负向断言：hide() 场景 / singleton 懒触发）
+- `"any"` → 跳过 state/hasButtons 检查（`opts.count` 若给仍生效）
+- `opts.count` → 精确副本数（如 `count: 1` 收 convergence；duplicate 注入 = `healthy` + `count: 2`）
+
+**H1/H2 lint（第 10 个，`scripts/check-host-state-assertions.js`）：** 扫描 `tests/browser-e2e/*.mjs`（排除 `setup.mjs`）：
+- **H1**：同行含 host 选择器字面量且处于布尔上下文（`!!` / `Boolean(` / `!document.` / `.length`）→ 违规；同行含 `shadowRoot` 或 `// host-state-allow` 豁免。
+- **H2**：`inDOM` 词元 → 违规（标记豁免）——迁移后该词应绝迹。
+- 诚实边界：单独 `exists:` 字段赋值与间接引用（HOST_IDS 映射）不被自动捕获——lint 是护栏不是证明器，靠词汇规范 + review + 断言助手兜底。
+
+**迁移指引：** 等待宿主出现 `waitForFunction(!!host)` → `waitForHostState(page, component, "healthy", {timeoutMs})`（语义升级：shell 出现必须超时失败）；存在性断言 → `assertHostState(page, component, "healthy"[, {count, label}])`；负向（验证未创建 / 保持注入态）→ `assertHostState(..., "absent"|"shell", {count})`。按钮级读取（shadowRoot 内 `getElementById("btnGoogle")` 等）不属于 host 分类，不迁移。
+
+**真实站点工具残留（Q4 定案）：** `scripts/real-site-verify.mjs` 保持内联三态分类（工具层，不跑 CI，不在 lint 面内）——抽共享模块属独立 issue 候选（S4 spec §一 记录）。
+
 ## Test Naming Conventions
 
 ### Unit Tests vs Integration Tests
