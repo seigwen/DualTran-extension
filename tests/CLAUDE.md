@@ -168,19 +168,71 @@ tests/
 4. **Never use placeholder tests** like `expect(true).toBe(true)` for translation correctness. If the real test requires E2E, mark it with `it.todo("description")` instead.
 5. **replaceOriginal mode** — AI text nodes are NOT inside `<translated>` elements. Use `assertReplaceOriginalNoDuplicates()` or `assertNoDuplicateTranslationElements()` (mode-aware) for assertions. The `_isDualTranGeneratedNode` hook verifies observer filter logic.
 
-### 模拟页 vs 真实框架对照表（Mock Fidelity，M2 issue #32）
+### 模拟页分支矩阵（Mock Branch Matrix，M2 issue #32 → S3 issue #51）
 
-**规则：** 每个模拟框架行为的 E2E 模拟页（`extra/e2e/*.html` 中含 pushState/popstate/replaceWith/body.innerHTML 脚本的页面）必须携带 `MOCK FIDELITY` 声明（`check-mock-fidelity.js` CI 强制）。修改模拟页行为前，先对照此表确认与真实框架一致。
+**规则：** 每个模拟框架行为的 E2E 模拟页（`extra/e2e/*.html` 中含 pushState/popstate/replaceWith/body.innerHTML 脚本的页面）必须携带**强制分支枚举**格式的 `MOCK FIDELITY` 声明（`check-mock-fidelity.js` CI 行级强制）。修改模拟页行为前，先对照声明确认与真实框架一致。
 
-| 模拟页 | 模拟的行为 | 真实行为 | 忠实度风险 |
+**核心原则（为什么是分支枚举）：** 框架行为是**分支树**，不是单一路径。旧格式（"模拟了 X；未模拟 Y（风险：低）"）的问题不是遗漏——是**没有强制枚举分支**，且风险评估缺少**上游控制流检查**：M2 把"未模拟快照"标为风险低，而快照渲染恰是已模拟的 fetch 行为的**上游控制流**（缓存策略决定走哪个分支）——第 8 次 bug 正是由此逃逸。因此：每个分支要么「✅ 已模拟」，要么「⛔ 未模拟（豁免理由 + **上游影响评估**）」——上游影响回答「该分支是否控制已模拟行为的发生路径」。
+
+**声明语法（多行块注释 + 行级语法）：**
+
+```html
+<!-- MOCK FIDELITY
+  分支：恢复路径
+  - fetch 新文档（no-cache）：✅ 已模拟
+  - 快照渲染（no-preview）：✅ 已模拟
+  - bfcache（persisted）：⛔ 未模拟（豁免理由：Turbo 不用 bfcache；上游影响：无）
+  分支：缓存策略
+  - ...
+-->
+```
+
+**lint 强制规则（`scripts/check-mock-fidelity.js`，硬失败 + 行级报错）：**
+
+| 规则 | 内容 |
+|---|---|
+| R1 | 声明块 ≥1 个「分支：」章节头（旧单行格式 = 硬失败，无过渡期） |
+| R2 | 每个条目行（trim 后 `- ` 开头）必含「✅ 已模拟」或「⛔ 未模拟」 |
+| R3 | 每个「⛔ 未模拟」条目**同行**必含「豁免理由」+「上游影响」 |
+| R4 | 条目不得出现在任何「分支：」之前（孤儿条目违规） |
+| R5 | 全声明 ≥1 个「⛔ 未模拟」条目（全 ✅ = 白洗 = 审计未开展） |
+| R6 | 每个「分支：」章节 ≥1 个条目（空章节违规） |
+
+**authoring 维度清单（6 维度模板，新模拟页按此组织；维度知识属框架特定，不硬编进 lint）：**
+
+| # | 维度 | 说明 |
+|---|---|---|
+| 1 | 恢复路径 | fetch 新文档 / 快照渲染 / bfcache（persisted）…… |
+| 2 | 缓存策略 | turbo-cache-control: no-cache / no-preview / 默认…… |
+| 3 | DOM 替换语义 | 新 `<body>` 元素 replaceWith / body.innerHTML 赋值（**故意不模拟**——会掩盖 observer 死亡 bug）…… |
+| 4 | 快照语义 | cloneNode(true) 不克隆 shadow root / 恢复不发请求 / 预览渲染 / LRU 淘汰…… |
+| 5 | 时序（环境属性维度） | 本地即时响应 / 真实网络延迟（豁免时上游影响必写"定时器假绿由 real-site-verify --self-test 覆盖"类结论） |
+| 6 | 脚本语义 | 替换的 script 不执行 / CSS 合并 / 进度条动画…… |
+
+**两页对照（spa-source.html / spa-target.html 分支矩阵示范）：**
+
+| 维度 | 分支 | spa-source | spa-target |
 |---|---|---|---|
-| `spa-source.html` / `spa-target.html` | Turbo Drive 链接导航与回退：fetch → 新 `<body>` 元素 `replaceWith` 旧 `<body>` 元素本身 → pushState/popstate；**快照缓存与恢复**：离开可缓存页时按 `cloneNode(true)` 语义缓存 body（shadow root 不进入 innerHTML 序列化），restore 恢复渲染快照且不发请求——source 页 `no-cache`（恢复必 fetch，对应 /projects）、target 页可缓存（恢复渲染快照，对应 /security） | Turbo Drive 回退时替换 body **元素本身**（2026-09-10 实测 `document.body !== oldBody`；`<html>` 元素存活）；快照 cloneNode 不克隆 shadow root、restore 不发请求（2026-09-14 实测 /security 空壳 host + @hotwired/turbo@8 源码） | 已修正（PR #30 前用 `innerHTML` 保留 body 元素，掩盖 observer 死亡 bug——E2E 全绿但真实站点复现；2026-09-14 前未模拟快照，掩盖 shell 空壳 bug——再次 E2E 全绿但真实站点复现） |
-| `spa-source.html` / `spa-target.html`（未模拟） | 快照预览渲染（advance 导航的中间态——最终状态一致）、LRU 缓存淘汰、脚本执行语义（替换的 script 不执行）、CSS 合并、进度条动画 | Turbo 有预览渲染与缓存淘汰、脚本语义 | 低——测试依赖两种恢复路径的最终状态（fetch 替代 vs 快照渲染）；若未来测试依赖中间态/淘汰行为需重新评估 |
+| 恢复路径 | fetch 新文档 | ✅（本页 no-cache） | ⛔（可缓存 → 快照优先） |
+| 恢复路径 | 快照渲染 | ⛔（不可缓存） | ✅（对应 /security 实测） |
+| 恢复路径 | bfcache persisted | ⛔（Turbo 不用） | ⛔（Turbo 不用） |
+| 缓存策略 | no-cache | ✅（对应 /projects） | ⛔（source 页覆盖） |
+| 缓存策略 | no-preview | ⛔（target 页覆盖） | ✅ |
+| DOM 替换 | body 元素 replaceWith | ✅ | ✅ |
+| DOM 替换 | body.innerHTML 赋值 | ⛔（故意） | ⛔（故意） |
+| 快照语义 | cloneNode 不克隆 shadow | ✅ | ✅ |
+| 快照语义 | 恢复不发请求 | （source 不适用） | ✅ |
+| 快照语义 | 预览渲染 / LRU 淘汰 | ⛔ | ⛔ |
+| 时序 | 本地即时 / 真实延迟 | ✅ / ⛔ | ✅ / ⛔ |
+| 脚本语义 | script 不执行 / CSS / 进度条 | ⛔ | ⛔ |
+
+**忠实度修正史（保留）：** PR #30 前用 `innerHTML` 保留 body 元素，掩盖 observer 死亡 bug（E2E 全绿但真实站点复现）；2026-09-14 前未模拟快照，掩盖 shell 空壳 bug（再次全绿但复现）。**模拟页每补一个维度就暴露下一层 bug——分支枚举是机制驱动，不是等事故补维度。**
 
 **修改模拟页的检查清单：**
 - [ ] 模拟的行为是否与真实框架一致？（不确定 → 在真实站点用浏览器验证，如 `document.body !== oldBody`）
-- [ ] MOCK FIDELITY 声明是否更新（模拟了什么/未模拟什么/来源）？
+- [ ] MOCK FIDELITY 分支矩阵是否更新（每分支 ✅/⛔ + 未模拟的双评估）？
 - [ ] 模拟行为变化是否影响依赖它的 E2E 场景（navigation-recovery 等）？
+- [ ] 新增分支时是否回答了「上游影响」——该分支是否控制已模拟行为的发生路径？
 
 ### 基础设施假设 → 测试映射表（M3 issue #33）
 

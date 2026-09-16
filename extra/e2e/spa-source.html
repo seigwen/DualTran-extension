@@ -5,7 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SPA Source Page</title>
   <meta name="turbo-cache-control" content="no-cache" data-turbo-transient>
-  <!-- MOCK FIDELITY: 模拟了 Turbo Drive 链接导航（fetch → 新 <body> 元素 replaceWith 旧 <body> 元素本身 → pushState）（来源：2026-09-10 github.com 实测 document.body !== oldBody）；模拟了 Turbo 快照缓存与恢复（离开可缓存页时按 cloneNode(true) 语义缓存 body——shadow root 不进入序列化——恢复访问（back/forward）到有快照的页面时渲染快照且不发请求，等价 @hotwired/turbo@8 getCachedSnapshot + action == "restore" 语义）（来源：2026-09-14 github.com 实测 /obra/superpowers/security 往返后出现无 shadowRoot 的 host 空壳 + turbo 源码 PageSnapshot.clone() → cloneNode(true)）；本页 turbo-cache-control: no-cache → 不可缓存，恢复访问必 fetch（对应 github.com /obra/superpowers/projects 实测行为）；未模拟 turbo-cache-control: no-preview（另一策略，见 spa-target.html）、快照预览渲染（advance 导航的中间态，最终状态一致）、LRU 缓存淘汰、脚本执行语义（替换的 script 不执行）、CSS 合并、进度条动画（风险：低——测试依赖两种恢复路径的最终状态，未模拟项不影响断言） -->
+  <!-- MOCK FIDELITY
+    分支：恢复路径（back/forward 到本页）
+    - fetch 新文档（本页 no-cache → 无快照 → 恢复必 fetch）：✅ 已模拟
+    - 快照渲染（恢复到本页）：⛔ 未模拟（豁免理由：本页不可缓存，恢复必 fetch；上游影响：无——快照恢复路径由 spa-target.html 覆盖）
+    - bfcache（persisted）：⛔ 未模拟（豁免理由：Turbo 不用 bfcache，恢复走 Turbo restore 语义；上游影响：无——扩展的 pageshow 监听在 Turbo 场景不触发）
+    分支：缓存策略
+    - turbo-cache-control: no-cache（本页；对应 github.com /obra/superpowers/projects 实测行为）：✅ 已模拟
+    - turbo-cache-control: no-preview：⛔ 未模拟（豁免理由：另一策略，由 spa-target.html 覆盖；上游影响：无——两种策略由两页对照覆盖）
+    分支：链接导航与 DOM 替换语义
+    - fetch → 新 <body> 元素 replaceWith 旧 <body> 元素本身 → pushState（来源：2026-09-10 github.com 实测 document.body !== oldBody）：✅ 已模拟
+    - body.innerHTML 赋值：⛔ 未模拟（豁免理由：故意不模拟——innerHTML 保留 body 元素，会掩盖「observer 随旧 body 死亡」的真实 bug；上游影响：无——本页刻意采用真实语义）
+    分支：快照语义
+    - cloneNode(true) 语义（shadow root 不进入序列化；来源：2026-09-14 github.com 实测空壳 host + @hotwired/turbo@8 源码 PageSnapshot.clone()）：✅ 已模拟（复刻方式：document.body.innerHTML 字符串存储）
+    - 快照预览渲染：⛔ 未模拟（豁免理由：advance 导航的中间态，最终状态一致；上游影响：无——断言只依赖最终状态）
+    - LRU 缓存淘汰：⛔ 未模拟（豁免理由：两页往返不超缓存容量；上游影响：无）
+    分支：时序
+    - 本地即时响应：✅ 已模拟（如实声明）
+    - 真实网络延迟：⛔ 未模拟（豁免理由：本地 mock 服务即时响应；上游影响：popstate 200ms 定时器在本环境假绿——由 real-site-verify.mjs --self-test 的 800ms 延迟注入覆盖）
+    分支：脚本语义
+    - 替换的 <script> 不执行：⛔ 未模拟（豁免理由：测试不依赖被替换脚本的执行语义；上游影响：无）
+    - CSS 合并：⛔ 未模拟（豁免理由：样式由各页自持，无合并需求；上游影响：无）
+    - 进度条动画：⛔ 未模拟（豁免理由：纯装饰，不影响断言；上游影响：无）
+  -->
   <style>
     body { font-family: Georgia, serif; line-height: 1.8; margin: 40px auto; max-width: 860px; color: #222; }
     h1 { font-size: 1.6em; }
