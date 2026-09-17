@@ -6,7 +6,7 @@
 console.log("floatingBtn.js is running")
 
 import twpConfig from "../lib/config.js"
-import { getObserverRoot } from "../lib/dom.js"
+import { registerHost } from "./hostLifecycle.js"
 import { pageTranslator } from "./pageTranslator.js"
 import { resolveFloatingBtnClick, resolveInitialUiState } from "./floatingBtnClickResolver.js"
 import { setState, getState, resetForRebuild } from "./uiStateStore.js"
@@ -152,42 +152,37 @@ if (window.self !== window.top) {
   let lastViewportWidth = window.innerWidth;
   const MIN_FLOATING_BTN_WIDTH = 48;
 
-  /**
-   * Check whether a functional floating-button host exists.
-   *
-   * Existence alone is not enough (bug 2026-09-14): Turbo Drive caches a
-   * cloneNode() snapshot of the page when leaving it, and cloneNode does
-   * NOT clone shadow roots. When the snapshot is rendered (back/forward on
-   * a cached page), the DOM contains a shadow-less SHELL of
-   * #dualtran-floating-btn-host — present, connected, but with no buttons.
-   * A `!host || !document.body.contains(host)` check accepts that shell and
-   * the button group is never rebuilt → the group "disappears" while the
-   * translated page content (also cloned) stays visible.
-   *
-   * A host is functional only when it is connected AND has a shadow root
-   * AND is the ONLY host copy in the DOM (issue #43: a "one exists" check
-   * let an invisible duplicate survive indefinitely when the first match
-   * happened to be healthy — the healthy-first duplicate flavor).
-   */
-  function hasFunctionalHost() {
-    const hosts = document.querySelectorAll("#dualtran-floating-btn-host");
-    if (hosts.length !== 1) return false;
-    const host = hosts[0];
-    return !!(document.body.contains(host) && host.shadowRoot);
-  }
+  // B3: engineStateOverride handoff into the registered create() callback.
+  // show(forceShow, engineStateOverride) stores the override here right
+  // before handle.rebuild(); createFloatingBtnHost() consumes it
+  // synchronously (single-threaded — no interleaving with eager triggers).
+  let pendingEngineStateOverride = null;
+
+  // Register with the shared host lifecycle manager (C1/M5). The manager
+  // owns the health predicate, the enabled flag ("should this host
+  // exist"), the rebuild mechanism (clear every stale copy → create) and
+  // the eager subscriptions (popstate 200ms / observer 300ms debounce on
+  // getObserverRoot() / pageshow persisted — timing preserved verbatim).
+  // show()/hide() below keep the component policy.
+  const floatingBtnHandle = registerHost({
+    hostId: "dualtran-floating-btn-host",
+    create: createFloatingBtnHost,
+    recovery: "eager",
+  });
 
   /**
-   * Hide floating button
-   * @returns 
+   * Hide floating button — the "should not exist" policy (C1, M5).
+   *
+   * The manager owns the mechanism now: disable() flips the enabled flag
+   * to false (the explicit "hidden by choice" signal the eager triggers
+   * check — a passive DOM removal keeps the flag true and rebuilds; an
+   * active hide does not) AND removes every host copy from the DOM (Turbo
+   * snapshot renders can leave a shadow-less shell behind while this
+   * closure's divElement points at a detached node — bug 2026-09-14;
+   * removing every copy guarantees a single healthy host after a rebuild).
    */
   floatingBtn.hide = function () {
-    // Clear host copies from the DOM even when divElement is null. Turbo
-    // snapshot renders can leave a shadow-less shell behind while this
-    // closure's divElement points to a detached node (bug 2026-09-14);
-    // removing every copy guarantees a single healthy host after a rebuild.
-    document.querySelectorAll("#dualtran-floating-btn-host").forEach((el) => el.remove());
-
-    if (!divElement) return;
+    floatingBtnHandle.disable();
 
     if (detachViewportListeners) {
       detachViewportListeners();
@@ -199,7 +194,6 @@ if (window.self !== window.top) {
       shortcutRevealTimer = null;
     }
 
-    divElement.remove();
     divElement = getElemById = null;
   };
 
@@ -224,6 +218,38 @@ if (window.self !== window.top) {
       return;
     }
     console.log("floatingBtn.show() is called 2222")
+
+    pendingEngineStateOverride = engineStateOverride;
+    floatingBtnHandle.rebuild();
+  };
+
+  /**
+   * The registered create() callback (C1, M5): build a fresh floating-button
+   * host, install listeners, and seed the UI state store from the engine.
+   * Called by the lifecycle manager through rebuild()/ensure() — never
+   * directly by consumers (the public entry stays floatingBtn.show()).
+   *
+   * B3: consumes pendingEngineStateOverride (set by show() immediately
+   * before rebuild(); synchronous single-thread handoff — an eager rebuild
+   * can never observe a stale override).
+   */
+  function createFloatingBtnHost() {
+    const engineStateOverride = pendingEngineStateOverride;
+    pendingEngineStateOverride = null;
+
+    // Rebuild cleanup (C1): detach the previous instance's viewport listener
+    // and reveal timer before building the next one. The public show() path
+    // does this via hide(); eager rebuilds (popstate/observer/pageshow) go
+    // straight to create(), so the same cleanup lives here — otherwise every
+    // SPA rebuild would leak a zombie resize listener.
+    if (detachViewportListeners) {
+      detachViewportListeners();
+      detachViewportListeners = null;
+    }
+    if (shortcutRevealTimer) {
+      clearTimeout(shortcutRevealTimer);
+      shortcutRevealTimer = null;
+    }
 
     divElement = document.createElement("div");
     divElement.id = "dualtran-floating-btn-host";
@@ -919,77 +945,16 @@ if (window.self !== window.top) {
       }
       updateButtons();
     });
+  }
 
-  };
+  console.log("will show floating button, 88888888111111")
+  floatingBtn.show();
 
-    console.log("will show floating button, 88888888111111")
-    floatingBtn.show();
-
-    // Listen for browser forward/back navigation (popstate), recreate floating button after SPA (e.g., GitHub Turbo) navigation
-    // When Turbo/pjax replaces DOM, the floating button's host element is removed with the old body,
-    // and the floating button is only created once on initial load, so it won't auto-rebuild.
-    let floatingBtnPopstateTimer = null;
-    window.addEventListener("popstate", () => {
-      if (floatingBtnPopstateTimer) clearTimeout(floatingBtnPopstateTimer);
-      floatingBtnPopstateTimer = setTimeout(() => {
-        if (!hasFunctionalHost()) {
-          console.log("[floatingBtn] host missing or shadow-less after popstate, recreating");
-          floatingBtn.show();
-        }
-      }, 200);
-    });
-
-    // Use MutationObserver to watch DOM replacement, as a complement to popstate:
-    // 1. SPA link navigation (non-back, pushState only) does not trigger popstate
-    // 2. When SPA framework loads slowly, popstate's 200ms delay may not be enough
-    // Observer detects host removal and auto-rebuilds, debounce 300ms to prevent loops.
-    // Distinguish active hide() from passive DOM replacement: hide() sets
-    // divElement to null, so Observer skips rebuild.
-    // CRITICAL (bug 2026-09-10): observe getObserverRoot() (document.documentElement),
-    // NOT document.body. Real Turbo Drive (GitHub) replaces the <body> ELEMENT
-    // itself on back-nav (verified live: document.body !== oldBody after
-    // goBack). An observer on the old body goes dead with it — the host
-    // removal is never seen and the button group never rebuilds. The <html>
-    // element survives Turbo navigation (verified live), so observing it
-    // with subtree:true catches body replacement via childList mutations.
-    let floatingBtnObserver = null;
-    let floatingBtnObserverTimer = null;
-    function setupFloatingBtnObserver() {
-      if (floatingBtnObserver) floatingBtnObserver.disconnect();
-      floatingBtnObserver = new MutationObserver(() => {
-        if (floatingBtnObserverTimer) return; // debounce
-        floatingBtnObserverTimer = setTimeout(() => {
-          floatingBtnObserverTimer = null;
-          // divElement is null means hide() already removed it, skip rebuild
-          if (!divElement) return;
-          if (!hasFunctionalHost()) {
-            console.log("[floatingBtn] host removed or shadow-less, recreating");
-            floatingBtnObserver.disconnect();
-            floatingBtn.show();
-            setupFloatingBtnObserver();
-          }
-        }, 300);
-      });
-      floatingBtnObserver.observe(getObserverRoot(), {
-        childList: true,
-        subtree: true,
-      });
-    }
-    setupFloatingBtnObserver();
-
-    // Handle bfcache restore: bfcache preserves full DOM, normally no rebuild needed.
-    // But when bfcache is unavailable (page evicted), browser fully reloads the page,
-    // and content script re-injects — so this only handles edge cases
-    // where DOM is partially replaced under bfcache.
-    window.addEventListener("pageshow", (e) => {
-      if (e.persisted) {
-        // bfcache restore: check if host still exists and is functional
-        if (!hasFunctionalHost()) {
-          console.log("[floatingBtn] host missing or shadow-less after bfcache restore, recreating");
-          floatingBtn.show();
-        }
-      }
-    });
+  // NOTE (C1/M5): the popstate (200ms) / MutationObserver (300ms debounce on
+  // getObserverRoot()) / pageshow(persisted) recovery subscriptions moved to
+  // hostLifecycle.js — installed once by the manager for every registered
+  // `recovery: "eager"` host, timing preserved verbatim there. This module
+  // only declares policy (show/hide) and provides the create() callback.
   });
 }
 

@@ -274,6 +274,8 @@ tests/
 
 **注入器（S2, issue #49）：** `injectHostState(page, component, state)` / `readHostState(page, component)` 落 `tests/browser-e2e/setup.mjs`——DOM 形状直造失败态，不复现旅程。复用 2 处：`self-heal-matrix.mjs`（主矩阵）+ `navigation-recovery.mjs`（Scene 1 Step 5）。
 
+**管理器层（C1/M5）：** 上表十格的机制现由 `hostLifecycle.js` 统一承载（`registerHost` 句柄的 `enable`/`disable`/`ensure`/`rebuild` 动词 + `recovery: "eager"|"lazy"` 声明；谓词唯一实现 `hasFunctionalHost(hostId)`）。组件层测试（上表全部引用）继续作为端到端契约（行为零变化）；管理器自身契约由 `hostLifecycle.test.js` 26 个锁定：注册默认 disabled / disable 清全部副本 / ensure 幂等收敛 / rebuild 无条件 / **disabled 拦阻三种 eager 触发**（负向不变量）/ eager 时序逐毫秒保真（popstate 200ms / observer 300ms clear+reschedule debounce / pageshow 即时）/ create() 抛错韧性 / **第三宿主一行注册验收**（M5 标尺）/ 谓词五态语义。RED 反向验证已做：移除 disabled 守卫 → ①/⑤/⑧ 三格精确变红；改 200ms→100ms 与 `count!==1`→`count===0` → 时序格 + duplicate 格精确变红。
+
 **豁免记录（transient 组件，4 条，各含理由 + 上游影响评估）：**
 - `showOriginal` — 理由：transient tooltip，`absent` 为设计正常态、无持久 host id、每次 `show()` 重挂天然自愈；上游影响：失败形态为不可见 ghost，无用户可见故障。若 S3 分支枚举发现反例再升级为覆盖。
 - `showTranslated` — 理由：同 showOriginal（transient tooltip，无导航监听，重挂自愈）；上游影响：无用户可见故障。

@@ -766,8 +766,9 @@ describe("floatingBtn — three-state behavior", () => {
   // mock pages use body.innerHTML (body element survives), so the
   // observer on document.body never sees the host disappear in real
   // Turbo — the floating button group is gone after back-nav.
-  // Covers implementation point: setupFloatingBtnObserver (floatingBtn.js)
-  // — observer must mount on document.documentElement, never body.
+  // Covers implementation point: installEagerSubscriptions (hostLifecycle.js,
+  // C1/M5; previously setupFloatingBtnObserver in floatingBtn.js) — the
+  // observer must mount on document.documentElement, never body.
   // ──────────────────────────────────────────────
 
   it("turbo back-nav: body element replaced AFTER popstate 200ms check → host must be recreated", async () => {
@@ -889,9 +890,10 @@ describe("floatingBtn — three-state behavior", () => {
   // Fix contract: a host is only "functional" when it has a shadowRoot
   // with the buttons. Every rebuild path must treat a shadow-less shell
   // as a missing host and recreate it.
-  // Implementation point: hasFunctionalHost (floatingBtn.js) — the shared
-  // predicate used by all three rebuild paths (popstate / observer /
-  // pageshow). Tests below lock its contract from the outside.
+  // Implementation point: hasFunctionalHost (hostLifecycle.js, C1/M5) —
+  // the shared predicate used by all three rebuild paths (popstate /
+  // observer / pageshow), now owned by the lifecycle manager. Tests below
+  // lock its contract from the outside.
   // ──────────────────────────────────────────────
 
   it("turbo snapshot shell: shadow-less host on popstate must be rebuilt", async () => {
@@ -983,8 +985,8 @@ describe("floatingBtn — three-state behavior", () => {
   // duplicate present, "a" predicate let the invisible copy survive
   // indefinitely when the first match happened to be healthy (healthy-first
   // flavor). Tests below lock the tightened contract from the outside.
-  // Implementation point: hasFunctionalHost (floatingBtn.js) — shared by
-  // all three rebuild paths (popstate / observer / pageshow).
+  // Implementation point: hasFunctionalHost (hostLifecycle.js, C1/M5) —
+  // shared by all three rebuild paths (popstate / observer / pageshow).
   // ──────────────────────────────────────────────
 
   it("duplicate hosts: healthy-first (trailing shell copy) on popstate must converge to a single functional host", async () => {

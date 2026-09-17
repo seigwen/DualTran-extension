@@ -21,6 +21,8 @@
  * via setCallbacks().
  */
 
+import { registerHost } from "./hostLifecycle.js";
+
 // ── Shared dummy objects (absorb writes when proxy is not current target) ──
 
 const DUMMY_NODE = (() => {
@@ -203,39 +205,46 @@ let _singleton = {
   _pendingHideTimer: null,
 };
 
-/**
- * A singleton host is functional only when the JS handle points at a host
- * that is connected to the document AND carries its shadow root.
- *
- * Two degraded states a bare truthiness check accepts (issue #40):
- *  - detached: Turbo/SPA body replacement removes the element while the
- *    handle keeps pointing at it (hover then operates on an invisible node);
- *  - shell: Turbo snapshot cloneNode does NOT clone shadow roots, so the
- *    restored DOM can contain a shadow-less copy of the host.
- * Same predicate semantics as floatingBtn.js hasFunctionalHost().
- * The predicate also requires EXACTLY ONE host copy (issue #43): a "handle
- * is functional" check let an invisible duplicate survive indefinitely
- * (healthy-first flavor). Any count != 1 → not functional → rebuild, which
- * removes every stale copy first and converges to a single host.
- */
-function hasFunctionalHost() {
-  const hosts = document.querySelectorAll("#dualtran-singleton-btn-host");
-  if (hosts.length !== 1) return false;
-  const host = hosts[0];
-  return !!(document.body.contains(host) && host.shadowRoot);
-}
+// Register with the shared host lifecycle manager (C1/M5). The manager
+// owns the health predicate (count === 1 && connected && shadowRoot),
+// the enabled flag, the pre-rebuild copy cleanup, and create() error
+// containment (a throwing create() no longer propagates into the hover
+// path). recovery: "lazy" — the manager installs no subscriptions; the
+// singleton rebuilds only through its interaction entry points
+// (createSingletonButtonGroup / showButtonGroup self-heal), preserving
+// the tested "no interaction → no rebuild" contract (no ghost rebuilds).
+const singletonHandle = registerHost({
+  hostId: "dualtran-singleton-btn-host",
+  create: createSingletonHost,
+  recovery: "lazy",
+});
 
 /**
  * Create the singleton button group host (Shadow DOM) on document.body.
+ *
+ * Thin wrapper over the lifecycle manager (C1, M5): enable() flips the
+ * enabled flag to true and ensures the host exists — create when
+ * missing/degraded, no-op when healthy (the old idempotent semantics,
+ * kept). The health predicate, the pre-rebuild copy cleanup and the
+ * create() error containment live in hostLifecycle.js now.
  */
 export function createSingletonButtonGroup() {
-  // Keep the live host when it is still functional — rebuilding would
-  // drop the current UI for no reason.
-  if (hasFunctionalHost()) return;
+  if (window.self !== window.top) return;
+  singletonHandle.enable();
+}
 
-  // The handle is stale: detached from the DOM tree (body replaced by
-  // Turbo/SPA navigation) or shadow-less. Reset references to allow
-  // rebuilding.
+/**
+ * The registered create() callback (C1, M5): build a fresh singleton
+ * host, install its listeners, and publish the new nodes on _singleton.
+ * Called by the lifecycle manager through enable()/ensure() — never
+ * directly by consumers (the public entry stays createSingletonButtonGroup).
+ */
+function createSingletonHost() {
+  if (window.self !== window.top) return;
+
+  // The handle is stale (detached / shadow-less / duplicate cleanup):
+  // reset the component references before the rebuild. The manager has
+  // already removed every stale DOM copy (bug 2026-09-14 shell cleanup).
   if (_singleton.host) {
     if (_singleton._pendingHideTimer) {
       clearTimeout(_singleton._pendingHideTimer);
@@ -245,15 +254,6 @@ export function createSingletonButtonGroup() {
     _singleton.currentTarget = null;
     _singleton._visible = false;
   }
-  if (window.self !== window.top) return;
-
-  // Clear stale host copies before creating a new one (bug 2026-09-14):
-  // Turbo snapshot renders can leave a shadow-less SHELL of this host in
-  // the DOM (cloneNode does not clone shadow roots). The _singleton.host
-  // reference points at the old detached host, so the rebuild proceeds —
-  // without this cleanup the page would end up with two hosts (stale
-  // shell + fresh one).
-  document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
 
   const host = document.createElement("div");
   host.id = "dualtran-singleton-btn-host";
@@ -367,11 +367,15 @@ export function setCallbacks(callbacks) {
 
 /**
  * Remove the singleton host and all event listeners.
+ *
+ * Disable via the manager (C1, M5): the enabled flag flips to false
+ * ("should not exist" — restorePage semantics) and every host copy is
+ * removed (stale shells included). Hover listener detach stays here —
+ * it is component UX policy, not host lifecycle; the manager never
+ * touches it. The _singleton reference reset is component state.
  */
 export function destroySingletonButtonGroup() {
-  if (_singleton.host) {
-    _singleton.host.remove();
-  }
+  singletonHandle.disable();
   _detachHoverListeners();
   _singleton = { ..._singleton, host: null, btnGroup: null, currentTarget: null, _visible: false, _pendingHideTimer: null };
 }
@@ -435,11 +439,17 @@ export function hasAncestorTransform() {
  * truthiness check would silently operate on an invisible node and the
  * hover path would stay dead until a page re-translation. Rebuild in
  * place instead, mirroring floatingBtn's hasFunctionalHost() checks.
+ *
+ * C1/M5: routed through the manager's enable() — flag=true + idempotent
+ * ensure (healthy host untouched, missing/degraded → clear stale copies
+ * + create). enable() rather than bare ensure() is load-bearing: the
+ * tested contract is "hover creates the host on demand, even after
+ * destroy()" (no enabled-gate on the interaction entry — the entry IS
+ * the enable moment). ensure() keeps the gate for manager-internal
+ * (eager) triggers only.
  */
 export function showButtonGroup(translatedElement) {
-  if (!hasFunctionalHost()) {
-    createSingletonButtonGroup();
-  }
+  singletonHandle.enable();
   if (!_singleton.host) return;
   if (_singleton._pendingHideTimer) {
     clearTimeout(_singleton._pendingHideTimer);
