@@ -126,7 +126,6 @@ export function resolveNextAiRenderState(currentAiRenderState, translatingCount,
   return null;
 }
 
-let singletonInitialized = false;
 function ensureSingletonInit() {
   if (window.self !== window.top) return;
   createSingletonButtonGroup();
@@ -135,7 +134,6 @@ function ensureSingletonInit() {
     onGoogleClick: handleSingletonGoogleClick,
     onAiClick: handleSingletonAiClick,
   });
-  singletonInitialized = true;
 }
 
 let hasVideoInPage = false
@@ -3774,7 +3772,6 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
      // Remove all inline button groups (including their AI and Google buttons)
      // Destroy the singleton button group
     destroySingletonButtonGroup();
-    singletonInitialized = false;
      // Remove all leftover AI buttons
     document.querySelectorAll(".dualtran-ai-btn").forEach((node) => { if (node.parentNode) node.parentNode.removeChild(node); node = null })
 

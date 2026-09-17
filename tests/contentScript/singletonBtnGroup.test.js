@@ -600,10 +600,11 @@ describe("createSingletonButtonGroup — detached host recovery", () => {
 // truthiness check accepts but the user cannot see:
 //   - detached: the JS host handle survives; the element left the DOM
 //   - shell:    snapshot cloneNode lands a shadow-less host in the DOM
-// The fix uses the same functional predicate as floatingBtn.js
-// hasFunctionalHost(): count === 1 && document.body.contains(host)
-// && host.shadowRoot (the count check was added by issue #43 so any
-// duplicate also converges back to a single host).
+// The fix uses the same functional predicate (hostLifecycle.js, C1/M5;
+// previously duplicated in both components): count === 1 &&
+// document.body.contains(host) && host.shadowRoot (the count check was
+// added by issue #43 so any duplicate also converges back to a single
+// host).
 // Entry point under test: showButtonGroup (via the real document-level
 // mouseover delegation).
 // ──────────────────────────────────────────────────────────────
@@ -718,7 +719,7 @@ describe("singleton hover recovery — 失败态注入矩阵 (issue #40)", () =>
   // ONE functional host, not just "the handle is functional". With a
   // duplicate present the invisible copy could survive indefinitely
   // (healthy-first flavor). Same contract as floatingBtn.
-  // Implementation point: hasFunctionalHost (singletonBtnGroup.js) —
+  // Implementation point: hasFunctionalHost (hostLifecycle.js, C1/M5) —
   // shared by the hover entry (showButtonGroup) and the create entry.
   // ──────────────────────────────────────────────────────────────
 
