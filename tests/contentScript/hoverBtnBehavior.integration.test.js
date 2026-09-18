@@ -1,15 +1,21 @@
 /**
  * Hover button group behavior regression tests (integration).
  *
- * Drives the REAL handleSingletonGoogleClick / handleSingletonAiClick
- * (pageTranslator._handleSingletonGoogleClick / _handleSingletonAiClick)
- * against blocks registered with the REAL singletonBtnGroup registerBlock —
- * the same seam the click handlers run at in production.
+ * Drives the REAL single-entry click executor
+ * (pageTranslator._handleSingletonBtnClick) against blocks registered with
+ * the REAL singletonBtnGroup registerBlock — the same seam the click
+ * handlers run at in production.
+ *
+ * #65 direct-select semantics (doc 19 / NQ1): click = "show that mode".
+ * The Original button owns restore; clicking the already-displayed mode is
+ * a noop; a request in flight is a noop (never re-send a running/completed
+ * request); G on a restored block re-shows the stored Google text locally
+ * (network only when nothing is stored).
  *
  * Expected per-block behaviors:
- *  1. G → Google-only translate → G → restore original
+ *  1. O → restore original → G → local replay of stored Google (no network)
  *  2. G → Google-only → AI → add AI on top, hide Google, show AI
- *  3. AI → Google+AI concurrent → AI → restore original
+ *  3. AI → Google+AI concurrent → A noop → O → restore original
  *  4. AI → Google+AI → G → Google only → AI → show AI again
  *
  * Root cause found while building this loop: the handlers are defined at
@@ -64,7 +70,12 @@ vi.mock("../../src/contentScript/aiStreamMessage.js", () => ({
   parseTaggedPageTranslationProgress: vi.fn(() => ({ done: true })),
   notifyAiStreamParseError: vi.fn(),
 }));
-vi.mock("../../src/contentScript/i18n.js", () => ({}));
+vi.mock("../../src/contentScript/i18n.js", () => ({
+  getMessageWithFallback: (_k, fallback) => fallback,
+  getFloatingButtonOriginalTooltipText: () => "Show original text",
+  getFloatingButtonGoogleTooltipText: () => "Show Google translation",
+  getFloatingButtonAiTooltipText: () => "Show AI translation",
+}));
 vi.mock("toastify-js", () => ({ default: vi.fn(() => ({ showToast: vi.fn() })) }));
 vi.mock("gpt-tokenizer", () => ({ encode: vi.fn(() => []) }));
 vi.mock("../../src/util/globalWordsCount.js", () => ({ wordsCount: (t) => t.split(/\s+/).filter(Boolean).length }));
@@ -75,8 +86,10 @@ vi.mock("../../src/lib/ai/providerRegistry.js", () => ({
 vi.mock("../../src/lib/ai/providerTypes.js", () => ({}));
 vi.mock("../../src/lib/ai/providerModelPreview.js", () => ({}));
 
-// Chrome stub — records translateSingleText calls, responds with a translation
-const sendMessageSpy = vi.fn((payload, callback) => {
+// Chrome stub — records translateSingleText calls, responds with a translation.
+// `defaultSendMessageImpl` is re-installed before every test; the late-write
+// suite temporarily swaps in a "hold the callback" implementation.
+const defaultSendMessageImpl = (payload, callback) => {
   if (typeof callback === "function") {
     if (payload?.action === "getTabHostName") {
       callback("example.com");
@@ -86,7 +99,8 @@ const sendMessageSpy = vi.fn((payload, callback) => {
       callback(undefined);
     }
   }
-});
+};
+const sendMessageSpy = vi.fn(defaultSendMessageImpl);
 vi.stubGlobal("chrome", {
   runtime: {
     sendMessage: sendMessageSpy,
@@ -105,19 +119,17 @@ vi.stubGlobal("top", window);
 vi.stubGlobal("self", window);
 vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ text: () => Promise.resolve(""), ok: true })));
 
-let pageTranslator, aiCache, handleG, handleAI;
+let pageTranslator, aiCache, handleBtn;
 
 beforeAll(async () => {
   const mod = await import("../../src/contentScript/pageTranslator.js");
   pageTranslator = mod.pageTranslator;
   aiCache = mod.aiCache;
   await vi.waitFor(() => {
-    expect(pageTranslator._handleSingletonGoogleClick).toBeTypeOf("function");
-    expect(pageTranslator._handleSingletonAiClick).toBeTypeOf("function");
+    expect(pageTranslator._handleSingletonBtnClick).toBeTypeOf("function");
     expect(pageTranslator._setNodesToRestoreForTest).toBeTypeOf("function");
   }, { timeout: 5000 });
-  handleG = pageTranslator._handleSingletonGoogleClick;
-  handleAI = pageTranslator._handleSingletonAiClick;
+  handleBtn = pageTranslator._handleSingletonBtnClick;
 });
 
 /** Real registerBlock in newLine dual-span mode. Initial display: Google. */
@@ -163,48 +175,53 @@ const flushAsync = () => new Promise((r) => setTimeout(r, 0));
 beforeEach(() => {
   document.body.innerHTML = "";
   sendMessageSpy.mockClear();
+  sendMessageSpy.mockImplementation(defaultSendMessageImpl);
   // Pre-populate in-memory AI cache so AI clicks resolve instantly via cache-hit path
   aiCache.length = 0;
   aiCache.push({ original: "Hello world", targetLanguage: "zh-CN", translated: "AI译文" });
 });
 
-describe("Behavior 1 — G → Google-only translate → G → restore original", () => {
-  it("newLine: G click restores original, second G re-translates", async () => {
+describe("Behavior 1 — O → restore original → G → local replay (no network) (#65 direct-select)", () => {
+  it("newLine: O restores original, G re-shows stored Google locally without network", async () => {
     const { translatedEl, googleSpan, aiSpan } = createNewLineBlock();
 
-    // Click G: showing Google → restore original
-    await handleG(translatedEl);
+    // Click O: showing Google → restore original
+    await handleBtn("original", translatedEl);
     expect(translatedEl.style.display).toBe("none");
     const state1 = getBlockState(translatedEl);
     expect(state1.displayMode).toBe("original");
     expect(state1.aiStatus).toBe("userPinned");
 
-    // Click G again: translate Google-only → show Google
-    await handleG(translatedEl);
+    // Click G: local replay of the stored Google text — zero network calls
+    sendMessageSpy.mockClear();
+    await handleBtn("google", translatedEl);
     expect(translatedEl.style.display).toBe("block");
     expect(googleSpan.textContent).toBe("Google译文");
     expect(googleSpan.style.display).toBe("block");
     expect(aiSpan.style.display).toBe("none");
     expect(getBlockState(translatedEl).displayMode).toBe("google");
-    expect(sendMessageSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ action: "translateSingleText", translationService: "google" }),
-      expect.any(Function)
-    );
+    expect(
+      sendMessageSpy.mock.calls.filter(([p]) => p?.action === "translateSingleText")
+    ).toHaveLength(0);
   });
 
-  it("replaceOriginal: G restores original text, second G re-translates into nodes", async () => {
+  it("replaceOriginal: O restores original text, G re-shows stored Google locally without network", async () => {
     const { p, textNode, aiSpan } = createReplaceOriginalBlock();
 
-    // Click G: showing Google → restore original
-    await handleG(p);
+    // Click O: showing Google → restore original
+    await handleBtn("original", p);
     expect(textNode.textContent).toBe("Hello world");
     expect(aiSpan.textContent).toBe("");
     expect(getBlockState(p).displayMode).toBe("original");
 
-    // Click G again: Google-only translate → write into text nodes
-    await handleG(p);
+    // Click G: local replay of stored Google (nodesToRestore[].translatedText)
+    sendMessageSpy.mockClear();
+    await handleBtn("google", p);
     expect(textNode.textContent).toBe("Google译文");
     expect(getBlockState(p).displayMode).toBe("google");
+    expect(
+      sendMessageSpy.mock.calls.filter(([p2]) => p2?.action === "translateSingleText")
+    ).toHaveLength(0);
   });
 });
 
@@ -212,7 +229,7 @@ describe("Behavior 2 — G → Google-only → AI adds AI on top", () => {
   it("newLine: AI click hides googleSpan, shows aiSpan with AI text", async () => {
     const { translatedEl, googleSpan, aiSpan } = createNewLineBlock();
 
-    await handleAI(translatedEl);
+    await handleBtn("ai", translatedEl);
     expect(aiSpan.textContent).toBe("AI译文");
     expect(aiSpan.style.display).toBe("block");
     expect(googleSpan.style.display).toBe("none");
@@ -223,7 +240,7 @@ describe("Behavior 2 — G → Google-only → AI adds AI on top", () => {
   it("replaceOriginal: AI clears text nodes and writes AI span", async () => {
     const { p, textNode, aiSpan } = createReplaceOriginalBlock();
 
-    await handleAI(p);
+    await handleBtn("ai", p);
     expect(textNode.textContent).toBe("");
     expect(aiSpan.textContent).toBe("AI译文");
     expect(getBlockState(p).displayMode).toBe("ai");
@@ -231,17 +248,17 @@ describe("Behavior 2 — G → Google-only → AI adds AI on top", () => {
   });
 });
 
-describe("Behavior 3 — AI → Google+AI concurrent → AI → restore original", () => {
-  it("replaceOriginal: AI on original block runs Google concurrently, then second AI restores", async () => {
+describe("Behavior 3 — AI → Google+AI concurrent → A noop → O restores (#65 direct-select)", () => {
+  it("replaceOriginal: AI on original block runs Google concurrently, then A is a noop and O restores", async () => {
     const { p, textNode, aiSpan } = createReplaceOriginalBlock();
 
     // First restore to original
-    await handleG(p);
+    await handleBtn("original", p);
     expect(getBlockState(p).displayMode).toBe("original");
     expect(textNode.textContent).toBe("Hello world");
 
     // Click AI: Google+AI concurrent → final display AI
-    await handleAI(p);
+    await handleBtn("ai", p);
     await flushAsync();
     expect(sendMessageSpy).toHaveBeenCalledWith(
       expect.objectContaining({ action: "translateSingleText" }),
@@ -253,8 +270,17 @@ describe("Behavior 3 — AI → Google+AI concurrent → AI → restore original
     // Google translation result stored for later G click
     expect(getBlockState(p).googleTranslatedText).toBe("Google译文");
 
-    // Click AI again → restore original
-    await handleAI(p);
+    // Click A again: already showing AI → noop (direct-select)
+    sendMessageSpy.mockClear();
+    await handleBtn("ai", p);
+    expect(aiSpan.textContent).toBe("AI译文");
+    expect(getBlockState(p).displayMode).toBe("ai");
+    expect(
+      sendMessageSpy.mock.calls.filter(([p2]) => p2?.action === "translateSingleText")
+    ).toHaveLength(0);
+
+    // Click O: restore original (restore responsibility lives on O)
+    await handleBtn("original", p);
     expect(textNode.textContent).toBe("Hello world");
     expect(aiSpan.textContent).toBe("");
     expect(getBlockState(p).displayMode).toBe("original");
@@ -267,19 +293,19 @@ describe("Behavior 4 — AI → Google+AI → G → Google only → AI → show 
     const { translatedEl, googleSpan, aiSpan } = createNewLineBlock();
 
     // AI → AI shown
-    await handleAI(translatedEl);
+    await handleBtn("ai", translatedEl);
     expect(aiSpan.style.display).toBe("block");
     expect(googleSpan.style.display).toBe("none");
 
     // G → Google only
-    await handleG(translatedEl);
+    await handleBtn("google", translatedEl);
     expect(googleSpan.style.display).toBe("block");
     expect(aiSpan.style.display).toBe("none");
     const st = getBlockState(translatedEl);
     expect(st.displayMode).toBe("google");
 
     // AI again → show AI (cache keeps the text)
-    await handleAI(translatedEl);
+    await handleBtn("ai", translatedEl);
     expect(aiSpan.style.display).toBe("block");
     expect(aiSpan.textContent).toBe("AI译文");
     expect(googleSpan.style.display).toBe("none");
@@ -290,18 +316,18 @@ describe("Behavior 4 — AI → Google+AI → G → Google only → AI → show 
     const { p, textNode, aiSpan } = createReplaceOriginalBlock();
 
     // AI (from Google display) → AI shown
-    await handleAI(p);
+    await handleBtn("ai", p);
     expect(aiSpan.textContent).toBe("AI译文");
     expect(getBlockState(p).displayMode).toBe("ai");
 
     // G → Google only: nodes get Google text (from nodesToRestore), AI span hidden
-    await handleG(p);
+    await handleBtn("google", p);
     expect(textNode.textContent).toBe("Google译文");
     expect(aiSpan.style.display).toBe("none");
     expect(getBlockState(p).displayMode).toBe("google");
 
     // AI again → AI span shown again, nodes cleared
-    await handleAI(p);
+    await handleBtn("ai", p);
     expect(aiSpan.style.display).toBe("");
     expect(aiSpan.textContent).toBe("AI译文");
     expect(textNode.textContent).toBe("");
@@ -320,14 +346,14 @@ describe("Behavior 4b — G after AI resets the singleton AI button to initial s
     const { translatedEl } = createNewLineBlock();
 
     // AI → singleton button renders success (✓)
-    await handleAI(translatedEl);
+    await handleBtn("ai", translatedEl);
     const aiBtn = singletonAiBtn();
     expect(aiBtn).not.toBeNull();
     expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(true);
     expect(aiBtn.querySelector(".dualtran-ai-success-check")).not.toBeNull();
 
     // G → Google-only display AND AI button back to its initial (pre-AI) state
-    await handleG(translatedEl);
+    await handleBtn("google", translatedEl);
     const st = getBlockState(translatedEl);
     expect(st.displayMode).toBe("google");
     expect(st.aiStatus).toBe("userPinned");
@@ -344,13 +370,13 @@ describe("Behavior 4b — G after AI resets the singleton AI button to initial s
     const { p } = createReplaceOriginalBlock();
 
     // AI → success
-    await handleAI(p);
+    await handleBtn("ai", p);
     const aiBtn = singletonAiBtn();
     expect(aiBtn).not.toBeNull();
     expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(true);
 
     // G → Google-only, AI button back to initial state
-    await handleG(p);
+    await handleBtn("google", p);
     const st = getBlockState(p);
     expect(st.displayMode).toBe("google");
     expect(st.aiStatus).toBe("userPinned");
@@ -372,9 +398,9 @@ describe("Behavior 4c — G click is not auto-reverted by the AI translate loop"
     const { translatedEl, googleSpan, aiSpan } = createNewLineBlock();
 
     // AI → AI shown
-    await handleAI(translatedEl);
+    await handleBtn("ai", translatedEl);
     // G → Google-only + AI button initial
-    await handleG(translatedEl);
+    await handleBtn("google", translatedEl);
     const st = getBlockState(translatedEl);
     expect(st.displayMode).toBe("google");
     expect(st.aiStatus).toBe("userPinned");
@@ -400,9 +426,9 @@ describe("Behavior 4c — G click is not auto-reverted by the AI translate loop"
     const { p, textNode, aiSpan } = createReplaceOriginalBlock();
 
     // AI → AI shown
-    await handleAI(p);
+    await handleBtn("ai", p);
     // G → Google-only
-    await handleG(p);
+    await handleBtn("google", p);
     const st = getBlockState(p);
     expect(st.displayMode).toBe("google");
     expect(st.aiStatus).toBe("userPinned");
@@ -419,5 +445,91 @@ describe("Behavior 4c — G click is not auto-reverted by the AI translate loop"
     expect(aiSpan.style.display).toBe("none");
     const aiBtn = singletonAiBtn();
     expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(false);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────
+// #65 — late-write suppression (requestEpoch, NQ4.3)
+//
+// The G channel's pre-#65 write-back check was `displayMode === "original"`,
+// which cannot distinguish "not yet written" from "the user clicked O to
+// restore": clicking O while a Google request was in flight still let the
+// late response write back into the restored block. The AI channel had the
+// same shape. requestEpoch is the single monotonic field covering both
+// channels: captured when a request starts, validated before any write-back;
+// restoreBlockOriginal (O) bumps it, invalidating every in-flight response.
+// ──────────────────────────────────────────────────────────────
+
+describe("晚写抑制 — requestEpoch (#65)", () => {
+  /** Hold translateSingleText callbacks so responses arrive under test control. */
+  function holdGoogleCallbacks() {
+    const held = [];
+    sendMessageSpy.mockImplementation((payload, callback) => {
+      if (typeof callback === "function") {
+        if (payload?.action === "getTabHostName") {
+          callback("example.com");
+        } else if (payload?.action === "translateSingleText") {
+          held.push(callback);
+        } else {
+          callback(undefined);
+        }
+      }
+    });
+    return held;
+  }
+
+  it("G 在飞 → 点 O → 迟到 Google 响应不写回（块保持原文）", async () => {
+    const { p, textNode } = createReplaceOriginalBlock();
+    await handleBtn("original", p); // → original
+    // Force the network path: clear BOTH stored-text sources (block-level
+    // googleTranslatedText AND nodesToRestore[].translatedText) — otherwise
+    // the resolver correctly returns the local replay (showGoogle).
+    getBlockState(p).googleTranslatedText = "";
+    pageTranslator._setNodesToRestoreForTest([{ node: textNode, originalText: "Hello world" }]);
+
+    const held = holdGoogleCallbacks();
+    const inFlight = handleBtn("google", p); // fetchGoogle — in flight (held; do NOT await)
+    expect(held).toHaveLength(1);
+    expect(getBlockState(p).googleBtnState).toBe("translating");
+
+    // Click O while the request is in flight → immediate restore + epoch++
+    await handleBtn("original", p);
+    expect(textNode.textContent).toBe("Hello world");
+    expect(getBlockState(p).displayMode).toBe("original");
+
+    // Late response arrives — must be discarded
+    held[0]("Google译文");
+    await inFlight;
+    await flushAsync();
+
+    expect(textNode.textContent).toBe("Hello world");
+    expect(getBlockState(p).displayMode).toBe("original");
+    expect(getBlockState(p).googleBtnState).toBe("idle");
+  });
+
+  it("G+AI 并发在飞 → 点 O → 两通道迟到响应均不写回", async () => {
+    const { p, textNode, aiSpan } = createReplaceOriginalBlock();
+    await handleBtn("original", p); // → original
+    getBlockState(p).googleTranslatedText = "";
+
+    const held = holdGoogleCallbacks();
+    await handleBtn("ai", p); // original path: Google + AI concurrently
+    expect(held).toHaveLength(1); // Google held; AI resolved via cache already
+    await flushAsync();
+
+    // Click O while both channels are in flight → restore + epoch++
+    await handleBtn("original", p);
+    expect(textNode.textContent).toBe("Hello world");
+    expect(getBlockState(p).displayMode).toBe("original");
+    expect(getBlockState(p).aiStatus).toBe("userPinned");
+
+    // Late Google response arrives — must be discarded
+    held[0]("Google译文");
+    await flushAsync();
+
+    expect(textNode.textContent).toBe("Hello world");
+    expect(aiSpan.textContent).toBe("");
+    expect(getBlockState(p).displayMode).toBe("original");
+    expect(getBlockState(p).aiStatus).toBe("userPinned");
   });
 });

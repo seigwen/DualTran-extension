@@ -99,11 +99,20 @@ async function pokePopstate(page) {
   await page.evaluate(() => window.dispatchEvent(new Event("popstate")));
 }
 
-/** singleton 的显式触发：在 <translated> 上派发冒泡 mouseover（hover 委托）。 */
+/**
+ * singleton 的显式触发：在**已注册**块上派发冒泡 mouseover（hover 委托）。
+ *
+ * Target selection (fidelity, #65): prefer `[data-dualtran-block]` — registerBlock
+ * stamps this attribute in BOTH display modes (newLine: on the <translated>;
+ * replaceOriginal: on the container), so it resolves to a registered element.
+ * A bare `document.querySelector("translated")` can pick an empty, `display:none`
+ * artifact (e.g. under replaceOriginal leftovers) that a real pointer could never
+ * hit and that the #65 guard correctly refuses to show a group for.
+ */
 async function pokeHover(page) {
   await page.evaluate(() => {
-    const el = document.querySelector("translated");
-    if (!el) throw new Error("no <translated> element to hover");
+    const el = document.querySelector("[data-dualtran-block]") || document.querySelector("translated");
+    if (!el) throw new Error("no translated block to hover");
     el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
   });
 }

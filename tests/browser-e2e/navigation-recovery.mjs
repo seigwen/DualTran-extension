@@ -286,7 +286,81 @@ async function verifySingletonSpaRecovery(page, serviceWorker, testPageUrl) {
     `  After SPA back + retranslate: singleton state=${singletonRecovered.state}, hasButtons=${singletonRecovered.hasButtons}`
   );
 
+  // #65: three-button palette on a REAL translated block (computed styles).
+  // The jsdom layer locks the inline color values; this layer locks what the
+  // browser actually computes after hover → the E2E half of the two-layer
+  // style discipline in tests/CLAUDE.md.
+  const palette = await verifySingletonThreeButtonPalette(page);
+  console.log(
+    `  #65 palette: O(${palette.original.color} on ${palette.original.background}) ` +
+    `G(${palette.google.color} on ${palette.google.background}) ` +
+    `A(${palette.ai.color} on ${palette.ai.background})`
+  );
+
   console.log("  Scene 3 PASSED: singleton button group recovers after SPA back + retranslate");
+}
+
+/**
+ * #65: hover a real translated block, then read the singleton group's
+ * three-button computed styles from the shadow root.
+ *
+ * Expected (NQ2 palette, registered block after translation →
+ * displayMode="google" → G active):
+ *   O inactive: color rgb(107, 114, 128)  on rgb(243, 244, 246)
+ *   G active:   color rgb(255, 255, 255)  on rgb(29, 78, 216)
+ *   A inactive: color rgb(124, 58, 237)   on rgb(245, 243, 255)
+ */
+async function verifySingletonThreeButtonPalette(page) {
+  // Hover a REGISTERED block via the bubbling delegation path. Prefer
+  // `[data-dualtran-block]` (stamped by registerBlock in both display modes);
+  // a bare `querySelector("translated")` could pick a display:none artifact
+  // the guard correctly refuses — a target no real pointer can hit (#65).
+  await page.evaluate(() => {
+    const el = document.querySelector("[data-dualtran-block]") || document.querySelector("translated");
+    if (!el) throw new Error("#65 palette: no translated block found");
+    el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+  });
+  await page.waitForTimeout(150);
+
+  const read = await page.evaluate(() => {
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    const root = host?.shadowRoot || null;
+    if (!root) throw new Error("#65 palette: singleton host or shadowRoot missing");
+    const readBtn = (selector) => {
+      const el = root.querySelector(selector);
+      if (!el) return null;
+      const cs = getComputedStyle(el);
+      return { color: cs.color, background: cs.backgroundColor, text: el.textContent.trim() };
+    };
+    return {
+      visible: host.style.top !== "-9999px",
+      original: readBtn(".dualtran-original-btn"),
+      google: readBtn(".dualtran-google-btn"),
+      ai: readBtn(".dualtran-ai-btn"),
+    };
+  });
+
+  const fail = (msg) => { throw new Error(`#65 palette FAIL: ${msg}`); };
+  if (!read.visible) fail("button group not visible after hover (host still parked off-screen)");
+  for (const key of ["original", "google", "ai"]) {
+    if (!read[key]) fail(`${key} button missing in shadow root`);
+  }
+  // Labels: full words (NQ2), not single letters
+  if (read.original.text !== "Original") fail(`O label="${read.original.text}" expected "Original"`);
+  if (read.google.text !== "Google") fail(`G label="${read.google.text}" expected "Google"`);
+  if (!read.ai.text.startsWith("AI")) fail(`A label="${read.ai.text}" expected to start with "AI"`);
+
+  // O inactive — gray
+  if (read.original.color !== "rgb(107, 114, 128)") fail(`O color ${read.original.color} != rgb(107, 114, 128)`);
+  if (read.original.background !== "rgb(243, 244, 246)") fail(`O bg ${read.original.background} != rgb(243, 244, 246)`);
+  // G active — blue (#1d4ed8, NOT the old green)
+  if (read.google.background !== "rgb(29, 78, 216)") fail(`G bg ${read.google.background} != rgb(29, 78, 216) — old green leaked back?`);
+  if (read.google.color !== "rgb(255, 255, 255)") fail(`G color ${read.google.color} != white (active state)`);
+  // A inactive — purple
+  if (read.ai.color !== "rgb(124, 58, 237)") fail(`A color ${read.ai.color} != rgb(124, 58, 237)`);
+  if (read.ai.background !== "rgb(245, 243, 255)") fail(`A bg ${read.ai.background} != rgb(245, 243, 255)`);
+
+  return read;
 }
 
 // ═══════════════════════════════════════════════════════════════

@@ -68,6 +68,7 @@ import Toastify from 'toastify-js'
 import { encode } from 'gpt-tokenizer'
 import { wordsCount } from "../util/globalWordsCount.js"
 import { registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, setCallbacks, getProxiesForTranslation, getAllProxies, getBlockState, updateSingletonUI } from "./singletonBtnGroup.js";
+import { resolveSingletonBtnClick } from "./singletonBtnClickResolver.js";
 import { setBlockTranslationIndicator, injectBlockIndicatorStyles } from "./blockTranslationIndicator.js";
 
 /**
@@ -131,8 +132,7 @@ function ensureSingletonInit() {
   createSingletonButtonGroup();
   attachHoverDelegation();
   setCallbacks({
-    onGoogleClick: handleSingletonGoogleClick,
-    onAiClick: handleSingletonAiClick,
+    onBtnClick: handleSingletonBtnClick,
   });
 }
 
@@ -144,8 +144,8 @@ export const abortControllers = []
 export const aiCache = []
 
 // ── Hover-button handler state (MUST stay at module top level) ───────────────
-// handleSingletonGoogleClick / handleSingletonAiClick are module-level functions
-// registered via setCallbacks(); they reference these. If these were scoped inside
+// handleSingletonBtnClick is a module-level function
+// registered via setCallbacks(); it references these. If these were scoped inside
 // the Promise.all(...).then() callback below, clicking the hover buttons would
 // throw ReferenceError (silently swallowed by try/catch → "no response").
 let currentTargetLanguage = "";
@@ -627,65 +627,92 @@ function writeGoogleIntoBlock(state, result, translatedElement) {
   }
 }
 
-async function handleSingletonGoogleClick(translatedElement) {
-  const state = getBlockState(translatedElement);
-  if (!state) return;
-
-  // Legacy state fallback: blocks registered before displayMode existed
-  const displayMode = state.displayMode ||
-    (state.aiStatus === "translated" ? "ai" : "google");
-
-  if (displayMode === "google") {
-    // Behavior 1 second click: restore original
-    restoreBlockOriginal(state, translatedElement);
-    return;
+/**
+ * Does this block hold stored Google text for a local re-show? (#65)
+ * True when the block-level cached result exists, or a nodesToRestore entry
+ * for this block's nodes carries a translatedText (replaceOriginal mode
+ * stores the Google text there).
+ */
+function _hasStoredGoogleText(state) {
+  if (typeof state.googleTranslatedText === "string" && state.googleTranslatedText) return true;
+  if (Array.isArray(state.nodesToClear)) {
+    return state.nodesToClear.some((n) => {
+      const restored = nodesToRestore.find((r) => r && r.node === n);
+      return !!(restored && typeof restored.translatedText === "string" && restored.translatedText);
+    });
   }
-  if (displayMode === "ai") {
-    // Behavior 4 second step: show Google only (no network)
-    showBlockGoogleOnly(state, translatedElement);
-    return;
-  }
-  // displayMode === "original": behavior 1 first click — Google-only translation
-  applyGoogleTranslating(state);
-  try {
-    const result = await backgroundTranslateSingleText(
-      "google", currentTargetLanguage, state.sourceString
-    );
-    if (result) {
-      state.googleTranslatedText = result;
-      writeGoogleIntoBlock(state, result, translatedElement);
-      applyGoogleSuccess(state);
-    } else {
-      applyGoogleIdle(state);
-    }
-  } catch (_) {
-    applyGoogleIdle(state);
-  }
-  try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonGoogleClick failed", e); }
+  return false;
 }
 
-async function handleSingletonAiClick(translatedElement) {
+/**
+ * BtnAiProxy-shaped adapter for a hover-button block state. Shared by both
+ * branches of the AI fetch path (they used to carry two identical inline
+ * copies). The engine's UI writes go to detached dummies — the real button
+ * is rendered from state by updateSingletonUI.
+ */
+function createSingletonBlockProxy(state) {
+  return {
+    _st: () => state,
+    get sourceString() { return state.sourceString; },
+    get translatedTextNode() { return state.translatedTextNode; },
+    get googleSpan() { return state.googleSpan || null; },
+    get aiSpan() { return state.aiSpan || null; },
+    get translationId() { return state.translationId; },
+    set translationId(v) { state.translationId = v; },
+    get translationStatus() { return state.aiStatus; },
+    set translationStatus(v) { state.aiStatus = v; },
+    get btnAiTxtNode() { return document.createElement("span"); },
+    get tooltip() { return document.createElement("span"); },
+    get classList() { return { contains: () => false, add: () => {}, remove: () => {} }; },
+    get style() { let _c = ""; return { set color(v) { _c = v; }, get color() { return _c; } }; },
+    get ownerDocument() { return document; },
+    setAttribute: () => {},
+  };
+}
+
+/**
+ * Single-entry executor for block-level hover button clicks (#65, NQ4).
+ *
+ * Decision logic lives in singletonBtnClickResolver.js (pure table); this
+ * function only executes the resolved action, reusing the pre-#65 block
+ * helpers (restoreBlockOriginal / showBlockGoogleOnly / writeGoogleIntoBlock /
+ * applyGoogle* / aiTranslateText) unchanged.
+ *
+ * Late-write suppression (NQ4.3): every fetch action captures one monotonic
+ * `state.requestEpoch` up front — both channels of the concurrent Google+AI
+ * path share it. restoreBlock bumps the epoch, so any response landing after
+ * the user restored the original is discarded instead of writing back (the
+ * pre-#65 `displayMode === "original"` check could not tell "not yet
+ * written" apart from "user clicked O").
+ */
+async function handleSingletonBtnClick(buttonId, translatedElement) {
   const state = getBlockState(translatedElement);
   if (!state) return;
 
-  // Legacy state fallback: blocks registered before displayMode existed
-  const displayMode = state.displayMode ||
-    (state.aiStatus === "translated" ? "ai" : "google");
+  const action = resolveSingletonBtnClick(state, buttonId, {
+    hasApiKey: hasActiveProviderApiKey(),
+    hasStoredGoogleText: _hasStoredGoogleText(state),
+  });
 
-  if (displayMode === "ai") {
-    // Behavior 3 second click: restore original
-    restoreBlockOriginal(state, translatedElement);
-    return;
-  }
+  // One epoch per user action; shared by both channels of the concurrent path.
+  const isFetch = action.type === "fetchGoogle" || action.type === "fetchAi" || action.type === "retryAi";
+  const myEpoch = isFetch ? (state.requestEpoch = (state.requestEpoch ?? 0) + 1) : undefined;
 
-  if (!hasActiveProviderApiKey()) {
-    promptToConfigureAiProvider();
-    return;
-  }
+  switch (action.type) {
+    case "noop":
+      return;
 
-  if (displayMode === "google") {
-    if (state.aiStatus === "translated") {
-      // Behavior 4 last step: re-show AI without re-translating
+    case "restoreBlock":
+      state.requestEpoch = (state.requestEpoch ?? 0) + 1; // invalidate all in-flight responses (#65)
+      restoreBlockOriginal(state, translatedElement);
+      return;
+
+    case "showGoogle":
+      showBlockGoogleOnly(state, translatedElement);
+      return;
+
+    case "showAi": {
+      // Behavior 4 last step: re-show AI without re-translating (text preserved)
       if (state.googleSpan) {
         // newLine: toggle spans
         state.googleSpan.style.display = "none";
@@ -704,107 +731,119 @@ async function handleSingletonAiClick(translatedElement) {
               } else if (n.nodeType === 1) {
                 n.style.display = "none";
               }
-            } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
+            } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
           });
         }
         if (state.translatedTextNode) {
-          try { state.translatedTextNode.style.display = ""; } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
+          try { state.translatedTextNode.style.display = ""; } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
         }
       }
       state.displayMode = "ai";
-      try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
+      try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
       return;
     }
-    // Behavior 2: run AI on top of Google
-    state.aiStatus = "translating";
-    state.errorMessage = undefined;
-    try {
-      const proxy = {
-        _st: () => state,
-        get sourceString() { return state.sourceString; },
-        get translatedTextNode() { return state.translatedTextNode; },
-        get googleSpan() { return state.googleSpan || null; },
-        get aiSpan() { return state.aiSpan || null; },
-        get translationId() { return state.translationId; },
-        set translationId(v) { state.translationId = v; },
-        get translationStatus() { return state.aiStatus; },
-        set translationStatus(v) { state.aiStatus = v; },
-        get btnAiTxtNode() { return document.createElement("span"); },
-        get tooltip() { return document.createElement("span"); },
-        get classList() { return { contains: () => false, add: () => {}, remove: () => {} }; },
-        get style() { let _c = ""; return { set color(v) { _c = v; }, get color() { return _c; } }; },
-        get ownerDocument() { return document; },
-        setAttribute: () => {},
-      };
-      await aiTranslateText([proxy], false);
-      if (state.aiStatus === "translated") {
-        state.displayMode = "ai";
-      } else if (state.aiStatus === "translationError") {
-        // Fall back: keep Google visible
-        state.displayMode = state.googleBtnState === "success" || state.googleTranslatedText ? "google" : "original";
-      }
-    } catch (e) {
-      state.aiStatus = "translationError";
-      state.errorMessage = e?.message || "AI translation error";
-    }
-    try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
-    return;
-  }
 
-  // displayMode === "original": behavior 3 — Google+AI concurrently, final display AI
-  applyGoogleTranslating(state);
-  backgroundTranslateSingleText("google", currentTargetLanguage, state.sourceString)
-    .then((result) => {
-      if (result) {
-        state.googleTranslatedText = result;
-        state.googleBtnState = "success";
-        // Write into googleSpan unconditionally (text needed for later "show Google only");
-        // visibility toggle only if AI hasn't taken over the display yet
-        if (state.googleSpan) {
-          try { state.googleSpan.textContent = result; } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
-        }
-        if (state.displayMode === "original") {
+    case "promptConfig":
+      promptToConfigureAiProvider();
+      return;
+
+    case "fetchGoogle": {
+      applyGoogleTranslating(state);
+      try {
+        const result = await backgroundTranslateSingleText(
+          "google", currentTargetLanguage, state.sourceString
+        );
+        if (state.requestEpoch !== myEpoch) return; // late write — discarded (#65)
+        if (result) {
+          state.googleTranslatedText = result;
           writeGoogleIntoBlock(state, result, translatedElement);
-          state.displayMode = "google";
-          try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
+          applyGoogleSuccess(state);
+        } else {
+          applyGoogleIdle(state);
         }
-      } else {
-        applyGoogleIdle(state);
+      } catch (_) {
+        if (state.requestEpoch === myEpoch) applyGoogleIdle(state);
       }
-    })
-    .catch(() => { applyGoogleIdle(state); });
-
-  state.aiStatus = "translating";
-  state.errorMessage = undefined;
-  try {
-    const proxy = {
-      _st: () => state,
-      get sourceString() { return state.sourceString; },
-      get translatedTextNode() { return state.translatedTextNode; },
-      get googleSpan() { return state.googleSpan || null; },
-      get aiSpan() { return state.aiSpan || null; },
-      get translationId() { return state.translationId; },
-      set translationId(v) { state.translationId = v; },
-      get translationStatus() { return state.aiStatus; },
-      set translationStatus(v) { state.aiStatus = v; },
-      get btnAiTxtNode() { return document.createElement("span"); },
-      get tooltip() { return document.createElement("span"); },
-      get classList() { return { contains: () => false, add: () => {}, remove: () => {} }; },
-      get style() { let _c = ""; return { set color(v) { _c = v; }, get color() { return _c; } }; },
-      get ownerDocument() { return document; },
-      setAttribute: () => {},
-    };
-    await aiTranslateText([proxy], false);
-    if (state.aiStatus === "translated") {
-      state.displayMode = "ai";
-    } else if (state.aiStatus === "translationError") {
-      state.displayMode = state.googleBtnState === "success" || state.googleTranslatedText ? "google" : "original";
+      try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
+      return;
     }
-  } catch (e) {
-    state.aiStatus = "translationError";
-    state.errorMessage = e?.message || "AI translation error";
+
+    case "fetchAi":
+    case "retryAi": {
+      // Branch on effective display mode (legacy fallback mirrors the resolver).
+      const mode = state.displayMode ||
+        (state.aiStatus === "translated" ? "ai" : "google");
+
+      if (mode === "google") {
+        // Behavior 2: run AI on top of Google (also serves A-retry)
+        state.aiStatus = "translating";
+        state.errorMessage = undefined;
+        try {
+          await aiTranslateText([createSingletonBlockProxy(state)], false);
+          if (state.requestEpoch !== myEpoch) return; // late write — discarded (#65)
+          if (state.aiStatus === "translated") {
+            state.displayMode = "ai";
+          } else if (state.aiStatus === "translationError") {
+            // Fall back: keep Google visible
+            state.displayMode = state.googleBtnState === "success" || state.googleTranslatedText ? "google" : "original";
+          }
+        } catch (e) {
+          if (state.requestEpoch === myEpoch) {
+            state.aiStatus = "translationError";
+            state.errorMessage = e?.message || "AI translation error";
+          }
+        }
+        try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
+        return;
+      }
+
+      // mode === "original": Behavior 3 — Google+AI concurrently, final display AI
+      applyGoogleTranslating(state);
+      backgroundTranslateSingleText("google", currentTargetLanguage, state.sourceString)
+        .then((result) => {
+          if (state.requestEpoch !== myEpoch) return; // late write — discarded (#65)
+          if (result) {
+            state.googleTranslatedText = result;
+            state.googleBtnState = "success";
+            // Write into googleSpan unconditionally (text needed for later "show Google only");
+            // visibility toggle only if AI hasn't taken over the display yet
+            if (state.googleSpan) {
+              try { state.googleSpan.textContent = result; } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
+            }
+            if (state.displayMode === "original") {
+              writeGoogleIntoBlock(state, result, translatedElement);
+              state.displayMode = "google";
+              try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
+            }
+          } else {
+            applyGoogleIdle(state);
+          }
+        })
+        .catch(() => { if (state.requestEpoch === myEpoch) applyGoogleIdle(state); });
+
+      state.aiStatus = "translating";
+      state.errorMessage = undefined;
+      try {
+        await aiTranslateText([createSingletonBlockProxy(state)], false);
+        if (state.requestEpoch !== myEpoch) return; // late write — discarded (#65)
+        if (state.aiStatus === "translated") {
+          state.displayMode = "ai";
+        } else if (state.aiStatus === "translationError") {
+          state.displayMode = state.googleBtnState === "success" || state.googleTranslatedText ? "google" : "original";
+        }
+      } catch (e) {
+        if (state.requestEpoch === myEpoch) {
+          state.aiStatus = "translationError";
+          state.errorMessage = e?.message || "AI translation error";
+        }
+      }
+      try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
+      return;
+    }
+
+    default:
+      return;
   }
-  try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonAiClick failed", e); }
 }
 
 /**
@@ -3860,10 +3899,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   pageTranslator._filterKeywordsInText = filterKeywordsInText;
    /** @internal — for testing custom dictionary replacement */
   pageTranslator._handleCustomWords = handleCustomWords;
-   /** @internal — for testing AI button click handling */
-  pageTranslator._handleSingletonAiClick = handleSingletonAiClick;
-   /** @internal — for testing Google button click handling */
-  pageTranslator._handleSingletonGoogleClick = handleSingletonGoogleClick;
+   /** @internal — for testing the single-entry hover button click executor (#65) */
+   pageTranslator._handleSingletonBtnClick = handleSingletonBtnClick;
    /** @internal — for testing viewport-aware translation */
   pageTranslator._translateDynamically = translateDynamically;
    /** @internal — for testing provider → model mapping */

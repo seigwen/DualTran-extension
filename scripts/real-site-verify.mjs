@@ -373,7 +373,9 @@ async function stepInjectShellHover(page) {
     // Same semantics as Turbo PageSnapshot.clone(): shadow root is NOT cloned.
     const shell = host.cloneNode(true);
     host.replaceWith(shell);
-    const target = document.querySelector("translated") || document.querySelector("[data-dualtran-block]");
+    // Prefer [data-dualtran-block] (registered in both display modes) —
+    // bare <translated> can be a display:none artifact (#65 target fidelity).
+    const target = document.querySelector("[data-dualtran-block]") || document.querySelector("translated");
     if (!target) return { skipped: true, reason: "no translated block to hover" };
     target.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     return { skipped: false };
@@ -409,7 +411,9 @@ async function stepInjectDuplicateHover(page) {
     // Count BEFORE poking the hover path — the rebuild (when it happens)
     // is synchronous inside the mouseover dispatch.
     const before = document.querySelectorAll(`#${id}`).length;
-    const target = document.querySelector("translated") || document.querySelector("[data-dualtran-block]");
+    // Prefer [data-dualtran-block] (registered in both display modes) —
+    // bare <translated> can be a display:none artifact (#65 target fidelity).
+    const target = document.querySelector("[data-dualtran-block]") || document.querySelector("translated");
     if (!target) return { skipped: true, reason: "no translated block to hover" };
     target.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     return { skipped: false, before };
