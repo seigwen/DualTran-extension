@@ -949,6 +949,130 @@ export function queryShadowAll(root, selector) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// 视觉捕获助手（V1, issue #67）
+//
+// 截图管道 + 动画静止等待。截图产物落 /tmp/e2e-shots/<scenario>/<id>.png，
+// 由 CI artifact 上传（14 天）供 AI 视觉审查与失败取证使用。
+// ═══════════════════════════════════════════════════════════════
+
+/** 截图产物根目录（可用 E2E_SHOTS_DIR 覆盖，测试隔离用）。 */
+export function shotsRootDir() {
+  return process.env.E2E_SHOTS_DIR || "/tmp/e2e-shots";
+}
+
+/** 把任意字符串消毒成安全文件名片段（防路径逃逸）。 */
+function sanitizeSegment(segment) {
+  return String(segment).replace(/[^a-zA-Z0-9_-]/g, "-").replace(/^\.+/, "").replace(/\.+$/, "") || "unnamed";
+}
+
+/**
+ * 等待页面视觉静止：连续 settleFrames 帧签名不变即视为静止。
+ *
+ * 签名 = 文档高度 + 滚动位置 + 已挂载动画/过渡元素计数 + 扩展 host 数量。
+ * 覆盖 options.css 的 400ms transition 与页面内 Toastify 动画；超时后
+ * 返回 { stable: false } 而不是抛错（截图仍然进行，报告里能看到未静止）。
+ *
+ * @param {import("playwright").Page} page
+ * @param {{ timeoutMs?: number, settleFrames?: number, frameWaitMs?: number }} [opts]
+ * @returns {Promise<{ stable: boolean, frames: number, elapsedMs: number }>}
+ */
+export async function waitForVisualStability(page, opts = {}) {
+  const timeoutMs = opts.timeoutMs ?? 3_000;
+  const settleFrames = opts.settleFrames ?? 2;
+  const frameWaitMs = opts.frameWaitMs ?? 80;
+  const startedAt = Date.now();
+  let lastSignature = null;
+  let identical = 0;
+  let frames = 0;
+
+  while (Date.now() - startedAt < timeoutMs) {
+    let signature;
+    try {
+      signature = await page.evaluate(() => {
+        const animations =
+          (document.getAnimations ? document.getAnimations().length : 0) | 0;
+        return [
+          document.documentElement.scrollHeight,
+          window.scrollY | 0,
+          animations,
+          document.querySelectorAll("[id^='dualtran-']").length,
+        ].join("|");
+      });
+    } catch {
+      // 页面导航中（execution context destroyed）——按签名变化处理
+      signature = `err|${Date.now()}`;
+    }
+    frames++;
+    if (signature === lastSignature) {
+      identical++;
+      if (identical >= settleFrames) {
+        return { stable: true, frames, elapsedMs: Date.now() - startedAt };
+      }
+    } else {
+      identical = 0;
+    }
+    lastSignature = signature;
+    await page.waitForTimeout(frameWaitMs).catch(() => {});
+  }
+  return { stable: false, frames, elapsedMs: Date.now() - startedAt };
+}
+
+/**
+ * 捕获一个视觉检查点截图。BEST-EFFORT 语义：截图自身失败返回 null 且
+ * 绝不抛错（它常在场景失败路径里被调用，不能掩盖原始错误）。
+ *
+ * @param {import("playwright").Page} page
+ * @param {string} id - 检查点 id（稳定、[a-z0-9-]+，见 visual-checks.mjs）
+ * @param {{ scenario?: string, root?: string, stability?: boolean, fullPage?: boolean }} [opts]
+ * @returns {Promise<{ id: string, scenario: string, path: string, capturedAt: string } | null>}
+ */
+export async function screenshotCheckpoint(page, id, opts = {}) {
+  const scenario = sanitizeSegment(opts.scenario || "default");
+  const safeId = sanitizeSegment(id);
+  const root = opts.root || shotsRootDir();
+  const dir = path.join(root, scenario);
+  const filePath = path.join(dir, `${safeId}.png`);
+
+  try {
+    await fs.mkdir(dir, { recursive: true });
+    if (opts.stability !== false) {
+      await waitForVisualStability(page, opts.stabilityOpts || {});
+    }
+    await page.screenshot({
+      path: filePath,
+      fullPage: opts.fullPage === true,
+      // 确定性（验收 2）：截图瞬间禁用 CSS 动画/过渡——否则 400ms
+      // transition（options.css）会造成同构建两跑的像素级差异。
+      animations: "disabled",
+    });
+    console.log(`[capture] ${path.relative(root, filePath)}`);
+    return { id: safeId, scenario, path: filePath, capturedAt: new Date().toISOString() };
+  } catch (err) {
+    console.warn(`[capture] screenshot failed for "${safeId}" (best-effort, ignored): ${err.message}`);
+    return null;
+  }
+}
+
+/**
+ * 场景失败时的最佳努力现场截图（V1, issue #67, VQ2 ①b 失败兜底）。
+ *
+ * 绝不抛错——原始场景错误优先；截图失败只留一行 warn。
+ *
+ * @param {{ page?: import("playwright").Page }} scope - setup 作用域
+ * @param {string} scenarioName - 失败场景名（产物 failures/failure-<name>.png）
+ * @returns {Promise<void>}
+ */
+export async function captureFailureShot(scope, scenarioName) {
+  try {
+    const page = scope?.page;
+    if (!page || page.isClosed?.()) return;
+    await screenshotCheckpoint(page, `failure-${scenarioName}`, { scenario: "failures" });
+  } catch (shotErr) {
+    console.warn(`[capture] failure shot for "${scenarioName}" failed (ignored): ${shotErr.message}`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // 浏览器启动 / 服务器管理
 //
 // 提供浏览器启动、静态页面服务器、Mock 服务器及两层 setup 函数。
@@ -962,11 +1086,15 @@ export function queryShadowAll(root, selector) {
  *   - --no-first-run：跳过首次运行向导
  *   - headless: false：扩展不支持 headless 模式（Chrome 限制）
  *   - 使用 Playwright 内置的 Chromium（非系统 Chrome），确保 Windows 兼容性
+ *   - viewport 固定 1280×720 @ DSF=1：视觉截图产物可复现的前提（V1, issue #67）
+ *   - recordVideo（E2E_VIDEO=1 时启用）：诊断模式的失败现场录像
  *
  * @returns {Promise<import("playwright").BrowserContext>} Playwright 浏览器上下文
  */
 export async function launchExtensionBrowser() {
   const extDir = await prepareExtensionDir();
+  // 视觉确定性（V1, issue #67）：显式 pin 视口与像素比，否则 xvfb 下窗口
+  // 尺寸取决于 X server 配置，截图不可复现。
   const context = await chromium.launchPersistentContext("", {
     args: [
       `--disable-extensions-except=${extDir}`,  // 仅加载我们的扩展
@@ -975,6 +1103,13 @@ export async function launchExtensionBrowser() {
       "--no-default-browser-check",                    // 跳过默认浏览器检查
     ],
     headless: false, // Chrome 扩展必须在非 headless 模式下运行
+    viewport: { width: 1280, height: 720 },
+    deviceScaleFactor: 1,
+    // 诊断模式录像（VQ2 ②b）：Playwright 的 recordVideo 只能在启动时开/关，
+    // 无法事后补录；默认关闭，E2E_VIDEO=1 时录制进 /tmp/e2e-videos。
+    ...(process.env.E2E_VIDEO === "1"
+      ? { recordVideo: { dir: process.env.E2E_VIDEO_DIR || "/tmp/e2e-videos", size: { width: 1280, height: 720 } } }
+      : {}),
   });
   // 猴子补丁：将所有页面的 attachShadow({ mode: "closed" }) 强制改为 mode: "open"
   // 以便 Playwright 的 evaluate() 可以访问 shadow DOM 内部内容进行行为验证

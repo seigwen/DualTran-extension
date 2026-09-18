@@ -93,9 +93,30 @@ tests/
 |---|---|---|---|---|
 | 单元层 | jsdom | `el.style.color`（inline style） | 可靠 | 锁定代码行为 |
 | 集成层 | E2E | `getComputedStyle(el).color` | 真实浏览器 | 锁定用户可见行为 |
-| 视觉层（长期） | Playwright screenshot diff | `toHaveScreenshot` | 最真实 | 捕获布局/颜色回归 |
+| 视觉层 | E2E 截图 + AI 审查（V1, #67） | `visual-audit` 场景截图 → 清单审查 | 最真实 | 捕获布局/颜色/遮挡/截断类回归 |
 
 **jsdom 假绿陷阱**：纯文本节点没有 `.style`，对 `textNode` 断言颜色必然通过。样式断言必须落在**元素节点**上（`<font>`、`<b>`、`<translated>` 等）。
+
+### 视觉检查点（Visual Checkpoints，V1 issue #67）
+
+**视觉层 = 确定性捕获（底座）+ AI 视觉审查（主轴）。** 程序化断言只能检查**已写出的**不变量；「没写断言的视觉异常」（错位/遮挡/截断/层次错乱）由本层兜底。
+
+| 件 | 位置 | 作用 |
+|---|---|---|
+| 检查点清单 | `tests/browser-e2e/visual-checks.mjs` | 每个 checkpoint 的 `id` + `capture` 描述 + `expect[]` 判据（SSOT） |
+| 捕获场景 | `tests/browser-e2e/visual-audit.mjs` | 走完整用户旅程，每检查点 `screenshotCheckpoint(page, id)` 截图（静止等待后） |
+| 捕获助手 | `setup.mjs` → `screenshotCheckpoint` / `waitForVisualStability` | 产物落 `/tmp/e2e-shots/<scenario>/<id>.png`；失败兜底（best-effort） |
+| 失败兜底 | `run-all.mjs` | 任何场景失败自动截 `failures/failure-<scenario>.png` |
+| 录像 | `E2E_VIDEO=1`（启动时开关） | 诊断模式，产物 `/tmp/e2e-videos`；无法事后补录 |
+| 审查输入 | `scripts/visual-review.mjs` | 取产物（`--run <id>` 或 `--dir`）→ `visual-review-input.json` 供分析 |
+| lint | `scripts/check-visual-checks.js`（第 11 个） | 清单 ↔ 捕获**双向覆盖**；`expect[]` 非空；id 格式/唯一 |
+| 效度演练 | `VISUAL_SELFTEST=inject` | 三种注入（遮挡/移位/隐藏）→ 分析必须命中；`clean` → 必须零误报 |
+
+**规则：**
+1. 新增/修改截图点必须同步更新 `visual-checks.mjs`（lint 强制双向覆盖）；`expect[]` 是审查判据，必须写清「该图应呈现什么」。
+2. 悬停目标纪律沿用「Hover Target Fidelity」——截图前确保页面处于**真实指针可达**的状态。
+3. **录制/截图产物不入库**（artifacts 生命周期管理）；清单文件是代码资产、入库、走 review。
+4. **清单/捕获变更时必须演练一次效度对照**（`VISUAL_SELFTEST=inject` 阳性 + `clean` 阴性），结果贴对应 issue 评论。
 
 ### 样式不变量（负向断言）
 

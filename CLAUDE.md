@@ -198,6 +198,14 @@ Content Script (fetchSSE.js)
 - **实现点清单（规则对称性）：** `singletonBtnClickResolver.js` `resolveSingletonBtnClick`（决策唯一实现）、`pageTranslator.js` `handleSingletonBtnClick`（执行唯一入口）、`singletonBtnGroup.js` `showButtonGroup`（守卫）、`BTN_COLORS`/`applyButtonPalette`（视觉）、`singletonBtnGroup.js` `createBlockState`（`requestEpoch` 字段）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - **测试：** jsdom `singletonBtnClickResolver.test.js`（决策表 21 格）+ `hoverBtnBehavior.integration.test.js`（Behavior 1–4 + 晚写抑制 2 格）+ `singletonBtnGroup.test.js`（守卫 5 格 + 三按钮结构/色板 4 格）+ E2E `navigation-recovery.mjs` Scene 3（computed 色值 + 标签）。**样式变更必须 jsdom（锁 inline 色）+ E2E（锁 computed）双层**（tests/CLAUDE.md 样式分层纪律）。
 
+**RULE: 视觉检查点规则（visual checkpoint rule, V1 #67）—— 截图点与清单双向覆盖，产物不入库，变更须演练效度对照：**
+- **清单 SSOT：** 每个视觉截图点必须在 `tests/browser-e2e/visual-checks.mjs` 的 `CHECKPOINTS` 中声明（`id` + `capture` + `expect[]`）；`expect[]` 空 = 审查无判据，禁止。
+- **双向覆盖：** `visual-audit.mjs` 中每个 `screenshotCheckpoint(page, "<id>")` 调用点的 id 必须在清单存在（且反向亦然）；id 必须是静态字符串字面量。由 `check-visual-checks.js`（第 11 个 lint）CI 强制。
+- **产物纪律：** 截图/录像产物不入库（/tmp + CI artifacts 生命周期）；清单文件是代码资产、入库、走 review。
+- **效度纪律：** 清单/捕获变更时必须演练一次（`VISUAL_SELFTEST=inject` 阳性必须命中 + `clean` 阴性必须零误报），结果贴对应 issue。
+- **实现点清单（规则对称性）：** `visual-checks.mjs` `CHECKPOINTS`（清单 SSOT）、`visual-audit.mjs` `screenshotCheckpoint` 调用点（捕获）、`setup.mjs` `screenshotCheckpoint`/`waitForVisualStability`（助手）、`run-all.mjs` `captureFailureShot`（失败兜底）、`check-visual-checks.js`（lint 强制）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- **测试：** `tests/scripts/checkVisualChecks.test.js`（lint 自测 9 格）+ `tests/scripts/visualCapture.test.js`（助手契约 7 格）+ E2E `visual-audit.mjs`（真实捕获 10 检查点）+ `VISUAL_SELFTEST=inject/clean` 效度演练（遮挡/移位/隐藏三注入形态）。
+
 **基础设施假设清单（Infrastructure Assumptions，M1 issue #31）—— 每个假设必须有测试引用（M3 用 check-infra-assumptions.js 强制）：**
 - **假设：** `document.body` 元素可能被框架整体替换（Turbo Drive 回退导航 `replaceWith`，2026-09-10 github.com 实测）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav」2 个
 - **假设：** `document.documentElement`（`<html>`）在 SPA 导航中存活（实测 `htmlReplaced: false`）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav: body element replaced immediately → host must be recreated」

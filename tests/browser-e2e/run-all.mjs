@@ -13,7 +13,7 @@
  * @module run-all
  */
 
-import { setupBasic, setupFull, teardown } from "./setup.mjs";
+import { setupBasic, setupFull, teardown, captureFailureShot } from "./setup.mjs";
 import { resolveMockModeConfig, parseBrowserE2eArgs } from "./browser-e2e-config.mjs";
 
 // ═══════════════════════════════════════════════════════════════
@@ -82,6 +82,7 @@ const SCENARIO_MODULE_PATHS = [
   "./observer-feedback-loop.mjs",
   "./floating-btn-three-state.mjs",
   "./self-heal-matrix.mjs",
+  "./visual-audit.mjs",
 ];
 
 /**
@@ -228,6 +229,8 @@ async function runMockScenarios(scenarios, cliOptions) {
         if (scenarioErr.stack) {
           console.error(scenarioErr.stack);
         }
+        // V1（issue #67）：失败现场截图（最佳努力，绝不掩盖原始错误）
+        await captureFailureShot(scope, scenario.name);
       }
     }
   } finally {
@@ -282,6 +285,8 @@ async function runBasicScenarios(scenarios) {
         if (scenarioErr.stack) {
           console.error(scenarioErr.stack);
         }
+        // V1（issue #67）：失败现场截图（最佳努力，绝不掩盖原始错误）
+        await captureFailureShot(scope, scenario.name);
       }
     }
   } finally {
