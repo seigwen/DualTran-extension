@@ -64,7 +64,7 @@ jobs:
     - name: Install Playwright Chromium
       run: npx playwright install --with-deps chromium
 
-    # 全量 15 个浏览器 E2E 场景（真实 Chrome + 扩展 + xvfb）。
+    # 全量 20+1 个浏览器 E2E 场景（真实 Chrome + 扩展 + xvfb）。
     # 失败自动重试 1 次（E2E 存在环境级偶发波动）；两次都失败则任务失败。
     - name: Run browser E2E suite (attempt 1)
       id: e2e-attempt-1
@@ -82,6 +82,17 @@ jobs:
         name: e2e-logs
         path: /tmp/*.log
         retention-days: 7
+
+    # V1（issue #67）：视觉检查点截图 + 失败现场图。
+    # 供 Hermes 原生视觉按 visual-checks.mjs 清单审查（VQ3/VQ4）。
+    - name: Upload visual artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: e2e-visual-shots
+        path: /tmp/e2e-shots/
+        retention-days: 14
+        if-no-files-found: warn
 
   coverage:
     name: Coverage (non-blocking)
@@ -154,3 +165,6 @@ jobs:
 
     - name: Host state assertions (E2E must use tri-state assertHostState; no raw exists booleans)
       run: node scripts/check-host-state-assertions.js
+
+    - name: Visual checks (checkpoints ↔ captures bidirectional coverage, expect[] present)
+      run: node scripts/check-visual-checks.js
