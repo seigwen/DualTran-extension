@@ -134,7 +134,7 @@ vi.stubGlobal("top", window);
 vi.stubGlobal("self", window);
 vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ text: () => Promise.resolve(""), ok: true })));
 
-let pageTranslator, translateResults, addTranslatedContent, getPiecesToTranslate, filterKeywordsInText, handleCustomWords, handleSingletonAiClick, handleSingletonGoogleClick, translateDynamically, updatePiecesToTranslateWithNewNodes, getNewNodes;
+let pageTranslator, translateResults, addTranslatedContent, getPiecesToTranslate, filterKeywordsInText, handleCustomWords, handleSingletonBtnClick, translateDynamically, updatePiecesToTranslateWithNewNodes, getNewNodes;
 
 beforeAll(async () => {
   const mod = await import("../../src/contentScript/pageTranslator.js");
@@ -147,8 +147,7 @@ beforeAll(async () => {
     expect(pageTranslator._getPiecesToTranslate).toBeTypeOf("function");
     expect(pageTranslator._filterKeywordsInText).toBeTypeOf("function");
     expect(pageTranslator._handleCustomWords).toBeTypeOf("function");
-    expect(pageTranslator._handleSingletonAiClick).toBeTypeOf("function");
-    expect(pageTranslator._handleSingletonGoogleClick).toBeTypeOf("function");
+    expect(pageTranslator._handleSingletonBtnClick).toBeTypeOf("function");
     expect(pageTranslator._translateDynamically).toBeTypeOf("function");
     expect(pageTranslator._updatePiecesToTranslateWithNewNodes).toBeTypeOf("function");
     expect(pageTranslator._getNewNodes).toBeTypeOf("function");
@@ -158,8 +157,7 @@ beforeAll(async () => {
   getPiecesToTranslate = pageTranslator._getPiecesToTranslate;
   filterKeywordsInText = pageTranslator._filterKeywordsInText;
   handleCustomWords = pageTranslator._handleCustomWords;
-  handleSingletonAiClick = pageTranslator._handleSingletonAiClick;
-  handleSingletonGoogleClick = pageTranslator._handleSingletonGoogleClick;
+  handleSingletonBtnClick = pageTranslator._handleSingletonBtnClick;
   translateDynamically = pageTranslator._translateDynamically;
   updatePiecesToTranslateWithNewNodes = pageTranslator._updatePiecesToTranslateWithNewNodes;
   getNewNodes = pageTranslator._getNewNodes;
@@ -919,14 +917,14 @@ describe("newLine 模式：原始文本不应被清除", () => {
   });
 });
 
-describe("handleSingletonAiClick (AI 按钮点击 → 恢复原文)", () => {
+describe("handleSingletonBtnClick — O 恢复原文 (#65 direct-select；原 AI 二次点击还原入口)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockState.configValues.aiImproveForLongerThan = 0;
   });
 
-  // ISSUE-007 回归: AI 翻译完成后再次点击 → 恢复原文并清除 AI 译文
-  it("ISSUE-007 回归: AI→restore 时恢复 nodesToClear 为原文并清除 AI span", async () => {
+  // ISSUE-007 回归: AI 翻译完成后点击 O → 恢复原文并清除 AI 译文
+  it("ISSUE-007 回归: O(restore) 时恢复 nodesToClear 为原文并清除 AI span", async () => {
     // 创建 DOM：模拟 replaceOriginal 模式下的翻译结果
     const parentElement = document.createElement("p");
     const googleNode = document.createTextNode("Bonjour le monde");
@@ -951,11 +949,11 @@ describe("handleSingletonAiClick (AI 按钮点击 → 恢复原文)", () => {
 
     // 模拟 nodesToRestore（存储原始文本用于恢复）
     // 注意: nodesToRestore 是 pageTranslator 内部数组，
-    // handleSingletonAiClick 会在其中查找匹配的节点。
+    // restoreBlockOriginal 会在其中查找匹配的节点。
     // 由于在测试环境中 nodesToRestore 为空，恢复操作会静默跳过。
     // 但 AI span 仍应被清除。
 
-    await handleSingletonAiClick(parentElement);
+    await handleSingletonBtnClick("original", parentElement);
 
     // 验证: AI span 被清除
     expect(aiSpan.textContent).toBe("");
@@ -1096,14 +1094,14 @@ describe("replaceOriginal 模式：AI 翻译后 showOriginal 注册（hover 原�
   });
 });
 
-describe("handleSingletonGoogleClick 状态机分支", () => {
+describe("handleSingletonBtnClick 状态机分支 — G (#65 direct-select)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockState.registerBlockMock.mockClear();
     mockState.ensureSingletonInitMock.mockClear();
   });
 
-  it("displayMode=google → 恢复原文（state 变为 original/userPinned）", async () => {
+  it("O 按钮在 displayMode=google 时 → 恢复原文（state 变为 original/userPinned）", async () => {
     const state = {
       displayMode: "google",
       googleBtnState: "success",
@@ -1117,7 +1115,7 @@ describe("handleSingletonGoogleClick 状态机分支", () => {
     const el = document.createElement("div");
     document.body.appendChild(el);
 
-    await handleSingletonGoogleClick(el);
+    await handleSingletonBtnClick("original", el);
 
     expect(state.displayMode).toBe("original");
     expect(state.aiStatus).toBe("userPinned");
@@ -1141,21 +1139,21 @@ describe("handleSingletonGoogleClick 状态机分支", () => {
     const el = document.createElement("div");
     document.body.appendChild(el);
 
-    await handleSingletonGoogleClick(el);
+    await handleSingletonBtnClick("google", el);
 
     expect(state.displayMode).toBe("google");
     expect(state.googleBtnState).toBe("success");
   });
 });
 
-describe("handleSingletonAiClick 状态机分支", () => {
+describe("handleSingletonBtnClick 状态机分支 — O (#65 direct-select)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockState.registerBlockMock.mockClear();
     mockState.ensureSingletonInitMock.mockClear();
   });
 
-  it("displayMode=ai → 恢复原文（state 变为 original/userPinned）", async () => {
+  it("O 按钮在 displayMode=ai 时 → 恢复原文（state 变为 original/userPinned）", async () => {
     const state = {
       displayMode: "ai",
       googleBtnState: "success",
@@ -1169,7 +1167,7 @@ describe("handleSingletonAiClick 状态机分支", () => {
     const el = document.createElement("div");
     document.body.appendChild(el);
 
-    await handleSingletonAiClick(el);
+    await handleSingletonBtnClick("original", el);
 
     expect(state.displayMode).toBe("original");
     expect(state.aiStatus).toBe("userPinned");

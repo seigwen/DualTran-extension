@@ -248,6 +248,7 @@ tests/
 | observer 挂载点必须用 `getObserverRoot()`，禁止 `document.body` | `tests/scripts/checkObserverMount.test.js`（lint 自测 5 个）+ `scripts/check-observer-mount.js`（CI 强制） | 挂载点 ✅ |
 | Turbo 快照是 `cloneNode(true)`（不克隆 shadow root）；restore 恢复渲染快照不发请求 → 重建检查必须把"无 shadowRoot host"当作缺失，且必须要求"恰好一个" host 副本（duplicate 收敛，issue #43） | `floatingBtn.behavior.test.js`「turbo snapshot shell」4 个 +「duplicate hosts」2 个 + `singletonBtnGroup.test.js`「快照残留的 shadow-less shell host 在重建时被清除」+「singleton hover recovery — 失败态注入矩阵」3 个 +「duplicate hosts」2 个 + `navigation-recovery.mjs` Scene 6 | 死亡条件（快照渲染产生 shell）✅ 重建条件（三条路径重建 + singleton 清理 + 悬停自愈 + duplicate 收敛）✅ 恢复条件（无重复 host）✅ |
 | 模块加载期定时器不可取消，可能在 DOM 上下文拆除后触发（vitest teardown / 页面卸载）→ 回调必须带 `typeof document === "undefined"` teardown 守卫（issue #47） | `pageTranslator.navRestore.integration.test.js`「T9」 | 时序假设（拆除后触发）✅ 守卫条件（无 document → no-op）✅ |
+| 快照克隆块带 `data-dualtran-block` 属性但 **WeakMap 块状态不被复制**（`cloneNode(true)` 只克隆 DOM）→ 悬停守卫必须用 **WeakMap 身份判定**（`blockStateMap.get(el)`），禁止属性判定（#65） | `singletonBtnGroup.test.js`「未注册块悬停 — fail-safe 守卫 (#65)」5 格（含真 `cloneNode(true)` 克隆格） | 死亡条件（克隆块带属性无状态）✅ 守卫条件（WeakMap 判定 + 立即隐藏）✅ |
 
 ### 组件状态空间 → 可达性 → 测试引用矩阵（S1 失败状态可达性审计，issue #45）
 
@@ -547,6 +548,14 @@ Smoke scenario selection criteria: `needsMock: false` + validates core paths + f
 | popup-controls | 6 | Popup page 11 controls |
 | popup-behavior | 4 | Popup page behavior verification |
 | options-behavior | 9 | Options page behavior verification |
+
+### Hover Target Fidelity (合成事件命中测试纪律, #65)
+
+E2E 里用 `dispatchEvent(new MouseEvent("mouseover"))` 派发悬停时，**目标选择必须是真实指针可命中的已注册元素**——合成事件**绕过浏览器命中测试**，能命中 `display:none` / 零尺寸元素，而真实鼠标不能。
+
+- **规则：** 悬停目标优先 `querySelector("[data-dualtran-block]")`（`registerBlock` 两种显示模式下都打桩：newLine 在 `<translated>`、replaceOriginal 在容器），再回退 `translated`。裸 `querySelector("translated")` 在 replaceOriginal 形态下可能选中**空的、`display:none` 的未注册产物**。
+- **实证（#65 全量跑回归）：** 前序场景遗留 `whereToDisplayTranslatedText=replaceOriginal` 后，`singleton/absent/hover` 自愈格悬停到隐藏产物 → **#65 守卫正确拒绝**（NQ3：未注册块不显示组）→ host 不再重建 → 格失败；悬停真正的 `[data-dualtran-block]` 容器 → 守卫通过 → 重建 + 定位成功。修复 = 悬停目标选择，非产品代码。
+- **连带纪律：** 任何「悬停未注册/隐藏元素期望某种行为」的断言都必须先问「真实指针能命中它吗」——不能，则断言与真实用户语义脱节，属测试保真度缺陷（呼应 M2 模拟忠实度审计）。
 
 ### Mock Mode Configuration
 

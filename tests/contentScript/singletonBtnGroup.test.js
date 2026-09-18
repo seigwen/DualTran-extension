@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
-import { BtnAiProxy, createBlockState, getProxiesForTranslation, getAllProxies, registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation } from "../../src/contentScript/singletonBtnGroup.js";
+import { BtnAiProxy, createBlockState, getProxiesForTranslation, getAllProxies, registerBlock, getBlockState, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, updateSingletonUI, setCallbacks, BTN_COLORS } from "../../src/contentScript/singletonBtnGroup.js";
 
 describe("BtnAiProxy", () => {
   let dom, doc, singleton, stateMap, element;
@@ -831,6 +831,8 @@ describe("createBlockState", () => {
     expect(state.googleBtnState).toBe("idle");
     expect(state.displayMode).toBe("original");
     expect(state.translationId).toBe("");
+    // #65: monotonic write-back guard (late in-flight responses check it)
+    expect(state.requestEpoch).toBe(0);
   });
 
   test("returns a fresh object each time (no shared references)", () => {
@@ -856,5 +858,250 @@ describe("createBlockState", () => {
     // We can't directly access blockStateMap, but we can verify through BtnAiProxy
     // For now, just verify registerBlock doesn't throw
     expect(el.dataset.dualtranBlock).toBe("1");
+  });
+});
+
+// ──────────────────────────────────────────────────────────────
+// #65 — fail-safe guard: unregistered blocks must never show the
+// hover button group (snapshot clones / threshold-short blocks).
+//
+// Root cause: registerBlock() is the only writer of the WeakMap block
+// state, and cloneNode(true) copies DOM attributes (data-dualtran-block,
+// googleSpan/aiSpan classes) but NOT the WeakMap entry. A snapshot clone
+// therefore matches the hover delegation selector yet has no state —
+// clicking its buttons was a silent no-op ("dead buttons").
+// The guard is WeakMap IDENTITY (blockStateMap.get(el)), never attribute
+// presence — attribute checks would pass for clones and miss the bug.
+// ──────────────────────────────────────────────────────────────
+
+describe("未注册块悬停 — fail-safe 守卫 (#65)", () => {
+  let attachShadowSpy;
+  let registeredEl;
+
+  const hover = (el) => el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+  const touch = (el) => el.dispatchEvent(new Event("touchstart", { bubbles: true }));
+  const hostCount = () => document.querySelectorAll("#dualtran-singleton-btn-host").length;
+  const host = () => document.getElementById("dualtran-singleton-btn-host");
+
+  beforeEach(() => {
+    attachShadowSpy = vi
+      .spyOn(HTMLElement.prototype, "attachShadow")
+      .mockImplementation(function attachShadow(init) {
+        return Element.prototype.attachShadow.call(this, { ...init, mode: "open" });
+      });
+
+    document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
+    destroySingletonButtonGroup();
+    attachHoverDelegation();
+
+    registeredEl = document.createElement("translated");
+    registeredEl.textContent = "Bonjour";
+    document.body.appendChild(registeredEl);
+    registerBlock(registeredEl, "Hello", document.createTextNode("Bonjour"), "Bonjour", null);
+  });
+
+  afterEach(() => {
+    document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
+    destroySingletonButtonGroup();
+    registeredEl.remove();
+    vi.restoreAllMocks();
+  });
+
+  test("①快照克隆块悬停 → 不创建 host（cloneNode 不带 WeakMap 状态）", () => {
+    const snapshotClone = registeredEl.cloneNode(true);
+    document.body.appendChild(snapshotClone);
+    expect(hostCount()).toBe(0);
+
+    hover(snapshotClone);
+
+    expect(hostCount()).toBe(0);
+    snapshotClone.remove();
+  });
+
+  test("②裸未注册块悬停 → 不创建 host", () => {
+    const bare = document.createElement("translated");
+    bare.textContent = "Jamais enregistré";
+    document.body.appendChild(bare);
+    expect(hostCount()).toBe(0);
+
+    hover(bare);
+
+    expect(hostCount()).toBe(0);
+    bare.remove();
+  });
+
+  test("③幽灵组防护：A 显示中滑入未注册 B → 立即隐藏（host 回 -9999px，currentTarget 清空）", () => {
+    const spy = vi.fn();
+    setCallbacks({ onBtnClick: spy });
+    createSingletonButtonGroup();
+    hover(registeredEl);
+    expect(host().style.top).not.toBe("-9999px");
+
+    const snapshotClone = registeredEl.cloneNode(true);
+    document.body.appendChild(snapshotClone);
+    hover(snapshotClone);
+
+    // Immediately hidden — the stale group cannot stay parked over A.
+    expect(host().style.top).toBe("-9999px");
+    // currentTarget cleared: a button click must NOT fire a callback with
+    // any stale target after the hide.
+    host().shadowRoot.querySelector(".dualtran-google-btn").click();
+    expect(spy).not.toHaveBeenCalled();
+
+    // Registered block hover still works afterwards (no permanent mute).
+    hover(registeredEl);
+    expect(host().style.top).not.toBe("-9999px");
+    snapshotClone.remove();
+  });
+
+  test("④touchstart 入口：未注册块不创建 host 且不显示", () => {
+    const snapshotClone = registeredEl.cloneNode(true);
+    document.body.appendChild(snapshotClone);
+
+    touch(snapshotClone);
+    expect(hostCount()).toBe(0);
+
+    createSingletonButtonGroup();
+    expect(host().style.top).toBe("-9999px");
+    touch(snapshotClone);
+    expect(host().style.top).toBe("-9999px");
+    snapshotClone.remove();
+  });
+
+  test("⑤已注册块回归对照 → 正常创建并显示（守卫不误伤）", () => {
+    hover(registeredEl);
+
+    const h = host();
+    expect(h).not.toBeNull();
+    expect(h.shadowRoot).not.toBeNull();
+    expect(h.shadowRoot.querySelector(".dualtran-btn-group")).not.toBeNull();
+    expect(h.style.top).not.toBe("-9999px");
+  });
+});
+
+// ──────────────────────────────────────────────────────────────
+// #65 — three-button structure + floating-group palette
+// (Original / Google / AI, direct-select; G green → blue).
+// Colors live in JS inline style (mirrors floatingBtn.js 834-871);
+// the shadow <style> keeps layout only.
+// ──────────────────────────────────────────────────────────────
+
+describe("三按钮结构 + 色板（#65：Original / Google / AI，对齐浮动组）", () => {
+  let attachShadowSpy;
+  let translatedEl;
+
+  const hover = (el) => el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+  const asHex = (v) => {
+    const m = /^rgb\((\d+), (\d+), (\d+)\)$/.exec(v || "");
+    return m
+      ? "#" + [1, 2, 3].map((i) => Number(m[i]).toString(16).padStart(2, "0")).join("")
+      : (v || "").toLowerCase();
+  };
+  const buttons = () => {
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    const root = host && host.shadowRoot;
+    return {
+      original: root && root.querySelector(".dualtran-original-btn"),
+      google: root && root.querySelector(".dualtran-google-btn"),
+      ai: root && root.querySelector(".dualtran-ai-btn"),
+    };
+  };
+
+  beforeEach(() => {
+    attachShadowSpy = vi
+      .spyOn(HTMLElement.prototype, "attachShadow")
+      .mockImplementation(function attachShadow(init) {
+        return Element.prototype.attachShadow.call(this, { ...init, mode: "open" });
+      });
+
+    document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
+    destroySingletonButtonGroup();
+    attachHoverDelegation();
+
+    translatedEl = document.createElement("translated");
+    translatedEl.textContent = "Bonjour";
+    document.body.appendChild(translatedEl);
+    registerBlock(translatedEl, "Hello", document.createTextNode("Bonjour"), "Bonjour", null);
+    hover(translatedEl);
+  });
+
+  afterEach(() => {
+    document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
+    destroySingletonButtonGroup();
+    translatedEl.remove();
+    vi.restoreAllMocks();
+  });
+
+  test("shadow 内含 O/G/A 三按钮：全称标签 + i18n title", () => {
+    const { original, google, ai } = buttons();
+    expect(original).not.toBeNull();
+    expect(original.textContent).toBe("Original");
+    expect(original.title).toBe("Show original text");
+    expect(google).not.toBeNull();
+    expect(google.textContent).toBe("Google");
+    expect(google.title).toBe("Show Google translation");
+    expect(ai).not.toBeNull();
+    expect(ai.querySelector("span").textContent).toBe("AI");
+    expect(ai.title).toBe("Show AI translation");
+    // The old "G ✓" decoration is gone (floating group has none)
+    expect(google.textContent).not.toContain("✓");
+  });
+
+  test("静止态色板：O 灰 / G 蓝（绿已废除）/ A 紫 — inline style", () => {
+    // Lock the exported palette spec (BTN_COLORS) itself — the values that
+    // applyButtonPalette writes into inline styles. If someone reverts G to
+    // the old green, this fails before any DOM assertion runs.
+    expect(BTN_COLORS.original.inactive).toEqual({ color: "#6b7280", background: "#f3f4f6", borderColor: "#d1d5db" });
+    expect(BTN_COLORS.original.active).toEqual({ color: "#ffffff", background: "#374151", borderColor: "#374151" });
+    expect(BTN_COLORS.google.inactive).toEqual({ color: "#1d4ed8", background: "#eff6ff", borderColor: "#bfdbfe" });
+    expect(BTN_COLORS.google.active).toEqual({ color: "#ffffff", background: "#1d4ed8", borderColor: "#1d4ed8" });
+    expect(BTN_COLORS.ai.inactive).toEqual({ color: "#7c3aed", background: "#f5f3ff", borderColor: "#ddd6fe" });
+    expect(BTN_COLORS.ai.active).toEqual({ color: "#ffffff", background: "#7c3aed", borderColor: "#7c3aed" });
+
+    const { original, google, ai } = buttons();
+    // displayMode=google on register → G active, O/A inactive
+    expect(asHex(original.style.color)).toBe("#6b7280");
+    expect(asHex(original.style.background)).toBe("#f3f4f6");
+    expect(asHex(original.style.borderColor)).toBe("#d1d5db");
+    expect(asHex(google.style.background)).toBe("#1d4ed8");
+    expect(asHex(google.style.color)).toBe("#ffffff");
+    expect(asHex(ai.style.color)).toBe("#7c3aed");
+    expect(asHex(ai.style.background)).toBe("#f5f3ff");
+    expect(asHex(ai.style.borderColor)).toBe("#ddd6fe");
+  });
+
+  test("激活态随块 displayMode 切换：original → O 激活；ai → A 激活", () => {
+    // applyButtonPalette is the single writer of the three inline styles;
+    // this test drives it through updateSingletonUI on displayMode flips.
+    const st = getBlockState(translatedEl);
+    const { original, google, ai } = buttons();
+
+    st.displayMode = "original";
+    updateSingletonUI(translatedEl);
+    expect(asHex(original.style.background)).toBe("#374151");
+    expect(asHex(original.style.color)).toBe("#ffffff");
+    expect(asHex(google.style.color)).toBe("#1d4ed8");
+    expect(asHex(ai.style.color)).toBe("#7c3aed");
+
+    st.displayMode = "ai";
+    st.aiStatus = "translated";
+    updateSingletonUI(translatedEl);
+    expect(asHex(ai.style.background)).toBe("#7c3aed");
+    expect(asHex(ai.style.color)).toBe("#ffffff");
+    expect(asHex(original.style.background)).toBe("#f3f4f6");
+  });
+
+  test("点击回调走单一 onBtnClick(id, target) 收口", () => {
+    const spy = vi.fn();
+    setCallbacks({ onBtnClick: spy });
+    const { original, google, ai } = buttons();
+
+    original.click();
+    google.click();
+    ai.click();
+
+    expect(spy).toHaveBeenNthCalledWith(1, "original", translatedEl);
+    expect(spy).toHaveBeenNthCalledWith(2, "google", translatedEl);
+    expect(spy).toHaveBeenNthCalledWith(3, "ai", translatedEl);
   });
 });

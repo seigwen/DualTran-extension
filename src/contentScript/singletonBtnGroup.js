@@ -22,6 +22,11 @@
  */
 
 import { registerHost } from "./hostLifecycle.js";
+import {
+  getFloatingButtonOriginalTooltipText,
+  getFloatingButtonGoogleTooltipText,
+  getFloatingButtonAiTooltipText,
+} from "./i18n.js";
 
 // ── Shared dummy objects (absorb writes when proxy is not current target) ──
 
@@ -60,6 +65,8 @@ const blockStateMap = new WeakMap();
  * @property {"idle"|"queuing"|"translating"|"translated"|"translationError"|"userPinned"} aiStatus
  * @property {"idle"|"translating"|"success"} googleBtnState
  * @property {"original"|"google"|"ai"} displayMode
+ * @property {number} requestEpoch — monotonic write-back guard (#65): restored
+ *   blocks bump it, so late in-flight responses (Google/AI) are discarded.
  * @property {string} [errorMessage]
  */
 
@@ -70,7 +77,7 @@ const blockStateMap = new WeakMap();
 /**
  * Create a block state with canonical defaults for the 4 state machine fields.
  * registerBlock() merges this with data fields and DOM references.
- * @returns {{ aiStatus: string, googleBtnState: string, displayMode: string, translationId: string }}
+ * @returns {{ aiStatus: string, googleBtnState: string, displayMode: string, translationId: string, requestEpoch: number }}
  */
 export function createBlockState() {
   return {
@@ -78,6 +85,7 @@ export function createBlockState() {
     googleBtnState: "idle",
     displayMode: "original",
     translationId: "",
+    requestEpoch: 0,
   };
 }
 
@@ -196,6 +204,7 @@ let _singleton = {
   currentTarget: null,
   host: null,
   btnGroup: null,
+  originalBtn: null,
   aiBtn: null,
   googleBtn: null,
   aiTextNode: null,
@@ -204,6 +213,54 @@ let _singleton = {
   _visible: false,
   _pendingHideTimer: null,
 };
+
+// ── Three-button palette (#65, NQ2) ──────────────────────────────
+// Exact same spec as the floating group (floatingBtn.js 834-871):
+// colors are applied as JS inline styles, the shadow <style> keeps
+// layout only. Active state source = the block's displayMode.
+
+const BTN_COLORS = {
+  original: {
+    active: { color: "#ffffff", background: "#374151", borderColor: "#374151" },
+    inactive: { color: "#6b7280", background: "#f3f4f6", borderColor: "#d1d5db" },
+  },
+  google: {
+    active: { color: "#ffffff", background: "#1d4ed8", borderColor: "#1d4ed8" },
+    inactive: { color: "#1d4ed8", background: "#eff6ff", borderColor: "#bfdbfe" },
+  },
+  ai: {
+    active: { color: "#ffffff", background: "#7c3aed", borderColor: "#7c3aed" },
+    inactive: { color: "#7c3aed", background: "#f5f3ff", borderColor: "#ddd6fe" },
+  },
+};
+
+/**
+ * Export the palette spec so tests can lock the exact values (rule
+ * symmetry: BTN_COLORS is an implementation point of the #65 rule).
+ */
+export { BTN_COLORS };
+
+/**
+ * Apply the three-button palette. `displayMode` is the active key
+ * ("original" | "google" | "ai"); any other value leaves all inactive.
+ */
+function applyButtonPalette(displayMode) {
+  const buttons = {
+    original: _singleton.originalBtn,
+    google: _singleton.googleBtn,
+    ai: _singleton.aiBtn,
+  };
+  Object.keys(buttons).forEach((key) => {
+    const btn = buttons[key];
+    if (!btn) return;
+    const active = key === displayMode;
+    const style = active ? BTN_COLORS[key].active : BTN_COLORS[key].inactive;
+    btn.style.color = style.color;
+    btn.style.background = style.background;
+    btn.style.borderColor = style.borderColor;
+    btn.classList.toggle("dualtran-btn-active", active);
+  });
+}
 
 // Register with the shared host lifecycle manager (C1/M5). The manager
 // owns the health predicate (count === 1 && connected && shadowRoot),
@@ -270,7 +327,7 @@ function createSingletonHost() {
         gap: 4px;
         white-space: nowrap;
       }
-      .dualtran-google-btn, .dualtran-ai-btn {
+      .dualtran-original-btn, .dualtran-google-btn, .dualtran-ai-btn {
         font-size: 12px;
         font-weight: 700;
         padding: 8px 10px;
@@ -282,19 +339,6 @@ function createSingletonHost() {
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .dualtran-google-btn {
-        border: 1px solid #86efac;
-        background: #f0fdf4;
-        color: #15803d;
-      }
-      .dualtran-ai-btn {
-        border: 1px solid #ddd6fe;
-        background: #f5f3ff;
-        color: #7c3aed;
-      }
-      .dualtran-ai-btn.dualtran-ai-loading { color: #4f46e5; }
-      .dualtran-ai-btn.dualtran-ai-success { color: #16a34a; }
-      .dualtran-ai-btn.dualtran-ai-error { color: #dc2626; }
       .dualtran-ai-tooltip {
         display: none;
         position: absolute;
@@ -315,7 +359,8 @@ function createSingletonHost() {
       .dualtran-ai-error-cross { color: #dc2626; margin-left: 4px; font-weight: 600; }
     </style>
     <div class="dualtran-btn-group">
-      <button class="dualtran-google-btn">G ✓</button>
+      <button class="dualtran-original-btn">Original</button>
+      <button class="dualtran-google-btn">Google</button>
       <button class="dualtran-ai-btn">
         <span>AI</span>
         <span class="dualtran-ai-tooltip"></span>
@@ -326,34 +371,48 @@ function createSingletonHost() {
   document.body.appendChild(host);
 
   const btnGroup = shadow.querySelector(".dualtran-btn-group");
+  const originalBtn = shadow.querySelector(".dualtran-original-btn");
   const googleBtn = shadow.querySelector(".dualtran-google-btn");
   const aiBtn = shadow.querySelector(".dualtran-ai-btn");
   const aiTextNode = aiBtn.querySelector("span");
   const tooltipNode = aiBtn.querySelector(".dualtran-ai-tooltip");
 
+  // i18n tooltips (reuse the floating group's keys, NQ2)
+  originalBtn.title = getFloatingButtonOriginalTooltipText();
+  googleBtn.title = getFloatingButtonGoogleTooltipText();
+  aiBtn.title = getFloatingButtonAiTooltipText();
+
   _singleton = {
     ..._singleton,
     host,
     btnGroup,
+    originalBtn,
     googleBtn,
     aiBtn,
     aiTextNode,
     tooltipNode,
   };
 
-  // Google button click → callback
-  googleBtn.addEventListener("click", (e) => {
+  // Three buttons share the single onBtnClick(buttonId, target) callback
+  // (#65, NQ4.2 — replaces the old per-button onGoogleClick/onAiClick).
+  originalBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (_singleton.currentTarget && _singleton._callbacks?.onGoogleClick) {
-      _singleton._callbacks.onGoogleClick(_singleton.currentTarget);
+    if (_singleton.currentTarget && _singleton._callbacks?.onBtnClick) {
+      _singleton._callbacks.onBtnClick("original", _singleton.currentTarget);
     }
   });
 
-  // AI button click → callback
+  googleBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (_singleton.currentTarget && _singleton._callbacks?.onBtnClick) {
+      _singleton._callbacks.onBtnClick("google", _singleton.currentTarget);
+    }
+  });
+
   aiBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (_singleton.currentTarget && _singleton._callbacks?.onAiClick) {
-      _singleton._callbacks.onAiClick(_singleton.currentTarget);
+    if (_singleton.currentTarget && _singleton._callbacks?.onBtnClick) {
+      _singleton._callbacks.onBtnClick("ai", _singleton.currentTarget);
     }
   });
 }
@@ -377,7 +436,7 @@ export function setCallbacks(callbacks) {
 export function destroySingletonButtonGroup() {
   singletonHandle.disable();
   _detachHoverListeners();
-  _singleton = { ..._singleton, host: null, btnGroup: null, currentTarget: null, _visible: false, _pendingHideTimer: null };
+  _singleton = { ..._singleton, host: null, btnGroup: null, originalBtn: null, currentTarget: null, _visible: false, _pendingHideTimer: null };
 }
 
 // ── Positioning ─────────────────────────────────────────────────
@@ -447,8 +506,33 @@ export function hasAncestorTransform() {
  * destroy()" (no enabled-gate on the interaction entry — the entry IS
  * the enable moment). ensure() keeps the gate for manager-internal
  * (eager) triggers only.
+ *
+ * #65 fail-safe guard: the WeakMap identity check runs FIRST, before
+ * enable(). registerBlock() is the only writer of the block state, and
+ * cloneNode(true) copies DOM attributes but NOT WeakMap entries — a
+ * Turbo snapshot clone (or a threshold-short never-registered block)
+ * matches the hover selector yet has no state. Showing the group for it
+ * produced click handlers that early-returned = dead buttons. The guard
+ * must be WeakMap IDENTITY, never attribute presence (a clone carries
+ * data-dualtran-block="1"); attribute checks would pass for clones and
+ * miss the bug entirely.
+ *
+ * On mismatch the group hides immediately (and the pending hide timer is
+ * cleared): if block A's group is visible and the pointer slides onto an
+ * unregistered block B, mouseout-A bails early (enterTarget already hits
+ * a translated element) and without this hide the stale group would stay
+ * parked over A — a "ghost group" whose clicks operate on B's data while
+ * pointing at A.
  */
 export function showButtonGroup(translatedElement) {
+  if (!blockStateMap.get(translatedElement)) {
+    hideButtonGroup();
+    if (_singleton._pendingHideTimer) {
+      clearTimeout(_singleton._pendingHideTimer);
+      _singleton._pendingHideTimer = null;
+    }
+    return;
+  }
   singletonHandle.enable();
   if (!_singleton.host) return;
   if (_singleton._pendingHideTimer) {
@@ -474,6 +558,12 @@ export function hideButtonGroup() {
 
 /**
  * Update the singleton's button UI to reflect the state of the given block.
+ *
+ * #65: three buttons (Original / Google / AI). Button colors come from the
+ * BTN_COLORS palette (inline styles, active state = block displayMode);
+ * the AI decorations (✓ / ✕ / "translating..." / error tooltip) are kept,
+ * but they no longer fight the palette over the button text color — the
+ * decoration's own color lives on the indicator span.
  */
 export function updateSingletonUI(translatedElement) {
   if (!_singleton.aiBtn) return;
@@ -495,7 +585,6 @@ export function updateSingletonUI(translatedElement) {
     _singleton.aiTextNode.appendChild(check);
     _singleton.tooltipNode.textContent = "AI translated successfully!";
     _singleton.tooltipNode.style.color = "";
-    _singleton.aiBtn.style.color = "";
   } else if (status === "translationError") {
     _singleton.aiBtn.classList.add("dualtran-ai-error");
     const cross = document.createElement("span");
@@ -506,20 +595,23 @@ export function updateSingletonUI(translatedElement) {
     // Restore error reason from blockState to tooltip (stored in state.errorMessage when error occurred)
     _singleton.tooltipNode.textContent = state.errorMessage || "AI translation error";
     _singleton.tooltipNode.style.color = "#dc2626";
-    _singleton.aiBtn.style.color = "#dc2626";
   } else if (status === "translating") {
     _singleton.aiBtn.classList.add("dualtran-ai-loading");
     _singleton.aiTextNode.textContent = "translating...";
     _singleton.tooltipNode.textContent = "translating...";
     _singleton.tooltipNode.style.color = "";
-    _singleton.aiBtn.style.color = "";
   } else {
     // Idle state: clear tooltip to avoid residual error/success info from previous block
     _singleton.aiTextNode.textContent = "AI";
     _singleton.tooltipNode.textContent = "";
     _singleton.tooltipNode.style.color = "";
-    _singleton.aiBtn.style.color = "";
   }
+
+  // Active-state highlight follows the block's display mode (legacy state
+  // fallback mirrors the pre-#65 handlers).
+  const displayMode = state.displayMode ||
+    (state.aiStatus === "translated" ? "ai" : "google");
+  applyButtonPalette(displayMode);
 }
 
 // ── Event delegation ────────────────────────────────────────────
