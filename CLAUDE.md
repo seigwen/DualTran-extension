@@ -198,6 +198,14 @@ Content Script (fetchSSE.js)
 - **实现点清单（规则对称性）：** `singletonBtnClickResolver.js` `resolveSingletonBtnClick`（决策唯一实现）、`pageTranslator.js` `handleSingletonBtnClick`（执行唯一入口）、`singletonBtnGroup.js` `showButtonGroup`（守卫）、`BTN_COLORS`/`applyButtonPalette`（视觉）、`singletonBtnGroup.js` `createBlockState`（`requestEpoch` 字段）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - **测试：** jsdom `singletonBtnClickResolver.test.js`（决策表 21 格）+ `hoverBtnBehavior.integration.test.js`（Behavior 1–4 + 晚写抑制 2 格）+ `singletonBtnGroup.test.js`（守卫 5 格 + 三按钮结构/色板 4 格）+ E2E `navigation-recovery.mjs` Scene 3（computed 色值 + 标签）。**样式变更必须 jsdom（锁 inline 色）+ E2E（锁 computed）双层**（tests/CLAUDE.md 样式分层纪律）。
 
+**RULE: AI 到达闸门规则（AI arrival gate rule, #70）—— 抑制是边沿不是水平；显示声明只属于实际显示切换：**
+- **抑制语义（edge）：** 仅「用户在请求**在飞期间**切走」抑制到达（Q22 newLine 保留不显示 / Q23 replaceOriginal 整体丢弃）。**禁止**用到达时刻的页级水平旗标裁决——陈旧水平不得否决在其之后发起的块级 direct 请求（否则悬停 A 点了也不切）。
+- **边沿实现：** `aiModeEpoch`（`pageTranslator.js`）仅 true→false 时自增；请求起点捕获 arrivalEpoch；抑制条件 = 「epoch 在请求期间移动」——与 #65 块级 `requestEpoch` 同构的**页级版本**。
+- **面板豁免：** 无 `_st` 的代理（划词/悬停翻译面板）不被页面级显示切换抑制。
+- **显示声明所有权：** `displayMode = "ai"` 只能由实际显示切换写入；仅写文本+状态的 `applyAiResult` **禁止**写 displayMode——「到达但未显示」（Q22 保留态）必须停留 `google`，否则用户看 Google 而状态说 ai → 下次 A 点击被判 noop。
+- **实现点清单（规则对称性）：** `setAiModeActive`（epoch 自增唯一入口）、`_isAiArrivalAllowed`（判定唯一实现）、`applyAiSuccessWithModeCheck`（到达应用唯一入口）、`switchToAiDisplay`（显示声明唯一入口）、`applyAiResult`（不得写 displayMode）。
+- **测试：** `hoverBtnBehavior.integration.test.js`「Arrival gate」套件（陈旧旗标×双模式×{内存/持久缓存} + 面板豁免 + 在飞切走 Q22/Q23 + guard 三格）+ `hoverBtnStreamArrival.integration.test.js`（真实流式解析到达）+ `aiUiState.split.test.js`（displayMode 所有权三格）。
+
 **RULE: 视觉检查点规则（visual checkpoint rule, V1 #67）—— 截图点与清单双向覆盖，产物不入库，变更须演练效度对照：**
 - **清单 SSOT：** 每个视觉截图点必须在 `tests/browser-e2e/visual-checks.mjs` 的 `CHECKPOINTS` 中声明（`id` + `capture` + `expect[]`）；`expect[]` 空 = 审查无判据，禁止。
 - **双向覆盖：** `visual-audit.mjs` 中每个 `screenshotCheckpoint(page, "<id>")` 调用点的 id 必须在清单存在（且反向亦然）；id 必须是静态字符串字面量。由 `check-visual-checks.js`（第 11 个 lint）CI 强制。

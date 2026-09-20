@@ -170,6 +170,16 @@ tests/
 - E2E 工具：`assertUiStateMatchesEngine(page)`（读取 pageTranslator getter + 按钮高亮，断言一致）
 - 背景：UI 依赖事件驱动，但事件只在状态**变化**时触发（`setAiRenderState` 有变化 guard）。SPA 导航后状态没变 → 无事件 → 重建的 UI 永远不知道真实状态。**事件是"变化通知"，不是"状态查询"——UI 必须有查询路径。**
 
+### 到达闸门测试（Arrival Gate Testing，issue #70）
+
+**任何「到达抑制」类判定（Q22/Q23 风格：请求在飞期间用户切走 → 保留或丢弃到达）的测试必须覆盖两类用例，且抑制条件实现为「起点捕获 + 到达比较」（边沿），禁止读到达时刻的页面级水平旗标：**
+
+- **陈旧水平不抑制**：页面级模式在请求**之前**已切换 → 到达必须被应用（newLine 显示切换 / replaceOriginal 清理文本）——驱动真实执行器 + 真实缓存路径，对照组（旗标为 true）同跑。
+- **在飞边沿抑制**：请求**期间**切换 → 按 Q22 保留（newLine：文本+状态保留、显示不切换、`displayMode` 停留 `google`、下次点击零请求本地再现）或 Q23 丢弃（replaceOriginal：原文不动、status 重置 idle、下次点击缓存再现）。
+- **显示声明所有权**：`displayMode = "ai"` 仅由实际显示切换写入；「到达但未显示」必须停留 `google`（防「用户看 Google 但状态说 ai → 下次点击 noop」）。
+- **面板豁免**：无块状态的代理（划词/悬停翻译面板）不被页面级显示切换抑制。
+- 参考实现：`hoverBtnBehavior.integration.test.js`「Arrival gate — hover A after page-level Google (issue #70)」套件 + `hoverBtnStreamArrival.integration.test.js`（真实流式解析）+ `aiUiState.split.test.js`（display-state ownership 三格）。
+
 ### 事件缺失场景测试（Event-Absence Testing）
 
 **任何订阅引擎事件的 UI 组件，必须提供"查询当前状态"的初始化路径 + 测试。**
