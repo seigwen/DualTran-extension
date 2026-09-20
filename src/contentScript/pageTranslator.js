@@ -159,9 +159,18 @@ let hadGoogleTranslationError = false
 let shouldForceAiAfterPageTranslation = false
 // Q5: whether AI results should switch the display when they arrive.
 // Default true (engine applies results); the floating button sets it false
-// when the user explicitly switches away to Google/Original while a request
-// is in-flight, and true again when the user clicks AI.
+// when the user explicitly switches away to Google/Original, and true again
+// when the user clicks AI.
+//
+// The flag alone is a LEVEL and must not be read at arrival time (#70): it
+// stays false after a page-level Google click, so a later block-scope direct
+// request (hover A) was vetoed on arrival even though the user explicitly
+// asked for AI on that block. Suppression is an EDGE — `aiModeEpoch` bumps on
+// every true→false page-level switch, each request captures the epoch at
+// start, and only a switch that happened DURING the request suppresses the
+// arrival (Q22 keep / Q23 discard).
 let aiModeActive = true
+let aiModeEpoch = 0
 
 // ── AI translation state persistence (sessionStorage) ──────────────────────────
 // Used to restore AI translation state after Turbo/pjax navigation.
@@ -778,10 +787,14 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
         // Behavior 2: run AI on top of Google (also serves A-retry)
         state.aiStatus = "translating";
         state.errorMessage = undefined;
+        // #70: capture the page-level mode epoch before the request. The engine
+        // keeps (but does not show) a mid-flight switch-away result (Q22), so
+        // displayMode may be claimed only when the arrival was applied.
+        const epochBeforeFetch = aiModeEpoch;
         try {
           await aiTranslateText([createSingletonBlockProxy(state)], false);
           if (state.requestEpoch !== myEpoch) return; // late write — discarded (#65)
-          if (state.aiStatus === "translated") {
+          if (state.aiStatus === "translated" && isAiArrivalAllowedForBlock(epochBeforeFetch)) {
             state.displayMode = "ai";
           } else if (state.aiStatus === "translationError") {
             // Fall back: keep Google visible
@@ -823,10 +836,14 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
 
       state.aiStatus = "translating";
       state.errorMessage = undefined;
+      // #70: same guard as the Google-shown branch — claim displayMode only
+      // when the arrival was actually applied (mid-flight switch-away keeps
+      // the result without showing it, Q22).
+      const epochBeforeFetch = aiModeEpoch;
       try {
         await aiTranslateText([createSingletonBlockProxy(state)], false);
         if (state.requestEpoch !== myEpoch) return; // late write — discarded (#65)
-        if (state.aiStatus === "translated") {
+        if (state.aiStatus === "translated" && isAiArrivalAllowedForBlock(epochBeforeFetch)) {
           state.displayMode = "ai";
         } else if (state.aiStatus === "translationError") {
           state.displayMode = state.googleBtnState === "success" || state.googleTranslatedText ? "google" : "original";
@@ -872,6 +889,24 @@ function setAiRenderState(state) {
   }
 }
 
+// ── #70 arrival gate ──────────────────────────────────────────────────────────
+// Block-scope gate: apply the arrival when page-level mode is still AI, or when
+// no true→false page-level switch happened since the request was captured
+// (stale flag never suppresses — see the `aiModeActive` comment above).
+function isAiArrivalAllowedForBlock(capturedEpoch) {
+  if (aiModeActive) return true
+  return capturedEpoch === aiModeEpoch
+}
+
+// Panel surfaces (selected-text / hover-translate panels) carry no block state
+// (`_st`); the page-level display switch does not own their display, so their
+// arrivals are never suppressed.
+function shouldApplyAiArrival(btnAi, capturedEpoch) {
+  const isPageBlock = !!(btnAi && typeof btnAi._st === "function")
+  if (!isPageBlock) return true
+  return isAiArrivalAllowedForBlock(capturedEpoch)
+}
+
 let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
   if (!hasActiveProviderApiKey()) {
     toBeTranslated.forEach((btnAi) => resetAiButtonToIdle(btnAi))
@@ -883,6 +918,10 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
   const isSelectedPanel = Array.isArray(toBeTranslated) && toBeTranslated.some(btn => {
     try { return btn?.classList?.contains('dualtran-ai-selected-btn') } catch { return false }
   })
+  // #70: epoch captured at request start. The arrival gate compares it with the
+  // live epoch to detect a page-level switch-away that happened DURING this
+  // request — the only case that suppresses block arrivals (Q22/Q23).
+  const arrivalEpoch = aiModeEpoch
   const targetLanguageCodeForAI = isSelectedPanel
     ? (twpConfig.get("targetLanguageTextTranslation") || twpConfig.get("targetLanguage"))
     : twpConfig.get("targetLanguage")
@@ -897,7 +936,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
         translatedTextColor: twpConfig.get("aiTranslatedColor"),
         tooltipText: "Translated, click to translate again",
         titleText: null,
-      }, aiModeActive)
+      }, aiModeActive, shouldApplyAiArrival(btnAi, arrivalEpoch))
        // newLine mode: ensure AI translation color overrides Google translation color
       _applyAiColorToTranslatedElement(btnAi, twpConfig.get("aiTranslatedColor"));
       _registerAiForShowOriginal(btnAi);
@@ -921,7 +960,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
         translatedTextColor: twpConfig.get("aiTranslatedColor"),
         tooltipText: "Translated (cached), click to translate again",
         titleText: null,
-      }, aiModeActive);
+      }, aiModeActive, shouldApplyAiArrival(btnAi, arrivalEpoch));
        // newLine mode: ensure AI translation color overrides Google translation color
       _applyAiColorToTranslatedElement(btnAi, twpConfig.get("aiTranslatedColor"));
       _registerAiForShowOriginal(btnAi);
@@ -1069,7 +1108,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
             translatedTextColor: twpConfig.get("aiTranslatedColor"),
             tooltipText: "translated, click to translate again",
             titleText: null,
-          }, aiModeActive)
+          }, aiModeActive, shouldApplyAiArrival(btnAi, arrivalEpoch))
            // newLine mode: ensure AI translation color overrides Google translation color
           _applyAiColorToTranslatedElement(btnAi, twpConfig.get("aiTranslatedColor"));
           _registerAiForShowOriginal(btnAi);
@@ -3616,11 +3655,15 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   /**
    * Q5: set whether the user is currently in AI mode. The floating button calls
    * this when the user clicks AI (true) or switches away to Google/Original
-   * (false). The engine checks it when an AI response arrives to decide whether
-   * to switch the display or discard the result.
+   * (false). Every switch-away bumps `aiModeEpoch` (#70): the engine suppresses
+   * an arrival only when the epoch moved DURING the request — a stale flag from
+   * an earlier switch must not veto a later block-scope direct request.
    */
   pageTranslator.setAiModeActive = function (active) {
-    aiModeActive = !!active;
+    const next = !!active
+    // #70: bump the epoch on every true→false switch (page-level switch-away).
+    if (aiModeActive && !next) aiModeEpoch++
+    aiModeActive = next
   };
 
   /**
@@ -3909,6 +3952,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   pageTranslator._aiTranslateDynamically = aiTranslateDynamically;
    /** @internal — for testing: set shouldForceAiAfterPageTranslation internal state */
   pageTranslator._setForceAiTranslation = (v) => { shouldForceAiAfterPageTranslation = v; };
+   /** @internal — for testing the #70 arrival gate: read the page-level mode epoch */
+  pageTranslator._getAiModeEpoch = () => aiModeEpoch;
+   /** @internal — for testing the #70 arrival gate: evaluate an arrival against a captured epoch */
+  pageTranslator._isAiArrivalAllowed = (capturedEpoch) => isAiArrivalAllowedForBlock(capturedEpoch);
    /** @internal — for testing per-block restore: replace the nodesToRestore array */
    pageTranslator._setNodesToRestoreForTest = (arr) => { nodesToRestore = arr; };
    /** @internal — for testing MutationObserver translated-descendant filtering */

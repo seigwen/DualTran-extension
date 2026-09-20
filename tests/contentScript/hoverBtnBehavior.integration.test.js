@@ -25,7 +25,7 @@
  * ("no response"). These tests pin that bug down.
  */
 
-import { beforeEach, describe, expect, it, vi, beforeAll } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, beforeAll } from "vitest";
 import { registerBlock, getBlockState, createSingletonButtonGroup } from "../../src/contentScript/singletonBtnGroup.js";
 
 const mockState = vi.hoisted(() => {
@@ -128,6 +128,7 @@ beforeAll(async () => {
   await vi.waitFor(() => {
     expect(pageTranslator._handleSingletonBtnClick).toBeTypeOf("function");
     expect(pageTranslator._setNodesToRestoreForTest).toBeTypeOf("function");
+    expect(pageTranslator.setAiModeActive).toBeTypeOf("function");
   }, { timeout: 5000 });
   handleBtn = pageTranslator._handleSingletonBtnClick;
 });
@@ -531,5 +532,242 @@ describe("晚写抑制 — requestEpoch (#65)", () => {
     expect(aiSpan.textContent).toBe("");
     expect(getBlockState(p).displayMode).toBe("original");
     expect(getBlockState(p).aiStatus).toBe("userPinned");
+  });
+});
+
+// ──────────────────────────────────────────────────────────────
+// Arrival gate — hover A after a page-level Google click (issue #70)
+//
+// User flow: click the floating group's Google button (page-scope display
+// switch → setAiModeActive(false)), then click A on a block's hover group.
+// The hover click is a block-scope DIRECT request — a page-level switch away
+// that happened BEFORE the request started must not veto its arrival. Only a
+// switch away DURING the request suppresses it (Q22 keep / Q23 discard).
+// ──────────────────────────────────────────────────────────────
+
+describe("Arrival gate — hover A after page-level Google (issue #70)", () => {
+  /** Hold aiTranslationCacheGet callbacks so arrivals land under test control. */
+  function holdAiCacheCallbacks() {
+    const held = [];
+    sendMessageSpy.mockImplementation((payload, callback) => {
+      if (typeof callback === "function") {
+        if (payload?.action === "getTabHostName") {
+          callback("example.com");
+        } else if (payload?.action === "aiTranslationCacheGet") {
+          held.push(callback);
+        } else {
+          callback(undefined);
+        }
+      }
+    });
+    return held;
+  }
+
+  /** A selected-text panel button: no aiSpan, no block state (legacy shape). */
+  function createPanelButton() {
+    const button = document.createElement("button");
+    button.className = "dualtran-ai-selected-btn";
+    button.btnAiTxtNode = document.createElement("span");
+    button.tooltip = document.createElement("span");
+    button.translatedTextNode = document.createElement("span");
+    button.sourceString = "Hello world";
+    button.append(button.btnAiTxtNode, button.tooltip, button.translatedTextNode);
+    document.body.appendChild(button);
+    return button;
+  }
+
+  /** newLine block with the Google translation actually on display. */
+  function createDisplayedNewLineBlock() {
+    const block = createNewLineBlock();
+    block.googleSpan.style.display = "block";
+    return block;
+  }
+
+  beforeEach(() => {
+    mockState.configValues.enableAiTranslationCache = "no";
+  });
+
+  afterEach(() => {
+    // Restore the page-level flag (module state is shared across tests in this file).
+    pageTranslator.setAiModeActive(true);
+  });
+
+  it("newLine: stale page-level flag (set before the request) must not veto the arrival", async () => {
+    const { translatedEl, googleSpan, aiSpan } = createDisplayedNewLineBlock();
+    pageTranslator.setAiModeActive(false); // floating Google click latched this earlier
+
+    await handleBtn("ai", translatedEl);
+    await flushAsync();
+
+    expect(aiSpan.textContent).toBe("AI译文");
+    expect(aiSpan.style.display).toBe("block");
+    expect(googleSpan.style.display).toBe("none");
+    expect(getBlockState(translatedEl).displayMode).toBe("ai");
+    expect(getBlockState(translatedEl).aiStatus).toBe("translated");
+  });
+
+  it("replaceOriginal: stale page-level flag (set before the request) must not veto the arrival", async () => {
+    const { p, textNode, aiSpan } = createReplaceOriginalBlock();
+    textNode.textContent = "Google译文";
+    pageTranslator.setAiModeActive(false);
+
+    await handleBtn("ai", p);
+    await flushAsync();
+
+    expect(textNode.textContent).toBe("");
+    expect(aiSpan.textContent).toBe("AI译文");
+    expect(getBlockState(p).displayMode).toBe("ai");
+    expect(getBlockState(p).aiStatus).toBe("translated");
+  });
+
+  it("newLine: persistent-cache arrival with a stale page-level flag must not be vetoed", async () => {
+    mockState.configValues.enableAiTranslationCache = "yes";
+    const { translatedEl, googleSpan, aiSpan } = createDisplayedNewLineBlock();
+    aiCache.length = 0; // force the persistent-cache path
+    pageTranslator.setAiModeActive(false);
+
+    const held = holdAiCacheCallbacks();
+    const inFlight = handleBtn("ai", translatedEl);
+    expect(held).toHaveLength(1);
+    held[0]({ translated: "AI译文" });
+    await inFlight;
+    await flushAsync();
+
+    expect(aiSpan.textContent).toBe("AI译文");
+    expect(aiSpan.style.display).toBe("block");
+    expect(googleSpan.style.display).toBe("none");
+    expect(getBlockState(translatedEl).displayMode).toBe("ai");
+    expect(getBlockState(translatedEl).aiStatus).toBe("translated");
+  });
+
+  it("replaceOriginal: persistent-cache arrival with a stale page-level flag must not be vetoed", async () => {
+    mockState.configValues.enableAiTranslationCache = "yes";
+    const { p, textNode, aiSpan } = createReplaceOriginalBlock();
+    textNode.textContent = "Google译文";
+    aiCache.length = 0;
+    pageTranslator.setAiModeActive(false);
+
+    const held = holdAiCacheCallbacks();
+    const inFlight = handleBtn("ai", p);
+    expect(held).toHaveLength(1);
+    held[0]({ translated: "AI译文" });
+    await inFlight;
+    await flushAsync();
+
+    expect(textNode.textContent).toBe("");
+    expect(aiSpan.textContent).toBe("AI译文");
+    expect(getBlockState(p).displayMode).toBe("ai");
+    expect(getBlockState(p).aiStatus).toBe("translated");
+  });
+
+  it("panel requests (selected-text) are not vetoed by a stale page-level flag", async () => {
+    const { aiTranslateText } = await import("../../src/contentScript/pageTranslator.js");
+    pageTranslator.setAiModeActive(false);
+    const button = createPanelButton();
+
+    await aiTranslateText([button], false);
+
+    expect(button.translationStatus).toBe("translated");
+    expect(button.translatedTextNode.textContent).toBe("AI译文");
+  });
+
+  it("newLine: switching away DURING the request suppresses the arrival; the kept result stays reachable (Q22)", async () => {
+    mockState.configValues.enableAiTranslationCache = "yes";
+    const { translatedEl, googleSpan, aiSpan } = createDisplayedNewLineBlock();
+    aiCache.length = 0;
+
+    const held = holdAiCacheCallbacks();
+    const inFlight = handleBtn("ai", translatedEl);
+    expect(held).toHaveLength(1);
+
+    // The user clicks the floating group's Google button while the request is in flight.
+    pageTranslator.setAiModeActive(false);
+    held[0]({ translated: "AI译文" });
+    await inFlight;
+    await flushAsync();
+
+    // Q22: result kept (text + status), display NOT switched — Google stays visible.
+    expect(aiSpan.textContent).toBe("AI译文");
+    expect(aiSpan.style.display).toBe("none");
+    expect(googleSpan.style.display).toBe("block");
+    expect(getBlockState(translatedEl).aiStatus).toBe("translated");
+    expect(getBlockState(translatedEl).displayMode).toBe("google");
+
+    // A click again: local re-show of the kept text — zero new requests.
+    sendMessageSpy.mockClear();
+    await handleBtn("ai", translatedEl);
+    expect(aiSpan.style.display).toBe("block");
+    expect(googleSpan.style.display).toBe("none");
+    expect(getBlockState(translatedEl).displayMode).toBe("ai");
+    expect(
+      sendMessageSpy.mock.calls.filter(([payload]) => payload?.action === "aiTranslationCacheGet")
+    ).toHaveLength(0);
+    expect(
+      sendMessageSpy.mock.calls.filter(([payload]) => payload?.action === "translateSingleText")
+    ).toHaveLength(0);
+  });
+
+  it("replaceOriginal: switching away DURING the request discards the arrival; A again re-requests (cache-backed) (Q23)", async () => {
+    mockState.configValues.enableAiTranslationCache = "yes";
+    const { p, textNode, aiSpan } = createReplaceOriginalBlock();
+    textNode.textContent = "Google译文";
+    aiCache.length = 0;
+
+    const held = holdAiCacheCallbacks();
+    const inFlight = handleBtn("ai", p);
+    expect(held).toHaveLength(1);
+
+    pageTranslator.setAiModeActive(false);
+    held[0]({ translated: "AI译文" });
+    await inFlight;
+    await flushAsync();
+
+    // Q23: fully discarded — Google text untouched, status reset so the block is re-requestable.
+    expect(textNode.textContent).toBe("Google译文");
+    expect(aiSpan.textContent).toBe("");
+    expect(getBlockState(p).aiStatus).toBe("idle");
+    expect(getBlockState(p).displayMode).toBe("google");
+
+    // A click again: re-request resolves from the cache (zero network) — shows AI.
+    sendMessageSpy.mockClear();
+    await handleBtn("ai", p);
+    await flushAsync();
+    expect(textNode.textContent).toBe("");
+    expect(aiSpan.textContent).toBe("AI译文");
+    expect(getBlockState(p).displayMode).toBe("ai");
+    expect(
+      sendMessageSpy.mock.calls.filter(([payload]) => payload?.action === "translateSingleText")
+    ).toHaveLength(0);
+  });
+
+  it("control: page-level AI mode (flag true at request start) still switches the display", async () => {
+    const { translatedEl, googleSpan, aiSpan } = createDisplayedNewLineBlock();
+    pageTranslator.setAiModeActive(true);
+
+    await handleBtn("ai", translatedEl);
+    await flushAsync();
+
+    expect(aiSpan.style.display).toBe("block");
+    expect(googleSpan.style.display).toBe("none");
+    expect(getBlockState(translatedEl).displayMode).toBe("ai");
+  });
+
+  it("guard: a stale switch-away (epoch captured after it) does not veto the arrival", () => {
+    pageTranslator.setAiModeActive(false);
+    const capturedEpoch = pageTranslator._getAiModeEpoch();
+    expect(pageTranslator._isAiArrivalAllowed(capturedEpoch)).toBe(true);
+  });
+
+  it("guard: a switch-away during the request vetoes the arrival (Q22/Q23 edge)", () => {
+    pageTranslator.setAiModeActive(true);
+    const capturedEpoch = pageTranslator._getAiModeEpoch();
+    pageTranslator.setAiModeActive(false);
+    expect(pageTranslator._isAiArrivalAllowed(capturedEpoch)).toBe(false);
+  });
+
+  it("guard: AI mode still active at arrival always applies", () => {
+    pageTranslator.setAiModeActive(true);
+    const capturedEpoch = pageTranslator._getAiModeEpoch();
+    expect(pageTranslator._isAiArrivalAllowed(capturedEpoch)).toBe(true);
   });
 });

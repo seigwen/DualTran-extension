@@ -189,14 +189,11 @@ export function applyAiResult(btnAi, {
   }
 
   btnAi.translationStatus = "translated";
-  // Keep the hover-button display state machine in sync: AI takes over the display
-  try {
-    const st = btnAi._st ? btnAi._st() : null;
-    if (st && st.displayMode !== undefined) {
-      st.displayMode = "ai";
-      st.googleBtnState = st.googleBtnState || "idle";
-    }
-  } catch (_) {}
+  // NOTE: displayMode is NOT written here — applyAiResult only writes text +
+  // status. Only the actual display switch (switchToAiDisplay /
+  // applyAiSuccessState / applyShowAiOnlyState) may claim displayMode = "ai".
+  // Claiming it here desynced the hover state machine: the user kept seeing
+  // Google while displayMode said "ai", so the next A click no-op'd (#70).
   btnAi.classList?.remove?.("dualtran-hide");
   if (btnAi.style) {
     btnAi.style.color = buttonColor;
@@ -222,6 +219,17 @@ export function applyAiResult(btnAi, {
  */
 export function switchToAiDisplay(btnAi) {
   if (!btnAi) return;
+
+  // The actual display switch — claim the display for AI here (and only here).
+  // #70: applyAiResult no longer writes displayMode, so a kept-but-not-shown
+  // result leaves the state machine on its previous mode.
+  try {
+    const st = btnAi._st ? btnAi._st() : null;
+    if (st && st.displayMode !== undefined) {
+      st.displayMode = "ai";
+      st.googleBtnState = st.googleBtnState || "idle";
+    }
+  } catch (_) {}
 
   // replaceOriginal mode: clear original text nodes when AI translation succeeds.
   // Only clear text content — do NOT hide parent elements, as restoration may
@@ -306,9 +314,13 @@ export function applyAiSuccessState(btnAi, options = {}) {
  *   text untouched, status reset to idle so a later AI click re-requests
  *   (cache-backed, zero token cost) (Q23)
  */
-export function applyAiSuccessWithModeCheck(btnAi, options = {}, aiModeActive) {
+export function applyAiSuccessWithModeCheck(btnAi, options = {}, aiModeActive, arrivalAllowed) {
   if (!btnAi) return;
-  if (aiModeActive) {
+  // #70: the caller may override the legacy flag read with the epoch-based
+  // arrival gate (see pageTranslator.shouldApplyAiArrival). Defaults to the
+  // legacy flag so existing callers/tests are unaffected.
+  const allowed = arrivalAllowed === undefined ? !!aiModeActive : !!arrivalAllowed;
+  if (allowed) {
     applyAiSuccessState(btnAi, options);
     return;
   }
