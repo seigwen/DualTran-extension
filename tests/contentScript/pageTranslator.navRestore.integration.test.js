@@ -76,10 +76,12 @@ vi.mock("../../src/contentScript/showOriginal.js", () => ({
   default: { isEnabled: false, enable: vi.fn(), disable: vi.fn(), enabledObserverSubscribe: vi.fn() },
 }));
 
+// mock-fidelity-allow: navigation-restore suite tests restore semantics, not arrival parsing (matrix + hoverBtn* pin those)
 vi.mock("../../src/contentScript/fetchSSE.js", () => ({
   translateWithAI: vi.fn(),
 }));
 
+// mock-fidelity-allow: same as fetchSSE above — arrival parsing not exercised by nav-restore cells
 vi.mock("../../src/contentScript/aiStreamMessage.js", () => ({
   parseOpenAiStyleStreamMessage: vi.fn(() => ({ type: "done" })),
   parseTaggedPageTranslationProgress: vi.fn(() => null),

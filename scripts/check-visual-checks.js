@@ -11,8 +11,11 @@
  *     review consumes. `expect[]` is the criterion list; a checkpoint
  *     without expectations renders the review toothless.
  *
- *   - tests/browser-e2e/visual-audit.mjs — the capture scenario: every
- *     screenshotCheckpoint(page, "<id>") call site.
+ *   - tests/browser-e2e/*.mjs (setup.mjs + visual-checks.mjs excluded) —
+ *     the capture scenarios: every screenshotCheckpoint(page, "<id>") call
+ *     site. Originally only visual-audit.mjs was scanned; #72 (escape
+ *     analysis mechanism 5) widened the scan to every scenario module so a
+ *     capture taken elsewhere cannot silently escape the review.
  *
  * This lint enforces BIDIRECTIONAL coverage between them:
  *
@@ -54,6 +57,17 @@ const argAudit = process.argv.indexOf("--audit");
 const AUDIT_PATH = argAudit !== -1
   ? path.resolve(process.argv[argAudit + 1])
   : path.join(ROOT, "tests", "browser-e2e", "visual-audit.mjs");
+
+// #72 (escape analysis, mechanism 5 — capture blind spots): captures may live in
+// ANY scenario file, not only visual-audit.mjs. Before this, a screenshot taken
+// in another scenario (e.g. cross-level-journey.mjs) was invisible to the
+// review: the declaration ⇔ capture bidirectional rule only ever saw one half.
+// We now scan every scenario module in tests/browser-e2e/ (setup.mjs excluded —
+// it DEFINES screenshotCheckpoint, it does not call it).
+const argAuditDir = process.argv.indexOf("--audit-dir");
+const AUDIT_DIR = argAuditDir !== -1
+  ? path.resolve(process.argv[argAuditDir + 1])
+  : path.join(ROOT, "tests", "browser-e2e");
 
 const ID_PATTERN = /^[a-z0-9-]+$/;
 
@@ -147,20 +161,46 @@ async function main() {
     }
   }
 
-  // ── Scan the capture scenario ──
-  const auditSource = fs.readFileSync(AUDIT_PATH, "utf8");
-  const { literals, dynamic } = extractCaptureSites(auditSource);
+  // ── Scan the capture scenario(s) ──
+  // When --audit is given explicitly, scan exactly that file (self-test mode).
+  // Otherwise scan every scenario module under AUDIT_DIR.
+  const auditFiles = [];
+  if (argAudit !== -1) {
+    auditFiles.push(AUDIT_PATH);
+  } else if (fs.existsSync(AUDIT_DIR)) {
+    for (const entry of fs.readdirSync(AUDIT_DIR, { withFileTypes: true })) {
+      if (!entry.isFile()) continue;
+      if (!entry.name.endsWith(".mjs")) continue;
+      if (entry.name === "setup.mjs") continue; // defines the helper
+      if (entry.name === "visual-checks.mjs") continue; // declaration file
+      auditFiles.push(path.join(AUDIT_DIR, entry.name));
+    }
+  } else {
+    auditFiles.push(AUDIT_PATH);
+  }
+
+  const captured = new Set();
+  const captureSites = []; // { id, file } for precise messages
+  let dynamic = 0;
+
+  for (const file of auditFiles) {
+    const source = fs.readFileSync(file, "utf8");
+    const { literals, dynamic: dyn } = extractCaptureSites(source);
+    dynamic += dyn;
+    for (const id of literals) {
+      captured.add(id);
+      captureSites.push({ id, file });
+    }
+  }
 
   // Rule 4: static ids only
   if (dynamic > 0) {
     console.warn(
-      `⚠️  ${path.relative(ROOT, AUDIT_PATH)}: ${dynamic} screenshotCheckpoint() call(s) with a ` +
-        `non-literal id — ids must be a static string literal so they can be matched against the declaration.`
+      `⚠️  ${auditFiles.map((f) => path.relative(ROOT, f)).join(", ")}: ${dynamic} screenshotCheckpoint() ` +
+        `call(s) with a non-literal id — ids must be a static string literal so they can be matched against the declaration.`
     );
     violations.push("dynamic-id");
   }
-
-  const captured = new Set(literals);
 
   // Coverage A: declared but never captured
   for (const id of declared.keys()) {
@@ -174,11 +214,11 @@ async function main() {
   }
 
   // Coverage B: captured but not declared
-  for (const id of captured) {
-    if (!declared.has(id)) {
+  for (const site of captureSites) {
+    if (!declared.has(site.id)) {
       console.warn(
-        `⚠️  screenshot capture "${id}" is not declared in visual-checks.mjs — ` +
-          `undeclared captures are invisible to the visual review.`
+        `⚠️  screenshot capture "${site.id}" (${path.relative(ROOT, site.file)}) is not declared in ` +
+          `visual-checks.mjs — undeclared captures are invisible to the visual review.`
       );
       violations.push("not-declared");
     }

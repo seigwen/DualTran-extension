@@ -65,11 +65,15 @@ vi.mock("../../src/contentScript/showOriginal.js", () => ({
   default: { isEnabled: false, enable: vi.fn(), disable: vi.fn(), add: vi.fn(), removeAll: vi.fn(), enabledObserverSubscribe: vi.fn() },
 }));
 vi.mock("../../src/contentScript/fetchSSE.js", () => ({ translateWithAI: vi.fn() }));
-vi.mock("../../src/contentScript/aiStreamMessage.js", () => ({
-  parseOpenAiStyleStreamMessage: vi.fn(() => ({ type: "done" })),
-  parseTaggedPageTranslationProgress: vi.fn(() => ({ done: true })),
-  notifyAiStreamParseError: vi.fn(),
-}));
+// Real stream parser (#72 mock-fidelity): #70 escaped partly because this
+// harness stubbed the parser, making the stream path unobservable. The parser
+// is now passed through from the real module; the cache-hit cells below never
+// invoke it, and the stream path has its own harness
+// (hoverBtnStreamArrival.integration.test.js).
+vi.mock("../../src/contentScript/aiStreamMessage.js", async (importOriginal) => {
+  const actual = await importOriginal();
+  return actual;
+});
 vi.mock("../../src/contentScript/i18n.js", () => ({
   getMessageWithFallback: (_k, fallback) => fallback,
   getFloatingButtonOriginalTooltipText: () => "Show original text",

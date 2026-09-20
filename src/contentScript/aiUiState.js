@@ -116,6 +116,13 @@ export function applyAiTranslatingState(btnAi, {
     }
     // Dual-span mode: write AI translation to aiSpan, toggle visibility
     if (btnAi.aiSpan) {
+      // #73: this state claims the display (displayMode = "ai" below) and
+      // toggles the spans — so it must also un-hide a container hidden by a
+      // prior O restore, or the claim outruns the display (M4 / #70 family).
+      const container = btnAi.googleSpan && btnAi.googleSpan.parentNode;
+      if (container && container.style && container.style.display === "none") {
+        container.style.display = "block";
+      }
       if (typeof translatedText === "string") {
         btnAi.aiSpan.textContent = translatedText;
       }
@@ -252,6 +259,15 @@ export function switchToAiDisplay(btnAi) {
   try {
     // Dual-span mode: toggle visibility
     if (btnAi.aiSpan) {
+      // #73: a prior O restore hides the whole <translated> container (that
+      // hiding IS how the original text shows again). Claiming the AI display
+      // must undo it — the mirror of the Google acts (writeGoogleIntoBlock /
+      // showBlockGoogleOnly), which already un-hide. Without this the state
+      // says "ai" while the user still reads the original text (#70 family).
+      const container = btnAi.googleSpan && btnAi.googleSpan.parentNode;
+      if (container && container.style && container.style.display === "none") {
+        container.style.display = "block";
+      }
       btnAi.aiSpan.style.display = "block";
       if (btnAi.googleSpan) {
         btnAi.googleSpan.style.display = "none";
@@ -281,6 +297,13 @@ export function applyShowAiOnlyState(btnAi) {
 
   try {
     if (btnAi.aiSpan) {
+      // #73: same un-hide guard as switchToAiDisplay — a block restored to
+      // original (container display:none) must become visible again when the
+      // user switches the page back to AI display.
+      const container = btnAi.googleSpan && btnAi.googleSpan.parentNode;
+      if (container && container.style && container.style.display === "none") {
+        container.style.display = "block";
+      }
       btnAi.aiSpan.style.display = "block";
       if (btnAi.googleSpan) {
         btnAi.googleSpan.style.display = "none";

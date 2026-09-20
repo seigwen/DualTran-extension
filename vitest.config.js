@@ -22,6 +22,8 @@ module.exports = defineConfig({
       ["tests/popup/**", "jsdom"],
       ["tests/contentScript/**", "jsdom"],
       ["tests/options/**", "jsdom"],
+      // Shared test helpers that read the DOM (visible-block-truth oracle, #72).
+      ["tests/shared/**", "jsdom"],
     ],
     coverage: {
       provider: "v8",

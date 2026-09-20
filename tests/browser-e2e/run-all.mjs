@@ -82,6 +82,7 @@ const SCENARIO_MODULE_PATHS = [
   "./observer-feedback-loop.mjs",
   "./floating-btn-three-state.mjs",
   "./self-heal-matrix.mjs",
+  "./cross-level-journey.mjs",
   "./visual-audit.mjs",
 ];
 

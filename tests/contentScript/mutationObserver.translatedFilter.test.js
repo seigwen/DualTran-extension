@@ -61,7 +61,9 @@ vi.mock("../../src/contentScript/showOriginal.js", () => ({
     enabledObserverSubscribe: vi.fn(),
   },
 }));
+// mock-fidelity-allow: this file tests observer filtering — it never exercises arrival/display semantics (covered by hoverBtn* + crossLevelInteraction matrix)
 vi.mock("../../src/contentScript/fetchSSE.js", () => ({ translateWithAI: vi.fn() }));
+// mock-fidelity-allow: arrival parsing is not this file's subject (observer filter tests); stream semantics are pinned by hoverBtnStreamArrival + the matrix
 vi.mock("../../src/contentScript/aiStreamMessage.js", () => ({
   parseOpenAiStyleStreamMessage: vi.fn(() => ({ type: "done" })),
   parseTaggedPageTranslationProgress: vi.fn(() => ({ done: true })),

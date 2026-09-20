@@ -723,7 +723,12 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
     case "showAi": {
       // Behavior 4 last step: re-show AI without re-translating (text preserved)
       if (state.googleSpan) {
-        // newLine: toggle spans
+        // newLine: toggle spans. #73: also un-hide the <translated> container —
+        // a prior O restore hid it, and this click claims the AI display.
+        const container = state.googleSpan.parentNode;
+        if (container && container.style && container.style.display === "none") {
+          container.style.display = "block";
+        }
         state.googleSpan.style.display = "none";
         if (state.aiSpan) state.aiSpan.style.display = "block";
       } else {
@@ -929,6 +934,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
   for (let i = 0; i < toBeTranslated.length; i++) {
   let btnAi = toBeTranslated[i]
   // 1. Check in-memory cache first (fast path)
+  // @arrival-path: memory-cache
   let cacheItem = aiCache.find(item => btnAi.sourceString === item.original && item.targetLanguage === targetLanguageCodeForAI)
     if (cacheItem) {
       applyAiSuccessWithModeCheck(btnAi, {
@@ -947,6 +953,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
     }
 
     // 2. Check persistent AI cache (IndexedDB, via SW).
+    // @arrival-path: persistent-cache
     //    Source language defaults to "und" (same convention as Google cache).
     const providerId = twpConfig.get("aiProvider") || "openai";
     const modelId = getModelForProvider(providerId);
@@ -976,6 +983,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
     }
 
     // 3. No cache hit — queue for API translation
+    // @arrival-path: stream
     btnAi.translationId = "i" + Math.random().toString().substring(2, 10)
     btnAi.translationStatus = "queuing"
      // Clear previous error message (if any) to prevent stale errors after successful retry

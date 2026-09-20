@@ -60,6 +60,7 @@ vi.mock("../../src/contentScript/pageTranslator.js", () => ({
   abortControllers: abortControllersMock,
 }));
 
+// mock-fidelity-allow: selected-text panel flows use their own transport double; page-block arrival paths (the #70 area) are pinned by matrix + hoverBtn*
 vi.mock("../../src/contentScript/fetchSSE.js", () => ({
   translateWithAI: (...args) => translateWithAIMock(...args),
 }));

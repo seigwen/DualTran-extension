@@ -180,6 +180,38 @@ tests/
 - **面板豁免**：无块状态的代理（划词/悬停翻译面板）不被页面级显示切换抑制。
 - 参考实现：`hoverBtnBehavior.integration.test.js`「Arrival gate — hover A after page-level Google (issue #70)」套件 + `hoverBtnStreamArrival.integration.test.js`（真实流式解析）+ `aiUiState.split.test.js`（display-state ownership 三格）。
 
+### 跨层交互矩阵（Cross-Level Interaction Matrix，issue #72）
+
+**规则：覆盖必须按「用户操作序列」组织，不能只按组件组织。** #70 逃逸的根因不是断言弱，而是覆盖空间里没有「页面级操作 → 块级操作」的跨层组合：既有场景要么只操作浮动按钮（页面级），要么只 hover 读调色板（#65）。跨层组合是结构性真空。
+
+- **交互对矩阵**（`crossLevelInteraction.matrix.test.js`）：{页面级 G/O/A 态} × {块级 G/O/A 点击} × {到达路径} 数据驱动遍历，每格断言三元一致：**可见真相 ⇔ 块状态 ⇔ 按钮高亮**。
+- **L2 可见真相是唯一裁判**（`tests/shared/visible-block-truth.mjs`）：读真实可见性（display/visibility 链），禁止用状态字段代替可见性断言。状态说 "ai" 而用户看到 Google = 红（#70 的 L1 假绿结构）。
+- **每个新模式/新显示声明点，都要问：跨层序列下它还成立吗？**
+- 参考：`crossLevelInteraction.matrix.test.js`（jsdom 矩阵）+ `cross-level-journey.mjs`（真实浏览器锚定）。
+
+### 到达路径对称性（Arrival-Path Symmetry，issue #72）
+
+**规则：AI 结果的三条到达路径（memory-cache / persistent-cache / stream）必须在 SSOT 中声明，且生产代码打标签、矩阵枚举，三面任一单边变更 → 红。**
+
+- SSOT：`tests/shared/arrival-paths.mjs`（`ARRIVAL_PATH_IDS`）。
+- 生产标签：`src/contentScript/pageTranslator.js` 中每个到达点带 `// @arrival-path: <id>`。
+- 元测试：`tests/scripts/arrivalPathSymmetry.test.js` 强制三面一致（生产标签 ↔ SSOT ↔ 矩阵枚举）。
+- 背景：#70 只活在非流式到达路径上，而旧 harness stub 了流解析器 —— 该路径零覆盖且无机制会发现它掉出测试空间。
+
+### vitest mock 保真度（Vitest Mock Fidelity，issue #72）
+
+**规则：`aiStreamMessage.js` / `fetchSSE.js` 的 `vi.mock()` 必须传 `importOriginal`，或带 `// mock-fidelity-allow: <理由>` 显式豁免。**
+
+- CI lint：`scripts/check-mock-fidelity-vitest.js`（第 12 个 lint；E2E 层有对应的 `check-mock-fidelity.js`）。
+- 豁免理由必须非空（≥3 字符）——裸标记是记账不是审计。
+- 背景：#70 逃逸部分因为旧 harness 用 `() => ({...vi.fn()})` 静默替换了流解析器，使流路径完全不可观测（"测试替身吃掉信号"）。
+
+### 显示声明完整性（Display-Claim Completeness，issue #73）
+
+**规则：任何声称「AI 正在显示」的动作（`switchToAiDisplay` / `applyShowAiOnlyState` / `applyAiTranslatingState` / 执行器 `showAi` 分支），必须同时承担「让 AI 真正可见」——包括解除 O 恢复对 `<translated>` 容器的 `display:none`。** Google 侧动作（writeGoogleIntoBlock / showBlockGoogleOnly）已自带解除隐藏；AI 侧必须对称。
+
+- 参考实现：`aiUiState.split.test.js`「display-claim completeness」四格 + `cross-level-journey.mjs` Step 4（E2E 锚点，红能力已验证）。
+
 ### 事件缺失场景测试（Event-Absence Testing）
 
 **任何订阅引擎事件的 UI 组件，必须提供"查询当前状态"的初始化路径 + 测试。**
