@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial open-source release
 
+### Fixed
+- Hover AI button: clicking "AI" on a block no longer stays on the Google translation when the page-level mode was set to Google earlier. A page-level switch away now only suppresses in-flight AI arrivals (Q22/Q23 preserved); a stale flag no longer vetoes block-scope direct requests (#70).
+
 ## [2.1.30] - 2026-08-06
 
 ### Added

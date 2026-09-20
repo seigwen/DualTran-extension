@@ -139,3 +139,27 @@ describe("applyAiSuccessWithModeCheck — Q5 arrival-time check", () => {
     expect(btnAi.translationStatus).toBe("idle");
   });
 });
+
+describe("display-state ownership — only the actual display switch claims displayMode (issue #70)", () => {
+  it("applyAiResult alone does NOT claim displayMode 'ai' (display untouched)", () => {
+    const btnAi = makeNewLineBtnAi();
+    applyAiResult(btnAi, { translatedText: "AI translation" });
+    expect(btnAi.aiSpan.textContent).toBe("AI translation");
+    expect(btnAi._st().displayMode).toBe("google");
+  });
+
+  it("switchToAiDisplay claims displayMode 'ai' (the actual display switch)", () => {
+    const btnAi = makeNewLineBtnAi();
+    switchToAiDisplay(btnAi);
+    expect(btnAi._st().displayMode).toBe("ai");
+  });
+
+  it("arrived-but-kept (showAiDisplay=false, newLine) leaves displayMode on 'google' (Q22)", () => {
+    const btnAi = makeNewLineBtnAi();
+    applyAiSuccessWithModeCheck(btnAi, { translatedText: "AI translation" }, false);
+    expect(btnAi.aiSpan.textContent).toBe("AI translation");
+    expect(btnAi.translationStatus).toBe("translated");
+    expect(btnAi.aiSpan.style.display).toBe("none");
+    expect(btnAi._st().displayMode).toBe("google");
+  });
+});
