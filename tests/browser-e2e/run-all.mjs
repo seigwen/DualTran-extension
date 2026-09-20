@@ -13,7 +13,7 @@
  * @module run-all
  */
 
-import { setupBasic, setupFull, teardown, captureFailureShot } from "./setup.mjs";
+import { setupBasic, setupFull, teardown, captureFailureShot, resetScenarioState } from "./setup.mjs";
 import { resolveMockModeConfig, parseBrowserE2eArgs } from "./browser-e2e-config.mjs";
 
 // ═══════════════════════════════════════════════════════════════
@@ -220,6 +220,13 @@ async function runMockScenarios(scenarios, cliOptions) {
   try {
     for (const scenario of scenarios) {
       console.log(`\n--- 开始场景: "${scenario.name}" ---`);
+      // V2（issue #75）：场景边界状态复位。22 个场景共享同一 page 与同一份
+      // storage，上个场景的残留会成为下个场景的隐式前置（实证：cross-level
+      // 残留 replaceOriginal + AI 全译态污染 visual-audit 的未翻译基线）。
+      // best-effort：复位失败不阻塞场景，真实泄漏由保真度断言/lint 兜住。
+      await resetScenarioState(scope).catch((e) =>
+        console.warn(`[WARN] resetScenarioState 失败（不阻塞场景）: ${e.message}`)
+      );
       try {
         await scenario.run(scope);
         console.log(`--- 场景通过: "${scenario.name}" ---`);
@@ -277,6 +284,10 @@ async function runBasicScenarios(scenarios) {
   try {
     for (const scenario of scenarios) {
       console.log(`\n--- 开始场景: "${scenario.name}" ---`);
+      // V2（issue #75）：场景边界状态复位（同 mock 场景，见上）。
+      await resetScenarioState(scope).catch((e) =>
+        console.warn(`[WARN] resetScenarioState 失败（不阻塞场景）: ${e.message}`)
+      );
       try {
         await scenario.run(scope);
         console.log(`--- 场景通过: "${scenario.name}" ---`);

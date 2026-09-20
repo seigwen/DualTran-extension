@@ -103,13 +103,15 @@ tests/
 
 | 件 | 位置 | 作用 |
 |---|---|---|
-| 检查点清单 | `tests/browser-e2e/visual-checks.mjs` | 每个 checkpoint 的 `id` + `capture` 描述 + `expect[]` 判据（SSOT） |
-| 捕获场景 | `tests/browser-e2e/visual-audit.mjs` | 走完整用户旅程，每检查点 `screenshotCheckpoint(page, id)` 截图（静止等待后） |
-| 捕获助手 | `setup.mjs` → `screenshotCheckpoint` / `waitForVisualStability` | 产物落 `/tmp/e2e-shots/<scenario>/<id>.png`；失败兜底（best-effort） |
+| 检查点清单 | `tests/browser-e2e/visual-checks.mjs` | 每个 checkpoint 的 `id` + `capture` 描述 + `expect[]` 判据 + `programmatic[]` + `mustDifferFrom[]`（SSOT） |
+| 捕获场景 | `tests/browser-e2e/visual-audit.mjs` | 走完整用户旅程，每检查点 `screenshotCheckpoint(page, id)` 截图（静止等待后）+ 保真度硬断言 |
+| 捕获助手 | `setup.mjs` → `screenshotCheckpoint` / `waitForVisualStability` / `resetScenarioState` | 产物落 `/tmp/e2e-shots/<scenario>/<id>.png`；失败兜底（best-effort） |
 | 失败兜底 | `run-all.mjs` | 任何场景失败自动截 `failures/failure-<scenario>.png` |
+| 场景隔离 | `setup.mjs` → `resetScenarioState` + `run-all.mjs` 场景循环边界 | 复位 storage + 清 sessionStorage（issue #75 污染根因） |
 | 录像 | `E2E_VIDEO=1`（启动时开关） | 诊断模式，产物 `/tmp/e2e-videos`；无法事后补录 |
 | 审查输入 | `scripts/visual-review.mjs` | 取产物（`--run <id>` 或 `--dir`）→ `visual-review-input.json` 供分析 |
-| lint | `scripts/check-visual-checks.js`（第 11 个） | 清单 ↔ 捕获**双向覆盖**；`expect[]` 非空；id 格式/唯一 |
+| lint | `scripts/check-visual-checks.js` | 清单 ↔ 捕获**双向覆盖**；`expect[]` 非空；id 格式/唯一；**`programmatic` 断言双向覆盖**（规则 6） |
+| 保真度门禁 | `scripts/check-visual-fidelity.mjs` | 声明的 `mustDifferFrom` 对不得渲染成同一状态（差异 < 0.1% = hard fail）；CI + `npm run check:visual-fidelity` |
 | 效度演练 | `VISUAL_SELFTEST=inject` | 三种注入（遮挡/移位/隐藏）→ 分析必须命中；`clean` → 必须零误报 |
 
 **规则：**
@@ -117,6 +119,10 @@ tests/
 2. 悬停目标纪律沿用「Hover Target Fidelity」——截图前确保页面处于**真实指针可达**的状态。
 3. **录制/截图产物不入库**（artifacts 生命周期管理）；清单文件是代码资产、入库、走 review。
 4. **清单/捕获变更时必须演练一次效度对照**（`VISUAL_SELFTEST=inject` 阳性 + `clean` 阴性），结果贴对应 issue 评论。
+5. **机械可判的 `expect[]` 必须下沉为程序化硬断言（`programmatic[]`）**（issue #75）。`expect[]` 由 AI 审查消费，而审查**无法让构建失败**；凡「元素计数 / 文本缺失 / 跨图差异」这类可机械判定的期望，必须在捕获场景里写成真断言，让 E2E 自己失败。声明的函数名必须在捕获该检查点的文件里有调用点（lint 规则 6a）；三个保真度关键检查点（`baseline-untranslated` / `after-google-translation` / `replace-original-mode`）**必须**至少声明一条（规则 6b）。
+6. **声称「捕获不同状态」的检查点必须声明 `mustDifferFrom[]`**（issue #75）。`check-visual-fidelity.mjs` 会断言这些对不得渲染成同一状态。⚠️ 只声明**语义上必须不同**的对——有些检查点（如 `after-ai-translation` 与 `floating-three-state`）会**合法地收敛**到相同渲染，误声明会造成假阳性（已实证：干净 run 中两者逐字节相同）。阈值 0.1%（实测真实状态变化 ≥5.7%，#75 缺陷为 0.0000%）。
+7. **确定性 ≠ 保真度**（issue #75 核心教训）。「同构建两跑 0 像素差」只证明可重复性，**不证明**某张截图拍到的就是它声明的那一刻。跨场景污染会让检查点拍到上一个场景的残留状态。诊断手法：对同一次运行的截图做 **sha256 交叉比对**——「不同检查点却字节相同」是保真度违规的强信号（肉眼逐张审查极易漏）。
+8. **场景边界必须隔离**（issue #75）。22 个场景共享同一 page 与同一份 storage；新场景**不得依赖**前序场景的残留状态（`run-all.mjs` 已在每个场景前调 `resetScenarioState`）。若某场景需要特定前置，在场景内显式设置。
 
 ### 样式不变量（负向断言）
 

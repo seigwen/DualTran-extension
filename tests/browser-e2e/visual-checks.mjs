@@ -11,8 +11,22 @@
  * Rules (enforced by scripts/check-visual-checks.js):
  *   - `id` matches [a-z0-9-]+ and is unique (stable id = issue dedup key)
  *   - `expect[]` carries at least one entry
- *   - every checkpoint here has exactly one screenshotCheckpoint()
- *     call site in visual-audit.mjs, and vice versa (bidirectional)
+ *   - every checkpoint here has exactly one screenshotCheckpoint() call
+ *     site in visual-audit.mjs, and vice versa (bidirectional)
+ *
+ * `programmatic` (issue #75 — V2): mechanically checkable expectations are
+ * ALSO asserted in the capture scenario, so the E2E run itself hard-fails
+ * instead of relying on the AI review (which cannot fail a build). Each name
+ * must have a matching call site in the file that captures the checkpoint.
+ * The fidelity-critical checkpoints (the direct victims of #75) MUST declare
+ * at least one entry — enforced by rule 6b of the lint.
+ *
+ * `mustDifferFrom` (issue #75 — V2): checkpoints this one claims to capture a
+ * GENUINELY DIFFERENT state from. Enforced by scripts/check-visual-fidelity.mjs
+ * (pixel-diff ratio below 0.1% ⇒ hard failure). Only declare pairs that are
+ * semantically required to differ — `after-ai-translation` and
+ * `floating-three-state` legitimately converge to the same rendering and are
+ * deliberately NOT paired here.
  *
  * `capture` documents the intent of the shot (page + moment) for review
  * context — it is not machine-enforced.
@@ -26,10 +40,23 @@ export const CHECKPOINTS = [
       page: "mock test-page.html",
       when: "loaded, before any translation",
     },
+    programmatic: ["assertBaselinePristine"],
+    mustDifferFrom: [
+      "after-google-translation",
+      "after-ai-translation",
+      "replace-original-mode",
+      "hover-group-visible",
+      "hover-group-original-mode",
+      "floating-three-state",
+    ],
     expect: [
-      "Page renders as a normal article — no extension UI visible yet",
-      "No floating button host, no hover button group on the page",
-      "No translated blocks, no stray colored text",
+      "Page text is the ORIGINAL language (English) — no translated blocks, no stray colored text",
+      // ⚠️ 2026-09-20 校准：浮动按钮组在 baseline 是**预期可见**的（showFloatingBtn="yes"，
+      // 默认 Original 高亮）——原判据「no extension UI visible yet」与事实不符，会造成
+      // 每日 AI 审查假阳性（已由 V2 效度验证发现）。真值：浮动组在、O 高亮、无译文；
+      // 悬停组**不应**出现（未悬停）。
+      "Floating button group is visible at the right edge with Original highlighted (default state)",
+      "No hover button group — nothing is hovered yet",
     ],
   },
   {
@@ -39,6 +66,8 @@ export const CHECKPOINTS = [
       page: "mock test-page.html",
       when: "after Google translation completes",
     },
+    programmatic: ["assertGoogleNotAi"],
+    mustDifferFrom: ["after-ai-translation"],
     expect: [
       "Translated text is rendered on the page (French), original text still readable",
       "Translation blocks do NOT overlap each other or the original paragraphs",
@@ -108,6 +137,7 @@ export const CHECKPOINTS = [
       page: "mock test-page.html",
       when: "replaceOriginal display mode after translation",
     },
+    programmatic: ["assertReplaceOriginalDiffersFromBaseline"],
     expect: [
       "Translated text replaces the original inline — no duplicated paragraphs",
       "No leftover empty wrappers or residual original text fragments visible",

@@ -1,5 +1,6 @@
 /**
- * Tests for scripts/check-visual-checks.js (V1 lint, issue #67)
+ * Tests for scripts/check-visual-checks.js (V1 lint, issue #67;
+ * programmatic-assertion coverage added by V2, issue #75)
  *
  * Verifies the visual-checks linter catches:
  *   1. A checkpoint with an empty/missing `expect[]`
@@ -10,6 +11,9 @@
  *   6. A dynamic (non-literal) id passed to screenshotCheckpoint
  *   7. Missing/empty CHECKPOINTS export
  *   8. Passes a valid checks + audit pair
+ *   9. Rule 6 A: a declared `programmatic` assertion with no call site (#75)
+ *  10. Rule 6 B: `baseline-untranslated` must declare >=1 programmatic assertion (#75)
+ *  11. Rule 6 C: a well-formed programmatic declaration passes (#75)
  */
 import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import { execFileSync } from "node:child_process";
@@ -69,11 +73,19 @@ function checkpoint(id, { expect: expectItems = ["Renders as expected"], extra =
   }`;
 }
 
-/** Build an audit fixture from a list of ids it captures. */
-function auditFile(ids, { dynamic = false } = {}) {
+/**
+ * Build an audit fixture from a list of ids it captures.
+ *
+ * @param {string[]} ids — checkpoint ids captured by the fixture
+ * @param {{dynamic?: boolean, preamble?: string[]}} [opts]
+ *   dynamic  — append a non-literal screenshotCheckpoint call
+ *   preamble — extra source lines (e.g. programmatic assertion definitions)
+ */
+function auditFile(ids, { dynamic = false, preamble = [] } = {}) {
   const body = ids.map((id) => `  await screenshotCheckpoint(page, "${id}");`).join("\n");
   const dyn = dynamic ? `\n  await screenshotCheckpoint(page, someVariable);\n` : "";
-  return `import { screenshotCheckpoint } from "./setup.mjs";\n\nexport async function run(scope) {\n  const { page } = scope;\n${body}${dyn}\n}\n`;
+  const pre = preamble.length > 0 ? `\n${preamble.join("\n")}\n` : "";
+  return `import { screenshotCheckpoint } from "./setup.mjs";\n${pre}\nexport async function run(scope) {\n  const { page } = scope;\n${body}${dyn}\n}\n`;
 }
 
 describe("check-visual-checks", () => {
@@ -157,10 +169,58 @@ describe("check-visual-checks", () => {
 
   it("passes a valid checks + audit pair", () => {
     const { exitCode, out } = runCheck(
-      checksFile([checkpoint("baseline-untranslated"), checkpoint("after-google"), checkpoint("hovered-group")]),
-      auditFile(["baseline-untranslated", "after-google", "hovered-group"])
+      checksFile([
+        checkpoint("baseline-untranslated", { extra: 'programmatic: ["assertBaselinePristine"],' }),
+        checkpoint("after-google"),
+        checkpoint("hovered-group"),
+      ]),
+      auditFile(["baseline-untranslated", "after-google", "hovered-group"], {
+        preamble: ["async function assertBaselinePristine(page) { await page.evaluate(() => {}); }"],
+      })
     );
     expect(exitCode).toBe(0);
     expect(out).toContain("✅");
+  });
+
+  // ── Rule 6: programmatic-assertion coverage (issue #75) ──
+
+  it("catches a declared programmatic assertion with no call site (rule 6a)", () => {
+    const { exitCode, out } = runCheck(
+      checksFile([
+        checkpoint("baseline-untranslated", { extra: 'programmatic: ["assertBaselinePristine"],' }),
+      ]),
+      auditFile(["baseline-untranslated"])
+    );
+    expect(exitCode).toBe(1);
+    expect(out).toContain("assertBaselinePristine");
+    expect(out.toLowerCase()).toContain("declares programmatic");
+  });
+
+  it("catches a fidelity-critical checkpoint with no programmatic assertion (rule 6b)", () => {
+    const { exitCode, out } = runCheck(
+      checksFile([checkpoint("baseline-untranslated"), checkpoint("after-google")]),
+      auditFile(["baseline-untranslated", "after-google"])
+    );
+    expect(exitCode).toBe(1);
+    expect(out).toContain("baseline-untranslated");
+    expect(out.toLowerCase()).toContain("no programmatic assertion");
+  });
+
+  it("passes a well-formed programmatic declaration (rule 6c)", () => {
+    const { exitCode } = runCheck(
+      checksFile([
+        checkpoint("baseline-untranslated", { extra: 'programmatic: ["assertBaselinePristine"],' }),
+        checkpoint("after-google-translation", { extra: 'programmatic: ["assertGoogleNotAi"],' }),
+        checkpoint("replace-original-mode", { extra: 'programmatic: ["assertReplaceOriginalDiffers"],' }),
+      ]),
+      auditFile(["baseline-untranslated", "after-google-translation", "replace-original-mode"], {
+        preamble: [
+          "async function assertBaselinePristine(page) { await page.evaluate(() => {}); }",
+          "async function assertGoogleNotAi(page) { await page.evaluate(() => {}); }",
+          "async function assertReplaceOriginalDiffers(page) { await page.evaluate(() => {}); }",
+        ],
+      })
+    );
+    expect(exitCode).toBe(0);
   });
 });

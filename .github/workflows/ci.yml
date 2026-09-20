@@ -83,6 +83,12 @@ jobs:
         path: /tmp/*.log
         retention-days: 7
 
+    # V2（issue #75）：保真度门禁——声明的 mustDifferFrom 对不得渲染成同一状态。
+    # 放在 artifact 上传之前：门禁失败时 artifact 仍会因 if: always() 上传，取证不丢。
+    - name: Visual fidelity gate (declared must-differ pairs must not render identically)
+      if: always()
+      run: node scripts/check-visual-fidelity.mjs --dir /tmp/e2e-shots
+
     # V1（issue #67）：视觉检查点截图 + 失败现场图。
     # 供 Hermes 原生视觉按 visual-checks.mjs 清单审查（VQ3/VQ4）。
     - name: Upload visual artifacts
