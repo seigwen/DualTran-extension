@@ -39,10 +39,12 @@ vi.mock("../../src/contentScript/showOriginal.js", () => ({
   },
 }));
 
+// mock-fidelity-allow: helper-level suite never executes arrival paths (pure helper behavior is the subject)
 vi.mock("../../src/contentScript/fetchSSE.js", () => ({
   translateWithAI: vi.fn(),
 }));
 
+// mock-fidelity-allow: pure helper tests do not touch stream parsing; see matrix + hoverBtnStreamArrival for arrival-path coverage
 vi.mock("../../src/contentScript/aiStreamMessage.js", () => ({
   notifyAiStreamParseError: vi.fn(),
   parseOpenAiStyleStreamMessage: vi.fn(),

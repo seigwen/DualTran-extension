@@ -153,4 +153,61 @@ export const CHECKPOINTS = [
       "Long labels wrap instead of overflowing their containers",
     ],
   },
+  // ── cross-level journey (#70/#73 escape-analysis regression anchor) ──
+  // These four checkpoints back the L2 assertions in cross-level-journey.mjs:
+  // the scenario asserts visible truth programmatically; these declarations
+  // give the AI visual review the same moments to cross-check for artifacts
+  // the programmatic read could miss (overlap, clipping, stale text ghosts).
+  {
+    id: "cross-level-newline-after-hover-ai",
+    scenario: "cross-level-journey",
+    capture: {
+      page: "mock test-page.html",
+      when: "newLine: after hovering block 0 and clicking AI in the block group (page was previously Google-translated)",
+    },
+    expect: [
+      "Block 0 shows the AI translation text — NOT the Google translation (#70 assertion: the block-level AI click must win over the page-level Google state)",
+      "The AI text uses the configured AI color treatment, not the Google one",
+      "No duplicated/stacked translation at block 0; other blocks still show Google text",
+    ],
+  },
+  {
+    id: "cross-level-replace-original-after-hover-ai",
+    scenario: "cross-level-journey",
+    capture: {
+      page: "mock test-page.html",
+      when: "replaceOriginal: after hovering block 0 and clicking AI in the block group",
+    },
+    expect: [
+      "Block 0's visible text is the AI translation (not the original source text, not the Google translation)",
+      "No leftover empty wrappers or residual original fragments inside block 0",
+      "No layout collapse at block 0 (double spacing / collapsed container)",
+    ],
+  },
+  {
+    id: "cross-level-newline-final",
+    scenario: "cross-level-journey",
+    capture: {
+      page: "mock test-page.html",
+      when: "newLine: after the O→A round trip and a page-level AI switch (all blocks should show AI)",
+    },
+    expect: [
+      "Every translated block shows AI text — none shows the original language (#73 assertion: the O restore must be undone by the next AI display)",
+      "No block appears empty or partially hidden",
+      "Exactly one floating button (AI) highlighted; hover group not stuck on screen",
+    ],
+  },
+  {
+    id: "cross-level-replace-original-final",
+    scenario: "cross-level-journey",
+    capture: {
+      page: "mock test-page.html",
+      when: "replaceOriginal: after the O→A round trip and a page-level AI switch",
+    },
+    expect: [
+      "Block 0 and its neighbours show AI translation text after the round trip (#73)",
+      "No block left showing raw untranslated source text",
+      "No overlapping text or clipped containers introduced by the round trip",
+    ],
+  },
 ];

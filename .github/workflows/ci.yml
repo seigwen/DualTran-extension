@@ -157,6 +157,9 @@ jobs:
     - name: Mock fidelity (E2E mock pages declare simulated behavior)
       run: node scripts/check-mock-fidelity.js
 
+    - name: Mock fidelity vitest (arrival-path mocks declare importOriginal or reason, #72)
+      run: node scripts/check-mock-fidelity-vitest.js
+
     - name: Infra assumptions (every assumption has a test reference)
       run: node scripts/check-infra-assumptions.js
 

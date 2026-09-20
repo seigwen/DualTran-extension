@@ -46,6 +46,7 @@ vi.mock("../../src/contentScript/showOriginal.js", () => ({
 }));
 
 
+// mock-fidelity-allow: this suite drives translateWithAIMock directly as its test double for AI flows; arrival-path symmetry pinned by the matrix
 vi.mock("../../src/contentScript/fetchSSE.js", () => ({
   translateWithAI: (...args) => translateWithAIMock(...args),
 }));

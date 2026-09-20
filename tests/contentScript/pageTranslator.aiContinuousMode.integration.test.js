@@ -51,9 +51,11 @@ vi.mock("../../src/lib/platformInfo.js", () => ({ default: {} }));
 vi.mock("../../src/contentScript/showOriginal.js", () => ({
   default: { enable: vi.fn(), disable: vi.fn(), enabledObserverSubscribe: vi.fn(), isEnabled: false },
 }));
+// mock-fidelity-allow: continuous-mode flow tests drive their own transport mock; arrival-path semantics pinned by the matrix + hoverBtnStreamArrival
 vi.mock("../../src/contentScript/fetchSSE.js", () => ({
   translateWithAI: translateWithAIMock,
 }));
+// mock-fidelity-allow: arrival parsing not exercised here (continuous-mode scheduling is the subject)
 vi.mock("../../src/contentScript/aiStreamMessage.js", () => ({
   notifyAiStreamParseError: vi.fn(),
   parseOpenAiStyleStreamMessage: vi.fn(() => ({ type: "done" })),

@@ -60,7 +60,9 @@ vi.mock("../../src/contentScript/showOriginal.js", () => ({
     enabledObserverSubscribe: vi.fn(),
   },
 }));
+// mock-fidelity-allow: page-level integration suite never runs arrival/display assertions here; arrival semantics pinned by hoverBtn* + the cross-level matrix
 vi.mock("../../src/contentScript/fetchSSE.js", () => ({ translateWithAI: vi.fn() }));
+// mock-fidelity-allow: parser stub is not this suite's subject; stream path covered by hoverBtnStreamArrival + matrix
 vi.mock("../../src/contentScript/aiStreamMessage.js", () => ({
   parseOpenAiStyleStreamMessage: vi.fn(() => ({ type: "done" })),
   parseTaggedPageTranslationProgress: vi.fn(() => ({ done: true })),

@@ -9,7 +9,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { applyAiResult, applyAiSuccessWithModeCheck, switchToAiDisplay } from "../../src/contentScript/aiUiState.js";
+import { applyAiResult, applyAiSuccessWithModeCheck, switchToAiDisplay, applyShowAiOnlyState, applyAiTranslatingState } from "../../src/contentScript/aiUiState.js";
 
 function makeNewLineBtnAi() {
   const googleSpan = document.createElement("span");
@@ -161,5 +161,68 @@ describe("display-state ownership — only the actual display switch claims disp
     expect(btnAi.translationStatus).toBe("translated");
     expect(btnAi.aiSpan.style.display).toBe("none");
     expect(btnAi._st().displayMode).toBe("google");
+  });
+});
+
+describe("display-claim completeness — a claimed AI display must be physically visible (issue #73)", () => {
+  // A prior O restore hides the whole <translated> container; that hiding IS
+  // how the original text shows again. Every AI act that claims the display
+  // must therefore also undo the container hiding — otherwise the state says
+  // "ai" while the user still reads the original (the #70 family of desync;
+  // #73 was the O→A round trip on newLine).
+  function makeRestoredNewLineBtnAi() {
+    const translatedEl = document.createElement("translated");
+    translatedEl.style.display = "none"; // hidden by restoreBlockOriginal
+    const googleSpan = document.createElement("span");
+    googleSpan.style.display = "none";
+    const aiSpan = document.createElement("span");
+    aiSpan.style.display = "none";
+    aiSpan.textContent = "AI translation";
+    translatedEl.append(googleSpan, aiSpan);
+    document.body.appendChild(translatedEl);
+    const state = { displayMode: "original", googleBtnState: "idle" };
+    return {
+      _container: translatedEl,
+      googleSpan,
+      aiSpan,
+      translationStatus: "translated",
+      translationId: "",
+      _st: () => state,
+      classList: { remove: () => {}, add: () => {}, contains: () => false },
+      style: {},
+      setAttribute: () => {},
+    };
+  }
+
+  it("switchToAiDisplay un-hides a container hidden by a prior O restore", () => {
+    const btnAi = makeRestoredNewLineBtnAi();
+    switchToAiDisplay(btnAi);
+    expect(btnAi._container.style.display).toBe("block");
+    expect(btnAi.aiSpan.style.display).toBe("block");
+    expect(btnAi.googleSpan.style.display).toBe("none");
+    expect(btnAi._st().displayMode).toBe("ai");
+  });
+
+  it("applyShowAiOnlyState un-hides a container hidden by a prior O restore", () => {
+    const btnAi = makeRestoredNewLineBtnAi();
+    applyShowAiOnlyState(btnAi);
+    expect(btnAi._container.style.display).toBe("block");
+    expect(btnAi.aiSpan.style.display).toBe("block");
+    expect(btnAi._st().displayMode).toBe("ai");
+  });
+
+  it("applyAiTranslatingState (stream mid-flight claim) un-hides the same way", () => {
+    const btnAi = makeRestoredNewLineBtnAi();
+    applyAiTranslatingState(btnAi, { translatedText: "AI stream chunk" });
+    expect(btnAi._container.style.display).toBe("block");
+    expect(btnAi.aiSpan.style.display).toBe("block");
+    expect(btnAi._st().displayMode).toBe("ai");
+  });
+
+  it("an already-visible container is left untouched (no spurious writes)", () => {
+    const btnAi = makeRestoredNewLineBtnAi();
+    btnAi._container.style.display = "block";
+    switchToAiDisplay(btnAi);
+    expect(btnAi._container.style.display).toBe("block");
   });
 });
