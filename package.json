@@ -12,6 +12,7 @@
     "dev-polyfill": "webpack --config polyfill.webpack.dev.js",
     "build-polyfill": "webpack --config polyfill.webpack.production.js",
     "test": "vitest run",
+    "check:visual-fidelity": "node scripts/check-visual-fidelity.mjs --dir /tmp/e2e-shots",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:ai": "vitest run tests/ai",

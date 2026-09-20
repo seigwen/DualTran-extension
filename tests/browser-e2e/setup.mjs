@@ -910,6 +910,72 @@ export async function readStorageMulti(serviceWorker, keys) {
 }
 
 /**
+ * 场景边界状态复位（V2 保真度加固，issue #75）。
+ *
+ * 背景：22 个 E2E 场景共享同一个 page 与同一份 extension storage
+ * （setupFull() 只调用一次）。某个场景收尾时残留的状态会成为下一个场景
+ * 的「隐式前置」——实证：cross-level-journey 停在
+ * whereToDisplayTranslatedText=replaceOriginal + AI 全译态，紧随其后的
+ * visual-audit「未翻译基线」因此拍到已翻译的法语页 + 浮动按钮组，
+ * 且与第 7 步 replace-original 截图逐字节相同。
+ *
+ * 两层载体都要复位：
+ *   1. chrome.storage.local —— 影响自动翻译触发的配置键
+ *      （pageTranslator.js:4069/4110 命中 alwaysTranslate* 即 translatePage）
+ *   2. sessionStorage —— AI 标记键 `dualtran:aiApplied:<origin><pathname>`
+ *      （pageTranslator.js:4124 命中即强制恢复 AI 翻译）。同 tab 同源导航
+ *      不会清空 sessionStorage，故必须显式 clear。
+ *
+ * 刻意**不**复位 targetLanguage / aiProvider / apiKey* / showFloatingBtn：
+ * 各场景自带前置配置（如 visual-audit 的 configureExtensionForAi），
+ * 复位它们会破坏场景自身的设置。
+ *
+ * 默认值取自 src/lib/config.js 的 DefaultConfig。
+ * 复位失败不抛错（best-effort，与 screenshotCheckpoint 一致）——真实泄漏
+ * 由 visual-audit 的保真度硬断言 / check-visual-fidelity 兜住。
+ *
+ * @param {{serviceWorker?: import("playwright").Worker, page?: import("playwright").Page, context?: import("playwright").BrowserContext}} scope
+ * @returns {Promise<void>}
+ */
+export async function resetScenarioState(scope) {
+  const { serviceWorker, page, context } = scope || {};
+
+  // ── 1) chrome.storage.local：复位影响翻译自动触发的键 ──
+  if (serviceWorker) {
+    await serviceWorker
+      .evaluate(async () => {
+        await chrome.storage.local.set({
+          whereToDisplayTranslatedText: "newLine",
+          alwaysTranslateSites: [],
+          alwaysTranslateLangs: [],
+          neverTranslateSites: [],
+          neverTranslateLangs: [],
+        });
+      })
+      .catch((err) => console.warn(`[reset] chrome.storage 复位失败（忽略）: ${err.message}`));
+  }
+
+  // ── 2) sessionStorage：清 AI 标记（遍历所有存活页面，含扩展页）──
+  const pages = context?.pages?.() ?? (page ? [page] : []);
+  for (const p of pages) {
+    await p
+      .evaluate(() => {
+        try {
+          sessionStorage.clear();
+        } catch (_) {
+          /* about:blank / 受限上下文忽略 */
+        }
+      })
+      .catch(() => {});
+  }
+
+  // ── 3) 页面回到中立态（避免下一个场景继承上一个场景的 DOM）──
+  if (page && !page.isClosed?.()) {
+    await page.goto("about:blank").catch(() => {});
+  }
+}
+
+/**
  * 递归穿透 shadow root 查找单个元素（供外部复用）。
  * chrome://extensions 的 DOM 嵌套了多层 Shadow DOM。
  *

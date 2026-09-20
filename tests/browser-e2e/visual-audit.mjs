@@ -127,6 +127,120 @@ async function clearSelfTestInjection(page) {
   });
 }
 
+// ═════════════════════════════════════════════════════════════════
+// 保真度硬断言（issue #75 — V2）
+//
+// 背景：`expect[]` 由 AI 视觉审查消费，而审查**无法让构建失败**。
+// 因此凡「机械可判」的期望，必须在捕获场景里同步写成真断言，让 E2E
+// 自己失败。以下三个断言对应本次实证违规的三个检查点。
+//
+// 违规实证（run 35499329775）：baseline 拍到已翻译法语页 + 浮动组；
+// replace-original 与 baseline 逐字节相同；after-google 拍到 AI 译文。
+// 根因 = 场景间状态污染（cross-level-journey 收尾残留 + storage 未复位）。
+// ═════════════════════════════════════════════════════════════════
+
+/**
+ * 断言页面处于「未翻译纯净态」（baseline-untranslated 的机械子集）。
+ *
+ * 判定：不得存在任何 DualTran 生成物 —— 块、译文元素、结果容器、AI span，
+ * 且正文不含 mock AI 标记。任一命中即说明页面在上一个场景被污染。
+ *
+ * @param {import("playwright").Page} page
+ */
+async function assertBaselinePristine(page) {
+  const r = await page.evaluate(() => ({
+    blocks: document.querySelectorAll("[data-dualtran-block]").length,
+    translated: document.querySelectorAll("translated").length,
+    resultContainers: document.querySelectorAll(".dualtran-result-container").length,
+    aiSpans: document.querySelectorAll(".dualtran-ai, .dualtran-aitranslatedtext-replacemode").length,
+    bodyHasAiSnippet: document.body.innerText.includes("[aimock]"),
+  }));
+  const offenders = Object.entries(r).filter(([, v]) => (v === true ? true : v > 0));
+  if (offenders.length > 0) {
+    throw new Error(
+      `baseline-untranslated 保真度违规：页面非未翻译纯净态 ` +
+        `${JSON.stringify(r)} — 场景间状态污染（issue #75）`
+    );
+  }
+}
+
+/**
+ * 断言 after-google-translation 拍到的是 Google 译文，**不是** AI 译文。
+ *
+ * 被 sessionStorage AI 标记污染时，第 2 步的 translatePage 会走 AI 路径，
+ * 拍到 `🌐[aimock]` 全文（本次实证）。
+ *
+ * ⚠️ 关键区分（2026-09-20 实测校准）：newLine 模式下 `.dualtran-ai` span 是
+ * **结构容器**——Google 翻译时也会为每个块预先创建（内容为空）。因此判定
+ * 不能只看 span 存在（会假阳性），必须要求 **span 内有非空文本且可见**，
+ * 或正文出现 mock AI 标记。
+ *
+ * @param {import("playwright").Page} page
+ */
+async function assertGoogleNotAi(page) {
+  const r = await page.evaluate(() => {
+    const aiSpans = [...document.querySelectorAll(".dualtran-ai, .dualtran-aitranslatedtext-replacemode")];
+    const withText = aiSpans.filter((s) => (s.textContent || "").trim().length > 0);
+    const isVisible = (node) => {
+      let n = node;
+      while (n && n.style) {
+        if (n.style.display === "none" || n.style.visibility === "hidden") return false;
+        n = n.parentElement;
+      }
+      return true;
+    };
+    return {
+      translated: document.querySelectorAll("translated").length,
+      aiSpans: aiSpans.length,
+      aiSpansWithText: withText.length,
+      aiVisibleWithText: withText.filter(isVisible).length,
+      bodyHasAiSnippet: document.body.innerText.includes("[aimock]"),
+    };
+  });
+  if (r.translated === 0) {
+    throw new Error(
+      `after-google-translation 保真度违规：页面无任何译文（translated=0）— ` +
+        `Google 翻译未生效或页面被提前复位（issue #75）`
+    );
+  }
+  if (r.aiVisibleWithText > 0 || r.bodyHasAiSnippet) {
+    throw new Error(
+      `after-google-translation 保真度违规：拍到 AI 译文而非 Google 译文 ` +
+        `${JSON.stringify(r)} — sessionStorage AI 标记污染（issue #75）`
+    );
+  }
+}
+
+/**
+ * 断言 replace-original-mode 的截图与 baseline-untranslated **不同**。
+ *
+ * 这是 #75 的直接指纹：污染时两者逐字节相同（页面早已是 replaceOriginal
+ * 全译文态，第 7 步的操作产生了与 baseline 相同的结果）。
+ *
+ * 判定用文件 sha256 前 16 hex（与 scripts/visual-review.mjs 的 fileHash 同
+ * 语义）。baseline 文件缺失时跳过（只 warning，不误报）。
+ *
+ * @param {string} baselinePath
+ * @param {string} replacePath
+ */
+async function assertReplaceOriginalDiffersFromBaseline(baselinePath, replacePath) {
+  const { readFileSync } = await import("node:fs");
+  const { createHash } = await import("node:crypto");
+  const hash = (p) => createHash("sha256").update(readFileSync(p)).digest("hex").slice(0, 16);
+  try {
+    const [a, b] = [hash(baselinePath), hash(replacePath)];
+    if (a === b) {
+      throw new Error(
+        `replace-original-mode 保真度违规：与 baseline-untranslated 截图逐字节相同 ` +
+          `(sha256:${a}) — 该检查点未改变页面状态，场景间状态污染（issue #75）`
+      );
+    }
+  } catch (err) {
+    if (err.message?.includes("保真度违规")) throw err;
+    console.warn(`[visual-audit] 保真度指纹跳过（文件不可读）：${err.message}`);
+  }
+}
+
 /**
  * 场景入口。
  *
@@ -146,7 +260,8 @@ export async function run(scope) {
   await page.waitForTimeout(300);
 
   // checkpoint 1: 未翻译基线
-  await screenshotCheckpoint(page, "baseline-untranslated", { scenario: name });
+  await assertBaselinePristine(page);
+  const baselineShot = await screenshotCheckpoint(page, "baseline-untranslated", { scenario: name });
 
   // checkpoint 2: Google 译文
   await sendMessageToTab(serviceWorker, page.url(), {
@@ -155,6 +270,7 @@ export async function run(scope) {
   });
   await page.waitForFunction(() => document.querySelectorAll("translated").length > 0, null, { timeout: 30000 });
   await page.waitForTimeout(500);
+  await assertGoogleNotAi(page);
   await applySelfTestInjection(page, "after-google-translation");
   await screenshotCheckpoint(page, "after-google-translation", { scenario: name });
   await clearSelfTestInjection(page);
@@ -220,7 +336,13 @@ export async function run(scope) {
     { timeout: 30000 }
   ).catch(() => console.warn("[visual-audit] replaceOriginal wait timed out; capturing anyway"));
   await page.waitForTimeout(500);
-  await screenshotCheckpoint(page, "replace-original-mode", { scenario: name });
+  const replaceShot = await screenshotCheckpoint(page, "replace-original-mode", { scenario: name });
+  // 保真度指纹：replaceOriginal 必须与 baseline 不同（#75 直接指纹）
+  if (baselineShot?.path && replaceShot?.path) {
+    await assertReplaceOriginalDiffersFromBaseline(baselineShot.path, replaceShot.path);
+  } else {
+    console.warn("[visual-audit] 保真度指纹跳过：截图路径不可用（screenshotCheckpoint 返回 null）");
+  }
 
   // ── 效度演练注入（如启用）───────────────────────────────
   // 在 popup 截图上做注入演示（不影响 mock 页检查点的干净产物）

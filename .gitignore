@@ -9,3 +9,8 @@ result
 /screenshots
 /.codegraph
 /.mcp.json
+# Agent scratch files (throwaway scripts / logs) — never commit these.
+# Convention: prefix ad-hoc debugging scripts with .tmp- (see CLAUDE.md).
+.tmp-*
+.tmp-*.mjs
+.tmp-*.sh

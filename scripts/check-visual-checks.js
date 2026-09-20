@@ -34,6 +34,25 @@
  *      cannot be matched against the declaration → hard failure).
  *   5. The CHECKPOINTS export exists and is a non-empty array.
  *
+ * Rule 6 (programmatic-assertion coverage, issue #75 — V2):
+ *
+ *   The fidelity defect proved that `expect[]` alone is not enough: a
+ *   checkpoint can declare "no extension UI visible yet" and still capture
+ *   a fully translated page. `expect[]` is consumed by the AI review —
+ *   which cannot hard-fail a build. Any expectation that is MECHANICALLY
+ *   checkable (element counts, text absence, cross-shot difference) must
+ *   ALSO be asserted in the capture scenario so the E2E run itself fails.
+ *
+ *   A checkpoint declares its programmatic assertions via
+ *   `programmatic: ["assertXxx", ...]`. This lint enforces:
+ *
+ *     6a. Every declared name has a call site in the scenario file that
+ *         captured that checkpoint (declared-but-never-called ⇒ the
+ *         assertion was dropped while the declaration still claims it).
+ *     6b. Every id in FIDELITY_CRITICAL_IDS declares >= 1 programmatic
+ *         assertion (these carry machine-checkable truth claims; losing
+ *         their assertion silently reopens the #75 class of defect).
+ *
  * Usage:
  *   node scripts/check-visual-checks.js
  *   node scripts/check-visual-checks.js --checks <fixture> --audit <fixture>
@@ -70,6 +89,39 @@ const AUDIT_DIR = argAuditDir !== -1
   : path.join(ROOT, "tests", "browser-e2e");
 
 const ID_PATTERN = /^[a-z0-9-]+$/;
+
+/**
+ * Checkpoints whose truth claims are mechanically checkable AND were the
+ * direct victims of the #75 fidelity defect. Losing their programmatic
+ * assertion silently reopens that class of defect, so rule 6b requires
+ * each of them to declare >= 1 `programmatic` entry.
+ */
+const FIDELITY_CRITICAL_IDS = [
+  "baseline-untranslated",
+  "after-google-translation",
+  "replace-original-mode",
+];
+
+/**
+ * Extract function call-site names from a scenario source.
+ *
+ * Used by rule 6a: a `programmatic: ["assertXxx"]` declaration must have a
+ * matching call site in the scenario that captured the checkpoint. We match
+ * `assertXxx(` occurrences so a stale declaration (assertion deleted, or
+ * renamed) is caught rather than silently trusted.
+ *
+ * @param {string} source — scenario module source
+ * @returns {Set<string>} called names
+ */
+function extractCalledNames(source) {
+  const called = new Set();
+  const CALL = /\b([A-Za-z_$][\w$]*)\s*\(/g;
+  let m;
+  while ((m = CALL.exec(source)) !== null) {
+    called.add(m[1]);
+  }
+  return called;
+}
 
 /**
  * Extract screenshotCheckpoint call-site ids from the audit scenario text.
@@ -221,6 +273,54 @@ async function main() {
           `visual-checks.mjs — undeclared captures are invisible to the visual review.`
       );
       violations.push("not-declared");
+    }
+  }
+
+  // ── Rule 6: programmatic-assertion coverage (issue #75) ──
+  // 6a: every declared `programmatic` name must have a call site in a file
+  //     that actually captured that checkpoint.
+  // 6b: FIDELITY_CRITICAL_IDS must declare >= 1 programmatic assertion.
+  const filesById = new Map(); // id → Set<file>
+  for (const site of captureSites) {
+    if (!filesById.has(site.id)) filesById.set(site.id, new Set());
+    filesById.get(site.id).add(site.file);
+  }
+
+  const calledByFile = new Map(); // file → Set<name>
+  const calledNamesIn = (file) => {
+    if (!calledByFile.has(file)) {
+      calledByFile.set(file, extractCalledNames(fs.readFileSync(file, "utf8")));
+    }
+    return calledByFile.get(file);
+  };
+
+  for (const [id, cp] of declared.entries()) {
+    const declaredProg = Array.isArray(cp.programmatic) ? cp.programmatic : [];
+
+    // 6a — declared names must be called where the checkpoint is captured
+    for (const fnName of declaredProg) {
+      const owners = filesById.get(id);
+      const hasCallSite =
+        owners && [...owners].some((file) => calledNamesIn(file).has(fnName));
+      if (!hasCallSite) {
+        console.warn(
+          `⚠️  checkpoint "${id}" declares programmatic: ["${fnName}"] but no ` +
+            `${fnName}() call site exists in a file capturing it — ` +
+            `the assertion was dropped while the declaration still claims it.`
+        );
+        violations.push("programmatic-uncalled");
+      }
+    }
+
+    // 6b — fidelity-critical checkpoints must declare at least one
+    if (FIDELITY_CRITICAL_IDS.includes(id) && declaredProg.length === 0) {
+      console.warn(
+        `⚠️  checkpoint "${id}" carries mechanically checkable truth claims but ` +
+          `declares no programmatic assertion — a mechanically checkable ` +
+          `expectation must ALSO be asserted in the capture scenario so the E2E ` +
+          `run itself fails (issue #75). Declare programmatic: ["assertXxx"].`
+      );
+      violations.push("missing-programmatic");
     }
   }
 
