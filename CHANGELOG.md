@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial open-source release
 
 ### Fixed
+- Floating button group: the viewport clamp and the drag clamp now budget the FULL layer box (panel + the 38px options shortcut strip) instead of the panel alone — the bottom row (AI button) could previously be placed up to 38px past the viewport's bottom edge (#80; pre-existing since before v2.1.30).
 - Floating button group: a saved position that is off-screen for the current viewport (e.g. saved on a wider window, or on another display) is now clamped into view at load. The restore path read `BUTTON_STYLES` before its initialization, the exception was swallowed by the restore try/catch, and the viewport clamp right after it never ran — the button group stayed invisible until any resize (#78).
 - Floating button group: the visibility clamp now runs as an independent step, so a restore failure can never again skip it (the clamp is the guarantee that the group is visible).
 - Hover AI button: clicking "AI" on a block no longer stays on the Google translation when the page-level mode was set to Google earlier. A page-level switch away now only suppresses in-flight AI arrivals (Q22/Q23 preserved); a stale flag no longer vetoes block-scope direct requests (#70).

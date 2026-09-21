@@ -1,30 +1,33 @@
 /**
- * DualTran E2E — 悬浮按钮组「已保存位置 + 视口回收」回归（issue #78）
+ * DualTran E2E — 悬浮按钮组「已保存位置 + 视口回收」回归（issue #78 + #80）
  *
- * 用户报告症状：部分网站载入后右侧悬浮按钮组完全不显示；拖动窗口
+ * 用户报告症状（#78）：部分网站载入后右侧悬浮按钮组完全不显示；拖动窗口
  * （触发 resize）后恢复。
  *
- * 根因（回归于 #19 三态重构）：restore 路径调用 applyFloatingBtnWidth()
+ * 根因 #78（回归于 #19 三态重构）：restore 路径调用 applyFloatingBtnWidth()
  * → updateButtons() 读取了尚未初始化的 BUTTON_STYLES → 异常被 restore 的
  * try/catch 吞掉 → 紧随其后的 clampContainerToViewport() 永不执行 →
  * 已保存的屏外位置被原样应用。生产构建 drop_console，控制台无任何日志。
  *
+ * 根因 #80（历史缺陷，v2.1.30 已存在）：被定位元素是 layer（容器 + 38px
+ * 快捷键条），但钳制与拖拽的高度预算都只算容器高 → 面板底边（AI 按钮行）
+ * 可被放到视口外最多 38px。修复后两处预算统一为 getLayerBoxSize()。
+ *
  * 断言策略（症状级，不绑定实现细节）：
- *   - 屏外 seed（5000,5000）：载入后按钮组必须「实质可见」——面板与视口
- *     交集 ≥50% 面积，且左缘被钳制贴到视口右缘。修复前为 0%（完全不可见）。
+ *   - 屏外 seed（5000,5000）：载入后左缘钳制贴右缘，**且面板完整可见**
+ *     （bottom ≤ innerHeight，容差 1px；修复前溢出 38px = vis 73%）。
  *   - 窄窗口 seed（保存自更宽窗口的 1188,300 @1100 视口）：载入后左缘必须
  *     被钳制进视口（= innerWidth - 面板宽），top 保持 seed 值；且钳制后
  *     2.5s 内不回弹。
  *   - 无 seed 对照（负向，防假阳性）：默认锚定位置必须完整可见——不能因为
  *     钳制逻辑过度激进而把默认位置也改写。
- *
- * 已知边界（不在本场景内修复）：钳制高度基准用容器高、而层含 38px 快捷键
- * 条，载入回收后仍有约 38px 底边溢出——v2.1.30 已存在（store 构建同场景
- * 63%），属 issue #78 secondary finding，单独跟进。故此处不断言 full
- * visibility，只断言 ≥50% 交集 + 左缘钳制。
+ *   - 真实指针拖拽到底边（#80）：layer 盒底必须贴视口底（容差 1px）且面板
+ *     完整可见——用 page.mouse 驱动真实拖拽（非合成事件），并断言持久化的
+ *     坐标就是钳制后的值。
  */
 
 import {
+  readStorage,
   waitForContentScriptInjected,
   waitForPageTranslatorReady,
   writeStorage,
@@ -155,6 +158,14 @@ async function runCellSavedOffscreen(page, serviceWorker, testPageUrl) {
   if (y < 0 || y >= vh) {
     fail("extreme-offscreen", `top=${y} outside viewport height ${vh}`);
   }
+  // #80: the clamp must budget the LAYER box (panel + 38px strip), so the
+  // panel is FULLY visible — not just 73% with the bottom row cut off.
+  if (!atLoad.fullyVisible) {
+    fail(
+      "extreme-offscreen",
+      `panel not fully visible after clamp (#80 regression): rect=${JSON.stringify(atLoad.rect)} vp=${JSON.stringify(atLoad.inner)}`
+    );
+  }
   console.log(`     atLoad rect=${JSON.stringify(atLoad.rect)} vis=${atLoad.visiblePct}% ✓`);
 
   // 稳定性：钳制结果不得在数秒内回弹（防止「先钳后弹回屏外」的假修复）
@@ -214,6 +225,76 @@ async function runCellCleanControl(page, serviceWorker, testPageUrl) {
   console.log(`     default placement fully visible rect=${JSON.stringify(atLoad.rect)} ✓`);
 }
 
+/**
+ * Cell 4（#80）：真实指针拖拽到底边——layer 盒（面板 + 38px 条）必须贴住
+ * 而非越过视口底，且持久化的坐标就是钳制后的值。用 page.mouse 驱动真实
+ * 拖拽（非合成事件），走的是 onPointerMove 的拖拽钳制路径。
+ */
+async function runCellDragToBottomEdge(page, serviceWorker, testPageUrl) {
+  console.log("  Cell 4: real-pointer drag to the bottom edge (#80) @1280x720");
+  await loadWithSeededPosition(page, serviceWorker, testPageUrl, {
+    viewport: { width: 1280, height: 720 },
+    position: null,
+  });
+
+  // 取拖拽把手的屏幕坐标（在 shadow root 内）。
+  const handleBox = await page.evaluate((hostId) => {
+    const host = document.getElementById(hostId);
+    const handle = host?.shadowRoot?.getElementById("dragHandle");
+    if (!handle) return null;
+    const r = handle.getBoundingClientRect();
+    return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
+  }, HOST_ID);
+  if (!handleBox) {
+    fail("drag-bottom-edge", "drag handle not found in shadow root");
+  }
+
+  // 真实指针拖拽：远超底边（+500px），拖拽钳制必须兜住。
+  await page.mouse.move(handleBox.x, handleBox.y);
+  await page.mouse.down();
+  await page.mouse.move(handleBox.x, handleBox.y + 500, { steps: 12 });
+  await page.mouse.up();
+  await page.waitForTimeout(300); // savePosition（同步）后的稳定窗口
+
+  const after = await probePanel(page);
+  if (!after.containerFound || !after.layerRect) {
+    fail("drag-bottom-edge", "panel/layer lost after drag");
+  }
+  const [, layerTop, , layerH] = after.layerRect;
+  const [, vh] = after.inner;
+  const layerBottom = layerTop + layerH;
+
+  // #80 核心断言：layer 盒底贴住视口底，不得越过（修复前溢出 38px）。
+  if (layerBottom > vh + 1) {
+    fail(
+      "drag-bottom-edge",
+      `layer box overflows viewport bottom by ${layerBottom - vh}px (AI row cut off): ${JSON.stringify(after.layerRect)} vp=${JSON.stringify(after.inner)}`
+    );
+  }
+  if (layerBottom < vh - 1) {
+    fail("drag-bottom-edge", `layer not pinned to bottom edge: bottom=${layerBottom} vh=${vh}`);
+  }
+  if (!after.fullyVisible) {
+    fail(
+      "drag-bottom-edge",
+      `panel not fully visible after drag: rect=${JSON.stringify(after.rect)} vp=${JSON.stringify(after.inner)}`
+    );
+  }
+
+  // 持久化坐标 = 钳制后坐标（证明 savePosition 存的就是被钳的值）。
+  const saved = await readStorage(serviceWorker, POSITION_KEY);
+  const appliedTop = Math.round(parseFloat(after.layerInlineTop || "0"));
+  if (!saved || typeof saved.top !== "number" || Math.abs(saved.top - appliedTop) > 1) {
+    fail(
+      "drag-bottom-edge",
+      `persisted top=${saved && saved.top} != applied top=${appliedTop}`
+    );
+  }
+  console.log(
+    `     layerBottom=${layerBottom} vh=${vh} savedTop=${saved.top} fullyVisible ✓`
+  );
+}
+
 export async function run(scope) {
   const { page, serviceWorker, testPageUrl, collector } = scope;
 
@@ -231,7 +312,8 @@ export async function run(scope) {
     await runCellSavedOffscreen(page, serviceWorker, testPageUrl);
     await runCellNarrowWindow(page, serviceWorker, testPageUrl);
     await runCellCleanControl(page, serviceWorker, testPageUrl);
-    console.log("\n  PASS: position restore + viewport clamp regression covered\n");
+    await runCellDragToBottomEdge(page, serviceWorker, testPageUrl);
+    console.log("\n  PASS: position restore + viewport clamp regression covered (#78, #80)\n");
   } catch (err) {
     collector?.record?.("floating-btn-position-restore", err.message);
     console.error(`\n  FLOATING POSITION RESTORE FAILED: ${err.message}\n`);
