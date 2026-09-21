@@ -503,6 +503,34 @@ if (window.self !== window.top) {
       });
     });
 
+    // Three-state highlight rendering (Q13/Q20 visual spec)
+    // Declared ABOVE the restore block on purpose: restoring saved state calls
+    // applyFloatingBtnWidth() → updateButtons(), which reads this table. When
+    // it lived below the restore block it was still uninitialized at restore
+    // time → the read threw → the exception was swallowed by the restore catch
+    // → the clamp call after it was skipped → saved off-screen positions kept
+    // the button group invisible until the next resize (issue #78).
+    const BUTTON_STYLES = {
+      original: {
+        active: { color: "#ffffff", background: "#374151", borderColor: "#374151" },
+        inactive: { color: "#6b7280", background: "#f3f4f6", borderColor: "#d1d5db" },
+        label: "Original",
+        compactLabel: "O",
+      },
+      google: {
+        active: { color: "#ffffff", background: "#1d4ed8", borderColor: "#1d4ed8" },
+        inactive: { color: "#1d4ed8", background: "#eff6ff", borderColor: "#bfdbfe" },
+        label: "Google",
+        compactLabel: "G",
+      },
+      ai: {
+        active: { color: "#ffffff", background: "#7c3aed", borderColor: "#7c3aed" },
+        inactive: { color: "#7c3aed", background: "#f5f3ff", borderColor: "#ddd6fe" },
+        label: "AI",
+        compactLabel: "A",
+      },
+    };
+
     try {
       const savedPos = twpConfig.get("floatingBtnPosition");
       if (savedPos && typeof savedPos.left === "number" && typeof savedPos.top === "number") {
@@ -513,10 +541,20 @@ if (window.self !== window.top) {
         layerEl.style.top = savedPos.top + "px";
       }
       applyFloatingBtnWidth(currentFloatingBtnWidth, false);
+    } catch (e) {
+      console.warn("restore floating button state failed", e);
+    }
+
+    // Clamp as an INDEPENDENT step: it is the guarantee that the button group
+    // is visible, so it must still run when the restore above fails. Sharing
+    // one try/catch previously let a swallowed restore error skip the clamp,
+    // leaving a saved off-screen position invisible until the next resize
+    // (issue #78). Do not merge this back into the block above.
+    try {
       clampContainerToViewport(false);
       revealShortcutBriefly();
     } catch (e) {
-      console.warn("restore floating button state failed", e);
+      console.warn("clamp floating button to viewport failed", e);
     }
 
     // Enable drag to reposition, save on release
@@ -828,27 +866,9 @@ if (window.self !== window.top) {
 
     console.log("updating buttons");
 
-    // Three-state highlight rendering (Q13/Q20 visual spec)
-    const BUTTON_STYLES = {
-      original: {
-        active: { color: "#ffffff", background: "#374151", borderColor: "#374151" },
-        inactive: { color: "#6b7280", background: "#f3f4f6", borderColor: "#d1d5db" },
-        label: "Original",
-        compactLabel: "O",
-      },
-      google: {
-        active: { color: "#ffffff", background: "#1d4ed8", borderColor: "#1d4ed8" },
-        inactive: { color: "#1d4ed8", background: "#eff6ff", borderColor: "#bfdbfe" },
-        label: "Google",
-        compactLabel: "G",
-      },
-      ai: {
-        active: { color: "#ffffff", background: "#7c3aed", borderColor: "#7c3aed" },
-        inactive: { color: "#7c3aed", background: "#f5f3ff", borderColor: "#ddd6fe" },
-        label: "AI",
-        compactLabel: "A",
-      },
-    };
+    // NOTE: BUTTON_STYLES is declared ABOVE, just before the restore block —
+    // updateButtons() is reachable from the restore path at load time, so the
+    // table must be initialized before that block runs (issue #78).
 
     function updateButtons() {
       const { highlight } = getState();
