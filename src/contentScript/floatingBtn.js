@@ -151,6 +151,12 @@ if (window.self !== window.top) {
   let shortcutRevealTimer = null;
   let lastViewportWidth = window.innerWidth;
   const MIN_FLOATING_BTN_WIDTH = 48;
+  // Height of the options shortcut strip reserved by #floatingBtnBody padding
+  // (padding-top: 38px, flipped to padding-bottom near the top edge). The
+  // POSITIONED element is the layer, whose box is the container plus this
+  // strip — so every viewport budget must include it, or the panel bottom
+  // (AI button row) can be placed up to 38px past the viewport edge (#80).
+  const SHORTCUT_STRIP_SIZE = 38;
 
   // B3: engineStateOverride handoff into the registered create() callback.
   // show(forceShow, engineStateOverride) stores the override here right
@@ -391,6 +397,18 @@ if (window.self !== window.top) {
       return Math.max(MIN_FLOATING_BTN_WIDTH, window.innerWidth - 12);
     }
 
+    // The POSITIONED element is the LAYER, so its box is the container PLUS the
+    // shortcut strip (#80). Every viewport budget must use this box — budgeting
+    // the container alone let the layer bottom sit SHORTCUT_STRIP_SIZE past the
+    // viewport edge (bottom clamp, drag, and resize paths alike). Single helper
+    // so the clamp and the drag can never drift apart again.
+    function getLayerBoxSize() {
+      const rect = layerEl.getBoundingClientRect();
+      const w = containerEl.offsetWidth || rect.width || 92;
+      const h = containerEl.offsetHeight || rect.height || 90;
+      return { w, h: h + SHORTCUT_STRIP_SIZE };
+    }
+
     function updateShortcutPlacement() {
       const rect = containerEl.getBoundingClientRect();
       layerEl.classList.toggle("dualtran-options-shortcut-below", rect.top < 64);
@@ -429,8 +447,7 @@ if (window.self !== window.top) {
       }
 
       const rect = layerEl.getBoundingClientRect();
-      const width = containerEl.offsetWidth || rect.width || 92;
-      const height = containerEl.offsetHeight || rect.height || 90;
+      const { w: width, h: height } = getLayerBoxSize();
       const previousMaxLeft = Math.max(0, lastViewportWidth - width);
       const maxLeft = Math.max(0, window.innerWidth - width);
       const maxTop = Math.max(0, window.innerHeight - height);
@@ -568,12 +585,6 @@ if (window.self !== window.top) {
 
       const dragThresholdPx = 3;
 
-      function getElSize() {
-        const w = containerEl.offsetWidth || 60;
-        const h = containerEl.offsetHeight || 80;
-        return { w, h };
-      }
-
       function toTopLeftIfNeeded() {
         if (layerEl.style.bottom || layerEl.style.right || layerEl.style.transform) {
           const rect = layerEl.getBoundingClientRect();
@@ -625,7 +636,7 @@ if (window.self !== window.top) {
             return;
           }
         }
-        const { w, h } = getElSize();
+        const { w, h } = getLayerBoxSize();
         const maxLeft = Math.max(0, window.innerWidth - w);
         const maxTop = Math.max(0, window.innerHeight - h);
         const newLeft = clamp(startLeft + dx, 0, maxLeft);

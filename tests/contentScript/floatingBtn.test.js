@@ -396,10 +396,13 @@ describe("floatingBtn", () => {
     configValues.floatingBtnPosition = { left: 5000, top: 5000 };
     await loadModule();
 
-    // jsdom gives zero-size rects, so clamp falls back to the code's
-    // 92x90 defaults: maxLeft = innerWidth - 92, maxTop = innerHeight - 90.
+    // jsdom gives zero-size rects, so the clamp falls back to the code's
+    // defaults: container 92x90, and getLayerBoxSize() budgets the LAYER box
+    // height = 90 + SHORTCUT_STRIP_SIZE (38) — the layer includes the 38px
+    // shortcut strip reserved by #floatingBtnBody padding (issue #80).
+    // maxLeft = innerWidth - 92, maxTop = innerHeight - (90 + 38).
     const maxLeft = window.innerWidth - 92;
-    const maxTop = window.innerHeight - 90;
+    const maxTop = window.innerHeight - (90 + 38);
     expect(getLayer().style.left).toBe(`${maxLeft}px`);
     expect(getLayer().style.top).toBe(`${maxTop}px`);
   });
@@ -410,6 +413,43 @@ describe("floatingBtn", () => {
 
     expect(getLayer().style.left).toBe("0px");
     expect(getLayer().style.top).toBe("0px");
+  });
+
+  // Regression (#80): the drag clamp must budget the LAYER box (container +
+  // the 38px shortcut strip), not the container alone — otherwise the bottom
+  // ~38px of the panel (the AI button row) can be dragged past the viewport
+  // bottom edge. jsdom is unmeasurable (all metrics 0) so the fallback
+  // arithmetic applies: maxTop = innerHeight - (90 + 38).
+  it("keeps the layer box inside the viewport when dragging to the bottom edge", async () => {
+    await loadModule();
+    const dragHandle = getDragHandle();
+
+    dragHandle.dispatchEvent(
+      new MouseEvent("mousedown", {
+        bubbles: true,
+        button: 0,
+        clientX: 10,
+        clientY: 10,
+      })
+    );
+    // Drag far beyond the bottom edge — the drag clamp must stop the layer
+    // box (panel + strip) at the viewport bottom.
+    window.dispatchEvent(
+      new MouseEvent("mousemove", {
+        bubbles: true,
+        clientX: 10,
+        clientY: 5000,
+      })
+    );
+    window.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+
+    const maxTop = window.innerHeight - (90 + 38);
+    expect(getLayer().style.top).toBe(`${maxTop}px`);
+    // The clamped position is what gets persisted on release.
+    expect(setMock).toHaveBeenCalledWith(
+      "floatingBtnPosition",
+      expect.objectContaining({ top: maxTop })
+    );
   });
 
   it("restore path does not swallow an exception (no 'restore floating button state failed' warning)", async () => {
