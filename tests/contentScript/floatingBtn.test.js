@@ -386,6 +386,43 @@ describe("floatingBtn", () => {
     expect(getLayer().style.right).toBe("");
   });
 
+  // Regression: a saved position that is off-screen for the CURRENT viewport
+  // must be clamped into view at load. The restore path used to throw
+  // (BUTTON_STYLES read before initialization inside updateButtons), the
+  // exception was swallowed by the restore try/catch, and the following
+  // clampContainerToViewport() call never ran -> the button group stayed
+  // off-screen (user-visible symptom: "floating button not showing").
+  it("clamps a saved off-screen floating button position into the viewport on restore", async () => {
+    configValues.floatingBtnPosition = { left: 5000, top: 5000 };
+    await loadModule();
+
+    // jsdom gives zero-size rects, so clamp falls back to the code's
+    // 92x90 defaults: maxLeft = innerWidth - 92, maxTop = innerHeight - 90.
+    const maxLeft = window.innerWidth - 92;
+    const maxTop = window.innerHeight - 90;
+    expect(getLayer().style.left).toBe(`${maxLeft}px`);
+    expect(getLayer().style.top).toBe(`${maxTop}px`);
+  });
+
+  it("clamps a negative saved floating button position to the viewport origin", async () => {
+    configValues.floatingBtnPosition = { left: -50, top: -20 };
+    await loadModule();
+
+    expect(getLayer().style.left).toBe("0px");
+    expect(getLayer().style.top).toBe("0px");
+  });
+
+  it("restore path does not swallow an exception (no 'restore floating button state failed' warning)", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    configValues.floatingBtnPosition = { left: 5000, top: 5000 };
+    await loadModule();
+
+    const restoreWarnings = warnSpy.mock.calls.filter((call) =>
+      String(call[0]).includes("restore floating button state failed")
+    );
+    expect(restoreWarnings).toHaveLength(0);
+  });
+
   it("does not auto-convert anchored placement to absolute on resize when not saved", async () => {
     await loadModule();
 
