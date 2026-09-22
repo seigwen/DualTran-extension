@@ -54,17 +54,22 @@ function updateInlineBtnStateClass(btnAi, state) {
   }
 }
 
+/**
+ * Render the AI success state on a button: declare the state, keep the label
+ * a plain "AI".
+ *
+ * #83: the ✓ glyph that used to be appended next to the label was removed by
+ * user request — the highlighted (active) button already communicates the
+ * state, and the glyph made the label width jump. The `dualtran-ai-success`
+ * class marker stays: tests, the auto-improve gate, and future styling rely
+ * on it as the state's semantic marker. Only the visible decoration goes.
+ *
+ * @param {Object} btnAi — BtnAiProxy-like object
+ */
 export function renderAiSuccessIndicator(btnAi) {
   if (!btnAi || !btnAi.btnAiTxtNode) return;
   btnAi.btnAiTxtNode.textContent = "AI";
   updateInlineBtnStateClass(btnAi, "success");
-  const checkSpan = btnAi.ownerDocument.createElement("span");
-  checkSpan.textContent = "\u2713";
-  checkSpan.className = AI_SUCCESS_CHECK_CLASS;
-  checkSpan.style.marginLeft = "4px";
-  checkSpan.style.color = SUCCESS_CHECK_COLOR;
-  checkSpan.style.fontWeight = "600";
-  btnAi.btnAiTxtNode.appendChild(checkSpan);
 }
 
 export function renderAiErrorIndicator(btnAi) {

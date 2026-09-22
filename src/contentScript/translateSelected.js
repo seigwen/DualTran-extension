@@ -646,11 +646,6 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       font-size: 14px;
       opacity: 0.8;
     }
-    .dualtran-ai-success-check {
-      margin-left: 4px;
-      color: #16a34a;
-      font-weight: 600;
-    }
     .dualtran-ai-error-cross {
       margin-left: 4px;
       color: #dc2626;

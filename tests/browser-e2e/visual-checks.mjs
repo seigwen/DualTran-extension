@@ -97,11 +97,13 @@ export const CHECKPOINTS = [
       page: "mock test-page.html",
       when: "hovering a translated block after translation",
     },
+    programmatic: ["assertHoverAiButtonHasNoSuccessGlyph"],
     expect: [
       "Three-button group (Original / Google / AI) is visible next to the hovered block",
       "Buttons carry full-word labels, legible at default zoom",
       "Buttons do not overlap the hovered text or each other",
       "Exactly one button appears in its active (filled) state",
+      "The AI button label is a plain \"AI\" — no ✓ success glyph next to the label (#83)",
     ],
   },
   {
@@ -195,10 +197,12 @@ export const CHECKPOINTS = [
       page: "mock test-page.html",
       when: "newLine: after hovering block 0 and clicking AI in the block group (page was previously Google-translated)",
     },
+    programmatic: ["assertAiButtonSuccessLabelIsPlainAi"],
     expect: [
       "Block 0 shows the AI translation text — NOT the Google translation (#70 assertion: the block-level AI click must win over the page-level Google state)",
       "The AI text uses the configured AI color treatment, not the Google one",
       "No duplicated/stacked translation at block 0; other blocks still show Google text",
+      "The block-group AI button label is a plain \"AI\" — no ✓ success glyph (#83)",
     ],
   },
   {
@@ -208,10 +212,12 @@ export const CHECKPOINTS = [
       page: "mock test-page.html",
       when: "replaceOriginal: after hovering block 0 and clicking AI in the block group",
     },
+    programmatic: ["assertAiButtonSuccessLabelIsPlainAi"],
     expect: [
       "Block 0's visible text is the AI translation (not the original source text, not the Google translation)",
       "No leftover empty wrappers or residual original fragments inside block 0",
       "No layout collapse at block 0 (double spacing / collapsed container)",
+      "The block-group AI button label is a plain \"AI\" — no ✓ success glyph (#83)",
     ],
   },
   {

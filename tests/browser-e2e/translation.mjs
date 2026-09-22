@@ -334,7 +334,7 @@ async function verifyGoogleTranslation(page, serviceWorker, verifyPageUrl) {
  *   2. 先触发 Google 翻译（生成 <translated> 节点和 AI 按钮）
  *   3. 等待 AI 自动改进（autoImproveByAI = "yes"）通过 Mock 服务器处理
  *   4. 通过 DOM 可观测信号检测 AI 翻译进度：
- *      - .dualtran-ai-success-check（✓ 成功指示器）
+ *      - .dualtran-ai-btn 上的 dualtran-ai-success class（成功状态标记）
  *      - .dualtran-ai-error-cross（✗ 错误指示器）
  *      - 按钮文本（"queuing"、"translating..."）
  *      - Mock 响应文本是否出现在 DOM 中
@@ -479,7 +479,9 @@ async function verifyAiTranslation(page, serviceWorker, verifyPageUrl, mockServe
           if (singletonHost && singletonHost.shadowRoot) {
             const aiBtn = singletonHost.shadowRoot.querySelector(".dualtran-ai-btn");
             if (aiBtn) {
-              singleAiSuccess = !!aiBtn.querySelector(".dualtran-ai-success-check");
+              // #83: the success state is read from the class marker — the ✓
+              // glyph that used to sit next to the label was removed.
+              singleAiSuccess = aiBtn.classList.contains("dualtran-ai-success");
               singleAiError = !!aiBtn.querySelector(".dualtran-ai-error-cross");
             }
           }

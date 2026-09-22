@@ -165,6 +165,46 @@ async function assertBaselinePristine(page) {
 }
 
 /**
+ * 断言悬停组 AI 按钮的标签不是被装饰污染的（#83 机械子集）。
+ *
+ * 用户报告：点 AI 后按钮标签右侧出现一个绿色的 ✓。修复后标签必须保持纯
+ * 文本。判定分两层以避免假阳性：
+ *   - **无条件**：按钮内不得出现 ✓ 字形，也不得有 success 装饰 span
+ *     （任何状态下都成立的不变量）。
+ *   - **成功态**：标签必须恰好是 `AI` 且无子元素（该状态的确切形状）。
+ * 未处于成功态时不做标签形状断言（该检查点的截图不保证 AI 已到达）。
+ *
+ * @param {import("playwright").Page} page
+ */
+async function assertHoverAiButtonHasNoSuccessGlyph(page) {
+  const r = await page.evaluate(() => {
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    const btn = host?.shadowRoot?.querySelector(".dualtran-ai-btn");
+    if (!btn) return { missing: true };
+    const label = btn.querySelector("span:not(.dualtran-ai-tooltip)");
+    return {
+      missing: false,
+      isSuccess: btn.classList.contains("dualtran-ai-success"),
+      labelText: (label?.textContent || "").trim(),
+      hasGlyph: (btn.textContent || "").includes("\u2713"),
+      checkSpans: btn.querySelectorAll(".dualtran-ai-success-check").length,
+      childSpans: label ? label.children.length : -1,
+    };
+  });
+  if (r.missing) throw new Error("#83 保真度违规：悬停组 AI 按钮不存在");
+  if (r.hasGlyph || r.checkSpans > 0) {
+    throw new Error(
+      `#83 保真度违规：AI 按钮标签被 ✓ 装饰污染（用户已要求移除）— ${JSON.stringify(r)}`
+    );
+  }
+  if (r.isSuccess && (r.labelText !== "AI" || r.childSpans !== 0)) {
+    throw new Error(
+      `#83 保真度违规：AI 成功态标签应为纯 "AI" — ${JSON.stringify(r)}`
+    );
+  }
+}
+
+/**
  * 断言 after-google-translation 拍到的是 Google 译文，**不是** AI 译文。
  *
  * 被 sessionStorage AI 标记污染时，第 2 步的 translatePage 会走 AI 路径，
@@ -298,6 +338,8 @@ export async function run(scope) {
   });
   await waitForHostState(page, "singleton", "healthy", { label: "visual-audit: hover group" });
   await page.waitForTimeout(250);
+  // #83：悬停组 AI 按钮标签不得带 ✓ 成功装饰（用户报告场景的机械子集）
+  await assertHoverAiButtonHasNoSuccessGlyph(page);
   await screenshotCheckpoint(page, "hover-group-visible", { scenario: name });
 
   // checkpoint 5: 悬停组 → 点 Original（组仍显示，O 激活）

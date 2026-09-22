@@ -355,7 +355,6 @@ function createSingletonHost() {
         pointer-events: none;
       }
       .dualtran-ai-btn:hover .dualtran-ai-tooltip { display: block; }
-      .dualtran-ai-success-check { color: #16a34a; margin-left: 4px; font-weight: 600; }
       .dualtran-ai-error-cross { color: #dc2626; margin-left: 4px; font-weight: 600; }
     </style>
     <div class="dualtran-btn-group">
@@ -561,9 +560,13 @@ export function hideButtonGroup() {
  *
  * #65: three buttons (Original / Google / AI). Button colors come from the
  * BTN_COLORS palette (inline styles, active state = block displayMode);
- * the AI decorations (✓ / ✕ / "translating..." / error tooltip) are kept,
+ * the AI error decorations (✕ / "translating..." / error tooltip) are kept,
  * but they no longer fight the palette over the button text color — the
  * decoration's own color lives on the indicator span.
+ *
+ * #83: the AI success ✓ glyph was REMOVED by user request — the label stays a
+ * plain "AI" and the success state is carried by the `dualtran-ai-success`
+ * class alone (the highlighted button already communicates the state).
  */
 export function updateSingletonUI(translatedElement) {
   if (!_singleton.aiBtn) return;
@@ -572,17 +575,17 @@ export function updateSingletonUI(translatedElement) {
 
   // Reset state classes
   _singleton.aiBtn.classList.remove("dualtran-ai-loading", "dualtran-ai-success", "dualtran-ai-error");
-  // Remove old indicators
-  _singleton.aiBtn.querySelectorAll(".dualtran-ai-success-check,.dualtran-ai-error-cross").forEach(el => el.remove());
+  // Remove the error indicator from a previous render. #83: the success ✓ glyph
+  // was removed, so the cross is the only decoration that can be present.
+  _singleton.aiBtn.querySelectorAll(".dualtran-ai-error-cross").forEach(el => el.remove());
 
   const status = state.aiStatus;
   if (status === "translated") {
+    // #83: success state = class marker only, label stays a plain "AI".
+    // The ✓ decoration that used to be appended here was removed by user
+    // request (the highlighted button already communicates the state).
     _singleton.aiBtn.classList.add("dualtran-ai-success");
-    const check = document.createElement("span");
-    check.textContent = "✓";
-    check.className = "dualtran-ai-success-check";
     _singleton.aiTextNode.textContent = "AI";
-    _singleton.aiTextNode.appendChild(check);
     _singleton.tooltipNode.textContent = "AI translated successfully!";
     _singleton.tooltipNode.style.color = "";
   } else if (status === "translationError") {
