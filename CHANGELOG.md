@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial open-source release
 
 ### Fixed
+- Hover AI button: the green ✓ success glyph next to the "AI" label is gone (#83). The success state is still carried by the `dualtran-ai-success` class and the button's active highlight — the label now stays a plain "AI" with no trailing decoration, on both the per-block hover group and the selected-text panel. The error ✕ is unchanged.
 - Floating button group: the viewport clamp and the drag clamp now budget the FULL layer box (panel + the 38px options shortcut strip) instead of the panel alone — the bottom row (AI button) could previously be placed up to 38px past the viewport's bottom edge (#80; pre-existing since before v2.1.30).
 - Floating button group: a saved position that is off-screen for the current viewport (e.g. saved on a wider window, or on another display) is now clamped into view at load. The restore path read `BUTTON_STYLES` before its initialization, the exception was swallowed by the restore try/catch, and the viewport clamp right after it never ran — the button group stayed invisible until any resize (#78).
 - Floating button group: the visibility clamp now runs as an independent step, so a restore failure can never again skip it (the clamp is the guarantee that the group is visible).

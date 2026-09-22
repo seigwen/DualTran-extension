@@ -1091,6 +1091,35 @@ describe("三按钮结构 + 色板（#65：Original / Google / AI，对齐浮动
     expect(asHex(original.style.background)).toBe("#f3f4f6");
   });
 
+  test("AI 成功态标签为纯 “AI”——不得渲染 ✓ 装饰 (#83)", () => {
+    // The success state keeps its class marker (flow semantics), but the label
+    // must stay a plain "AI" — the highlighted button alone communicates the
+    // state (user request, #83). updateSingletonUI is the render seam.
+    const st = getBlockState(translatedEl);
+
+    st.displayMode = "ai";
+    st.aiStatus = "translated";
+    updateSingletonUI(translatedEl);
+
+    const { ai } = buttons();
+    // The label span only — the button also contains the (display:none) tooltip.
+    const label = ai.querySelector("span:not(.dualtran-ai-tooltip)");
+    expect(ai.textContent).not.toContain("✓");
+    expect(ai.querySelector(".dualtran-ai-success-check")).toBeNull();
+    expect(label.textContent).toBe("AI");
+    expect(label.children.length).toBe(0);
+    // State marker survives — only the glyph goes.
+    expect(ai.classList.contains("dualtran-ai-success")).toBe(true);
+
+    // Symmetry: the error state keeps its ✕ (only the ✓ was removed).
+    st.aiStatus = "translationError";
+    st.errorMessage = "boom";
+    updateSingletonUI(translatedEl);
+    const cross = buttons().ai.querySelector(".dualtran-ai-error-cross");
+    expect(cross).not.toBeNull();
+    expect(cross.textContent).toBe("✕");
+  });
+
   test("点击回调走单一 onBtnClick(id, target) 收口", () => {
     const spy = vi.fn();
     setCallbacks({ onBtnClick: spy });

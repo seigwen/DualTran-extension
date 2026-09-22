@@ -350,12 +350,13 @@ describe("Behavior 4b — G after AI resets the singleton AI button to initial s
     createSingletonButtonGroup();
     const { translatedEl } = createNewLineBlock();
 
-    // AI → singleton button renders success (✓)
+    // AI → singleton button renders success state — no ✓ glyph (#83)
     await handleBtn("ai", translatedEl);
     const aiBtn = singletonAiBtn();
     expect(aiBtn).not.toBeNull();
     expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(true);
-    expect(aiBtn.querySelector(".dualtran-ai-success-check")).not.toBeNull();
+    expect(aiBtn.querySelector(".dualtran-ai-success-check")).toBeNull();
+    expect(aiBtn.querySelector("span").textContent).toBe("AI");
 
     // G → Google-only display AND AI button back to its initial (pre-AI) state
     await handleBtn("google", translatedEl);
@@ -374,11 +375,12 @@ describe("Behavior 4b — G after AI resets the singleton AI button to initial s
     createSingletonButtonGroup();
     const { p } = createReplaceOriginalBlock();
 
-    // AI → success
+    // AI → success (class marker only — no ✓ glyph, #83)
     await handleBtn("ai", p);
     const aiBtn = singletonAiBtn();
     expect(aiBtn).not.toBeNull();
     expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(true);
+    expect(aiBtn.querySelector(".dualtran-ai-success-check")).toBeNull();
 
     // G → Google-only, AI button back to initial state
     await handleBtn("google", p);

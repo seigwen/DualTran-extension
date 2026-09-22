@@ -28,16 +28,18 @@ function createButton() {
 }
 
 describe("aiUiState", () => {
-  it("renders a success indicator with the shared class and color", () => {
+  it("renders the AI success state as a plain label — no ✓ glyph (#83)", () => {
     const button = createButton();
 
     renderAiSuccessIndicator(button);
 
-    expect(button.btnAiTxtNode.textContent).toContain("AI");
-    const indicator = button.btnAiTxtNode.querySelector("span");
-    expect(indicator).not.toBeNull();
-    expect(indicator.className).toBe(AI_SUCCESS_CHECK_CLASS);
-    expect(indicator.style.color).toBe("rgb(22, 163, 74)");
+    expect(button.btnAiTxtNode.textContent).toBe("AI");
+    // The success state is still declared (semantic marker for the flow), but
+    // the visible decoration (green ✓ next to the label) was removed by user
+    // request (#83): the highlighted button alone communicates the state.
+    expect(button.classList.contains("dualtran-ai-success")).toBe(true);
+    expect(button.btnAiTxtNode.querySelector(`.${AI_SUCCESS_CHECK_CLASS}`)).toBeNull();
+    expect(button.btnAiTxtNode.children.length).toBe(0);
   });
 
   it("renders an error indicator with the shared class and color", () => {
@@ -95,7 +97,9 @@ describe("aiUiState", () => {
     expect(button.translatedTextNode.textContent).toBe("salut");
     expect(button.tooltip.textContent).toBe("AI translated successfully!");
     expect(button.getAttribute("title")).toBe("AI translated successfully!");
-    expect(button.btnAiTxtNode.querySelector("span")?.className).toBe(AI_SUCCESS_CHECK_CLASS);
+    // #83: success state = class marker only; the label stays a plain "AI"
+    expect(button.btnAiTxtNode.textContent).toBe("AI");
+    expect(button.btnAiTxtNode.querySelector(`.${AI_SUCCESS_CHECK_CLASS}`)).toBeNull();
   });
 
   it("applies error state and can skip title while updating translated text", () => {
