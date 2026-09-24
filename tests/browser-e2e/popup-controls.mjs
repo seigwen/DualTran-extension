@@ -1,12 +1,12 @@
 /**
- * popup-controls E2E 场景 — 验证弹出页的 11 个控件交互与持久化。
+ * popup-controls E2E 场景 — 验证弹出页的控件交互与持久化。
  *
  * 测试范围：
  *   - 1 个 <select>：目标语言下拉框 (#selectTargetLanguage)
- *   - 9 个复选框：语言/站点翻译开关、悬停显示、AI 改进等
+ *   - 8 个复选框：语言/站点翻译开关、悬停显示（issue #88 起在真实页面上下文中测试点击路径）
  *   - 1 个链接：更多选项 (#cbMoreOptions)
  *
- * 共有 7 个测试步骤 (P1–P7)。
+ * 共有 7 个测试步骤 (P1–P7；P3 现仅含 P3.1)。
  *
  * @module popup-controls
  */
@@ -14,9 +14,9 @@
 import {
   waitForContentScriptInjected,
   waitForPageTranslatorReady,
-  sendMessageToTab,
   readStorage,
   writeStorage,
+  assertSelectOptionsComplete,
 } from "./setup.mjs";
 
 // ─── 模块元数据 ─────────────────────────────────────────────────
@@ -27,7 +27,7 @@ export const name = "popup-controls";
 /** 此场景不需要 Mock LLM 服务器 */
 export const needsMock = false;
 
-/** 纳入 smoke 快速回归子集（6 步，纯 UI 控件验证） */
+/** 纳入 smoke 快速回归子集（纯 UI 控件验证） */
 export const smoke = true;
 
 // ─── 常量 ───────────────────────────────────────────────────────
@@ -39,21 +39,20 @@ export const smoke = true;
  *   - toggle：简单的 yes/no 开关，对应 chrome.storage.local 中的单个键
  *   - array：操作数组的复选框（站点列表、语言列表）
  *
- * @type {Array<{ id: string, storageKey: string, type: "toggle" | "array", toggleOn?: string, toggleOff?: string }>}
+ * @type {Array<{ id: string, storageKey: string, type: "toggle" | "array", toggleOn?: string, toggleOff?: string, member?: "hostname" | "language" }>}
  */
 const CHECKBOX_CONFIGS = [
   // yes/no 型复选框
   { id: "cbShowTranslateSelectedButton", storageKey: "showTranslateSelectedButton", type: "toggle", toggleOn: "yes", toggleOff: "no" },
-  { id: "cbAutoImproveByAi", storageKey: "autoImproveByAI", type: "toggle", toggleOn: "yes", toggleOff: "no" },
   { id: "cbShowOriginalWhenHovering", storageKey: "showOriginalTextWhenHovering", type: "toggle", toggleOn: "yes", toggleOff: "no" },
-  // 站点数组型复选框（hostname 为扩展 ID，可正常操作）
-  { id: "cbAlwaysTranslateThisSite", storageKey: "alwaysTranslateSites", type: "array" },
-  { id: "cbNeverTranslateThisSite", storageKey: "neverTranslateSites", type: "array" },
-  { id: "cbShowTranslatedWhenHoveringThisSite", storageKey: "sitesToTranslateWhenHovering", type: "array" },
-  // 语言数组型复选框（originalTabLanguage 为 "und" 时禁用，但 checked 状态仍可读取）
-  { id: "cbAlwaysTranslateThisLanguage", storageKey: "alwaysTranslateLangs", type: "array" },
-  { id: "cbNeverTranslateThisLanguage", storageKey: "neverTranslateLangs", type: "array" },
-  { id: "cbShowTranslatedWhenHoveringThisLang", storageKey: "langsToTranslateWhenHovering", type: "array" },
+  // 站点数组型复选框（真实页面上下文中 hostname = 测试页主机名）
+  { id: "cbAlwaysTranslateThisSite", storageKey: "alwaysTranslateSites", type: "array", member: "hostname" },
+  { id: "cbNeverTranslateThisSite", storageKey: "neverTranslateSites", type: "array", member: "hostname" },
+  { id: "cbShowTranslatedWhenHoveringThisSite", storageKey: "sitesToTranslateWhenHovering", type: "array", member: "hostname" },
+  // 语言数组型复选框（真实页面上下文中 originalTabLanguage = 页面语言）
+  { id: "cbAlwaysTranslateThisLanguage", storageKey: "alwaysTranslateLangs", type: "array", member: "language" },
+  { id: "cbNeverTranslateThisLanguage", storageKey: "neverTranslateLangs", type: "array", member: "language" },
+  { id: "cbShowTranslatedWhenHoveringThisLang", storageKey: "langsToTranslateWhenHovering", type: "array", member: "language" },
 ];
 
 // ═════════════════════════════════════════════════════════════════
@@ -61,11 +60,38 @@ const CHECKBOX_CONFIGS = [
 // ═════════════════════════════════════════════════════════════════
 
 /**
+ * 等待弹出页初始化完成（listener 注册 + 语言解析）。
+ *
+ * 关键竞态（issue #88 实测）：弹出页原始 HTML 中复选框默认 enabled，
+ * `!cb.disabled` 在 load 瞬间即为 true——但 popup.js 的 change listener 与
+ * updateInterface 都在 chrome.tabs.query 回调内才注册/执行。若此时就点击，
+ * DOM 原生 toggle 会翻转 checked，但 handler 未注册 → storage 不更新。
+ *
+ * 可靠信号：hover-lang label（lblShowTranslatedWhenHoveringThisLang）只有
+ * 在 getOriginalTabLanguage 回调里被赋值（「…websites in <语言名>」），
+ * 而该回调必然晚于外层回调中全部 listener 的注册。原始 HTML 文案以 "in"
+ * 结尾（无语言名），i18n 处理未带参时占位符为空——两者都不匹配。
+ *
+ * @param {import("playwright").Page} page - 弹出页所在 Playwright 页面对象
+ * @returns {Promise<void>}
+ */
+async function waitForPopupReady(page) {
+  await page.waitForFunction(() => {
+    const lbl = document.getElementById("lblShowTranslatedWhenHoveringThisLang");
+    if (!lbl) return false;
+    const txt = (lbl.textContent || "").trim();
+    // 必须已出现「in <语言名>」且语言名不是未替换的 $LANGUAGE_NAME$ 占位符
+    return /\bin\s+[^\s$]/.test(txt);
+  }, null, { timeout: 10000 });
+}
+
+/**
  * 打开弹出页并等待初始化完成。
  *
  * 弹出页通过 chrome-extension:// URL 直接导航打开。
  * 由于不是真实的扩展图标点击，页面脚本会将自身识别为 active tab，
- * hostname 为扩展 ID，originalTabLanguage 为 "und"。
+ * hostname 为扩展 ID，originalTabLanguage 为 "und"（无页面上下文）。
+ * 仅用于不依赖页面上下文的步骤（P1/P6/P7）。
  *
  * @param {import("playwright").Page} page - Playwright 页面对象
  * @param {string} extensionId - 扩展 ID
@@ -78,6 +104,47 @@ async function openPopup(page, extensionId) {
     const sel = document.getElementById("selectTargetLanguage");
     return sel && sel instanceof HTMLSelectElement && sel.options.length >= 4;
   }, null, { timeout: 15000 });
+  // 等待 listener 注册 + 语言解析完成（消除「点击早于 handler 注册」竞态）
+  await waitForPopupReady(page);
+}
+
+/**
+ * 打开弹出页并使其读取真实页面上下文（issue #88 P2）。
+ *
+ * probe 实证（真实 Chrome 151）：在独立标签页中先导航到一个真实页面（内容脚本就绪），
+ * 再「置前真实页面 → 重载弹出页」，弹出页初始化时 tabs.query({active:true}) 就能
+ * 拿到真实页面 → hostname / originalTabLanguage 均为真实值 → 站点/语言型复选框可用、
+ * 真实点击路径（而非 storage 模拟）可测。
+ *
+ * @param {import("playwright").BrowserContext} context - 浏览器上下文
+ * @param {import("playwright").Page} popupPage - 弹出页所在的 Playwright 页面对象
+ * @param {string} extensionId - 扩展 ID
+ * @param {string} testPageUrl - 真实测试页 URL
+ * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
+ * @param {{ pageContext: import("playwright").Page | null }} state - 持久状态（真实页面标签页引用复用）
+ * @returns {Promise<void>}
+ */
+async function openPopupInPageContext(context, popupPage, extensionId, testPageUrl, serviceWorker, state) {
+  // 1. 确保真实页面标签页存在且内容脚本已就绪
+  if (!state.pageContext || state.pageContext.isClosed()) {
+    state.pageContext = await context.newPage();
+    await state.pageContext.goto(testPageUrl, { waitUntil: "domcontentloaded" });
+    await waitForContentScriptInjected(serviceWorker, state.pageContext.url());
+    await waitForPageTranslatorReady(serviceWorker, state.pageContext.url());
+  }
+
+  // 2. 打开弹出页
+  await popupPage.goto(`chrome-extension://${extensionId}/popup/popup.html`, { waitUntil: "load" });
+
+  // 3. 置前真实页面 → 重载弹出页（重载后初始化时读取到的活动标签 = 真实页面）
+  await state.pageContext.bringToFront();
+  await popupPage.waitForTimeout(250);
+  await popupPage.reload({ waitUntil: "load" });
+
+  // 4. 等待初始化完成：listener 注册 + originalTabLanguage 解析为真实语言
+  // （信号：hover-lang label 出现「in <语言名>」；原始 HTML 以 "in" 结尾不匹配，
+  //   杜绝「load 即返回但 handler 未注册」的竞态——见 waitForPopupReady 注释）
+  await waitForPopupReady(popupPage);
 }
 
 /**
@@ -132,6 +199,15 @@ async function p1LanguageDropdownRoundtrip(page, extensionId, serviceWorker) {
 
   // 1. 打开弹出页
   await openPopup(page, extensionId);
+
+  // 1b. 集合完整性（issue #88, P3）：语言下拉框每项 text 非空 + 含 "original" 与语言项
+  const langCompleteness = await assertSelectOptionsComplete(page, {
+    selectId: "selectTargetLanguage",
+    minCount: 4,
+    requiredValues: ["original"],
+    label: "#selectTargetLanguage（弹出页）",
+  });
+  console.log(`  [P1] 语言下拉框完整性：${langCompleteness.count} 个选项全部非空 ✓`);
 
   // 2. 选择一个非 "original" 的目标语言（第二个选项通常是第一种语言）
   const options = await page.locator("#selectTargetLanguage option").all();
@@ -191,139 +267,114 @@ async function p1LanguageDropdownRoundtrip(page, extensionId, serviceWorker) {
 /**
  * [P2] 验证每个复选框的状态在离开并重新打开弹出页后保持。
  *
- * 对每个复选框：
- *   1. 读取当前 checked 状态
- *   2. 点击切换为相反状态
- *   3. 验证已切换（DOM + storage）
- *   4. 导航离开
- *   5. 重新打开弹出页
- *   6. 验证切换后的状态保持
- *
- * 对于语言型复选框（originalTabLanguage 为 "und" 时禁用），
- * 跳过点击操作，仅验证 disabled 状态和 storage 读路径。
+ * issue #88 起在真实页面上下文中执行（真实 hostname / originalTabLanguage）：
+ * 对每个复选框：存在且可见且启用（不满足则硬失败）→ 真实点击 → DOM + storage 断言
+ * （数组型断言「恰好新增/移除一个成员」）→ 重新打开 → 持久化断言 → 恢复初始状态。
  *
  * @param {import("playwright").Page} page - Playwright 页面对象
  * @param {string} extensionId - 扩展 ID
  * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
+ * @param {string} testPageUrl - 真实测试页 URL
+ * @param {import("playwright").BrowserContext} context - 浏览器上下文
+ * @param {{ pageContext: import("playwright").Page | null }} state - 真实页面标签页持久状态
  * @returns {Promise<void>}
  */
-async function p2CheckboxPersistence(page, extensionId, serviceWorker) {
-  console.log("[P2] 复选框持久化测试 (9 个复选框)...");
+async function p2CheckboxPersistence(page, extensionId, serviceWorker, testPageUrl, context, state) {
+  console.log("[P2] 复选框持久化测试 (8 个复选框, 真实页面上下文)...");
+
+  // hover 行容器在 newLine 模式下被隐藏；统一切到 replaceOriginal 使全部行可见且可点击
+  const priorDisplayMode = await readStorage(serviceWorker, "whereToDisplayTranslatedText");
+  await writeStorage(serviceWorker, "whereToDisplayTranslatedText", "replaceOriginal");
 
   for (const cfg of CHECKBOX_CONFIGS) {
     console.log(`  [P2] 测试复选框: #${cfg.id}`);
 
-    try {
-      // 打开弹出页
-      await openPopup(page, extensionId);
+    // 打开弹出页（真实页面上下文：hostname / originalTabLanguage 均为真实值）
+    await openPopupInPageContext(context, page, extensionId, testPageUrl, serviceWorker, state);
 
-      // 检查是否禁用
-      const disabled = await getCheckboxDisabled(page, cfg.id);
+    // 1. 存在 + 可见 + 启用（真实页面上下文中全部成立；不成立即真实缺陷，硬失败）
+    const probe = await page.evaluate((id) => {
+      const el = document.getElementById(id);
+      if (!el) return { exists: false };
+      const rect = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+      return {
+        exists: true,
+        visible: rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden",
+        disabled: el.disabled,
+      };
+    }, cfg.id);
+    if (!probe.exists) throw new Error(`[P2] #${cfg.id} 不存在于弹出页`);
+    if (!probe.visible) throw new Error(`[P2] #${cfg.id} 不可见（真实页面上下文中应可见）`);
+    if (probe.disabled) throw new Error(`[P2] #${cfg.id} 处于禁用态（真实页面上下文中应启用）`);
 
-      if (disabled) {
-        // 语言型复选框：originalTabLanguage 为 "und"，禁用且 change 事件处理函数会提前返回。
-        // 跳过点击切换测试，改为验证 storage 读路径。
-        console.log(`    [P2] #${cfg.id} 已禁用（无页面上下文），使用 storage 级验证。`);
+    // 2. 记录基线
+    const baselineArr = cfg.type === "array" ? ((await readStorage(serviceWorker, cfg.storageKey)) || []) : null;
+    const initialState = await getCheckboxState(page, cfg.id);
+    console.log(`    [P2] #${cfg.id} 初始状态: ${initialState}`);
 
-        // 读当前 storage 值作为基线
-        const baseline = await readStorage(serviceWorker, cfg.storageKey);
+    // 3. 真实点击切换 → change handler → storage
+    await page.click(`#${cfg.id}`);
+    await page.waitForTimeout(500);
+    const toggledState = await getCheckboxState(page, cfg.id);
+    if (toggledState === initialState) {
+      throw new Error(`[P2] #${cfg.id} 点击后状态未变化（已禁用或 change handler 未生效）`);
+    }
 
-        // 写入测试值
-        const testArray = ["__e2e_test__"];
-        await writeStorage(serviceWorker, cfg.storageKey, testArray);
-
-        // 重新打开弹出页，验证 checkbox checked 状态反映 storage
-        await openPopup(page, extensionId);
-        // 注意：禁用状态下 checked 仍可读取（HTML 属性独立于 disabled）
-        // 但由于 originalTabLanguage 为 "und"，updateInterface 会设置 checked = false
-        // （因为检查的是 "und" 是否在数组中，而非我们的测试值）
-        // 因此这里仅验证 storage 写入成功后重新打开弹出页不崩溃即可
-
-        // 恢复基线
-        await writeStorage(serviceWorker, cfg.storageKey, baseline ?? []);
-        console.log(`    [P2] #${cfg.id} storage 读写验证通过（已恢复）`);
-        continue;
+    // 4. storage 断言
+    if (cfg.type === "toggle") {
+      const expectedVal = toggledState ? cfg.toggleOn : cfg.toggleOff;
+      const storedVal = await readStorage(serviceWorker, cfg.storageKey);
+      if (storedVal !== expectedVal) {
+        throw new Error(`[P2] #${cfg.id} storage 值 "${storedVal}" 与期望 "${expectedVal}" 不一致`);
       }
-
-      // ── 启用状态：执行完整的 toggle → persist → reopen 流程 ──
-
-      // 1. 检查元素是否可见（独立弹出页中某些区域可能被隐藏）
-      const isVisible = await page.evaluate((id) => {
-        const el = document.getElementById(id);
-        if (!el) return false;
-        const rect = el.getBoundingClientRect();
-        const style = getComputedStyle(el);
-        return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
-      }, cfg.id);
-      if (!isVisible) {
-        console.warn(`    [P2] ⚠ #${cfg.id} 不可见（无页面上下文），跳过点击测试`);
-        continue;
+      console.log(`    [P2] #${cfg.id} storage 验证通过: ${cfg.storageKey} = "${storedVal}"`);
+    } else {
+      const nowArr = (await readStorage(serviceWorker, cfg.storageKey)) || [];
+      if (!Array.isArray(nowArr)) {
+        throw new Error(`[P2] #${cfg.id} storage 值应为数组，实际: ${JSON.stringify(nowArr)}`);
       }
-
-      // 2. 读取当前状态
-      const initialState = await getCheckboxState(page, cfg.id);
-      console.log(`    [P2] #${cfg.id} 初始状态: ${initialState}`);
-
-      // 2. 点击切换
-      await page.click(`#${cfg.id}`);
-      await page.waitForTimeout(300); // 等待 change 事件处理和 storage 写入
-
-      // 3. 验证已切换（DOM 层面）
-      const toggledState = await getCheckboxState(page, cfg.id);
-      if (toggledState === initialState) {
-        console.warn(`    [P2] ⚠ #${cfg.id} 点击后状态未变化，可能已禁用或事件未触发`);
-      }
-
-      // 3b. 验证 storage 已更新
-      if (cfg.type === "toggle") {
-        // yes/no 型：直接验证 storage 值
-        const expectedVal = toggledState ? cfg.toggleOn : cfg.toggleOff;
-        const storedVal = await readStorage(serviceWorker, cfg.storageKey);
-        if (storedVal !== expectedVal) {
-          console.warn(`    [P2] ⚠ #${cfg.id} storage 值 "${storedVal}" 与期望 "${expectedVal}" 不一致`);
-        } else {
-          console.log(`    [P2] #${cfg.id} storage 验证通过: ${cfg.storageKey} = "${storedVal}"`);
+      if (toggledState) {
+        const added = nowArr.filter((x) => !baselineArr.includes(x));
+        if (added.length !== 1 || !String(added[0] ?? "").trim()) {
+          throw new Error(`[P2] #${cfg.id} 勾选后应恰好新增一个非空成员，实际新增: ${JSON.stringify(added)}`);
         }
+        console.log(`    [P2] #${cfg.id} 勾选新增成员: "${added[0]}" ✓`);
       } else {
-        // 数组型：验证包含/不包含对应的值
-        const storedArr = await readStorage(serviceWorker, cfg.storageKey) || [];
-        // 对于站点型复选框，hostname = 扩展 ID
-        const extIdInArray = Array.isArray(storedArr) && storedArr.includes(extensionId);
-        if (toggledState && !extIdInArray) {
-          console.warn(`    [P2] ⚠ #${cfg.id} checked=true 但扩展 ID 不在 ${cfg.storageKey} 中`);
-        } else if (!toggledState && extIdInArray) {
-          console.warn(`    [P2] ⚠ #${cfg.id} checked=false 但扩展 ID 仍在 ${cfg.storageKey} 中`);
-        } else {
-          console.log(`    [P2] #${cfg.id} storage 数组验证通过`);
+        const removed = baselineArr.filter((x) => !nowArr.includes(x));
+        if (removed.length !== 1) {
+          throw new Error(`[P2] #${cfg.id} 取消勾选后应恰好移除一个成员，实际移除: ${JSON.stringify(removed)}`);
         }
+        console.log(`    [P2] #${cfg.id} 取消勾选移除成员: "${removed[0]}" ✓`);
       }
+    }
 
-      // 4. 导航离开
-      await page.goto("about:blank", { waitUntil: "load" });
-      await page.waitForTimeout(300);
+    // 5. 重新打开弹出页 → 持久化断言
+    await openPopupInPageContext(context, page, extensionId, testPageUrl, serviceWorker, state);
+    const persistedState = await getCheckboxState(page, cfg.id);
+    if (persistedState !== toggledState) {
+      throw new Error(
+        `[P2] #${cfg.id} 持久化失败：切换后为 ${toggledState}，重新打开后为 ${persistedState}`
+      );
+    }
+    console.log(`    [P2] #${cfg.id} 持久化验证通过: ${persistedState}`);
 
-      // 5. 重新打开弹出页
-      await openPopup(page, extensionId);
-
-      // 6. 验证切换后的状态保持
-      const persistedState = await getCheckboxState(page, cfg.id);
-      if (persistedState !== toggledState) {
-        throw new Error(
-          `[P2] #${cfg.id} 持久化失败：切换后为 ${toggledState}，重新打开后为 ${persistedState}`
-        );
+    // 6. 恢复初始状态
+    if (persistedState !== initialState) {
+      await page.click(`#${cfg.id}`);
+      await page.waitForTimeout(400);
+    }
+    if (cfg.type === "array") {
+      // 存储级兜底恢复（消除跨数组联动残留）
+      const afterRestore = (await readStorage(serviceWorker, cfg.storageKey)) || [];
+      if (JSON.stringify(afterRestore) !== JSON.stringify(baselineArr)) {
+        await writeStorage(serviceWorker, cfg.storageKey, baselineArr);
       }
-      console.log(`    [P2] #${cfg.id} 持久化验证通过: ${persistedState}`);
-
-      // 恢复原始状态
-      if (persistedState !== initialState) {
-        await page.click(`#${cfg.id}`);
-        await page.waitForTimeout(300);
-      }
-    } catch (err) {
-      console.error(`    [P2] #${cfg.id} 测试失败: ${err.message}`);
-      throw err;
     }
   }
+
+  // 恢复原显示模式（P7 依赖初始值语义）
+  await writeStorage(serviceWorker, "whereToDisplayTranslatedText", priorDisplayMode ?? "newLine");
 
   console.log("[P2] 通过 ✓\n");
 }
@@ -333,251 +384,80 @@ async function p2CheckboxPersistence(page, extensionId, serviceWorker) {
 // ═════════════════════════════════════════════════════════════════
 
 /**
- * [P3.1] 验证关闭"显示翻译选中文本按钮"后，选中文本不会触发翻译。
+ * [P3.1] 验证「显示翻译选中文本按钮」开关对选中手势的门控。
  *
- * 流程：
- *   1. 打开弹出页，将 #cbShowTranslateSelectedButton 设为 off
- *   2. 导航到测试页面，等待内容脚本就绪
- *   3. 选中文本并触发翻译
- *   4. 验证 div.notranslate 数量未增加
+ * probe 实证（真实 Chrome 151，负向 + 正向对照校准）：
+ *   - flag=no  → 选中手势（selection + mouseup）不得创建翻译容器
+ *   - flag=yes → 选中手势必须创建翻译容器（防「oracle 永远为 0」的假阴性）
+ *
+ * 注：显式消息路径（TranslateSelectedText，热键/右键菜单触发）按设计不受该开关门控，
+ * 因此本步骤只断言手势路径。
  *
  * @param {import("playwright").Page} page - Playwright 页面对象
- * @param {string} extensionId - 扩展 ID
  * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
  * @param {string} testPageUrl - 测试页面 URL
  * @returns {Promise<void>}
  */
-async function p31ShowTranslateSelectedOff(page, extensionId, serviceWorker, testPageUrl) {
-  console.log("[P3.1] 关闭「显示翻译选中文本按钮」行为验证...");
+async function p31ShowTranslateSelectedGated(page, serviceWorker, testPageUrl) {
+  console.log("[P3.1] 「显示翻译选中文本按钮」门控行为验证...");
 
-  // 1. 打开弹出页，关闭开关
-  await openPopup(page, extensionId);
-
-  // 确保复选框不处于禁用状态并设为 off
-  const disabled = await getCheckboxDisabled(page, "cbShowTranslateSelectedButton");
-  if (!disabled) {
-    const current = await getCheckboxState(page, "cbShowTranslateSelectedButton");
-    if (current) {
-      await page.click("#cbShowTranslateSelectedButton");
-      await page.waitForTimeout(300);
-    }
-  }
-  // 强制确保 storage 值为 "no"
-  await writeStorage(serviceWorker, "showTranslateSelectedButton", "no");
-  console.log("  [P3.1] showTranslateSelectedButton 已设为 no");
-
-  // 2. 导航到测试页面
-  await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
-  await waitForContentScriptInjected(serviceWorker, page.url());
-  await waitForPageTranslatorReady(serviceWorker, page.url());
-  await page.waitForTimeout(1500); // 等待内容脚本完全初始化
-
-  // 记录翻译前的 notranslate 元素数量
-  const beforeCount = await page.locator("div.notranslate").count();
-  console.log(`  [P3.1] 选中文本前 div.notranslate 数量: ${beforeCount}`);
-
-  // 3. 选中文本并尝试触发翻译
-  await page.evaluate(() => {
-    const element = document.getElementById("selection-target");
-    if (!element) throw new Error("selection-target not found");
-    const selection = window.getSelection();
-    selection.removeAllRanges();
-    const range = document.createRange();
-    range.selectNodeContents(element);
-    selection.addRange(range);
-    // 模拟 mouseup 事件，触发扩展的选中文本检测
-    document.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, clientX: 200, clientY: 260 }));
-  });
-  await sendMessageToTab(serviceWorker, page.url(), { action: "TranslateSelectedText" });
-  await page.waitForTimeout(2000); // 等待可能的异步翻译完成
-
-  // 4. 验证 div.notranslate 数量未增加
-  const afterCount = await page.locator("div.notranslate").count();
-  console.log(`  [P3.1] 选中文本后 div.notranslate 数量: ${afterCount}`);
-
-  if (afterCount > beforeCount) {
-    console.warn(
-      `  [P3.1] ⚠ div.notranslate 从 ${beforeCount} 增加到 ${afterCount}，` +
-      `但 showTranslateSelectedButton=no 时应阻止翻译。这可能是内容脚本未立即响应配置变更。`
+  /** 计数「选中文本翻译」容器（body 直属 div.notranslate，排除悬浮按钮宿主）。 */
+  const countSelContainers = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll("body > div.notranslate")].filter(
+        (d) => d.id !== "dualtran-floating-btn-host"
+      ).length
     );
-  } else {
-    console.log("  [P3.1] div.notranslate 数量未增加 ✓");
-  }
 
-  // 清理：恢复默认值
+  /** 执行「选中文本 + mouseup」手势（等待观察窗口）。 */
+  const gesture = async () => {
+    await page.evaluate(() => {
+      const el = document.getElementById("selection-target");
+      if (!el) throw new Error("selection-target not found");
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      selection.addRange(range);
+      document.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, clientX: 200, clientY: 260 }));
+    });
+    await page.waitForTimeout(1800);
+  };
+
+  const loadFreshPage = async () => {
+    await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
+    await waitForContentScriptInjected(serviceWorker, page.url());
+    await waitForPageTranslatorReady(serviceWorker, page.url());
+    await page.waitForTimeout(1200);
+  };
+
+  // ── 负向：flag=no → 手势不得创建容器 ──
+  await writeStorage(serviceWorker, "showTranslateSelectedButton", "no");
+  await loadFreshPage();
+  const before = await countSelContainers();
+  await gesture();
+  const after = await countSelContainers();
+  if (after > before) {
+    throw new Error(
+      `[P3.1] showTranslateSelectedButton=no 但选中手势仍创建了翻译容器（${before} → ${after}）`
+    );
+  }
+  console.log(`  [P3.1] flag=no: 手势未创建容器 (${before} → ${after}) ✓`);
+
+  // ── 正向对照：flag=yes → 手势必须创建容器 ──
   await writeStorage(serviceWorker, "showTranslateSelectedButton", "yes");
+  await loadFreshPage();
+  const yBefore = await countSelContainers();
+  await gesture();
+  const yAfter = await countSelContainers();
+  if (yAfter <= yBefore) {
+    throw new Error(
+      `[P3.1] showTranslateSelectedButton=yes 但选中手势未创建翻译容器（${yBefore} → ${yAfter}）——门控反向回归`
+    );
+  }
+  console.log(`  [P3.1] flag=yes: 手势创建容器 (${yBefore} → ${yAfter}) ✓`);
 
   console.log("[P3.1] 通过 ✓\n");
-}
-
-/**
- * [P3.2] 验证关闭"自动使用 AI 改进翻译"后，AI 按钮不进入成功/错误状态。
- *
- * 需要 Mock LLM 服务器支持。如果 scope.mockServerConfig 未定义，
- * 跳过此步骤并输出警告（popup-controls 在 setupBasic 下运行）。
- *
- * @param {import("playwright").Page} page - Playwright 页面对象
- * @param {string} extensionId - 扩展 ID
- * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
- * @param {string} testPageUrl - 测试页面 URL
- * @param {Object} scope - 完整的测试 scope 对象
- * @returns {Promise<void>}
- */
-async function p32AutoImproveOff(page, extensionId, serviceWorker, testPageUrl, scope) {
-  console.log("[P3.2] 关闭「自动使用 AI 改进翻译」行为验证...");
-
-  // 检查是否有 mock 服务器配置
-  if (!scope.mockServerConfig) {
-    console.warn("  [P3.2] ⚠ mockServerConfig 未定义，跳过（popup-controls 在 setupBasic 下运行，不含 AI 翻译环境）。");
-    console.log("[P3.2] 跳过 ✓\n");
-    return;
-  }
-
-  // 1. 打开弹出页，关闭 AI 改进开关
-  await openPopup(page, extensionId);
-
-  const disabled = await getCheckboxDisabled(page, "cbAutoImproveByAi");
-  if (!disabled) {
-    const current = await getCheckboxState(page, "cbAutoImproveByAi");
-    if (current) {
-      await page.click("#cbAutoImproveByAi");
-      await page.waitForTimeout(300);
-    }
-  }
-  // 强制确保 storage 值为 "no"
-  await writeStorage(serviceWorker, "autoImproveByAI", "no");
-  console.log("  [P3.2] autoImproveByAI 已设为 no");
-
-  // 0. 记录翻译前的 mock 服务器 API 请求计数
-  const mockServerBase = "http://127.0.0.1:8788";
-  let requestCountBefore = 0;
-  try {
-    const res = await fetch(`${mockServerBase}/request-count`);
-    const data = await res.json();
-    requestCountBefore = data.count;
-    console.log(`  [P3.2] 翻译前 API 请求计数: ${requestCountBefore}`);
-  } catch (e) {
-    console.warn(`  [P3.2] ⚠ 无法获取翻译前请求计数:`, e.message);
-  }
-
-  // 2. 导航到测试页面并触发翻译
-  await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
-  await waitForContentScriptInjected(serviceWorker, page.url());
-  await waitForPageTranslatorReady(serviceWorker, page.url());
-  await page.waitForTimeout(1500);
-
-  // 触发整页翻译
-  await sendMessageToTab(serviceWorker, page.url(), {
-    action: "translatePage",
-    targetLanguage: "fr",
-  });
-
-  // 等待翻译完成
-  await page.waitForFunction(() => {
-    return document.querySelectorAll("translated").length > 0;
-  }, null, { timeout: 15000 });
-  await page.waitForTimeout(8000); // 等待 8s 覆盖 3 个 AI 轮询周期（2500ms × 3 = 7500ms）
-
-  // 3. 验证 AI 按钮不处于成功/错误状态
-  const aiButtonStates = await page.evaluate(() => {
-    /** AI 按钮相关 CSS 类名 */
-    const successClasses = ["dualtran-ai-success"];
-    const errorClasses = ["dualtran-ai-error"];
-    const buttons = document.querySelectorAll(".dualtran-ai-btn, [class*='dualtran-ai']");
-    const results = [];
-    buttons.forEach((btn) => {
-      const classList = [...btn.classList];
-      const isSuccess = successClasses.some((c) => classList.includes(c));
-      const isError = errorClasses.some((c) => classList.includes(c));
-      if (isSuccess || isError) {
-        results.push({
-          tag: btn.tagName,
-          classes: classList.join(" "),
-          isSuccess,
-          isError,
-        });
-      }
-    });
-    return results;
-  });
-
-  if (aiButtonStates.length > 0) {
-    throw new Error(
-      `[P3.2] 发现 ${aiButtonStates.length} 个 AI 按钮处于成功/错误状态，` +
-      `但 autoImproveByAI=no 时不应触发 AI 改进。` +
-      `按钮状态: ${JSON.stringify(aiButtonStates)}`
-    );
-  }
-  console.log("  [P3.2] 未发现 AI 按钮处于成功/错误状态 ✓");
-
-  // 4. 验证 mock 服务器未收到任何 AI 翻译请求
-  let requestCountAfter = 0;
-  try {
-    const resAfter = await fetch(`${mockServerBase}/request-count`);
-    const dataAfter = await resAfter.json();
-    requestCountAfter = dataAfter.count;
-    console.log(`  [P3.2] 翻译后 API 请求计数: ${requestCountAfter}`);
-  } catch (e) {
-    console.warn(`  [P3.2] ⚠ 无法获取翻译后请求计数:`, e.message);
-  }
-
-  const newRequests = requestCountAfter - requestCountBefore;
-  if (newRequests > 0) {
-    throw new Error(
-      `[P3.2] autoImproveByAI=no 但 mock 服务器收到 ${newRequests} 个新 AI 请求（预期 0）`
-    );
-  }
-  console.log(`  [P3.2] mock 服务器新增请求数: ${newRequests} ✓`);
-
-  console.log("[P3.2] 通过 ✓\n");
-}
-
-/**
- * [P3.3] 恢复 #cbAutoImproveByAi 为打开状态。
- *
- * 在 P3.2 清理之后调用，确保后续测试不受影响。
- *
- * @param {import("playwright").Page} page - Playwright 页面对象
- * @param {string} extensionId - 扩展 ID
- * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
- * @returns {Promise<void>}
- */
-async function p33RestoreAutoImprove(page, extensionId, serviceWorker) {
-  console.log("[P3.3] 恢复 autoImproveByAI 设置...");
-
-  // 通过 storage 直接恢复
-  await writeStorage(serviceWorker, "autoImproveByAI", "yes");
-  console.log("  [P3.3] autoImproveByAI 已恢复为 yes");
-
-  // 打开弹出页验证恢复
-  await openPopup(page, extensionId);
-  const checked = await getCheckboxState(page, "cbAutoImproveByAi");
-  console.log(`  [P3.3] #cbAutoImproveByAi checked = ${checked}`);
-  if (!checked) {
-    console.warn("  [P3.3] ⚠ 复选框未反映 storage 中的 yes 值（可能已禁用）");
-  }
-
-  console.log("[P3.3] 完成 ✓\n");
-}
-
-/**
- * [P3] 组合步骤：复选框行为效果验证。
- *
- * @param {import("playwright").Page} page - Playwright 页面对象
- * @param {string} extensionId - 扩展 ID
- * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
- * @param {string} testPageUrl - 测试页面 URL
- * @param {Object} scope - 完整的测试 scope 对象
- * @returns {Promise<void>}
- */
-async function p3CheckboxBehavioralEffects(page, extensionId, serviceWorker, testPageUrl, scope) {
-  console.log("[P3] 复选框行为效果测试...");
-
-  await p31ShowTranslateSelectedOff(page, extensionId, serviceWorker, testPageUrl);
-  await p32AutoImproveOff(page, extensionId, serviceWorker, testPageUrl, scope);
-  await p33RestoreAutoImprove(page, extensionId, serviceWorker);
-
-  console.log("[P3] 通过 ✓\n");
 }
 
 // ═════════════════════════════════════════════════════════════════
@@ -585,69 +465,66 @@ async function p3CheckboxBehavioralEffects(page, extensionId, serviceWorker, tes
 // ═════════════════════════════════════════════════════════════════
 
 /**
- * [P4] 验证"总是翻译此网站"复选框的存储行为。
+ * [P4] 验证"总是翻译此网站"复选框在真实页面上下文中的点击行为。
  *
- * 由于弹出页以 chrome-extension:// URL 打开，hostname 为扩展 ID。
- * 勾选该复选框后，扩展 ID 会出现在 alwaysTranslateSites 数组中。
+ * 真实页面上下文中 hostname = 测试页主机名；点击勾选后 hostname
+ * 必须出现在 alwaysTranslateSites 中，取消勾选后必须移除。
  *
  * @param {import("playwright").Page} page - Playwright 页面对象
  * @param {string} extensionId - 扩展 ID
  * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
+ * @param {string} testPageUrl - 真实测试页 URL
+ * @param {import("playwright").BrowserContext} context - 浏览器上下文
+ * @param {{ pageContext: import("playwright").Page | null }} state - 真实页面标签页持久状态
  * @returns {Promise<void>}
  */
-async function p4AlwaysNeverTranslateSite(page, extensionId, serviceWorker) {
+async function p4AlwaysNeverTranslateSite(page, extensionId, serviceWorker, testPageUrl, context, state) {
   console.log("[P4] 总是/永不翻译此网站测试...");
 
-  // 打开弹出页
-  await openPopup(page, extensionId);
+  await openPopupInPageContext(context, page, extensionId, testPageUrl, serviceWorker, state);
 
-  // 验证站点复选框已启用（hostname 为扩展 ID，truthy）
+  const hostname = new URL(testPageUrl).hostname;
+
   const disabled = await getCheckboxDisabled(page, "cbAlwaysTranslateThisSite");
   if (disabled) {
-    console.warn("  [P4] ⚠ #cbAlwaysTranslateThisSite 已禁用（hostname 为扩展 ID 时某些环境下不触发更新），跳过点击测试。");
-    return;
+    throw new Error("[P4] #cbAlwaysTranslateThisSite 处于禁用态（真实页面上下文中应启用）");
   }
 
-  // 记录初始状态
+  // 记录初始状态并确保未选中
   const initialAlwaysSites = (await readStorage(serviceWorker, "alwaysTranslateSites")) || [];
   console.log(`  [P4] 初始 alwaysTranslateSites: ${JSON.stringify(initialAlwaysSites)}`);
-
-  // 确保初始状态为未选中，然后点击选中
-  const initiallyChecked = await getCheckboxState(page, "cbAlwaysTranslateThisSite");
-  if (initiallyChecked) {
+  if (await getCheckboxState(page, "cbAlwaysTranslateThisSite")) {
     await page.click("#cbAlwaysTranslateThisSite");
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(400);
   }
 
-  // 点击选中
+  // 点击勾选
   await page.click("#cbAlwaysTranslateThisSite");
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(500);
 
-  // 验证复选框已选中
-  const afterCheck = await getCheckboxState(page, "cbAlwaysTranslateThisSite");
-  console.log(`  [P4] 选中后 checked = ${afterCheck}`);
-
-  // 验证扩展 ID 已添加到 alwaysTranslateSites
+  if (!(await getCheckboxState(page, "cbAlwaysTranslateThisSite"))) {
+    throw new Error("[P4] 点击勾选后 checked=false（change handler 未生效）");
+  }
   const sitesAfterCheck = (await readStorage(serviceWorker, "alwaysTranslateSites")) || [];
-  const extIdInSites = Array.isArray(sitesAfterCheck) && sitesAfterCheck.includes(extensionId);
-  if (!extIdInSites) {
-    console.warn(`  [P4] ⚠ 扩展 ID "${extensionId}" 未出现在 alwaysTranslateSites 中: ${JSON.stringify(sitesAfterCheck)}`);
-  } else {
-    console.log(`  [P4] 扩展 ID 已添加到 alwaysTranslateSites ✓`);
+  if (!Array.isArray(sitesAfterCheck) || !sitesAfterCheck.includes(hostname)) {
+    throw new Error(
+      `[P4] hostname "${hostname}" 未出现在 alwaysTranslateSites 中: ${JSON.stringify(sitesAfterCheck)}`
+    );
   }
+  console.log(`  [P4] hostname "${hostname}" 已添加到 alwaysTranslateSites ✓`);
 
-  // 取消选中
+  // 取消勾选
   await page.click("#cbAlwaysTranslateThisSite");
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(500);
 
-  // 验证已移除
   const sitesAfterUncheck = (await readStorage(serviceWorker, "alwaysTranslateSites")) || [];
-  const extIdStillInSites = Array.isArray(sitesAfterUncheck) && sitesAfterUncheck.includes(extensionId);
-  if (extIdStillInSites) {
-    console.warn(`  [P4] ⚠ 取消选中后扩展 ID 仍在 alwaysTranslateSites 中`);
-  } else {
-    console.log("  [P4] 取消选中后扩展 ID 已从 alwaysTranslateSites 移除 ✓");
+  if (Array.isArray(sitesAfterUncheck) && sitesAfterUncheck.includes(hostname)) {
+    throw new Error(`[P4] 取消勾选后 hostname "${hostname}" 仍在 alwaysTranslateSites 中`);
   }
+  console.log("  [P4] 取消勾选后 hostname 已从 alwaysTranslateSites 移除 ✓");
+
+  // 恢复初始数组
+  await writeStorage(serviceWorker, "alwaysTranslateSites", initialAlwaysSites);
 
   console.log("[P4] 通过 ✓\n");
 }
@@ -657,57 +534,64 @@ async function p4AlwaysNeverTranslateSite(page, extensionId, serviceWorker) {
 // ═════════════════════════════════════════════════════════════════
 
 /**
- * [P5] 验证"永不翻译此语言"复选框的存储行为。
+ * [P5] 验证"永不翻译此语言"复选框在真实页面上下文中的点击行为。
  *
- * 由于弹出页直接打开时 originalTabLanguage 为 "und"，
- * 语言型复选框会处于禁用状态，且 change 事件处理函数会提前返回。
- * 因此本测试通过 storage 层验证读写机制，并验证弹出页中复选框的禁用状态。
+ * 真实页面上下文中 originalTabLanguage = 页面语言（非 "und"），
+ * 复选框启用且 change handler 生效。点击勾选后页面语言必须出现在
+ * neverTranslateLangs 中；重新打开后 checked 状态保持。
  *
  * @param {import("playwright").Page} page - Playwright 页面对象
  * @param {string} extensionId - 扩展 ID
  * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
+ * @param {string} testPageUrl - 真实测试页 URL
+ * @param {import("playwright").BrowserContext} context - 浏览器上下文
+ * @param {{ pageContext: import("playwright").Page | null }} state - 真实页面标签页持久状态
  * @returns {Promise<void>}
  */
-async function p5AlwaysNeverTranslateLanguage(page, extensionId, serviceWorker) {
+async function p5AlwaysNeverTranslateLanguage(page, extensionId, serviceWorker, testPageUrl, context, state) {
   console.log("[P5] 总是/永不翻译此语言测试...");
 
-  // 打开弹出页
-  await openPopup(page, extensionId);
+  await openPopupInPageContext(context, page, extensionId, testPageUrl, serviceWorker, state);
 
-  // 验证语言复选框处于禁用状态（originalTabLanguage 为 "und"）
   const disabled = await getCheckboxDisabled(page, "cbNeverTranslateThisLanguage");
-  console.log(`  [P5] #cbNeverTranslateThisLanguage disabled = ${disabled}`);
+  if (disabled) {
+    throw new Error("[P5] #cbNeverTranslateThisLanguage 处于禁用态（真实页面上下文中应启用）");
+  }
 
-  // 记录初始 neverTranslateLangs 值
   const initialNeverLangs = (await readStorage(serviceWorker, "neverTranslateLangs")) || [];
   console.log(`  [P5] 初始 neverTranslateLangs: ${JSON.stringify(initialNeverLangs)}`);
-
-  // 通过 storage 写入测试语言代码
-  const testLang = "fr";
-  await writeStorage(serviceWorker, "neverTranslateLangs", [testLang]);
-  console.log(`  [P5] 写入 neverTranslateLangs = ["${testLang}"]`);
-
-  // 验证 storage 写入成功
-  const verifyLangs = await readStorage(serviceWorker, "neverTranslateLangs");
-  if (!Array.isArray(verifyLangs) || !verifyLangs.includes(testLang)) {
-    throw new Error(`[P5] storage 写入验证失败: ${JSON.stringify(verifyLangs)}`);
+  if (await getCheckboxState(page, "cbNeverTranslateThisLanguage")) {
+    await page.click("#cbNeverTranslateThisLanguage");
+    await page.waitForTimeout(400);
   }
-  console.log(`  [P5] storage 写入验证通过 ✓`);
 
-  // 重新打开弹出页验证（存储读路径）
-  await openPopup(page, extensionId);
-  const stillDisabled = await getCheckboxDisabled(page, "cbNeverTranslateThisLanguage");
-  console.log(`  [P5] 重新打开后 disabled = ${stillDisabled}`);
+  // 点击勾选
+  await page.click("#cbNeverTranslateThisLanguage");
+  await page.waitForTimeout(500);
 
-  // 注意：即使 storage 中有 "fr"，checked 仍为 false，
-  // 因为 updateInterface 检查的是 originalTabLanguage ("und") 是否在数组中
-  const checkedState = await getCheckboxState(page, "cbNeverTranslateThisLanguage");
-  console.log(`  [P5] 重新打开后 checked = ${checkedState}（预期 false，因为 originalTabLanguage 为 "und"）`);
+  if (!(await getCheckboxState(page, "cbNeverTranslateThisLanguage"))) {
+    throw new Error("[P5] 点击勾选后 checked=false（change handler 未生效）");
+  }
 
-  // 恢复原始值
+  const afterCheck = (await readStorage(serviceWorker, "neverTranslateLangs")) || [];
+  const added = afterCheck.filter((x) => !initialNeverLangs.includes(x));
+  if (added.length !== 1 || !String(added[0] ?? "").trim()) {
+    throw new Error(
+      `[P5] 勾选后应恰好新增一个非空语言成员，实际: ${JSON.stringify(afterCheck)}（新增 ${JSON.stringify(added)}）`
+    );
+  }
+  console.log(`  [P5] 页面语言 "${added[0]}" 已添加到 neverTranslateLangs ✓`);
+
+  // 重新打开 → checked 状态必须保持（真实上下文读路径）
+  await openPopupInPageContext(context, page, extensionId, testPageUrl, serviceWorker, state);
+  const checkedAfterReopen = await getCheckboxState(page, "cbNeverTranslateThisLanguage");
+  if (!checkedAfterReopen) {
+    throw new Error("[P5] 重新打开后 checked=false（storage 读路径未反映 neverTranslateLangs）");
+  }
+  console.log("  [P5] 重新打开后 checked=true ✓");
+
+  // 恢复初始值
   await writeStorage(serviceWorker, "neverTranslateLangs", initialNeverLangs);
-  const restoredLangs = await readStorage(serviceWorker, "neverTranslateLangs");
-  console.log(`  [P5] 恢复后 neverTranslateLangs: ${JSON.stringify(restoredLangs)}`);
 
   console.log("[P5] 通过 ✓\n");
 }
@@ -790,22 +674,6 @@ async function p6MoreOptionsLink(page, extensionId, serviceWorker, context) {
 // 主入口
 // ═════════════════════════════════════════════════════════════════
 
-/**
- * popup-controls E2E 场景主函数。
- *
- * 按 P1 → P6 顺序执行所有测试步骤。
- * 每一步都有独立的错误处理，某一步失败不会阻止后续步骤执行
- * （但致命错误会向上抛出）。
- *
- * @param {Object} scope - setup 函数返回的作用域对象
- * @param {import("playwright").Page} scope.page - Playwright 页面对象
- * @param {string} scope.extensionId - 扩展 ID
- * @param {import("playwright").Worker} scope.serviceWorker - 扩展 Service Worker
- * @param {import("playwright").BrowserContext} scope.context - 浏览器上下文
- * @param {string} scope.testPageUrl - 测试页面 URL
- * @param {Object} scope.collector - 错误收集器实例
- * @returns {Promise<void>}
- */
 // ═════════════════════════════════════════════════════════════════
 // P7: 译文显示位置下拉框
 // ═════════════════════════════════════════════════════════════════
@@ -888,7 +756,7 @@ async function p7DisplayModeSelect(page, extensionId, serviceWorker) {
   console.log(`  [P7] 重新打开后值 = ${restoredValue} ✓`);
 
   // 6. 回归断言：hover-lang label 必须包含语言名（不得是空占位符）
-  // 测试环境 originalTabLanguage="und" → twpLang.codeToLanguage("und")="Unknown"
+  // 无页面上下文时 originalTabLanguage="und" → twpLang.codeToLanguage("und")="Unknown"
   // 正常环境下应显示实际语言名（如 "French"、"中文"）。
   const hoverLangLabel = await page.evaluate(() => {
     const lbl = document.getElementById("lblShowTranslatedWhenHoveringThisLang");
@@ -916,6 +784,9 @@ export async function run(scope) {
   /** 收集所有步骤的错误 */
   const stepErrors = [];
 
+  /** 真实页面上下文标签页的持久状态（P2/P4/P5 复用；结束时关闭） */
+  const popupContextState = { pageContext: null };
+
   /**
    * 安全执行一个测试步骤，捕获错误但不中断后续步骤。
    *
@@ -935,35 +806,42 @@ export async function run(scope) {
     }
   }
 
-  // ── 按顺序执行测试步骤 ──
+  try {
+    // ── 按顺序执行测试步骤 ──
 
-  await runStep("P1", () =>
-    p1LanguageDropdownRoundtrip(page, extensionId, serviceWorker)
-  );
+    await runStep("P1", () =>
+      p1LanguageDropdownRoundtrip(page, extensionId, serviceWorker)
+    );
 
-  await runStep("P2", () =>
-    p2CheckboxPersistence(page, extensionId, serviceWorker)
-  );
+    await runStep("P2", () =>
+      p2CheckboxPersistence(page, extensionId, serviceWorker, testPageUrl, context, popupContextState)
+    );
 
-  await runStep("P3", () =>
-    p3CheckboxBehavioralEffects(page, extensionId, serviceWorker, testPageUrl, scope)
-  );
+    await runStep("P3.1", () =>
+      p31ShowTranslateSelectedGated(page, serviceWorker, testPageUrl)
+    );
 
-  await runStep("P4", () =>
-    p4AlwaysNeverTranslateSite(page, extensionId, serviceWorker)
-  );
+    await runStep("P4", () =>
+      p4AlwaysNeverTranslateSite(page, extensionId, serviceWorker, testPageUrl, context, popupContextState)
+    );
 
-  await runStep("P5", () =>
-    p5AlwaysNeverTranslateLanguage(page, extensionId, serviceWorker)
-  );
+    await runStep("P5", () =>
+      p5AlwaysNeverTranslateLanguage(page, extensionId, serviceWorker, testPageUrl, context, popupContextState)
+    );
 
-  await runStep("P6", () =>
-    p6MoreOptionsLink(page, extensionId, serviceWorker, context)
-  );
+    await runStep("P6", () =>
+      p6MoreOptionsLink(page, extensionId, serviceWorker, context)
+    );
 
-  await runStep("P7", () =>
-    p7DisplayModeSelect(page, extensionId, serviceWorker)
-  );
+    await runStep("P7", () =>
+      p7DisplayModeSelect(page, extensionId, serviceWorker)
+    );
+  } finally {
+    // 关闭真实页面上下文标签页（避免泄漏到后续场景）
+    if (popupContextState.pageContext && !popupContextState.pageContext.isClosed()) {
+      await popupContextState.pageContext.close().catch(() => {});
+    }
+  }
 
   // ── 汇总结果 ──
   console.log(`\n=== 场景 "${name}" 执行完毕 ===`);

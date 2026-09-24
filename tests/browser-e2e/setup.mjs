@@ -1462,6 +1462,128 @@ export async function assertNoDuplicateTranslationElements(page) {
   return assertNoDuplicateTranslations(page);
 }
 
+// ═════════════════════════════════════════════════════════════════
+// 集合完整性 oracle（issue #88, P3）
+// ═════════════════════════════════════════════════════════════════
+
+/**
+ * 集合完整性断言（issue #88, P3）：列表/集合类 UI 必须同时断言
+ *   1. 集合非空（count ≥ minCount）
+ *   2. 每个成员都有非空、去重后非平凡的文本
+ *   3. （可选）文本不在预期值集合之外 / 必含指定值
+ *
+ * 背景：#85 的首行空白逃逸的直接原因之一，是断言只验证「列表存在」而不验证
+ * 「每项都有内容」——oracle 测的是存在性而非完整性。此 helper 把「每项非空」
+ * 下沉为通用模式；`assertAllHaveNonEmptyText` 是 hotkeys H8、popup 语言下拉、
+ * provider 列表等列表类 UI 的默认断言。
+ *
+ * 用法（页面上下文）：
+ *   const r = await assertAllHaveNonEmptyText(page, {
+ *     selector: "#KeyboardShortcuts .shortcut-row",
+ *     labelSelector: ":scope > div",     // 可选：取行内某个子元素文本
+ *     minCount: 1,
+ *     label: "hotkeys list",
+ *   });
+ *
+ * @param {import("playwright").Page} page - Playwright 页面对象
+ * @param {Object} opts
+ * @param {string} opts.selector - 成员选择器（容器内每个成员）
+ * @param {string} [opts.containerSelector] - 容器选择器（缺省 = document）
+ * @param {string} [opts.labelSelector] - 取成员内某子元素的 textContent（缺省 = 成员自身）
+ * @param {number} [opts.minCount=1] - 最少成员数（0 允许空集合）
+ * @param {string} [opts.label="collection"] - 报错信息中的集合名
+ * @returns {Promise<{ count: number, texts: string[] }>}
+ */
+export async function assertAllHaveNonEmptyText(page, opts = {}) {
+  const {
+    selector,
+    containerSelector = null,
+    labelSelector = null,
+    minCount = 1,
+    label = "collection",
+  } = opts;
+  if (!selector) throw new Error("[assertAllHaveNonEmptyText] selector 必填");
+
+  const result = await page.evaluate(({ selector, containerSelector, labelSelector }) => {
+    const container = containerSelector ? document.querySelector(containerSelector) : document;
+    if (!container) return { containerMissing: true, containerSelector };
+    const members = [...container.querySelectorAll(selector)];
+    const texts = members.map((el) => {
+      const target = labelSelector ? (el.matches?.(labelSelector) ? el : el.querySelector(labelSelector)) : el;
+      return (target?.textContent ?? "").trim();
+    });
+    return { containerMissing: false, count: members.length, texts };
+  }, { selector, containerSelector, labelSelector });
+
+  if (result.containerMissing) {
+    throw new Error(`[set-completeness] ${label}: 容器 "${result.containerSelector}" 不存在`);
+  }
+  if (result.count < minCount) {
+    throw new Error(
+      `[set-completeness] ${label}: 成员数 ${result.count} < 期望最小 ${minCount}（选择器 "${selector}"）`
+    );
+  }
+  const empty = result.texts.map((t, i) => (t === "" ? i : -1)).filter((i) => i >= 0);
+  if (empty.length > 0) {
+    // 只报前 20 个索引，避免巨大列表刷屏
+    const shown = empty.slice(0, 20).join(", ");
+    throw new Error(
+      `[set-completeness] ${label}: ${empty.length}/${result.count} 个成员文本为空（索引 ${shown}${empty.length > 20 ? ", …" : ""}）`
+    );
+  }
+  return { count: result.count, texts: result.texts };
+}
+
+/**
+ * 断言下拉框/选择器的选项集合完整（issue #88, P3）：
+ *   1. 选项数 ≥ minCount；
+ *   2. 每项 text（或 value）非空；
+ *   3. requiredValues（可选）必须全部存在（按 value 匹配）。
+ *
+ * @param {import("playwright").Page} page
+ * @param {Object} opts
+ * @param {string} opts.selectId - <select> 的 id
+ * @param {number} [opts.minCount=1]
+ * @param {string[]} [opts.requiredValues=[]] - 必须存在的 option value
+ * @param {string[]} [opts.requiredText] - 必须出现的文本片段（可选）
+ * @param {string} [opts.label]
+ * @returns {Promise<{ count: number, values: string[] }>}
+ */
+export async function assertSelectOptionsComplete(page, opts = {}) {
+  const { selectId, minCount = 1, requiredValues = [], label = selectId } = opts;
+  if (!selectId) throw new Error("[assertSelectOptionsComplete] selectId 必填");
+
+  const result = await page.evaluate(({ selectId }) => {
+    const sel = document.getElementById(selectId);
+    if (!sel) return { missing: true };
+    const options = [...sel.querySelectorAll("option")];
+    return {
+      missing: false,
+      count: options.length,
+      values: options.map((o) => o.value),
+      texts: options.map((o) => (o.textContent ?? "").trim()),
+    };
+  }, { selectId });
+
+  if (result.missing) {
+    throw new Error(`[set-completeness] ${label}: <select id="${selectId}"> 不存在`);
+  }
+  if (result.count < minCount) {
+    throw new Error(`[set-completeness] ${label}: 选项数 ${result.count} < 期望最小 ${minCount}`);
+  }
+  const emptyTexts = result.texts.map((t, i) => (t === "" ? i : -1)).filter((i) => i >= 0);
+  if (emptyTexts.length > 0) {
+    throw new Error(
+      `[set-completeness] ${label}: ${emptyTexts.length}/${result.count} 个选项文本为空（索引 ${emptyTexts.slice(0, 20).join(", ")}）`
+    );
+  }
+  const missingValues = requiredValues.filter((v) => !result.values.includes(v));
+  if (missingValues.length > 0) {
+    throw new Error(`[set-completeness] ${label}: 缺少必需值 [${missingValues.join(", ")}]`);
+  }
+  return { count: result.count, values: result.values };
+}
+
 /**
  * Read the three-state classification of a host component on the page.
  *

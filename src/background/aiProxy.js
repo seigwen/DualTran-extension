@@ -77,7 +77,7 @@ const SDK_MAP = Object.freeze({
   "@ai-sdk/deepinfra": createDeepInfra,
 });
 
-import { lookupKnownApiBase } from "../lib/ai/providerRegistry.js";
+import { lookupKnownApiBase, resolveModelsDevId } from "../lib/ai/providerRegistry.js";
 
 const AI_PORT_NAME = "ai-sse";
 
@@ -136,7 +136,10 @@ getProvidersData(); // Fetch on startup
 
 export async function createModelClient({ provider, apiKey, model, extra = {} }) {
   const data = await getProvidersData();
-  const providerData = data?.[provider];
+  // models.dev keys its data by its own IDs — resolve the internal → models.dev
+  // alias first (e.g. google-gemini → google), otherwise npm never resolves and
+  // the provider silently falls back to the OpenAI-compatible client (#88).
+  const providerData = data?.[resolveModelsDevId(provider)];
   const npm = providerData?.npm;
   const rawApi = providerData?.api || "";
   const apiBase = extra.baseURL || (rawApi && !rawApi.includes("${") ? rawApi : "") || lookupKnownApiBase(provider) || undefined;

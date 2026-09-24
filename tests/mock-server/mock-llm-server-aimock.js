@@ -173,11 +173,38 @@ function readRequestBody(req) {
   });
 }
 
+/**
+ * 提取请求体中的用户文本（格式自适应）。
+ *
+ * issue #88 实证：Gemini（@ai-sdk/google）的请求体不是 OpenAI 的
+ * `messages[].content`，而是 `contents[].parts[].text`（role 为 "user"）。
+ * 旧实现只看 messages[]，Gemini 请求永远解析不到 <译泽> 标签，
+ * 回显不带 id 的纯文本 → 内容脚本无法映射回 DOM 节点。
+ */
+function extractUserText(body) {
+  const parsed = typeof body === "string" ? JSON.parse(body) : body;
+
+  // OpenAI / Anthropic / Cohere 形态
+  const userMsg = (parsed?.messages || []).find((m) => m.role === "user");
+  if (userMsg) {
+    const c = userMsg.content;
+    if (typeof c === "string") return c;
+    // Cohere v2: content 为 parts 数组
+    if (Array.isArray(c)) return c.map((p) => p?.text || "").join("");
+  }
+
+  // Gemini 形态：contents[].parts[].text
+  const geminiUser = (parsed?.contents || []).find((c) => c?.role === "user");
+  if (geminiUser) {
+    return (geminiUser.parts || []).map((p) => p?.text || "").join("");
+  }
+
+  return "";
+}
+
 function buildTaggedTranslationChunks(body) {
   try {
-    const parsed = typeof body === "string" ? JSON.parse(body) : body;
-    const userMsg = (parsed?.messages || []).find((m) => m.role === "user");
-    const content = userMsg?.content || "";
+    const content = extractUserText(body);
     const tagRe = /<译泽 id="([^"]+)">([^<]*(?:<(?!\/译泽>)[^<]*)*)<\/译泽>/g;
     let match;
     const parts = [];
@@ -446,6 +473,16 @@ function detectEndpointFormat(pathname) {
 }
 
 /**
+ * Gemini 流式端点判定（issue #88 mock 保真度）。
+ * 真实 API：`:streamGenerateContent?alt=sse` 以 SSE 帧（`data: {...}`）返回；
+ * 非流式 `:generateContent` 返回纯 JSON。SDK（@ai-sdk/google 的 doStream）
+ * 用 SSE 解析器读取——纯 JSON 会解析出 0 个 chunk。
+ */
+function isGeminiStreamingPath(pathname) {
+  return /:streamGenerateContent$/.test(pathname);
+}
+
+/**
  * 根据端点格式自动构造 tagged-echo 响应。
  * 当请求体中检测到 <译泽> 标签时调用。
  * @returns {boolean} true 表示已处理响应
@@ -456,9 +493,16 @@ async function handleAutoTaggedEcho(res, pathname, body) {
     case "anthropic":
       writeSse(res, createAnthropicTaggedEchoChunks(body));
       return true;
-    case "gemini":
-      writeJson(res, 200, createGeminiTaggedEchoJson(body));
+    case "gemini": {
+      const payload = createGeminiTaggedEchoJson(body);
+      // 流式端点必须回 SSE 帧（见 isGeminiStreamingPath 注释）
+      if (isGeminiStreamingPath(pathname)) {
+        writeSse(res, [JSON.stringify(payload)]);
+      } else {
+        writeJson(res, 200, payload);
+      }
       return true;
+    }
     case "cohere":
       writeJson(res, 200, createCohereTaggedEchoJson(body));
       return true;
@@ -609,7 +653,7 @@ async function createAimockLlmServer(port = DEFAULT_PORT) {
     if (req.method === "OPTIONS") {
       res.writeHead(204, {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Headers": "content-type, authorization, x-api-key, api-key, x-mock-scenario, anthropic-version, anthropic-dangerous-direct-browser-access, http-referer, x-title",
+        "Access-Control-Allow-Headers": "content-type, authorization, x-api-key, api-key, x-mock-scenario, anthropic-version, anthropic-dangerous-direct-browser-access, x-goog-api-key, http-referer, x-title",
         "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
       });
       res.end();

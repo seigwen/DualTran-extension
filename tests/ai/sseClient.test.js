@@ -4,6 +4,7 @@ import { fetchSSE } from "../../src/lib/ai/sseClient.js";
 function createStreamingResponse({ status = 200, chunks = [] }) {
   return {
     status,
+    ok: status >= 200 && status < 300,
     body: {
       getReader() {
         let index = 0;
@@ -203,7 +204,6 @@ describe("sseClient", () => {
 
     it("times out on inactivity", async () => {
       vi.stubGlobal('chrome', undefined);
-
       const onError = vi.fn();
       // Mock real fetch behavior: reject when the abort signal fires.
       // The code's inactivity timer calls controller.abort() which triggers the signal.
@@ -219,6 +219,39 @@ describe("sseClient", () => {
 
       expect(onError).toHaveBeenCalled();
       expect(onError.mock.calls[0][0].error.type).toBe("timeout");
+    });
+  });
+
+  // ── 平台形态矩阵：`typeof chrome` 探测的中间形态（P1, issue #88）──
+  // sseClient.js:60 的探测是 `typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.connect`
+  // ——三段合取。既有格只覆盖了两端（chrome 全缺 / chrome 带 connect），中间形态
+  // 「chrome 存在但无 runtime.connect」没有任何测试，探测写错（例如只查 typeof chrome）
+  // 时该形态会静默走错分支。
+
+  describe("degraded shapes (chrome without runtime.connect)", () => {
+    it("falls back to fetch when chrome exists but has no runtime.connect", async () => {
+      vi.stubGlobal('chrome', { storage: { local: { get: vi.fn(async () => ({})) } } });
+
+      const messages = [];
+      const fetchFn = vi.fn().mockResolvedValue(createStreamingResponse({ chunks: ["direct"] }));
+
+      await fetchSSE({ ...BASE_OPTS, fetchFn, onMessage: (t) => messages.push(t) });
+
+      expect(fetchFn).toHaveBeenCalledTimes(1);
+      expect(messages).toEqual(["direct"]);
+    });
+
+    it("reads the models.dev cache for apiBase when chrome.storage.local is available", async () => {
+      const storageGet = vi.fn(async () => ({
+        "modelsdev:providers": { data: { _custom_demo: { api: "https://cached.example/v1" } } },
+      }));
+      vi.stubGlobal('chrome', { storage: { local: { get: storageGet } } });
+
+      const fetchFn = vi.fn().mockResolvedValue(createStreamingResponse({ chunks: [] }));
+      await fetchSSE({ ...BASE_OPTS, provider: "_custom_demo", fetchFn, onMessage: vi.fn() });
+
+      expect(storageGet).toHaveBeenCalledWith("modelsdev:providers");
+      expect(fetchFn.mock.calls[0][0]).toBe("https://cached.example/v1/chat/completions");
     });
   });
 });

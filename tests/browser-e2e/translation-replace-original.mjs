@@ -65,12 +65,11 @@ export async function run(scope) {
       targetLanguages: ["fr", "en", "es"],
       whereToDisplayTranslatedText: "replaceOriginal",
       translateDynamicallyCreatedContent: "yes",
-      // AI 配置（用于 Step 3）
+      // AI 配置（用于 Step 4）
       aiProvider: "openrouter",
       apiKeyOpenRouter: "mock-openrouter-key",
       openRouterApiBase: config.apiBase,
       openRouterModel: "openai/gpt-4o-mini",
-      autoImproveByAI: "yes",
       aiImproveForLongerThan: 0,
     });
   }, { apiBase });
@@ -158,19 +157,19 @@ export async function run(scope) {
   // ═══════════════════════════════════════════════════════════════
   // Step 4: AI 翻译 + 无重复验证
   // ═══════════════════════════════════════════════════════════════
-  console.log("[replace-original] Step 4: Triggering AI translation...");
+  console.log("[replace-original] Step 4: Triggering AI translation via #btnAi...");
 
-  // 写入 sessionStorage 标记以触发 AI 翻译
-  await page.evaluate(() => {
-    sessionStorage.setItem("dualtran-ai-translate-on-load", "true");
-  });
+  // issue #88 改写：旧的 "dualtran-ai-translate-on-load" sessionStorage 标记在
+  // src/ 中没有任何读取方（ghost trigger）——AI 翻译只能由 #btnAi 触发。
+  // probe 实证（真实 Chrome 151）：Google 翻译完成后点击 shadow DOM 中的
+  // #btnAi，500ms 内即产生 AI 内容。
 
-  // 重新加载页面以触发 AI 翻译流程
+  // 重新加载页面（干净起点）
   await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
   await waitForContentScriptInjected(serviceWorker, page.url());
   await waitForPageTranslatorReady(serviceWorker, page.url());
 
-  // 触发翻译（Google + AI）
+  // 触发 Google 翻译（AI 按钮附着在翻译结果上）
   await sendMessageToTab(serviceWorker, page.url(), {
     action: "translatePage",
     targetLanguage: "fr",
@@ -180,6 +179,22 @@ export async function run(scope) {
   await page.waitForFunction(() => {
     return document.querySelectorAll(".dualtran-result-container").length > 0;
   }, null, { timeout: 30000 });
+
+  // 等待悬浮按钮组就绪并点击 #btnAi（真实触发路径）
+  await page.waitForFunction(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    return !!host?.shadowRoot?.getElementById("btnAi");
+  }, null, { timeout: 10000 });
+  const btnAiClicked = await page.evaluate(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    const btnAi = host?.shadowRoot?.getElementById("btnAi");
+    if (!btnAi) return false;
+    btnAi.click();
+    return true;
+  });
+  if (!btnAiClicked) {
+    throw new Error("[replace-original] Step 4: 未找到 #btnAi（悬浮按钮宿主未渲染）");
+  }
 
   // 等待 AI 翻译完成（最多 30 秒）
   let aiCompleted = false;
@@ -203,7 +218,9 @@ export async function run(scope) {
   }
 
   if (!aiCompleted) {
-    console.log("[replace-original] Step 4: AI translation did not complete within 30s (skipping AI assertions)");
+    // #btnAi 点击后 30s 无 AI 内容 = AI 翻译管线缺陷，硬失败
+    // （issue #88：症状不能当跳过前提——旧实现在此处静默吞掉断言）
+    throw new Error("[replace-original] Step 4: 点击 #btnAi 后 30s 内未产生 AI 翻译内容");
   } else {
     // 断言无重复
     const aiCount = await assertReplaceOriginalNoDuplicates(page);

@@ -42,14 +42,15 @@ export const smoke = false;
  * [E1] 验证设置无效 API key 后 Google 翻译仍可正常工作。
  *
  * 流程：
- *   1. 保存原始配置（apiKeyOpenRouter、autoImproveByAI、providerConfigs）
- *   2. 写入无效 API key，同时确保 autoImproveByAI 开启
+ *   1. 保存原始配置（apiKeyOpenRouter、providerConfigs）
+ *   2. 写入无效 API key
  *   3. 导航到测试页面，触发 Google 翻译
  *   4. 验证 <translated> 节点存在（Google 翻译不受 AI 配置影响）
  *   5. 验证页面仍然存活（page.evaluate(() => true) 成功）
  *   6. finally 中恢复原始配置
  *
  * 设计意图：AI 翻译失败不应阻塞或影响 Google 翻译的正常流程。
+ * （issue #88：autoImproveByAI 已在 eecfb00 移除，本步骤改为只验证 Google 路径。）
  *
  * @param {import("playwright").Page} page - Playwright 页面对象
  * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
@@ -66,14 +67,13 @@ async function e1InvalidApiKeyGracefulDegradation(page, serviceWorker, testPageU
   const originalConfig = await serviceWorker.evaluate(async () => {
     return await chrome.storage.local.get([
       "apiKeyOpenRouter",
-      "autoImproveByAI",
       "providerConfigs",
     ]);
   });
-  console.log(`  [E1] 已保存原始配置: apiKeyOpenRouter=${originalConfig.apiKeyOpenRouter?.substring(0, 8)}..., autoImproveByAI=${originalConfig.autoImproveByAI}`);
+  console.log(`  [E1] 已保存原始配置: apiKeyOpenRouter=${originalConfig.apiKeyOpenRouter?.substring(0, 8)}...`);
 
   try {
-    // 2. 写入无效 API key，同时开启 autoImproveByAI（让 AI 尝试翻译并失败）
+    // 2. 写入无效 API key（让 AI 路径有机会发起并失败）
     await serviceWorker.evaluate(async () => {
       const pc = (await chrome.storage.local.get("providerConfigs")).providerConfigs || {};
       // 确保 openrouter 的 providerConfig 也存在无效 key
@@ -83,11 +83,10 @@ async function e1InvalidApiKeyGracefulDegradation(page, serviceWorker, testPageU
       pc.openrouter.apiKey = "invalid-key-for-e1-test";
       await chrome.storage.local.set({
         apiKeyOpenRouter: "invalid-key-for-e1-test",
-        autoImproveByAI: "yes",
         providerConfigs: pc,
       });
     });
-    console.log("  [E1] 已写入无效 API key，autoImproveByAI=yes");
+    console.log("  [E1] 已写入无效 API key");
 
     // 3. 导航到测试页面并触发 Google 翻译
     await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
@@ -136,9 +135,6 @@ async function e1InvalidApiKeyGracefulDegradation(page, serviceWorker, testPageU
       if (origConfig.apiKeyOpenRouter !== undefined) {
         setObj.apiKeyOpenRouter = origConfig.apiKeyOpenRouter;
       }
-      if (origConfig.autoImproveByAI !== undefined) {
-        setObj.autoImproveByAI = origConfig.autoImproveByAI;
-      }
       if (origConfig.providerConfigs !== undefined) {
         setObj.providerConfigs = origConfig.providerConfigs;
       }
@@ -161,11 +157,14 @@ async function e1InvalidApiKeyGracefulDegradation(page, serviceWorker, testPageU
  *
  * 流程：
  *   1. 导航到测试页面
- *   2. 触发翻译（Google + AI 自动改进）
- *   3. 轮询 DOM body 文本中是否出现 mock 片段
- *   4. 找到 → 通过；未找到 → 警告（不失败，mock 可能不支持重试场景）
+ *   2. 触发翻译（Google），等待 <translated> 出现
+ *   3. 点击悬浮按钮组 #btnAi 触发 AI 翻译（真实触发路径）
+ *   4. 轮询 DOM body 文本中是否出现 mock 片段
+ *   5. 找到 → 通过；未找到 → 硬失败（needsMock=true 且 mock 已确认运行）
  *
  * 这是对 AI 翻译管线的快速烟雾测试，验证 Mock 服务器连通性。
+ * （issue #88：旧的 autoImproveByAI 自动触发是 ghost 路径，已被 eecfb00 移除；
+ *  超时以 warn 收尾即假绿——改为 #btnAi 真实触发 + 硬失败。）
  *
  * @param {import("playwright").Page} page - Playwright 页面对象
  * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
@@ -179,71 +178,124 @@ async function e2MockResponseDetection(page, serviceWorker, testPageUrl, scope) 
   const { collector, mockServerConfig } = scope;
   const mockSnippet = mockServerConfig?.expectedAiSnippet || "🌐[aimock]";
 
-  // 1. 导航到测试页面
-  await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
-  await waitForContentScriptInjected(serviceWorker, page.url());
-  await waitForPageTranslatorReady(serviceWorker, page.url());
-
-  // 2. 触发翻译（autoImproveByAI 已在全局配置中设为 "yes"）
-  await sendMessageToTab(serviceWorker, page.url(), {
-    action: "translatePage",
-    targetLanguage: "fr",
-  });
-
-  // 等待 Google 翻译完成
-  await page.waitForFunction(() => {
-    return document.querySelectorAll("translated").length > 0;
-  }, null, { timeout: 15000 });
-
-  const translatedBefore = await page.evaluate(() => {
-    return document.querySelectorAll("translated").length;
-  });
-  console.log(`  [E2] Google 翻译完成: ${translatedBefore} 个 <translated> 节点`);
-
-  // 3. 轮询检测 mock 响应片段（最多等待 45 秒）
-  const pollStart = Date.now();
-  const pollTimeout = 45_000;
-  let mockFound = false;
-
-  while (Date.now() - pollStart < pollTimeout) {
-    try {
-      mockFound = await page.evaluate((snippet) => {
-        return document.body.innerText.includes(snippet);
-      }, mockSnippet);
-    } catch (pollErr) {
-      // 页面可能已崩溃或关闭
-      console.warn(`  [E2] 轮询 evaluate 失败: ${pollErr.message}`);
-      break;
-    }
-
-    if (mockFound) {
-      break;
-    }
-
-    await page.waitForTimeout(1000).catch(() => {});
+  if (!mockServerConfig?.openRouterApiBase) {
+    throw new Error("[E2] mockServerConfig.openRouterApiBase 缺失（needsMock=true 场景必须提供 mock 地址）");
   }
 
-  // 4. 结果判定
-  if (mockFound) {
-    console.log(`  [E2] Mock 响应片段 "${mockSnippet}" 在 DOM 中检测到 ✓`);
-    // 统计包含 mock 片段的 <translated> 节点数量
-    const matchCount = await page.evaluate((snippet) => {
-      let count = 0;
-      document.querySelectorAll("translated").forEach((node) => {
-        if ((node.textContent || "").includes(snippet)) {
-          count++;
-        }
-      });
-      return count;
-    }, mockSnippet).catch(() => 0);
-    console.log(`  [E2] ${matchCount} 个 <translated> 节点包含 mock 片段`);
-    console.log("[E2] 通过 ✓\n");
-  } else {
-    // 未找到：警告，不失败（mock 可能不支持当前场景下的重试）
-    const warningMsg = `[E2] ⚠ Mock 响应片段 "${mockSnippet}" 未在 DOM 中检测到。Mock 服务器可能不支持重试场景，或 AI 翻译仍在进行中。`;
-    console.warn(warningMsg);
-    collector.record("error-edge:E2", warningMsg);
-    // 不抛出错误 —— E2 不应该使整个场景失败
+  // 0. 配置 AI 指向 mock 服务器（保存原值，finally 恢复）。
+  // issue #88：旧实现依赖「全局已配置 autoImproveByAI」这一 ghost 前提，
+  // 且从未指向 mock 地址——AI 片段永远不可能出现，warning 永远静默。
+  const priorAiConfig = await serviceWorker.evaluate(async () => {
+    return await chrome.storage.local.get([
+      "aiProvider",
+      "apiKeyOpenRouter",
+      "openRouterApiBase",
+      "openRouterModel",
+    ]);
+  });
+  await serviceWorker.evaluate(async (apiBase) => {
+    await chrome.storage.local.set({
+      aiProvider: "openrouter",
+      apiKeyOpenRouter: "mock-openrouter-key",
+      openRouterApiBase: apiBase,
+      openRouterModel: "openai/gpt-4o-mini",
+    });
+  }, mockServerConfig.openRouterApiBase);
+  console.log(`  [E2] AI 已指向 mock 服务器: ${mockServerConfig.openRouterApiBase}`);
+
+  try {
+    // 1. 导航到测试页面
+    await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
+    await waitForContentScriptInjected(serviceWorker, page.url());
+    await waitForPageTranslatorReady(serviceWorker, page.url());
+
+    // 2. 触发 Google 翻译
+    await sendMessageToTab(serviceWorker, page.url(), {
+      action: "translatePage",
+      targetLanguage: "fr",
+    });
+
+    // 等待 Google 翻译完成
+    await page.waitForFunction(() => {
+      return document.querySelectorAll("translated").length > 0;
+    }, null, { timeout: 15000 });
+
+    const translatedBefore = await page.evaluate(() => {
+      return document.querySelectorAll("translated").length;
+    });
+    console.log(`  [E2] Google 翻译完成: ${translatedBefore} 个 <translated> 节点`);
+
+    // 3. 点击 #btnAi 触发 AI 翻译（真实触发路径）
+    await page.waitForFunction(() => {
+      const host = document.getElementById("dualtran-floating-btn-host");
+      return !!host?.shadowRoot?.getElementById("btnAi");
+    }, null, { timeout: 10000 });
+    const clicked = await page.evaluate(() => {
+      const host = document.getElementById("dualtran-floating-btn-host");
+      const btnAi = host?.shadowRoot?.getElementById("btnAi");
+      if (!btnAi) return false;
+      btnAi.click();
+      return true;
+    });
+    if (!clicked) {
+      collector.record("error-edge:E2", "未找到 #btnAi（悬浮按钮宿主未渲染）");
+      throw new Error("[E2] 未找到 #btnAi（悬浮按钮宿主未渲染）");
+    }
+
+    // 4. 轮询检测 mock 响应片段（最多等待 45 秒）
+    const pollStart = Date.now();
+    const pollTimeout = 45_000;
+    let mockFound = false;
+
+    while (Date.now() - pollStart < pollTimeout) {
+      try {
+        mockFound = await page.evaluate((snippet) => {
+          return document.body.innerText.includes(snippet);
+        }, mockSnippet);
+      } catch (pollErr) {
+        // 页面可能已崩溃或关闭
+        collector.record("error-edge:E2", `轮询 evaluate 失败: ${pollErr.message}`);
+        throw new Error(`[E2] 轮询 evaluate 失败: ${pollErr.message}`);
+      }
+
+      if (mockFound) {
+        break;
+      }
+
+      await page.waitForTimeout(1000).catch(() => {});
+    }
+
+    // 5. 结果判定（needsMock=true 场景，mock 已确认运行——未找到即 AI 管线缺陷）
+    if (mockFound) {
+      console.log(`  [E2] Mock 响应片段 "${mockSnippet}" 在 DOM 中检测到 ✓`);
+      // 统计包含 mock 片段的 <translated> 节点数量
+      const matchCount = await page.evaluate((snippet) => {
+        let count = 0;
+        document.querySelectorAll("translated").forEach((node) => {
+          if ((node.textContent || "").includes(snippet)) {
+            count++;
+          }
+        });
+        return count;
+      }, mockSnippet).catch(() => 0);
+      console.log(`  [E2] ${matchCount} 个 <translated> 节点包含 mock 片段`);
+      console.log("[E2] 通过 ✓\n");
+    } else {
+      const fatalMsg = `[E2] 点击 #btnAi 后 45s 内 Mock 响应片段 "${mockSnippet}" 未出现在 DOM 中`;
+      collector.record("error-edge:E2", fatalMsg);
+      throw new Error(fatalMsg);
+    }
+  } finally {
+    // 恢复 E2 前的 AI 配置（避免污染后续步骤）
+    await serviceWorker.evaluate(async (prior) => {
+      const setObj = {};
+      for (const k of ["aiProvider", "apiKeyOpenRouter", "openRouterApiBase", "openRouterModel"]) {
+        if (prior[k] !== undefined) setObj[k] = prior[k];
+      }
+      await chrome.storage.local.set(setObj);
+    }, priorAiConfig).catch((restoreErr) => {
+      console.warn(`  [E2] ⚠ 恢复 AI 配置失败: ${restoreErr.message}`);
+    });
   }
 }
 
@@ -554,8 +606,10 @@ async function e5LongPageTranslation(page, serviceWorker, longPageUrl, scope) {
  *   5. 导航到测试页面
  *   6. 验证翻译功能正常（<translated> 节点出现）
  *
- * 注意：chrome.management API 可能需要扩展在 Chrome Web Store 上发布。
- * 如果调用失败（例如在开发模式下），捕获错误并警告而非失败。
+ * 前提（客观结构事实，issue #88 已核实）：manifest.json 未声明 "management"
+ * 权限（src/manifest.json permissions 无 management）——chrome.management
+ * 在扩展上下文中结构性不可用，本步骤无法执行。
+ * 跳过前提 = SKIP-ENV: manifest lacks "management" permission。
  *
  * @param {import("playwright").Page} page - Playwright 页面对象
  * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
@@ -569,22 +623,32 @@ async function e6ExtensionDisableReenable(page, serviceWorker, extensionId, test
 
   const { collector } = scope;
 
+  // 0. 客观前提核验：manifest 未声明 management 权限（SKIP-ENV 前提自校验）
+  const managementDeclared = await serviceWorker.evaluate(async () => {
+    const manifest = chrome.runtime.getManifest();
+    const perms = [...(manifest.permissions || []), ...(manifest.optional_permissions || [])];
+    return perms.includes("management");
+  });
+  if (!managementDeclared) {
+    // SKIP-ENV: manifest lacks "management" permission (objective premise, just re-verified)
+    console.log("  [E6] SKIP-ENV: manifest 未声明 management 权限，chrome.management 结构性不可用，跳过");
+    console.log("[E6] SKIP-ENV ✓\n");
+    return;
+  }
+
   // 1. 尝试禁用扩展
-  let managementAvailable = true;
   try {
     await serviceWorker.evaluate(async (extId) => {
       await chrome.management.setEnabled(extId, false);
     }, extensionId);
     console.log("  [E6] 扩展已禁用");
   } catch (disableErr) {
-    // chrome.management 可能在开发模式下不可用
-    managementAvailable = false;
-    const warnMsg = `[E6] ⚠ chrome.management.setEnabled(false) 失败: ${disableErr.message}。chrome.management API 可能要求扩展已发布。跳过禁用/重新启用测试。`;
-    console.warn(warnMsg);
-    collector.record("error-edge:E6", warnMsg);
-    // E6 不可用时不应使整个场景失败
-    console.log("[E6] 跳过（chrome.management 不可用）\n");
-    return;
+    // manifest 已声明 management 却调用失败 = 真实缺陷，硬失败
+    // （issue #88：旧的 warn+return 会让「声明了权限但 API 被拒」永远不可见）
+    const fatalMsg = `[E6] chrome.management.setEnabled(false) 失败（manifest 已声明 management 权限）: ${disableErr.message}`;
+    console.error(fatalMsg);
+    collector.record("error-edge:E6", fatalMsg);
+    throw new Error(fatalMsg);
   }
 
   // 2. 等待 1 秒
@@ -911,7 +975,8 @@ export async function run(scope) {
 
   /**
    * 安全执行一个测试步骤，捕获错误并记录但不中断后续步骤。
-   * E1/E3/E4/E5 的错误为致命错误；E2/E6 的错误为非致命（已内部警告）。
+   * issue #88：E2/E6 已改为硬失败语义（needsMock=true 场景 + 声明式前提），
+   * 全部步骤错误均为致命。
    *
    * @param {string} stepName - 步骤名称
    * @param {Function} fn - 步骤函数
@@ -937,8 +1002,7 @@ export async function run(scope) {
   );
 
   await runStep("E2", () =>
-    e2MockResponseDetection(page, serviceWorker, testPageUrl, scope),
-    false // E2 为非致命（mock 不可用时仅警告）
+    e2MockResponseDetection(page, serviceWorker, testPageUrl, scope)
   );
 
   await runStep("E3", () =>
@@ -954,8 +1018,7 @@ export async function run(scope) {
   );
 
   await runStep("E6", () =>
-    e6ExtensionDisableReenable(page, serviceWorker, extensionId, testPageUrl, scope),
-    false // E6 为非致命（chrome.management 不可用时仅警告）
+    e6ExtensionDisableReenable(page, serviceWorker, extensionId, testPageUrl, scope)
   );
 
   await runStep("E7", () =>

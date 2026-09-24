@@ -387,12 +387,17 @@ function createOptionsDom() {
   });
 }
 
+// 平台形态账本：storage.onChanged 的订阅 spy（负向断言用）。
+let storageOnChangedAddListenerSpy;
+
 function installBrowserGlobals({
   matchMediaMatches = false,
   confirmResult = true,
   commandsGetAllResults = null,
   manifestCommands = {},
   browserGlobal,
+  omitStorageOnChanged = false,
+  commandsUpdateInChrome = false,
 } = {}) {
   const messages = {
     lblSettings: "Settings",
@@ -407,20 +412,28 @@ function installBrowserGlobals({
   window.matchMedia = vi.fn(() => ({ matches: matchMediaMatches }));
   window.location.hash = "";
 
+  // 平台形态：storage.onChanged 的订阅点（options.js:1079 / 2211）。
+  // omitStorageOnChanged=true 模拟「命名空间存在但无 onChanged」的降级形态；
+  // spy 始终创建，便于负向断言「未订阅」。
+  storageOnChangedAddListenerSpy = vi.fn();
+
   globalThis.chrome = {
     i18n: {
       getMessage: vi.fn((key) => messages[key] ?? ""),
     },
     // Chrome 148+ shape: the `commands` namespace exists (getAll) but has no
     // `update`; Firefox shape: `update` is a callable function.
-    commands: commandsGetAllResults === null ? undefined : { getAll: vi.fn((cb) => cb(commandsGetAllResults)) },
+    commands: commandsGetAllResults === null ? undefined : {
+      getAll: vi.fn((cb) => cb(commandsGetAllResults)),
+      ...(commandsUpdateInChrome ? { update: vi.fn() } : {}),
+    },
     runtime: {
       getManifest: vi.fn(() => ({ commands: manifestCommands })),
       sendMessage: vi.fn((_message, callback) => callback?.("42 MB")),
     },
-    storage: {
-      onChanged: { addListener: vi.fn() },
-    },
+    storage: omitStorageOnChanged
+      ? {}
+      : { onChanged: { addListener: storageOnChangedAddListenerSpy } },
     permissions: {
       request: vi.fn((_options, callback) => callback(true)),
       remove: vi.fn(),
@@ -747,6 +760,83 @@ describe("options/options", () => {
       expect(row.querySelector(":scope > div").textContent.trim()).not.toBe("");
     });
     expect(document.getElementById("hotkey-toggle-translation").querySelector('[name="input"]').value).toBe("Alt+T");
+  });
+
+  // ── 平台形态矩阵：storage.onChanged 订阅点（P1, issue #88）──
+  // options.js 有两处 `typeof chrome.storage.onChanged` 探测（1079 主面板同步、
+  // 2211 models.dev 缓存刷新）。形态矩阵要求两个方向都有测试格：
+  // ① 形态存在 → 订阅发生；② 形态缺失（storage 命名空间在但不含 onChanged）→ 不订阅、不崩溃。
+
+  it("subscribes to chrome.storage.onChanged when the platform provides it", async () => {
+    await loadOptionsModule();
+
+    expect(storageOnChangedAddListenerSpy).toHaveBeenCalled();
+  });
+
+  it("skips storage.onChanged subscription without crashing when the platform lacks it", async () => {
+    await expect(
+      loadOptionsModule({}, { omitStorageOnChanged: true })
+    ).resolves.toBeDefined();
+
+    expect(storageOnChangedAddListenerSpy).not.toHaveBeenCalled();
+  });
+
+  it("pushes a captured in-page shortcut to browser.commands.update on Firefox", async () => {
+    const browserGlobal = firefoxBrowserStub();
+    await loadOptionsModule({ hotkeys: {} }, {
+      commandsGetAllResults: [
+        { name: "hotkey-toggle-translation", description: "Switch", shortcut: "" },
+      ],
+      manifestCommands: { "hotkey-toggle-translation": { suggested_key: { default: "Alt+T" } } },
+      browserGlobal,
+    });
+
+    const input = document.getElementById("hotkey-toggle-translation").querySelector('[name="input"]');
+    input.onkeydown({
+      key: "T",
+      code: "KeyT",
+      ctrlKey: true,
+      altKey: false,
+      shiftKey: false,
+      preventDefault: vi.fn(),
+    });
+
+    expect(browserGlobal.commands.update).toHaveBeenCalledWith({
+      name: "hotkey-toggle-translation",
+      shortcut: "Ctrl+T",
+    });
+    expect(state.configMock.get("hotkeys")["hotkey-toggle-translation"]).toBe("Ctrl+T");
+  });
+
+  it("never calls browser.commands.update on the Chrome 148+ shape (no update capability)", async () => {
+    const browserGlobal = { commands: { getAll: vi.fn() } };
+    await loadOptionsModule({ hotkeys: {} }, {
+      commandsGetAllResults: [
+        { name: "hotkey-toggle-translation", description: "Switch", shortcut: "" },
+      ],
+      browserGlobal,
+    });
+
+    // Chromium 语义：列表隐藏、原生管理器入口可见（与上一格形成形态对照）
+    expect(document.querySelector("#hotkeysListContainer").style.display).toBe("none");
+    expect(document.querySelector("#openNativeShortcutManager").style.display).toBe("block");
+    expect(browserGlobal.commands.update).toBeUndefined();
+  });
+
+  it("takes the in-page editor branch when chrome.commands.update exists without a browser namespace", async () => {
+    // 形态枚举：`browser` 完全缺失、但 `chrome.commands.update` 可调用（无别名命名空间的
+    // Gecko 系 / 支持 update 的 Chromium 衍生构建）→ 第二个分支必须被选中，而非落到
+    // 「不支持」默认分支把编辑器隐藏。
+    await loadOptionsModule({ hotkeys: { "hotkey-toggle-translation": "Alt+T" } }, {
+      commandsGetAllResults: [
+        { name: "hotkey-toggle-translation", description: "Switch", shortcut: "Alt+T" },
+      ],
+      commandsUpdateInChrome: true,
+    });
+
+    expect(document.querySelector("#hotkeysListContainer").style.display).toBe("block");
+    expect(document.querySelector("#openNativeShortcutManager").style.display).toBe("none");
+    expect(document.querySelectorAll("#KeyboardShortcuts .shortcut-row")).toHaveLength(1);
   });
 
   it("loads model options for custom providers with apiBase and apiKey", async () => {

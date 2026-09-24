@@ -27,6 +27,7 @@ import {
   readStorage,
   readStorageMulti,
   writeStorage,
+  assertSelectOptionsComplete,
 } from "./setup.mjs";
 
 // ─── 常量 ────────────────────────────────────────────────────────
@@ -86,29 +87,14 @@ async function c1CacheClearAndDropdownFill(page, extensionId, serviceWorker) {
     return sel && sel instanceof HTMLSelectElement && sel.options.length >= 5;
   }, null, { timeout: 15000 });
 
-  // 读取选项列表
-  const options = await page.evaluate(() => {
-    const sel = document.getElementById("aiProvider");
-    if (!sel) return [];
-    return Array.from(sel.options).map((opt) => ({
-      value: opt.value,
-      text: opt.textContent || "",
-    }));
+  // 集合完整性（issue #88, P3）：选项数 + 每项 text 非空 + 必需提供商
+  const completeness = await assertSelectOptionsComplete(page, {
+    selectId: "aiProvider",
+    minCount: 5,
+    requiredValues: ["openai", "anthropic", "google-gemini"],
+    label: "#aiProvider（options 页）",
   });
-
-  if (options.length < 5) {
-    throw new Error(`[C1] #aiProvider 选项数不足: 期望 >=5, 实际 ${options.length}`);
-  }
-  console.log(`  [C1] #aiProvider 填充了 ${options.length} 个选项 ✓`);
-
-  // 验证包含核心提供商
-  const values = options.map((o) => o.value);
-  const expectedProviders = ["openai", "anthropic", "google-gemini"];
-  for (const expected of expectedProviders) {
-    if (!values.includes(expected)) {
-      throw new Error(`[C1] #aiProvider 缺少预期提供商: "${expected}"。实际值: ${JSON.stringify(values)}`);
-    }
-  }
+  console.log(`  [C1] #aiProvider 填充了 ${completeness.count} 个选项，全部非空 ✓`);
   console.log(`  [C1] 包含 openai/anthropic/google-gemini ✓`);
 
   console.log("[C1] 通过 ✓\n");
@@ -124,8 +110,11 @@ async function c1CacheClearAndDropdownFill(page, extensionId, serviceWorker) {
  * aiProxy.js 的 getProvidersData() 在首次拉取 models.dev 后，
  * 将数据写入 `modelsdev:providers` key，格式为 { data, ts }。
  *
- * 注意：此缓存由 Service Worker 写入。如果网络不可用，
- * 缓存可能不存在——此时验证内置 fallback 仍然工作（C1 已验证）。
+ * issue #88 实证（重要运行序约束）：getProvidersData() 在 SW 模块作用域
+ * 内记忆化（`_providersData`）——写入 storage 是**每个 SW 生命周期至多一次**。
+ * 因此 C2 必须在 C1（清缓存）**之前**运行：fresh SW 启动后的启动拉取会写缓存，
+ * 这是设计契约的忠实窗口；C1 清缓存后不可能有第二次写入（除非 SW 重启），
+ * 原顺序（C1→C2）在长寿命 SW（全量套件）中必然失败、在隔离运行中偶发通过。
  *
  * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
  * @returns {Promise<void>}
@@ -133,11 +122,26 @@ async function c1CacheClearAndDropdownFill(page, extensionId, serviceWorker) {
 async function c2ModelsDevCacheWritten(serviceWorker) {
   console.log("[C2] modelsdev:providers 缓存写入验证...");
 
-  // 等待 Service Worker 有时间拉取 models.dev 数据
-  // getProvidersData 在 SW 启动时即开始拉取
-  await new Promise((resolve) => setTimeout(resolve, 3000));
+  // models.dev 可达性（客观前提）
+  const modelsDevReachable = await serviceWorker.evaluate(async () => {
+    try {
+      const r = await fetch("https://models.dev/api.json");
+      return r.ok === true;
+    } catch {
+      return false;
+    }
+  });
+  console.log(`  [C2] models.dev 可达性（SW fetch）: ${modelsDevReachable}`);
 
-  const cached = await readStorage(serviceWorker, MODELSDEV_CACHE_KEY);
+  // SW 启动即调用 getProvidersData()（aiProxy.js:133）→ 首次拉取后写缓存。
+  // probe 实测写入约 5.5s；等真实写入信号而不是固定等待。
+  let cached = null;
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    cached = await readStorage(serviceWorker, MODELSDEV_CACHE_KEY);
+    if (cached?.data && typeof cached.data === "object") break;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
 
   if (cached && cached.data && typeof cached.data === "object") {
     const providerCount = Object.keys(cached.data).length;
@@ -147,12 +151,15 @@ async function c2ModelsDevCacheWritten(serviceWorker) {
     if (cached.ts && typeof cached.ts === "number") {
       console.log(`  [C2] ts 时间戳存在: ${cached.ts} ✓`);
     } else {
-      console.warn("  [C2] ⚠ ts 时间戳缺失或不为数字（可能为旧格式）");
+      throw new Error("[C2] ts 时间戳缺失或不为数字（缓存格式契约被破坏）");
     }
+  } else if (!modelsDevReachable) {
+    // SKIP-ENV: models.dev unreachable from SW (objective premise, re-verified above)
+    console.log("  [C2] SKIP-ENV: models.dev 不可达，无缓存可写（设计上回退内置静态列表）");
+    console.log("  [C2] STATIC_MODELS fallback 已在 C1 下拉框填充中验证 ✓");
   } else {
-    // 网络不可用时缓存可能不存在——这是可接受的 fallback 行为
-    console.log("  [C2] modelsdev:providers 缓存不存在（可能网络不可用，使用内置 fallback）");
-    console.log("  [C2] 内置 fallback 已在 C1 中验证 ✓");
+    // models.dev 可达却 15s 内无缓存 = getProvidersData 写入链路缺陷
+    throw new Error("[C2] models.dev 可达但 modelsdev:providers 缓存 15s 内未写入");
   }
 
   console.log("[C2] 通过 ✓\n");
@@ -240,14 +247,29 @@ async function c3PreviewCacheWritten(page, extensionId, serviceWorker) {
 async function c4TtlExpiryAndBackgroundRefresh(page, extensionId, serviceWorker) {
   console.log("[C4] TTL 过期 → 后台刷新验证...");
 
+  // models.dev 可达性（客观前提；probe 实测本环境可达）
+  const modelsDevReachable = await serviceWorker.evaluate(async () => {
+    try {
+      const r = await fetch("https://models.dev/api.json");
+      return r.ok === true;
+    } catch {
+      return false;
+    }
+  });
+  console.log(`  [C4] models.dev 可达性（SW fetch）: ${modelsDevReachable}`);
+
   // 检查 openai 缓存是否存在
   const openaiCacheKey = PREVIEW_CACHE_PREFIX + "openai";
   let openaiCache = await readStorage(serviceWorker, openaiCacheKey);
 
   if (!openaiCache || !Array.isArray(openaiCache.models) || openaiCache.models.length === 0) {
-    console.log("  [C4] 预览缓存不存在，跳过 TTL 测试（需要先有缓存才能测试过期）");
-    console.log("[C4] 跳过 ✓\n");
-    return;
+    if (!modelsDevReachable) {
+      // SKIP-ENV: models.dev unreachable from SW (objective premise, just re-verified above)
+      console.log("  [C4] SKIP-ENV: models.dev 不可达，无缓存可老化，跳过 TTL 测试");
+      return;
+    }
+    // models.dev 可达却没有预览缓存 = loadPreviewModels 写入链路缺陷（C1/C3 已导航过 options 页）
+    throw new Error("[C4] previewModels:v4:openai 缓存缺失（models.dev 可达时 C1/C3 必须已写入缓存）");
   }
 
   // 记录原始时间戳
@@ -262,32 +284,37 @@ async function c4TtlExpiryAndBackgroundRefresh(page, extensionId, serviceWorker)
     ts: expiredTs,
   });
 
-  // 刷新 options 页（触发 loadPreviewModels → isCacheFresh 返回 false → backgroundRefresh）
-  await page.goto(`chrome-extension://${extensionId}/options/options.html#translations`, { waitUntil: "load" });
+  // 真实重载 options 页以触发 loadPreviewModels → isCacheFresh false → backgroundRefresh。
+  // 注意（issue #88 实证）：必须用 page.reload()——同 URL 的 page.goto() 是 no-op 导航，
+  // 不重新执行 options.js，旧实现在此静默漏检。
+  await page.reload({ waitUntil: "load" });
 
-  // 等待后台刷新完成（fire-and-forget，需要给一些时间）
-  // backgroundRefresh 调用 fetchModelsDevData → fetchAndCacheAll → writeCache
-  console.log("  [C4] 等待后台刷新（最多 10 秒）...");
+  // 等待后台刷新完成（fire-and-forget，probe 实测 ~1.4s 完成）
+  console.log("  [C4] 等待后台刷新（最多 30 秒）...");
 
   let refreshed = false;
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 30; i++) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     openaiCache = await readStorage(serviceWorker, openaiCacheKey);
     if (openaiCache && openaiCache.ts && openaiCache.ts > expiredTs + 60 * 1000) {
       // 时间戳已更新（比过期时间新很多 → 后台刷新已执行）
       refreshed = true;
-      console.log(`  [C4] 缓存时间戳已更新: ${openaiCache.ts}（后台刷新执行） ✓`);
+      console.log(`  [C4] 缓存时间戳已更新: ${openaiCache.ts}（后台刷新执行, ${i + 1}s） ✓`);
       break;
     }
   }
 
   if (!refreshed) {
-    // 后台刷新可能因网络不可用而失败——这是可接受的
-    console.log("  [C4] 后台刷新未执行（可能 models.dev 网络不可用）");
-    console.log("  [C4] 缓存仍返回旧数据（即时显示），符合 fire-and-forget 设计 ✓");
+    if (!modelsDevReachable) {
+      // SKIP-ENV: models.dev unreachable from SW (objective premise, re-verified above)
+      console.log("  [C4] SKIP-ENV: models.dev 不可达，后台刷新无法执行（fire-and-forget 设计），跳过");
+      return;
+    }
+    // 可达却未刷新 = backgroundRefresh 链路缺陷
+    throw new Error("[C4] 过期缓存未触发后台刷新（models.dev 可达，reload 后 30s 内时间戳未更新）");
   }
 
-  // 恢复原始时间戳（如果有）
+  // 恢复原始时间戳
   if (originalTs) {
     openaiCache = await readStorage(serviceWorker, openaiCacheKey);
     if (openaiCache) {
@@ -320,11 +347,14 @@ export async function run(scope) {
 
   console.log(`\n=== 开始场景: "${name}" ===\n`);
 
+  // ── C2: modelsdev:providers 缓存写入 ──
+  // 必须最先运行（issue #88 实证）：getProvidersData() 记忆化 = 每 SW 生命周期
+  // 至多一次写入。C1 先清缓存会消灭本场景唯一的真实写入窗口（全量套件里
+  // SW 寿命长，C2 必然超时；隔离运行时 SW 新起，偶发通过——顺序性假绿）。
+  await c2ModelsDevCacheWritten(serviceWorker);
+
   // ── C1: 清空缓存 → 下拉框填充 ──
   await c1CacheClearAndDropdownFill(page, extensionId, serviceWorker);
-
-  // ── C2: modelsdev:providers 缓存写入 ──
-  await c2ModelsDevCacheWritten(serviceWorker);
 
   // ── C3: per-provider 预览缓存写入 ──
   await c3PreviewCacheWritten(page, extensionId, serviceWorker);

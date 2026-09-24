@@ -142,8 +142,10 @@ export async function fetchSSE(options) {
     }
     if (!apiBase && typeof chrome !== "undefined" && chrome.storage?.local) {
       try {
+        const { resolveModelsDevId } = await import("./providerRegistry.js");
         const cache = await chrome.storage.local.get("modelsdev:providers");
-        apiBase = cache?.["modelsdev:providers"]?.data?.[provider]?.api || "";
+        // models.dev keys differ from internal IDs (google-gemini → google, #88)
+        apiBase = cache?.["modelsdev:providers"]?.data?.[resolveModelsDevId(provider)]?.api || "";
       } catch (_) {}
     }
     // Extract base URL (strip /chat/completions suffix if present)

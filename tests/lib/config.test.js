@@ -422,6 +422,20 @@ describe("twpConfig", () => {
     expect(updateMock).toHaveBeenCalledWith({ name: "hotkey-show-original", shortcut: "" });
   });
 
+  it("resolves onReady without chrome.commands (degraded shape keeps config loadable) (#88)", async () => {
+    // 平台形态矩阵（P1）：`typeof chrome.commands` 探测的「命名空间缺失」方向。
+    // config.js:373 的探测若在缺失时取错分支 → onReady 永不 resolve，所有依赖
+    // config 的模块静默挂起（比抛错更难发现）。
+    delete globalThis.chrome.commands;
+    const readySpy = vi.fn();
+
+    const twpConfig = await importConfigModule();
+    await twpConfig.onReady(readySpy);
+
+    expect(readySpy).toHaveBeenCalledOnce();
+    expect(mockState.commandsGetAllMock).not.toHaveBeenCalled();
+  });
+
   it("adds unique sites to translate-when-hovering", async () => {
     const twpConfig = await loadReadyConfig();
 

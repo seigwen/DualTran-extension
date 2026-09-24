@@ -6,7 +6,7 @@
  *   - 存储标签（H3-H5）：存储空间计算、重置默认设置、备份/恢复按钮存在性
  *   - 其他标签（H6）：各项开关下拉框的持久化
  *
- * 共有 7 个测试步骤 (H1–H8)。
+ * 共有 9 个测试步骤 (H1–H9)。
  *
  * @module settings-advanced
  */
@@ -18,6 +18,8 @@ import {
   writeStorage,
   readStorageMulti,
   runWithIsolatedExtensionContext,
+  assertAllHaveNonEmptyText,
+  waitForPageStorageValue,
 } from "./setup.mjs";
 
 // ─── 模块元数据 ─────────────────────────────────────────────────
@@ -92,7 +94,21 @@ async function h1HotkeyPersistence(page, extensionId, serviceWorker) {
   // 刷新页面验证持久化
   await page.reload({ waitUntil: "load" });
   await page.waitForSelector("#translateSelectedWhenPressTwice", { timeout: 5000 });
-  await page.waitForTimeout(500); // 等待页面脚本初始化 checkbox
+
+  // 等待 checkbox 初始化完成（issue #88：确定性等待替代固定 500ms sleep——
+  // 页面在 twpConfig.onReady 回调里恢复 checked，机器负载下 500ms 不够，
+  // 曾造成「刷新后 checked=false」假失败，与 popup 就绪竞态同类）
+  const persistedDeadline = Date.now() + 8000;
+  for (;;) {
+    const current = await page.evaluate((expected) => {
+      const cb = document.getElementById("translateSelectedWhenPressTwice");
+      if (!cb) return null;
+      return { checked: cb.checked, matches: cb.checked === expected };
+    }, toggledChecked);
+    if (current?.matches) break;
+    if (Date.now() > persistedDeadline) break;
+    await page.waitForTimeout(200);
+  }
 
   // 验证刷新后 checked 状态
   const persistedChecked = await page.evaluate(() => {
@@ -260,6 +276,16 @@ async function h8HotkeyRowLabels(page, extensionId) {
     await ffPage.goto(`chrome-extension://${extensionId}/options/options.html#hotkeys`, { waitUntil: "load" });
     await ffPage.waitForTimeout(2000);
 
+    // ── 集合完整性断言（issue #88, P3）：每行 label 非空 ──
+    // 注：rows 从页面 dump 过一次用于显示；断言走共享 helper（集合完整性模式）。
+    const completeness = await assertAllHaveNonEmptyText(ffPage, {
+      selector: "#KeyboardShortcuts .shortcut-row",
+      labelSelector: ":scope > div",
+      minCount: 1,
+      label: "hotkeys 列表（Firefox 形态）",
+    });
+    console.log(`  [H8] 集合完整性：${completeness.count} 行全部非空 ✓`);
+
     const dumped = await ffPage.evaluate(() => {
       const rows = [...document.querySelectorAll("#KeyboardShortcuts .shortcut-row")];
       return {
@@ -271,13 +297,6 @@ async function h8HotkeyRowLabels(page, extensionId) {
 
     if (dumped.listDisplay !== "block") {
       throw new Error(`[H8] Firefox 形态下页内列表应显示，实际 display=${dumped.listDisplay}`);
-    }
-    if (dumped.rows.length === 0) {
-      throw new Error("[H8] Firefox 形态下快捷键列表为空（commands.getAll 未渲染）");
-    }
-    const emptyRows = dumped.rows.filter((r) => r.label === "");
-    if (emptyRows.length > 0) {
-      throw new Error(`[H8] 存在空 label 行: ${emptyRows.map((r) => r.id).join(", ")}`);
     }
     const reservedRow = dumped.rows.find((r) => r.id.startsWith("_execute_"));
     if (!reservedRow) {
@@ -331,9 +350,9 @@ async function h3StorageCalculation(page, extensionId, collector) {
     return style.display !== "none";
   });
   if (!btnVisible) {
-    console.warn("  [H3] ⚠ #btnCalculateStorage 初始不可见（可能已被点击过），跳过。");
-    console.log("[H3] 跳过 ✓\n");
-    return;
+    // 每次进入本步骤都先 page.goto（新页加载），options.js 初始化时无条件执行
+    // display:inline-block —— 不可见即真实缺陷，硬失败（issue #88：症状不能当跳过前提）。
+    throw new Error("[H3] #btnCalculateStorage 初始不可见（新页加载后应始终可见）");
   }
   console.log("  [H3] #btnCalculateStorage 初始可见 ✓");
 
@@ -380,96 +399,114 @@ async function h3StorageCalculation(page, extensionId, collector) {
 // ═════════════════════════════════════════════════════════════════
 
 /**
- * [H4] 验证「重置为默认设置」按钮功能。
+ * [H4] 验证「重置为默认设置」按钮功能（issue #88, P4：真实点击路径）。
  *
- * 流程：
- *   1. 通过 storage 写入一些非默认值
- *   2. 记录写入后的值
- *   3. 导航到 options#storage
- *   4. 点击 #resetToDefault（需接受 confirm 对话框）
- *   5. 等待 1 秒
- *   6. 验证关键值已改变（不断言精确默认值——版本间可能不同）
+ * 旧实现（假绿）：从不点击按钮（注释说「点击会触发 chrome.runtime.reload()
+ * 破坏上下文」），改用「直接 remove storage 键」模拟重置——**真实恢复路径
+ * 从未被测**（#85 的同族第二缺陷正藏在这条路径里：restoreToDefault 的
+ * browser.commands.update 调用）。
  *
- * 警告而非失败：某些键的默认值未定义或重置逻辑不覆盖。
+ * 新实现（probe 实证，真实 Chrome 151）：
+ *   - 真实 Playwright 点击 + 真实 accept confirm → 完整执行
+ *     restoreToDefault()（含 #85 同族的 hotkey 分支、逐键写入、import 调用）；
+ *   - 唯一被替换的是 chrome.runtime.reload —— probe 实证（probe-h4-reload3）：
+ *     该调用在此 harness 下会让扩展永久卸载（旧页面 chrome 消失、新页面
+ *     ERR_BLOCKED_BY_CLIENT、15s 内无 SW 恢复），reload 之后的上下文不可读；
+ *   - 替换以「断言 reload 被调用」补偿：stub 记录 __reloadCalled=true 证明
+ *     完整真实路径已走完（probe-reload-stub 实证：重置后值回到默认 +
+ *     reloadCalled=true）。
  *
- * @param {import("playwright").Page} page - Playwright 页面对象
- * @param {string} extensionId - 扩展 ID
- * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
+ * @param {import("playwright").Page} page - Playwright 页面对象（主上下文，未使用）
+ * @param {string} extensionId - 扩展 ID（主上下文，未使用）
+ * @param {import("playwright").Worker} serviceWorker - 主上下文 SW（未使用）
  * @param {import("./setup.mjs").ErrorCollector} collector - 错误收集器
  * @returns {Promise<void>}
  */
 async function h4ResetToDefaults(page, extensionId, serviceWorker, collector) {
-  console.log("[H4] 重置默认设置测试...");
+  console.log("[H4] 重置默认设置测试（真实点击路径，隔离上下文）...");
 
-  // 导航到存储标签页
-  await page.goto(`chrome-extension://${extensionId}/options/options.html#storage`, { waitUntil: "load" });
-  await page.waitForSelector("#resetToDefault", { timeout: 5000 });
+  // 默认值以 src/lib/config.js defaultConfig 为契约（showFloatingBtn="yes",
+  // translateClickingOnce="no"）；重置生效 = 回到默认值或被清除（null 亦合格，
+  // 因为「重置」的等价有效形态是恢复默认）。
+  const defaultsSource = {
+    showFloatingBtn: "yes",
+    translateClickingOnce: "no",
+  };
 
-  // 验证按钮存在且 onclick 已注册（不点击按钮，因为 restoreToDefault() 会调用
-  // chrome.runtime.reload() 强制重载扩展，导致 Playwright 浏览器上下文断开）。
-  const btnInfo = await page.evaluate(() => {
-    const btn = document.getElementById("resetToDefault");
-    if (!btn) return { exists: false };
-    return {
-      exists: true,
-      hasClickHandler: typeof btn.onclick === "function",
-      text: btn.textContent?.trim().substring(0, 50) || "",
-    };
-  });
-  if (!btnInfo.exists) throw new Error("H4: #resetToDefault 按钮不存在");
-  if (!btnInfo.hasClickHandler) {
-    console.warn("  [H4] ⚠ #resetToDefault onclick 未注册");
-  } else {
-    console.log(`  [H4] #resetToDefault 存在且已注册 onclick ✓ (text="${btnInfo.text}")`);
-  }
+  await runWithIsolatedExtensionContext(async (iso) => {
+    const isoSw1 = iso.serviceWorker;
 
-  // 通过直接操作 storage 来测试"重置为默认值"的数据逻辑，
-  // 避免触发 chrome.runtime.reload() 破坏 E2E 测试上下文。
-  const keysToSet = ["showFloatingBtn", "translateClickingOnce"];
-  const nonDefaultValues = { showFloatingBtn: "no", translateClickingOnce: "yes" };
-
-  // 记录重置前的值
-  const preValues = await readStorageMulti(serviceWorker, keysToSet);
-  console.log(`  [H4] 重置前的值: ${JSON.stringify(preValues)}`);
-
-  // 写入非默认值
-  for (const key of keysToSet) {
-    await writeStorage(serviceWorker, key, nonDefaultValues[key]);
-  }
-  await page.waitForTimeout(300);
-  const writtenValues = await readStorageMulti(serviceWorker, keysToSet);
-  console.log(`  [H4] 写入后的值: ${JSON.stringify(writtenValues)}`);
-
-  // 模拟重置：删除这些键（restoreToDefault 会写回默认值，这里用 remove 模拟）
-  for (const key of keysToSet) {
-    await serviceWorker.evaluate(async (k) => {
-      await chrome.storage.local.remove(k);
-    }, key);
-  }
-  await page.waitForTimeout(300);
-
-  // 验证键已被清除
-  const afterReset = await readStorageMulti(serviceWorker, keysToSet);
-  for (const key of keysToSet) {
-    if (afterReset[key] !== null && afterReset[key] !== undefined) {
-      console.warn(`  [H4] ⚠ ${key}: 清除后仍存在值 "${afterReset[key]}"`);
-    } else {
-      console.log(`  [H4] ${key}: 已清除 ✓`);
+    // 1. 预置非默认值（与默认相反）
+    await writeStorage(isoSw1, "showFloatingBtn", "no");
+    await writeStorage(isoSw1, "translateClickingOnce", "yes");
+    const pre = await readStorageMulti(isoSw1, ["showFloatingBtn", "translateClickingOnce"]);
+    console.log(`  [H4] 隔离上下文预置非默认值: ${JSON.stringify(pre)}`);
+    if (pre.showFloatingBtn !== "no" || pre.translateClickingOnce !== "yes") {
+      throw new Error(`[H4] 预置失败: ${JSON.stringify(pre)}`);
     }
-  }
 
-  // 恢复重置前的值
-  for (const key of keysToSet) {
-    const original = preValues[key];
-    if (original !== null && original !== undefined) {
-      await writeStorage(serviceWorker, key, original);
-    } else {
-      await serviceWorker.evaluate(async (k) => {
-        await chrome.storage.local.remove(k);
-      }, key);
+    // 2. 导航到 options#storage，等待真实就绪（onclick 注册 = 处理器绑定的判据）
+    await iso.page.goto(`chrome-extension://${iso.extensionId}/options/options.html#storage`, { waitUntil: "load" });
+    let ready = false;
+    for (let i = 0; i < 60; i++) {
+      ready = await iso.page
+        .evaluate(() => typeof document.getElementById("resetToDefault")?.onclick === "function")
+        .catch(() => false);
+      if (ready) break;
+      await iso.page.waitForTimeout(250);
     }
-  }
-  console.log("  [H4] 已恢复重置前的值。");
+    if (!ready) {
+      throw new Error("[H4] #resetToDefault onclick 未注册（60 次轮询后，结构契约被破坏）");
+    }
+
+    // 3. 替换 chrome.runtime.reload（harness 不兼容副作用；见 docblock）。
+    //    其余一切保持真实。
+    const stubbed = await iso.page.evaluate(() => {
+      window.__reloadCalled = false;
+      chrome.runtime.reload = function () {
+        window.__reloadCalled = true;
+      };
+      return true;
+    });
+    if (!stubbed) throw new Error("[H4] reload stub 安装失败");
+
+    // 4. 真实点击 + 真实 accept confirm
+    iso.page.once("dialog", (dialog) => dialog.accept().catch(() => {}));
+    await iso.page.click("#resetToDefault");
+    console.log("  [H4] 已真实点击 #resetToDefault（confirm 已接受）");
+
+    // 5. 断言真实重置结果 + 完整路径已走完（reload 被调用）
+    let after = null;
+    const deadline = Date.now() + 12_000;
+    while (Date.now() < deadline) {
+      await iso.page.waitForTimeout(500);
+      after = await iso.page.evaluate(async () => {
+        const items = await chrome.storage.local.get(["showFloatingBtn", "translateClickingOnce"]);
+        return {
+          showFloatingBtn: items.showFloatingBtn ?? null,
+          translateClickingOnce: items.translateClickingOnce ?? null,
+          reloadCalled: window.__reloadCalled,
+        };
+      });
+      const ok =
+        (after.showFloatingBtn === defaultsSource.showFloatingBtn || after.showFloatingBtn == null) &&
+        (after.translateClickingOnce === defaultsSource.translateClickingOnce || after.translateClickingOnce == null);
+      if (ok) break;
+    }
+
+    console.log(`  [H4] 重置后的值: ${JSON.stringify(after)}（默认期望: ${JSON.stringify(defaultsSource)}）`);
+
+    if (!after.reloadCalled) {
+      throw new Error("[H4] 完整路径未走完：chrome.runtime.reload 未被调用（restoreToDefault 中断）");
+    }
+    if (after.showFloatingBtn === "no") {
+      throw new Error(`[H4] showFloatingBtn 重置后仍为非默认值 "no"（真实恢复路径缺陷，#85 同族路径）`);
+    }
+    if (after.translateClickingOnce === "yes") {
+      throw new Error(`[H4] translateClickingOnce 重置后仍为非默认值 "yes"（真实恢复路径缺陷）`);
+    }
+    console.log("  [H4] 真实重置路径完整执行：两键已恢复默认/被清除 + reload 已触发 ✓");
+  }, collector);
 
   console.log("[H4] 通过 ✓\n");
 }
@@ -520,6 +557,142 @@ async function h5BackupRestoreButtons(page, extensionId) {
 }
 
 // ═════════════════════════════════════════════════════════════════
+// H9: 真实备份/恢复（issue #88, P4）
+// ═════════════════════════════════════════════════════════════════
+
+/**
+ * [H9] 验证「备份到文件」与「从文件恢复」的真实路径（issue #88, P4）。
+ *
+ * 旧实现只有 H5「按钮存在性」——真实导出/导入路径从未被测（H4 同族的
+ * 「破坏性路径空白」）。本步骤在隔离扩展上下文中：
+ *
+ *   1. 预置可辨识配置 → 真实点击 #backupToFile → 捕获 download →
+ *      校验下载内容为合法 JSON 且包含预置值；
+ *   2. 改掉值 → 真实点击 #restoreFromFile → filechooser.setFiles(构造文件)
+ *      → 真实接受 confirm → 断言 storage 反映了导入文件的值；
+ *   3. 与 H4 相同，仅替换 chrome.runtime.reload（该调用在此 harness 下
+ *      会永久卸载扩展，probe 实证见 H4 docblock），并断言它被调用以证明
+ *      完整真实路径已走完。
+ *
+ * @param {import("playwright").Page} page - Playwright 页面对象（主上下文，未使用）
+ * @param {import("./setup.mjs").ErrorCollector} collector - 错误收集器
+ * @returns {Promise<void>}
+ */
+async function h9RealBackupRestore(page, collector) {
+  console.log("[H9] 真实备份/恢复路径测试（隔离上下文）...");
+
+  // 手工构造的导入文件（合法 JSON，键在 defaultConfig 内）
+  const { mkdtempSync, writeFileSync, readFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const tmpDir = mkdtempSync(join(tmpdir(), "dualtran-h9-"));
+  const importPath = join(tmpDir, "import-config.json");
+  writeFileSync(
+    importPath,
+    JSON.stringify({ showFloatingBtn: "no", translateClickingOnce: "yes" }),
+    "utf8"
+  );
+
+  try {
+    await runWithIsolatedExtensionContext(async (iso) => {
+      const isoSw1 = iso.serviceWorker;
+
+      // 1. 预置可辨识值（供导出校验）
+      await writeStorage(isoSw1, "showFloatingBtn", "no");
+      await writeStorage(isoSw1, "translateClickingOnce", "yes");
+      await iso.page.goto(`chrome-extension://${iso.extensionId}/options/options.html#storage`, { waitUntil: "load" });
+      await iso.page.waitForSelector("#backupToFile", { timeout: 10000 });
+      // 等待处理器绑定（真实就绪判据，同 H4）
+      let ready = false;
+      for (let i = 0; i < 60; i++) {
+        ready = await iso.page
+          .evaluate(() => typeof document.getElementById("restoreFromFile")?.onclick === "function")
+          .catch(() => false);
+        if (ready) break;
+        await iso.page.waitForTimeout(250);
+      }
+      if (!ready) {
+        throw new Error("[H9] #restoreFromFile onclick 未注册（60 次轮询后）");
+      }
+
+      // 2. 真实导出：点击 → 捕获 download
+      const [download] = await Promise.all([
+        iso.page.waitForEvent("download", { timeout: 15000 }),
+        iso.page.click("#backupToFile"),
+      ]);
+      const downloadedPath = await download.path();
+      const exportedText = readFileSync(downloadedPath, "utf8");
+      let exported = null;
+      try {
+        exported = JSON.parse(exportedText);
+      } catch (e) {
+        throw new Error(`[H9] 导出的备份不是合法 JSON: ${e.message}`);
+      }
+      if (exported.showFloatingBtn !== "no" || exported.translateClickingOnce !== "yes") {
+        throw new Error(
+          `[H9] 导出内容未包含预置值: showFloatingBtn=${exported.showFloatingBtn}, translateClickingOnce=${exported.translateClickingOnce}`
+        );
+      }
+      console.log(`  [H9] 真实导出成功：download 捕获，JSON 含预置值 ✓ (${exportedText.length} bytes)`);
+
+      // 3. 替换 chrome.runtime.reload（harness 不兼容副作用；H4 docblock 有 probe 实证）
+      const stubbed = await iso.page.evaluate(() => {
+        window.__reloadCalled = false;
+        chrome.runtime.reload = function () {
+          window.__reloadCalled = true;
+        };
+        return true;
+      });
+      if (!stubbed) throw new Error("[H9] reload stub 安装失败");
+
+      // 先把值改掉，再真实导入（证明值来自文件而非残留）
+      await writeStorage(isoSw1, "showFloatingBtn", "yes");
+      await writeStorage(isoSw1, "translateClickingOnce", "no");
+
+      iso.page.once("dialog", (dialog) => dialog.accept().catch(() => {}));
+      const [chooser] = await Promise.all([
+        iso.page.waitForEvent("filechooser", { timeout: 15000 }),
+        iso.page.click("#restoreFromFile"),
+      ]);
+      await chooser.setFiles(importPath);
+      console.log("  [H9] 已通过 filechooser 选择导入文件（confirm 已接受）");
+
+      // 4. 断言真实导入结果 + 完整路径已走完（reload 被调用）
+      let after = null;
+      const deadline = Date.now() + 12_000;
+      while (Date.now() < deadline) {
+        await iso.page.waitForTimeout(500);
+        after = await iso.page.evaluate(async () => {
+          const items = await chrome.storage.local.get(["showFloatingBtn", "translateClickingOnce"]);
+          return {
+            showFloatingBtn: items.showFloatingBtn ?? null,
+            translateClickingOnce: items.translateClickingOnce ?? null,
+            reloadCalled: window.__reloadCalled,
+          };
+        });
+        if (after.showFloatingBtn === "no" && after.translateClickingOnce === "yes") break;
+      }
+
+      console.log(`  [H9] 导入后的值: ${JSON.stringify(after)}`);
+      if (!after.reloadCalled) {
+        throw new Error("[H9] 完整路径未走完：chrome.runtime.reload 未被调用（import 中断）");
+      }
+      if (after.showFloatingBtn !== "no" || after.translateClickingOnce !== "yes") {
+        throw new Error(
+          `[H9] 真实导入未生效: ${JSON.stringify(after)}（期望文件值 showFloatingBtn="no", translateClickingOnce="yes"）`
+        );
+      }
+      console.log("  [H9] 真实导入生效：storage 反映了文件中的值 + reload 已触发 ✓");
+    }, collector);
+  } finally {
+    const { rmSync } = await import("node:fs");
+    rmSync(tmpDir, { recursive: true, force: true });
+  }
+
+  console.log("[H9] 通过 ✓\n");
+}
+
+// ═════════════════════════════════════════════════════════════════
 // H6: 其他标签页开关持久化
 // ═════════════════════════════════════════════════════════════════
 
@@ -535,7 +708,6 @@ async function h5BackupRestoreButtons(page, extensionId) {
  * @type {Array<{ id: string, testValue: string, storageKey?: string }>}
  */
 const H6_SELECTS = [
-  { id: "showPopupMobile", testValue: "no" },               // 移动端弹出框（HTML 中已被注释）
   { id: "showFloatingBtn", testValue: "no" },                // 悬浮按钮开关
   { id: "showButtonInTheAddressBar", testValue: "no" },      // 地址栏按钮开关
   { id: "showTranslatePageContextMenu", testValue: "no" },   // 页面翻译右键菜单
@@ -579,19 +751,17 @@ async function h6OthersTabSwitches(page, extensionId, serviceWorker, collector) 
     }, cfg.id);
 
     if (!elementExists) {
-      console.warn(`  [H6] ⚠ #${cfg.id} 不存在（HTML 中已被注释或移除），跳过。`);
-      continue;
+      throw new Error(`[H6] #${cfg.id} 不存在（H6_SELECTS 必须只包含 options.html 中真实存在的控件）`);
     }
 
-    // 检查选项数量（跳过只有 1 个选项的下拉框）
+    // 检查选项数量（H6_SELECTS 中的控件均为静态 2+ 选项；不足即真实缺陷）
     const optionCount = await page.evaluate((id) => {
       const sel = document.getElementById(id);
       return sel instanceof HTMLSelectElement ? sel.options.length : 0;
     }, cfg.id);
 
     if (optionCount <= 1) {
-      console.warn(`  [H6] ⚠ #${cfg.id} 仅有 ${optionCount} 个选项，无法切换，跳过。`);
-      continue;
+      throw new Error(`[H6] #${cfg.id} 仅有 ${optionCount} 个选项，无法切换（应至少 2 个）`);
     }
     console.log(`    #${cfg.id} 选项数: ${optionCount}`);
 
@@ -612,7 +782,13 @@ async function h6OthersTabSwitches(page, extensionId, serviceWorker, collector) 
 
     // 切换为测试值
     await setOptionsSelectValueAndWait(page, cfg.id, cfg.testValue);
-    await page.waitForTimeout(500); // 等待 storage 写入
+    // 等待 storage 写入完成（issue #88：确定性等待替代固定 500ms sleep——
+    // 机器负载下 sleep 不够，H6 的 showTranslatePageContextMenu 曾因此假失败）
+    try {
+      await waitForPageStorageValue(page, storageKey, cfg.testValue, 8000);
+    } catch {
+      console.warn(`    ⚠ waitForPageStorageValue(#${cfg.id}) 超时，继续（持久化断言仍会验证）`);
+    }
 
     // 刷新页面
     await page.reload({ waitUntil: "load" });
@@ -762,6 +938,10 @@ export async function run(scope) {
 
   await runStep("H5", () =>
     h5BackupRestoreButtons(page, extensionId)
+  );
+
+  await runStep("H9", () =>
+    h9RealBackupRestore(page, collector)
   );
 
   await runStep("H6", () =>

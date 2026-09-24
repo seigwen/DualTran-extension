@@ -104,6 +104,8 @@ const SCENARIO_MODULE_PATHS = [
 async function loadScenarios() {
   /** 加载成功的场景数组 */
   const scenarios = [];
+  /** 加载失败（非「可选文件缺失」）的场景 — 不得静默丢弃 */
+  const fatalLoadErrors = [];
 
   for (const modulePath of SCENARIO_MODULE_PATHS) {
     try {
@@ -111,7 +113,7 @@ async function loadScenarios() {
       const mod = await import(modulePath);
       // 验证模块是否正确导出必需的元数据
       if (typeof mod.name !== "string" || typeof mod.run !== "function") {
-        console.warn(`[WARN] 跳过缺少 name/run 导出的模块: ${modulePath}`);
+        fatalLoadErrors.push(`${modulePath}: 缺少 name/run 导出`);
         continue;
       }
       scenarios.push({
@@ -122,9 +124,22 @@ async function loadScenarios() {
       });
       console.log(`[OK] 已加载场景: "${mod.name}" (needsMock=${mod.needsMock}, smoke=${mod.smoke === true})`);
     } catch (err) {
-      // 模块导入失败（文件不存在、语法错误等）— 跳过但不终止
-      console.warn(`[WARN] 加载场景模块失败，跳过: ${modulePath} — ${err.message}`);
+      const notFound =
+        err?.code === "ERR_MODULE_NOT_FOUND" || /Cannot find module|ENOENT/.test(err?.message || "");
+      if (notFound) {
+        // SKIP-DATA: 可选场景文件尚未创建（ENOENT）——按设计不阻塞编排器。
+        console.warn(`[WARN] 跳过（可选场景文件不存在）: ${modulePath}`);
+        continue;
+      }
+      fatalLoadErrors.push(`${modulePath}: ${err.message}`);
     }
+  }
+
+  if (fatalLoadErrors.length > 0) {
+    for (const message of fatalLoadErrors) {
+      console.error(`[FATAL] 场景模块加载失败: ${message}`);
+    }
+    throw new Error(`场景模块加载失败 ${fatalLoadErrors.length} 个——不得静默丢弃场景（issue #88）`);
   }
 
   return scenarios;
@@ -207,6 +222,7 @@ async function runMockScenarios(scenarios, cliOptions) {
     // setupFull 失败（如 Mock 服务器启动超时）— 降级处理
     fatalCount++;
     console.error(`\n[FATAL] setupFull() 失败: ${setupErr.message}`);
+    // skip-typing-allow: 这是 fatal 分支（fatalCount 已计入，最终退出码非零），不是成功跳过
     console.error("[FATAL] 跳过所有需要 Mock 服务器的场景。");
     console.error("[FATAL] 将仅运行不需要 Mock 的基本场景。\n");
     scope = null;
@@ -229,7 +245,7 @@ async function runMockScenarios(scenarios, cliOptions) {
         console.warn(`[WARN] resetScenarioState 失败（不阻塞场景）: ${e.message}`)
       );
       try {
-        await scenario.run(scope);
+        await withSkipCapture(scenario.name, () => scenario.run(scope));
         console.log(`--- 场景通过: "${scenario.name}" ---`);
       } catch (scenarioErr) {
         // 单个场景失败不影响后续场景
@@ -277,7 +293,7 @@ async function runBasicScenarios(scenarios) {
     // setupBasic 失败（浏览器启动失败等）— 致命错误
     fatalCount++;
     console.error(`\n[FATAL] setupBasic() 失败: ${setupErr.message}`);
-    console.error("[FATAL] 跳过所有基本场景。\n");
+    console.error("[FATAL] 跳过所有基本场景。\n"); // skip-typing-allow: 致命分支——返回 fatalCount + scenarios.length（非零退出），不是成功跳过
     return fatalCount + scenarios.length;
   }
 
@@ -290,7 +306,7 @@ async function runBasicScenarios(scenarios) {
         console.warn(`[WARN] resetScenarioState 失败（不阻塞场景）: ${e.message}`)
       );
       try {
-        await scenario.run(scope);
+        await withSkipCapture(scenario.name, () => scenario.run(scope));
         console.log(`--- 场景通过: "${scenario.name}" ---`);
       } catch (scenarioErr) {
         fatalCount++;
@@ -308,6 +324,54 @@ async function runBasicScenarios(scenarios) {
   }
 
   return fatalCount;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Skip 统计（issue #88, P2）
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * 全编排器累计的类型化跳过记录。
+ *
+ * issue #88 P2 的设计意图：类型化跳过（SKIP-ENV/SKIP-DATA）是合法退出，
+ * 但「合法的跳过」与「被吞掉的失败」在最终日志里必须可区分——否则下一次
+ * 假绿仍然无声。编排器在场景运行时旁路 console.log/warn，收集所有
+ * `SKIP-ENV:` / `SKIP-DATA:` 行，并在执行摘要中逐条列出。
+ *
+ * @type {Array<{ scenario: string, type: string, premise: string }>}
+ */
+const skipRecords = [];
+
+/**
+ * 在 fn 执行期间旁路 console.log/console.warn，收集类型化跳过行（不影响输出）。
+ *
+ * @param {string} scenarioName - 当前场景名
+ * @param {Function} fn - 场景执行函数
+ * @returns {Promise<*>} fn 的返回值
+ */
+async function withSkipCapture(scenarioName, fn) {
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  const capture = (original) => (...args) => {
+    const line = args.map((a) => (typeof a === "string" ? a : String(a))).join(" ");
+    const m = line.match(/\bSKIP-(ENV|DATA):\s*(.+)/);
+    if (m) {
+      skipRecords.push({
+        scenario: scenarioName,
+        type: `SKIP-${m[1]}`,
+        premise: m[2].trim().replace(/，.*$/, "").slice(0, 120),
+      });
+    }
+    original.apply(console, args);
+  };
+  console.log = capture(originalLog);
+  console.warn = capture(originalWarn);
+  try {
+    return await fn();
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -387,6 +451,17 @@ async function main() {
   console.log(`Mock 场景: ${mockScenarios.length} (失败: ${mockFatalCount})`);
   console.log(`基本场景: ${basicScenarios.length} (失败: ${basicFatalCount})`);
   console.log(`致命错误总数: ${totalFatalCount}`);
+
+  // ── 类型化跳过明细（issue #88, P2）：合法的跳过必须可见 ──
+  // skip-typing-allow: 汇总渲染行（统计输出），非跳过分支
+  if (skipRecords.length > 0) {
+    console.log(`类型化跳过: ${skipRecords.length} 处`); // skip-typing-allow: 汇总渲染行
+    for (const rec of skipRecords) {
+      console.log(`  - [${rec.scenario}] ${rec.type}: ${rec.premise}`);
+    }
+  } else {
+    console.log("类型化跳过: 0 处（全部步骤实际执行）"); // skip-typing-allow: 汇总渲染行
+  }
 
   if (totalFatalCount > 0) {
     console.error(`\n[FAIL] ${totalFatalCount} 个场景报告了致命错误。`);

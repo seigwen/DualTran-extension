@@ -148,4 +148,14 @@ describe("i18n", () => {
       "translated:hello"
     );
   });
+
+  it("does not auto-run translateDocument when chrome.tabs is absent", async () => {
+    // 平台形态矩阵（P1, issue #88）：i18n.js:74 探测的「缺失」方向。
+    // content script 场景（无 chrome.tabs）必须保持元素原文，不得被自动翻译流程改写。
+    document.body.innerHTML = '<span data-i18n="hello">before</span>';
+
+    await loadI18n(); // 默认形态：chrome.tabs === undefined
+
+    expect(document.querySelector("span")?.textContent).toBe("before");
+  });
 });

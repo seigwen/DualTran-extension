@@ -29,6 +29,7 @@ import {
   waitForContentScriptInjected,
   waitForPageTranslatorReady,
   sendMessageToTab,
+  assertSelectOptionsComplete,
 } from "./setup.mjs";
 
 // ═════════════════════════════════════════════════════════════════
@@ -232,14 +233,14 @@ async function f4PopupDefaultState(page, extensionId) {
     return sel && sel instanceof HTMLSelectElement && sel.options.length >= 4;
   }, null, { timeout: 15000 });
 
-  // 验证选项数量
-  const optionCount = await page.locator("#selectTargetLanguage option").count();
-  if (optionCount < 4) {
-    throw new Error(
-      `[F4] #selectTargetLanguage 选项不足: 期望 >=4, 实际 ${optionCount}`
-    );
-  }
-  console.log(`[F4] #selectTargetLanguage 包含 ${optionCount} 个选项 ✓`);
+  // 验证选项数量与完整性（issue #88, P3：集合完整性 oracle——每项 text 非空）
+  const completeness = await assertSelectOptionsComplete(page, {
+    selectId: "selectTargetLanguage",
+    minCount: 4,
+    requiredValues: ["original"],
+    label: "#selectTargetLanguage（弹出页）",
+  });
+  console.log(`[F4] #selectTargetLanguage 包含 ${completeness.count} 个选项，全部非空 ✓`);
 
   // #cbAutoImproveByAi 已在 eecfb00 移除（AI 改进改为按钮显式触发），
   // 改用 #cbAlwaysTranslateThisSite 验证"更多选项"区域的复选框渲染

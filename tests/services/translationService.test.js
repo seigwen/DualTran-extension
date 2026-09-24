@@ -376,6 +376,37 @@ describe("translationService", () => {
   });
 
   describe("public API and concrete services", () => {
+    it("marks makeRequest diagnostics as in-service-worker based on chrome.runtime.id (probe shape matrix, #88)", async () => {
+      // 平台形态矩阵（P1）：translationService.js:511 的 `typeof chrome` 探测只用于诊断
+      // 日志（inServiceWorker 字段）。两个方向都必须有格：SW 上下文（chrome.runtime.id 存在）
+      // ⇒ true；非扩展上下文 ⇒ false。该行曾被判定为「无行为影响」，但诊断值错误会直接
+      // 误导线上排障（用户上报日志时把 SW 路径误读为页面路径）。
+      const translationService = await importActualTranslationService();
+      mockState.fetchMock.mockResolvedValueOnce(
+        createFetchResponse([[["Bonjour"]], null, "en"])
+      );
+
+      await translationService.translateSingleText("google", "en", "fr", "Hello");
+
+      const debugCall = console.debug.mock.calls.find(([tag]) => tag === "[makeRequest]");
+      expect(debugCall).toBeDefined();
+      expect(debugCall[1].inServiceWorker).toBe(true);
+    });
+
+    it("reports inServiceWorker false when chrome.runtime.id is unavailable", async () => {
+      delete globalThis.chrome.runtime.id;
+      const translationService = await importActualTranslationService();
+      mockState.fetchMock.mockResolvedValueOnce(
+        createFetchResponse([[["Bonjour"]], null, "en"])
+      );
+
+      await translationService.translateSingleText("google", "en", "fr", "Hello");
+
+      const debugCall = console.debug.mock.calls.find(([tag]) => tag === "[makeRequest]");
+      expect(debugCall).toBeDefined();
+      expect(debugCall[1].inServiceWorker).toBe(false);
+    });
+
     it("google translateSingleText builds the expected URL, parses the response, and caches it", async () => {
       const translationService = await importActualTranslationService();
       mockState.fetchMock.mockResolvedValueOnce(

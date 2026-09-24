@@ -351,6 +351,59 @@ export function createProviderRegistry(builtIn = BUILT_IN_PROVIDERS) {
   };
 }
 
+// ── Provider ID aliasing (internal ↔ models.dev) ────────
+
+/**
+ * Internal provider ID → models.dev provider ID mapping.
+ *
+ * models.dev keys its data by its own IDs (`google`, `xai`, `togetherai` …),
+ * which differ from DualTran's internal IDs for several providers. Any code
+ * reading `modelsdev:providers` data with an internal ID MUST resolve the
+ * alias first — otherwise the lookup silently misses (npm never resolves →
+ * the dedicated AI SDK is never selected) and the request falls back to the
+ * OpenAI-compatible client, which is only correct for openai-compatible APIs.
+ * That is exactly how the Gemini defect (#88) escaped: `createModelClient`
+ * queried `google-gemini` while models.dev keys the entry `google`, so the
+ * native `generateContent` API was called with an OpenAI-compatible URL.
+ *
+ * Single source of truth — `providerModelPreview.js` and `aiProxy.js` both
+ * consume this map (no per-module copies).
+ */
+export const INTERNAL_TO_MODELSDEV = Object.freeze({
+  openai: "openai",
+  anthropic: "anthropic",
+  "google-gemini": "google",
+  deepseek: "deepseek",
+  grok: "xai",
+  zhipu: "zhipuai",
+  moonshot: "moonshotai",
+  mistral: "mistral",
+  cohere: "cohere",
+  groq: "groq",
+  together: "togetherai",
+  qwen: "alibaba-cn",
+  perplexity: "perplexity",
+  "azure-openai": "azure",
+});
+
+/** models.dev ID → internal ID (inverse of INTERNAL_TO_MODELSDEV, built once). */
+const _modelsDevToInternal = Object.freeze(
+  Object.fromEntries(
+    Object.entries(INTERNAL_TO_MODELSDEV).map(([internal, dev]) => [dev, internal])
+  )
+);
+
+/**
+ * Resolve any known provider ID to its models.dev ID.
+ * Unknown IDs pass through unchanged (callers may already hold a models.dev
+ * ID, e.g. dynamically discovered providers).
+ * @param {string} id — internal ID ("google-gemini") or any other ID
+ * @returns {string} models.dev ID ("google") or the input unchanged
+ */
+export function resolveModelsDevId(id) {
+  return INTERNAL_TO_MODELSDEV[id] || id;
+}
+
 // ── Convenience: static API base lookup ────────────────
 
 const _staticRegistry = createProviderRegistry(BUILT_IN_PROVIDERS);
@@ -366,16 +419,7 @@ export function lookupKnownApiBase(id) {
   if (def?.apiBase) return def.apiBase;
 
   // 2. Reverse lookup: models.dev ID → internal ID
-  const reverseMap = {
-    google: "google-gemini",
-    xai: "grok",
-    togetherai: "together",
-    zhipuai: "zhipu",
-    moonshotai: "moonshot",
-    "alibaba-cn": "qwen",
-    azure: "azure-openai",
-  };
-  const internalId = reverseMap[id];
+  const internalId = _modelsDevToInternal[id];
   if (internalId) {
     def = _staticRegistry.getProvider(internalId);
     if (def?.apiBase) return def.apiBase;

@@ -2,7 +2,7 @@
 # pre-push verify (L3): 一键本地校验，push 前必须运行。
 #
 # 覆盖：
-#   1. 12 个 lint 脚本（断言强度 / 模式对称 / 规则对称 / i18n / UI 状态初始化 / observer 挂载 / mock 忠实度（E2E）/ vitest mock 保真度 / 基础设施假设 / 状态可达性 / 宿主三态断言 / 视觉检查点）
+#   1. 13 个 lint 脚本（断言强度 / 模式对称 / 规则对称 / i18n / UI 状态初始化 / observer 挂载 / mock 忠实度（E2E）/ vitest mock 保真度 / 基础设施假设 / 状态可达性 / 宿主三态断言 / 视觉检查点 / 平台形态矩阵）
 #   2. 全量 vitest
 #   3. 构建（webpack）
 #
@@ -28,6 +28,7 @@ node scripts/check-infra-assumptions.js
 node scripts/check-state-reachability.js
 node scripts/check-host-state-assertions.js
 node scripts/check-visual-checks.js
+node scripts/check-platform-probes.js
 
 echo ""
 echo "── 2/3 全量单元测试 ──"
