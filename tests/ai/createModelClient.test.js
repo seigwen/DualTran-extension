@@ -237,4 +237,83 @@ describe("createModelClient apiBase priority chain", () => {
       })
     ).rejects.toThrow(/Unknown AI provider/);
   });
+
+  // ── C5: 内部 ID → models.dev ID 别名映射（issue #88）──────────────
+  //
+  // models.dev 数据以其自身 ID 为键（google / xai / togetherai …），内部
+  // 提供商 ID 在部分提供商上与它不同（google-gemini / grok / together）。
+  // createModelClient 若直接用内部 ID 查 npm，专用 SDK 永远解析不到，
+  // 会静默落入 OpenAI 兼容 fallback —— Gemini 的原生 generateContent API
+  // 不是 OpenAI 兼容协议，请求必然失败（E2E multi-provider gemini 实测
+  // 404 → 45s 超时，issue #88 发现）。修复前本组测试 RED。
+
+  it("C5.1: google-gemini resolves the dedicated Google SDK via the models.dev alias (google)", async () => {
+    // models.dev 形态：键为 "google"（非内部 ID "google-gemini"），且无 api 字段
+    mockStorage["modelsdev:providers"] = {
+      data: buildModelsDevCache({
+        google: { npm: "@ai-sdk/google" },
+      }),
+      ts: Date.now(),
+    };
+
+    const createModelClient = await loadModule();
+
+    await createModelClient({
+      provider: "google-gemini",
+      apiKey: "test-key",
+      model: "gemini-2.0-flash",
+      extra: { baseURL: "https://generativelanguage.googleapis.com/v1beta" },
+    });
+
+    expect($.createGoogleGenerativeAI).toHaveBeenCalledTimes(1);
+    expect($.createGoogleGenerativeAI).toHaveBeenCalledWith(
+      expect.objectContaining({
+        apiKey: "test-key",
+        baseURL: "https://generativelanguage.googleapis.com/v1beta",
+      })
+    );
+    expect($.createOpenAICompatible).not.toHaveBeenCalled();
+  });
+
+  it("C5.2: grok resolves @ai-sdk/xai via the models.dev alias (xai)", async () => {
+    mockStorage["modelsdev:providers"] = {
+      data: buildModelsDevCache({
+        xai: { npm: "@ai-sdk/xai" },
+      }),
+      ts: Date.now(),
+    };
+
+    const createModelClient = await loadModule();
+
+    await createModelClient({
+      provider: "grok",
+      apiKey: "test-key",
+      model: "grok-3-mini",
+      extra: { baseURL: "https://api.x.ai/v1" },
+    });
+
+    expect($.createXai).toHaveBeenCalledTimes(1);
+    expect($.createOpenAICompatible).not.toHaveBeenCalled();
+  });
+
+  it("C5.3: together resolves @ai-sdk/togetherai via the models.dev alias (togetherai)", async () => {
+    mockStorage["modelsdev:providers"] = {
+      data: buildModelsDevCache({
+        togetherai: { npm: "@ai-sdk/togetherai" },
+      }),
+      ts: Date.now(),
+    };
+
+    const createModelClient = await loadModule();
+
+    await createModelClient({
+      provider: "together",
+      apiKey: "test-key",
+      model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+      extra: { baseURL: "https://api.together.xyz/v1" },
+    });
+
+    expect($.createTogetherAI).toHaveBeenCalledTimes(1);
+    expect($.createOpenAICompatible).not.toHaveBeenCalled();
+  });
 });

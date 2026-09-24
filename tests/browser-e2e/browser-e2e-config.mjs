@@ -49,13 +49,18 @@ export function resolveMockModeConfig({ projectRoot, mockMode }) {
       anthropic: {
         aiProvider: "anthropic",
         apiKey: "mock-anthropic-key",
-        apiBase: "http://127.0.0.1:8788/anthropic",
+        // issue #88：SDK 拼 URL 为 `${baseURL}/messages`，mock 路由（忠实于真实 API）
+        // 是 /anthropic/v1/messages（真实用户 baseURL 形如 https://api.anthropic.com/v1）。
+        // 原配置缺 /v1 段 → /anthropic/messages 404 → 45s 超时（旧测试静默跳过掩盖）。
+        apiBase: "http://127.0.0.1:8788/anthropic/v1",
         model: "claude-3-5-haiku-latest",
       },
       gemini: {
         aiProvider: "google-gemini",
         apiKey: "mock-gemini-key",
-        apiBase: "http://127.0.0.1:8788/gemini",
+        // 同上：Google SDK 拼 `${baseURL}/models/...:generateContent`，
+        // mock 路由 /gemini/v1beta/models/...（真实用户 baseURL 形如 .../v1beta）。
+        apiBase: "http://127.0.0.1:8788/gemini/v1beta",
         model: "gemini-2.0-flash",
       },
     },

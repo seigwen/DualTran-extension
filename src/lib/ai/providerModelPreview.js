@@ -10,26 +10,7 @@
 
 const MODELSDEV_API_URL = "https://models.dev/api.json";
 
-/**
- * Internal provider ID → models.dev provider ID mapping.
- * Only providers in this mapping will have models fetched from models.dev.
- */
-const INTERNAL_TO_MODELSDEV = Object.freeze({
-  openai: "openai",
-  anthropic: "anthropic",
-  "google-gemini": "google",
-  deepseek: "deepseek",
-  grok: "xai",
-  zhipu: "zhipuai",
-  moonshot: "moonshotai",
-  mistral: "mistral",
-  cohere: "cohere",
-  groq: "groq",
-  together: "togetherai",
-  qwen: "alibaba-cn",
-  perplexity: "perplexity",
-  "azure-openai": "azure",
-});
+import { INTERNAL_TO_MODELSDEV } from "./providerRegistry.js";
 
 /**
  * Built-in static model list (ultimate fallback).
