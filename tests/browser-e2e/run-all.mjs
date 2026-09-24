@@ -84,6 +84,7 @@ const SCENARIO_MODULE_PATHS = [
   "./self-heal-matrix.mjs",
   "./floating-btn-position-restore.mjs",
   "./cross-level-journey.mjs",
+  "./ai-block-indicator.mjs",
   "./visual-audit.mjs",
 ];
 
