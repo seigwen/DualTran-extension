@@ -130,6 +130,17 @@ function buildPlatformHarness({
   vi.stubGlobal("chrome", chromeStub);
   vi.stubGlobal("self", { registration: { scope: "test" }, clients: { matchAll: vi.fn(() => Promise.resolve([])) } });
   vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ json: () => Promise.resolve({}), ok: true })));
+  // navigator 显式 stub：Node 22 有全局 navigator、Node 20（CI）没有——
+  // sw.js 的 onReady 链会经 platformInfo.js 读 navigator.userAgent，
+  // 不 stub 则 CI（Node 20）报 ReferenceError: navigator is not defined。
+  // 显式 stub 让测试在两个 Node 版本上行为一致。
+  if (typeof globalThis.navigator === "undefined") {
+    Object.defineProperty(globalThis, "navigator", {
+      configurable: true,
+      writable: true,
+      value: { userAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0 Safari/537.36" },
+    });
+  }
   vi.stubGlobal("indexedDB", {
     open: vi.fn(() => {
       const r = { result: {}, set onsuccess(_) {}, set onerror(_) {}, set onupgradeneeded(_) {} };
