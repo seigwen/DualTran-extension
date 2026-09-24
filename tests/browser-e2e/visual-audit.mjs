@@ -54,7 +54,6 @@ async function configureExtensionForAi(serviceWorker, mockServerConfig) {
       apiKeyOpenRouter: "mock-openrouter-key",
       openRouterApiBase: apiBase,
       openRouterModel: "openai/gpt-4o-mini",
-      autoImproveByAI: "yes",
       aiImproveForLongerThan: 0,
       showFloatingBtn: "yes",
     });
@@ -252,6 +251,144 @@ async function assertGoogleNotAi(page) {
 }
 
 /**
+ * 断言 options#hotkeys 的平台形态与行标签完整（issue #88, P5；#85 的视觉锚点）。
+ *
+ * 两种合法形态（与 H8 的判定一致）：
+ *   - Chromium 形态：页内列表隐藏（display:none）、原生快捷键管理器按钮可见；
+ *   - Firefox 形态（browser.commands.update 可用）：页内列表可见、按钮隐藏，
+ *     且列表每一行 label 非空（#85 的首行空白正是此形态下的失败）。
+ *
+ * 本断言把「行非空」这一机械可判项下沉为 programmatic（visual-checks
+ * 声明的 programmatic[] 必须有对应调用点）。
+ *
+ * @param {import("playwright").Page} page
+ * @returns {Promise<void>}
+ */
+async function assertHotkeysShapeAndRowLabels(page) {
+  const r = await page.evaluate(() => {
+    const list = document.getElementById("hotkeysListContainer");
+    const nativeBtn = document.getElementById("openNativeShortcutManager");
+    const rows = [...document.querySelectorAll("#KeyboardShortcuts .shortcut-row")];
+    return {
+      listExists: !!list,
+      listDisplay: list ? getComputedStyle(list).display : null,
+      nativeBtnDisplay: nativeBtn ? getComputedStyle(nativeBtn).display : null,
+      rowCount: rows.length,
+      emptyRows: rows
+        .filter((li) => (li.querySelector(":scope > div")?.textContent ?? "").trim() === "")
+        .map((li) => li.id),
+    };
+  });
+
+  if (!r.listExists) {
+    throw new Error("[options-hotkeys] #hotkeysListContainer 不存在（options 结构被破坏）");
+  }
+
+  const listVisible = r.listDisplay !== "none";
+  if (listVisible) {
+    // Firefox 形态：列表必须可见且每行非空
+    if (r.rowCount === 0) {
+      throw new Error("[options-hotkeys] 列表可见但 0 行（commands.getAll 未渲染）");
+    }
+    if (r.emptyRows.length > 0) {
+      throw new Error(
+        `[options-hotkeys] 存在空 label 行（#85 症状复现）: ${r.emptyRows.join(", ")}`
+      );
+    }
+  } else {
+    // Chromium 形态：原生按钮必须可见（否则两种 UI 都不可用）
+    if (r.nativeBtnDisplay === "none") {
+      throw new Error(
+        "[options-hotkeys] 页内列表隐藏且原生快捷键按钮也不可见——用户无任何快捷键管理入口（#85 同族）"
+      );
+    }
+  }
+}
+
+/**
+ * 断言 options#sites 的站点列表行非空（issue #88, P3/P5）。
+ *
+ * 站点列表是动态渲染的列表类 UI——存在的每一行必须是有效主机名（非空文本）。
+ * 空列表（无已添加站点）合法；但「有行且行文本为空」即渲染缺陷。
+ *
+ * @param {import("playwright").Page} page
+ * @returns {Promise<void>}
+ */
+async function assertSitesTabListsHaveLabels(page) {
+  const r = await page.evaluate(() => {
+    const checks = [];
+    for (const listId of [
+      "neverTranslateSites",
+      "alwaysTranslateSites",
+      "sitesToTranslateWhenHovering",
+    ]) {
+      const list = document.getElementById(listId);
+      if (!list) {
+        checks.push({ listId, missing: true });
+        continue;
+      }
+      const rows = [...list.querySelectorAll(":scope > li")];
+      const emptyRows = rows.filter((li) => (li.textContent ?? "").trim() === "");
+      checks.push({ listId, missing: false, rowCount: rows.length, emptyRows: emptyRows.length });
+    }
+    return checks;
+  });
+
+  for (const c of r) {
+    if (c.missing) {
+      throw new Error(`[options-sites] 站点列表容器 "${c.listId}" 不存在（结构被破坏）`);
+    }
+    if (c.emptyRows > 0) {
+      throw new Error(`[options-sites] 列表 "${c.listId}" 有 ${c.emptyRows}/${c.rowCount} 行文本为空`);
+    }
+  }
+}
+
+/**
+ * 断言 options#style 的控件集合完整（issue #88, P3/P5）。
+ *
+ * 检查：双颜色选择器存在且含 value；#darkMode 下拉框三项齐全（auto/yes/no）且无空文本；
+ * 两个 reset 按钮存在。
+ *
+ * @param {import("playwright").Page} page
+ * @returns {Promise<void>}
+ */
+async function assertStyleTabControlsComplete(page) {
+  const r = await page.evaluate(() => {
+    const translated = document.getElementById("translatedColorEyeDropper");
+    const ai = document.getElementById("aiTranslatedColorEyeDropper");
+    const darkMode = document.getElementById("darkMode");
+    const resetTranslated = document.getElementById("resetTranslatedColor");
+    const resetAi = document.getElementById("resetAiTranslatedColor");
+    const darkOptions = darkMode ? [...darkMode.querySelectorAll("option")] : [];
+    return {
+      pickersExist: !!translated && !!ai,
+      resetExist: !!resetTranslated && !!resetAi,
+      darkModeExists: !!darkMode,
+      darkValues: darkOptions.map((o) => o.value),
+      darkEmptyTexts: darkOptions.filter((o) => (o.textContent ?? "").trim() === "").length,
+    };
+  });
+
+  if (!r.pickersExist) {
+    throw new Error("[options-style] 颜色选择器缺失（translatedColorEyeDropper / aiTranslatedColorEyeDropper）");
+  }
+  if (!r.resetExist) {
+    throw new Error("[options-style] reset 按钮缺失（resetTranslatedColor / resetAiTranslatedColor）");
+  }
+  if (!r.darkModeExists) {
+    throw new Error("[options-style] #darkMode 下拉框缺失");
+  }
+  const missing = ["auto", "yes", "no"].filter((v) => !r.darkValues.includes(v));
+  if (missing.length > 0) {
+    throw new Error(`[options-style] #darkMode 缺少选项 [${missing.join(", ")}]，实际 [${r.darkValues.join(", ")}]`);
+  }
+  if (r.darkEmptyTexts > 0) {
+    throw new Error(`[options-style] #darkMode 有 ${r.darkEmptyTexts} 个选项文本为空`);
+  }
+}
+
+/**
  * 断言 replace-original-mode 的截图与 baseline-untranslated **不同**。
  *
  * 这是 #75 的直接指纹：污染时两者逐字节相同（页面早已是 replaceOriginal
@@ -267,17 +404,14 @@ async function assertReplaceOriginalDiffersFromBaseline(baselinePath, replacePat
   const { readFileSync } = await import("node:fs");
   const { createHash } = await import("node:crypto");
   const hash = (p) => createHash("sha256").update(readFileSync(p)).digest("hex").slice(0, 16);
-  try {
-    const [a, b] = [hash(baselinePath), hash(replacePath)];
-    if (a === b) {
-      throw new Error(
-        `replace-original-mode 保真度违规：与 baseline-untranslated 截图逐字节相同 ` +
-          `(sha256:${a}) — 该检查点未改变页面状态，场景间状态污染（issue #75）`
-      );
-    }
-  } catch (err) {
-    if (err.message?.includes("保真度违规")) throw err;
-    console.warn(`[visual-audit] 保真度指纹跳过（文件不可读）：${err.message}`);
+  // issue #88：两个文件都由本场景刚产出（baselineShot 阶段 1 / replaceShot 阶段 1 末），
+  // 不可读即真实产物缺陷，硬失败（旧实现以 warn 吞掉 → 指纹静默消失）。
+  const [a, b] = [hash(baselinePath), hash(replacePath)];
+  if (a === b) {
+    throw new Error(
+      `replace-original-mode 保真度违规：与 baseline-untranslated 截图逐字节相同 ` +
+        `(sha256:${a}) — 该检查点未改变页面状态，场景间状态污染（issue #75）`
+    );
   }
 }
 
@@ -319,14 +453,15 @@ export async function run(scope) {
   await page.evaluate(() => {
     document.getElementById("dualtran-floating-btn-host")?.shadowRoot?.getElementById("btnAi")?.click();
   });
-  // mock 输出标记（aimock 固定响应）出现即 AI 完成
-  await page
-    .waitForFunction(
-      (snippet) => document.body.innerText.includes(snippet),
-      mockServerConfig?.expectedAiSnippet || "[aimock]",
-      { timeout: 60000 }
-    )
-    .catch(() => console.warn("[visual-audit] AI snippet wait timed out; capturing anyway"));
+  // mock 输出标记（aimock 固定响应）出现即 AI 完成。
+  // issue #88：needsMock=true 且 mock 已确认运行——snippet 超时即 AI 管线缺陷，
+  // 硬失败（旧实现 capture-anyway 会让 after-ai-translation 拍到无 AI 文本的中间态，
+  // 检查点名称撒谎；保真度门禁是第二道防线，不是本场景静默的理由）。
+  await page.waitForFunction(
+    (snippet) => document.body.innerText.includes(snippet),
+    mockServerConfig?.expectedAiSnippet || "[aimock]",
+    { timeout: 60000 }
+  );
   await page.waitForTimeout(500);
   await screenshotCheckpoint(page, "after-ai-translation", { scenario: name });
 
@@ -380,11 +515,14 @@ export async function run(scope) {
   await page.waitForTimeout(500);
   const replaceShot = await screenshotCheckpoint(page, "replace-original-mode", { scenario: name });
   // 保真度指纹：replaceOriginal 必须与 baseline 不同（#75 直接指纹）
-  if (baselineShot?.path && replaceShot?.path) {
-    await assertReplaceOriginalDiffersFromBaseline(baselineShot.path, replaceShot.path);
-  } else {
-    console.warn("[visual-audit] 保真度指纹跳过：截图路径不可用（screenshotCheckpoint 返回 null）");
+  // issue #88：两个检查点都是声明产物（visual-checks.mjs CHECKPOINTS），
+  // 路径不可用即真实缺陷，硬失败（旧实现以 warn 吞掉 → 指纹静默消失）。
+  if (!baselineShot?.path || !replaceShot?.path) {
+    throw new Error(
+      `[visual-audit] 保真度指纹无法执行：baselineShot=${baselineShot?.path ? "ok" : "null"}, replaceShot=${replaceShot?.path ? "ok" : "null"}`
+    );
   }
+  await assertReplaceOriginalDiffersFromBaseline(baselineShot.path, replaceShot.path);
 
   // ── 效度演练注入（如启用）───────────────────────────────
   // 在 popup 截图上做注入演示（不影响 mock 页检查点的干净产物）
@@ -409,6 +547,23 @@ export async function run(scope) {
   await page.goto(`chrome-extension://${extensionId}/options/options.html#ai`, { waitUntil: "load" });
   await page.waitForTimeout(600);
   await screenshotCheckpoint(page, "options-ai", { scenario: name });
+
+  // ── 阶段 3b：options#hotkeys（issue #88, P5——#85 症状的视觉锚点）──
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#hotkeys`, { waitUntil: "load" });
+  await page.waitForTimeout(800);
+  await assertHotkeysShapeAndRowLabels(page);
+  await screenshotCheckpoint(page, "options-hotkeys", { scenario: name });
+
+  // ── 阶段 3c：options#sites / #style（issue #88, P5——剩余 tab 逐一评估后入选）──
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#sites`, { waitUntil: "load" });
+  await page.waitForTimeout(600);
+  await assertSitesTabListsHaveLabels(page);
+  await screenshotCheckpoint(page, "options-sites", { scenario: name });
+
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#style`, { waitUntil: "load" });
+  await page.waitForTimeout(600);
+  await assertStyleTabControlsComplete(page);
+  await screenshotCheckpoint(page, "options-style", { scenario: name });
 
   // 效度演练 ground truth 落盘（分析侧对照：注入的位置/类型/期望）
   const { writeFileSync, mkdirSync } = await import("node:fs");

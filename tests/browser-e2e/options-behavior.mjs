@@ -508,36 +508,33 @@ export async function run(scope) {
   await waitForContentScriptInjected(serviceWorker, testPageUrl);
   await page.waitForTimeout(1000);
 
-  // resizeHandle 在 floatingBtnContainer 的 shadow root 内
-  const handleExists = await page.evaluate(() => {
-    const container = document.getElementById("floatingBtnContainer");
-    if (!container?.shadowRoot) return false;
-    return !!container.shadowRoot.getElementById("resizeHandle");
+  // resizeHandle 在 host 元素的 shadow root 内（#dualtran-floating-btn-host）。
+  // 注（issue #88）：旧实现读 `document.getElementById("floatingBtnContainer")`——
+  // 该元素只在 shadow root 内，light DOM 永远查不到，探测恒 false，本步骤从未真正执行
+  // （症状被「跳过」吞掉，与 #85 同族）。真实 Chrome 探针已确认 shadow 路径可达。
+  const handleBox = await page.evaluate(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    const handle = host?.shadowRoot?.getElementById("resizeHandle");
+    if (!handle) return null;
+    const rect = handle.getBoundingClientRect();
+    return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
   });
-  if (handleExists) {
-    // 通过 evaluate 在 shadow root 内找到 handle 并获取其屏幕坐标
-    const handleBox = await page.evaluate(() => {
-      const container = document.getElementById("floatingBtnContainer");
-      const handle = container.shadowRoot.getElementById("resizeHandle");
-      const rect = handle.getBoundingClientRect();
-      return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
-    });
-
-    await page.mouse.move(handleBox.x, handleBox.y);
-    await page.mouse.down();
-    await page.mouse.move(handleBox.x - 35, handleBox.y, { steps: 5 });
-    await page.mouse.up();
-    await page.waitForTimeout(500);
-
-    const afterWidth = await readStorage(serviceWorker, "floatingBtnWidth");
-    console.log(`    floatingBtnWidth: ${initialWidth} → ${afterWidth}`);
-    if (afterWidth <= initialWidth) {
-      collector.record("T3.2", `floatingBtnWidth 向左拖拽后应增大, 前=${initialWidth} 后=${afterWidth}`);
-    }
-    await writeStorage(serviceWorker, "floatingBtnWidth", initialWidth);
-  } else {
-    console.log("    ⚠ floatingBtnContainer shadow 中 resizeHandle 不存在，跳过拖拽测试");
+  if (!handleBox) {
+    throw new Error("[T3.2] resizeHandle 未找到于 host shadow root —— 浮动按钮拖拽宽度路径不可测（不得跳过）");
   }
+
+  await page.mouse.move(handleBox.x, handleBox.y);
+  await page.mouse.down();
+  await page.mouse.move(handleBox.x - 35, handleBox.y, { steps: 5 });
+  await page.mouse.up();
+  await page.waitForTimeout(500);
+
+  const afterWidth = await readStorage(serviceWorker, "floatingBtnWidth");
+  console.log(`    floatingBtnWidth: ${initialWidth} → ${afterWidth}`);
+  if (afterWidth <= initialWidth) {
+    collector.record("T3.2", `floatingBtnWidth 向左拖拽后应增大, 前=${initialWidth} 后=${afterWidth}`);
+  }
+  await writeStorage(serviceWorker, "floatingBtnWidth", initialWidth);
 
   // 汇总
   console.log(`\n=== 场景 "${name}" 执行完毕 ===`);

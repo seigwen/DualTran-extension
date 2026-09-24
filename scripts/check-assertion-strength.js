@@ -2,14 +2,28 @@
 /**
  * check-assertion-strength.js
  *
- * CI lint: assertion-strength ladder enforcement (issue #21, P0-1).
+ * CI lint: assertion-strength ladder enforcement (issue #21, P0-1) +
+ * E2E skip typing (issue #88, P2 — the #85 escape).
  *
- * Detects two dangerous test patterns:
+ * Detects three dangerous test patterns:
  *   1. L1 conditional assertions (false-green): `if (x) { expect(...) }`
  *      — when the condition is always false, the expect never runs and the
  *        test passes forever without verifying anything.
  *   2. L0 tests with no assertions: `it("...", () => { ... })` blocks that
  *      contain no expect()/assert() call at all.
+ *   3. UNTYPED E2E SKIP (issue #88): a skip branch in `tests/browser-e2e/*.mjs`
+ *      that reports success without stating an objective environment premise.
+ *      #85 walked exactly this path: "the button is invisible" was recorded as
+ *      `跳过 ✓` — the symptom was accepted as the premise, and the bug hid
+ *      behind a green summary. Rule: every skip must say WHY it is legitimate
+ *      in a machine-checkable form:
+ *        - SKIP-ENV: <objective premise>   (environment premise, e.g. a
+ *          browser capability that structurally cannot exist in this harness)
+ *        - SKIP-DATA: <objective premise>  (fixture/data premise, e.g. the
+ *          scenario intentionally runs without a mock LLM server)
+ *      Otherwise → hard failure. A skip whose premise is a *symptom*
+ *      ("invisible", "missing", "not found", "did not complete") is never a
+ *      valid premise — make the step fail instead (see the #88 rewrites).
  *
  * Legitimate patterns that are NOT flagged:
  *   - expect() inside try/catch (not a conditional)
@@ -23,6 +37,8 @@
  *   - property access: `plan.assert(...)` (assert preceded by a dot)
  *   - template-literal fixture strings (content inside backticks)
  *   - explicit exemption marker: `// assertion-strength-allow` on the if line
+ *   - `SKIP-ENV:` / `SKIP-DATA:` typed skips (E2E)
+ *   - loader resilience logs marked with the `// skip-typing-allow` marker
  *
  * Usage:
  *   node scripts/check-assertion-strength.js            # scan tests/ recursively
@@ -43,6 +59,21 @@ function collectFiles(dir, out) {
     if (entry.isDirectory()) {
       collectFiles(full, out);
     } else if (/\.test\.js$/.test(entry.name)) {
+      out.push(full);
+    }
+  }
+}
+
+/**
+ * Collect E2E scenario modules (`.mjs`) — these are scanned by the skip-typing
+ * pass only (the assertion-strength ladder applies to vitest test files).
+ */
+function collectE2eFiles(dir, out) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      collectE2eFiles(full, out);
+    } else if (entry.name.endsWith(".mjs")) {
       out.push(full);
     }
   }
@@ -168,6 +199,80 @@ function scanFile(filePath) {
   return violations;
 }
 
+/**
+ * Skip-typing pass (issue #88, P2). Scans E2E scenario `.mjs` files for skip
+ * branches that must declare an objective premise.
+ *
+ * A "skip site" is a line that announces a skipped step. Because #85 taught us
+ * skips come in several dialects, this matches both English and Chinese forms:
+ *   - any `console.log/warn/info(` line containing `跳过` or `skipped`/`skipping`
+ *     that is not itself a typed declaration
+ * A site is typed when the SAME line or either of the two lines above it
+ * carries `SKIP-ENV: <premise>` / `SKIP-DATA: <premise>` (≥3 chars of premise).
+ *
+ * Exemptions:
+ *   - `// skip-typing-allow` on the same/adjacent line — for loader resilience
+ *     logs that are not step skips (e.g. optional scenario modules).
+ *   - Comments lines themselves (they carry no runtime semantics).
+ *
+ * Returns violations: { line, text }.
+ */
+const SKIP_TYPED_RE = /\bSKIP-(ENV|DATA):\s*(.+)/;
+const SKIP_PREMISE_MIN = 3;
+const SKIP_EXEMPT_MARKER = "skip-typing-allow";
+
+function scanE2eSkipTyping(filePath) {
+  const raw = fs.readFileSync(filePath, "utf8");
+  const lines = raw.split("\n");
+  const violations = [];
+  const isE2eScenario = /[\\/]browser-e2e[\\/]/.test(filePath);
+
+  if (!isE2eScenario) return violations;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const code = stripCommentPortion(line);
+    const trimmed = code.trim();
+    if (trimmed === "") continue;
+    // Only actual logging calls that report a skip count as skip sites.
+    const isLogCall = /console\.(log|warn|info|error)\s*\(/.test(code);
+    if (!isLogCall) continue;
+    const reportsSkip = /跳过|skipped|skipping/i.test(code);
+    if (!reportsSkip) continue;
+
+    // Typed on the same line, or the two lines above it?
+    const neighbourhood = [lines[i], lines[i - 1] ?? "", lines[i - 2] ?? ""];
+    const typedOk = neighbourhood.some((l) => {
+      const m = l.match(SKIP_TYPED_RE);
+      return Boolean(m) && m[2].trim().length >= SKIP_PREMISE_MIN;
+    });
+    if (typedOk) continue;
+
+    const exempt = neighbourhood.some((l) => l.includes(SKIP_EXEMPT_MARKER));
+    if (exempt) continue;
+
+    violations.push({ line: i + 1, text: trimmed.slice(0, 100) });
+  }
+  return violations;
+}
+
+/** Strip a `//` comment tail while ignoring `//` inside quotes (naive). */
+function stripCommentPortion(line) {
+  let inS = null;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inS) {
+      if (ch === "\\") i++;
+      else if (ch === inS) inS = null;
+    } else if (ch === '"' || ch === "'" || ch === "`") {
+      inS = ch;
+    } else if (ch === "/" && line[i + 1] === "/") {
+      return line.slice(0, i);
+    }
+  }
+  return line;
+}
+
 function main() {
   const args = process.argv.slice(2);
   const dirIdx = args.indexOf("--dir");
@@ -185,6 +290,16 @@ function main() {
     }
   }
 
+  // ── Skip-typing pass (issue #88, P2) ──
+  const e2eFiles = [];
+  collectE2eFiles(scanDir, e2eFiles);
+  for (const file of e2eFiles) {
+    const rel = path.relative(ROOT, file).replace(/\\/g, "/");
+    for (const v of scanE2eSkipTyping(file)) {
+      allViolations.push({ file: rel, line: v.line, type: "UNSKIPPED-TYPE", name: v.text });
+    }
+  }
+
   if (allViolations.length > 0) {
     console.error("Assertion-strength violations found:");
     for (const v of allViolations) {
@@ -195,12 +310,15 @@ function main() {
       "L1 conditional assertions (`if (x) { expect(...) }`) are the false-green pattern: " +
         "when the condition is always false the test passes forever without verifying anything. " +
         "L0 tests with no assertions verify nothing. " +
-        "See issue #21 (assertion strength ladder) and tests/CLAUDE.md."
+        "UNTYPED SKIPS accept a symptom as a premise (#85 escaped exactly there): " +
+        "type every skip as `SKIP-ENV: <objective premise>` or `SKIP-DATA: <objective premise>`, " +
+        "or make the step fail. " +
+        "See issue #21 (assertion strength ladder), issue #88 (P2 skip typing) and tests/CLAUDE.md."
     );
     process.exit(1);
   }
 
-  console.log(`✅ Assertion strength OK (${files.length} test files scanned).`);
+  console.log(`✅ Assertion strength OK (${files.length} test files + ${e2eFiles.length} E2E modules scanned).`);
   process.exit(0);
 }
 

@@ -185,6 +185,49 @@ export const CHECKPOINTS = [
       "Long labels wrap instead of overflowing their containers",
     ],
   },
+  {
+    id: "options-hotkeys",
+    scenario: "visual-audit",
+    capture: {
+      page: "options.html#hotkeys",
+      when: "loaded",
+    },
+    programmatic: ["assertHotkeysShapeAndRowLabels"],
+    expect: [
+      "Either the native shortcut manager button is shown (Chromium shape), or the in-page keyboard-shortcut list renders — and if the list renders, EVERY row carries a non-empty label (issue #85: the reserved _execute_action row rendered blank on Chrome 148+)",
+      "Shortcut rows (if rendered) show key binding and label on one line — no overlapping or clipped text",
+      "The 'Ctrl twice' checkbox section renders with legible labels — no blank or misaligned rows",
+      "No unstyled/overflowing elements breaking the section layout",
+    ],
+  },
+  {
+    id: "options-sites",
+    scenario: "visual-audit",
+    capture: {
+      page: "options.html#sites",
+      when: "loaded",
+    },
+    programmatic: ["assertSitesTabListsHaveLabels"],
+    expect: [
+      "Site list sections render with their add-controls (select + add button) — no blank or invisible rows",
+      "Existing site rows (if any) show non-empty hostnames — no empty list items",
+      "No overlapping elements between list rows and their delete controls",
+    ],
+  },
+  {
+    id: "options-style",
+    scenario: "visual-audit",
+    capture: {
+      page: "options.html#style",
+      when: "loaded",
+    },
+    programmatic: ["assertStyleTabControlsComplete"],
+    expect: [
+      "Color pickers for translated/AI text render with their current swatch visible (not blank boxes)",
+      "Dark mode select shows exactly the three documented choices (auto/yes/no), no blank option",
+      "Reset buttons aligned next to their pickers, no clipped text",
+    ],
+  },
   // ── cross-level journey (#70/#73 escape-analysis regression anchor) ──
   // These four checkpoints back the L2 assertions in cross-level-journey.mjs:
   // the scenario asserts visible truth programmatically; these declarations

@@ -1180,10 +1180,13 @@ async function verifyMultiProviderAi(page, serviceWorker, verifyPageUrl, mockSer
   // 跳过 openrouter（已在 step 7 测过）
   const providers = Object.entries(configs).filter(([key]) => key !== "openrouter");
 
+  // issue #88：providerConfigs 由 browser-e2e-config.mjs 契约保证含
+  // openrouter/anthropic/gemini 三家——过滤后为空即配置契约被破坏，硬失败。
   if (providers.length === 0) {
-    console.log("  No additional provider configs defined — skipping multi-provider test.");
     detach();
-    return;
+    throw new Error(
+      "multi-provider-ai: providerConfigs 契约要求额外提供商（anthropic/gemini），实际为空"
+    );
   }
 
   try {
@@ -1193,7 +1196,7 @@ async function verifyMultiProviderAi(page, serviceWorker, verifyPageUrl, mockSer
       // 切换提供商配置
       await serviceWorker.evaluate(async (cfg) => {
         const pc = (await chrome.storage.local.get("providerConfigs")).providerConfigs || {};
-        pc[cfg.aiProvider] = { apiKey: cfg.apiKey, apiBase: cfg.apiBase, model: cfg.model };
+        pc[cfg.aiProvider] = { apiKey: "mock-provider-key", apiBase: cfg.apiBase, model: cfg.model };
         await chrome.storage.local.set({
           aiProvider: cfg.aiProvider,
           providerConfigs: pc,
@@ -1210,11 +1213,27 @@ async function verifyMultiProviderAi(page, serviceWorker, verifyPageUrl, mockSer
       await sendMessageToTab(serviceWorker, page.url(), { action: "translatePage", targetLanguage: "fr" });
       await page.waitForFunction(() => document.querySelectorAll("translated").length > 0, null, { timeout: 30000 });
 
-      // 等待 AI 改进（autoImproveByAI = "yes"）
+      // 点击 #btnAi 触发 AI 翻译（真实触发路径；autoImproveByAI 已在 eecfb00 移除）
+      const clicked = await page.evaluate(() => {
+        const host = document.getElementById("dualtran-floating-btn-host");
+        const btnAi = host?.shadowRoot?.getElementById("btnAi");
+        if (!btnAi) return false;
+        btnAi.click();
+        return true;
+      });
+      if (!clicked) {
+        throw new Error(`multi-provider-ai: 未找到 #btnAi（provider=${providerKey}）`);
+      }
+
+      // 等待 mock 响应片段出现（45s 超时 = AI 管线缺陷，硬失败）
       const snippet = mockServerConfig.expectedAiSnippet;
-      await page.waitForFunction((s) => {
-        return document.body.innerText.includes(s);
-      }, snippet, { timeout: 45000 }).catch(() => null);
+      try {
+        await page.waitForFunction((s) => {
+          return document.body.innerText.includes(s);
+        }, snippet, { timeout: 45000 });
+      } catch {
+        throw new Error(`multi-provider-ai: provider=${providerKey} 点击 #btnAi 后 45s 内未出现 "${snippet}"`);
+      }
 
       const result = await page.evaluate((s) => {
         const nodes = document.querySelectorAll("translated");
@@ -1226,7 +1245,7 @@ async function verifyMultiProviderAi(page, serviceWorker, verifyPageUrl, mockSer
       console.log(`    ${providerKey}: ${result.matchCount}/${result.total} nodes contain ${snippet}`);
 
       if (result.matchCount === 0) {
-        console.log(`    Warning: ${providerKey} AI translation did not produce expected mock text.`);
+        throw new Error(`multi-provider-ai: provider=${providerKey} AI 翻译未产生 mock 文本`);
       }
     }
 

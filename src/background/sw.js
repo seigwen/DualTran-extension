@@ -568,7 +568,7 @@ if (typeof chrome.contextMenus !== "undefined") {
     else if (info.menuItemId == "browserAction-pdf-to-html") {
       executePdfMenuFromStorage({
         tabId: tab.id,
-        canOpenPopup: typeof chrome.action.openPopup !== "undefined",
+        canOpenPopup: typeof chrome.action?.openPopup === "function",
         popupTarget: "browserAction",
         getStorage: boundStorageGet,
         applyEffects: runMenuEffects,
@@ -578,7 +578,7 @@ if (typeof chrome.contextMenus !== "undefined") {
     else if (info.menuItemId == "pageAction-pdf-to-html") {
       executePdfMenuFromStorage({
         tabId: tab.id,
-        canOpenPopup: typeof chrome.pageAction.openPopup !== "undefined",
+        canOpenPopup: typeof chrome.pageAction?.openPopup === "function",
         popupTarget: "pageAction",
         getStorage: boundStorageGet,
         applyEffects: runMenuEffects,

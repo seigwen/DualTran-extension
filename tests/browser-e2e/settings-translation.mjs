@@ -22,6 +22,7 @@ import {
   readStorage,
   writeStorage,
   readStorageMulti,
+  assertSelectOptionsComplete,
 } from "./setup.mjs";
 
 // ─── 模块元数据 ─────────────────────────────────────────────────
@@ -70,6 +71,17 @@ async function s1TargetLanguagePersistence(page, extensionId, serviceWorker) {
   // 等待两个下拉框就绪
   await waitForOptionsSelectReady(page, "selectTargetLanguage");
   await waitForOptionsSelectReady(page, "selectTargetLanguageForText");
+
+  // 集合完整性（issue #88, P3）：语言下拉框每项 text 非空（列表类 UI 默认断言）
+  // 注：options 页的 selectTargetLanguage 由 fillLanguageList() 填充，**不含**
+  // "original"（那是 popup 的契约）；此处契约 = 语言代码齐全、无空文本。
+  const langCompleteness = await assertSelectOptionsComplete(page, {
+    selectId: "selectTargetLanguage",
+    minCount: 4,
+    requiredValues: ["fr"], // 本步骤随后会把它设为 "fr"，存在性是真实前提
+    label: "#selectTargetLanguage（options#languages）",
+  });
+  console.log(`  [S1] 语言下拉框完整性：${langCompleteness.count} 个选项全部非空 ✓`);
 
   // 设置网站翻译目标语言为法语
   await setOptionsSelectValueAndWait(page, "selectTargetLanguage", "fr");
@@ -281,16 +293,11 @@ async function s3NeverTranslateLangs(page, extensionId, serviceWorker) {
  * @type {Array<{ id: string, type: "select" | "number", storageKey?: string, testValue: string | number, restoreValue?: string | number }>}
  */
 const S4_CONTROLS = [
-  { id: "translateLongerThan", type: "number", testValue: 5 },
-  { id: "whereToDisplayTranslatedText", type: "select", testValue: "replaceOriginal" },
-  { id: "autoImproveByAI", type: "select", testValue: "no" },
-  { id: "aiImproveForLongerThan", type: "number", testValue: 10 },
-  { id: "enableDeepL", type: "select", testValue: "yes" },
-  // 注意：pageTranslatorService、dontSortResults 在 HTML 中已被注释，
-  // 因此在 DOM 中不存在。但它们对应的 storage 读写逻辑仍在 options.js 中，
-  // 如果 DOM 元素不存在则无法测试 UI 持久化，仅测试 storage 级读写。
-  { id: "translateDynamicallyCreatedContent", type: "select", testValue: "yes" },
-  { id: "showTranslateSelectedButton", type: "select", testValue: "no" },
+  { id: "translateLongerThan", type: "number", testValue: 5, tab: "translations" },
+  { id: "whereToDisplayTranslatedText", type: "select", testValue: "replaceOriginal", tab: "translations" },
+  { id: "aiImproveForLongerThan", type: "number", testValue: 10, tab: "ai" },
+  { id: "translateDynamicallyCreatedContent", type: "select", testValue: "yes", tab: "translations" },
+  { id: "showTranslateSelectedButton", type: "select", testValue: "no", tab: "translations" },
 ];
 
 /**
@@ -299,8 +306,11 @@ const S4_CONTROLS = [
  * @type {Array<{ id: string, storageKey: string, testValue: string }>}
  */
 const S4_STORAGE_ONLY_CONTROLS = [
+  // 以下控件在 options.html 中被 HTML 注释包裹（结构性不在 DOM 中），
+  // 无法做 DOM 级持久化测试；仅在 storage 层面验证读写。
   { id: "pageTranslatorService", storageKey: "pageTranslatorService", testValue: "microsoft" },
   { id: "dontSortResults", storageKey: "dontSortResults", testValue: "yes" },
+  { id: "enableDeepL", storageKey: "enableDeepL", testValue: "no" },
 ];
 
 /**
@@ -329,16 +339,17 @@ async function s4TranslationBehaviorPersistence(page, extensionId, serviceWorker
   for (const cfg of S4_CONTROLS) {
     console.log(`  [S4] 测试控件: #${cfg.id} (type=${cfg.type})`);
 
-    // 导航到翻译标签页
-    await page.goto(`chrome-extension://${extensionId}/options/options.html#translations`, { waitUntil: "load" });
+    // 导航到控件所在标签页（S4_CONTROLS 中的控件分布在 translations / ai 两个 tab）
+    const tab = cfg.tab || "translations";
+    await page.goto(`chrome-extension://${extensionId}/options/options.html#${tab}`, { waitUntil: "load" });
 
-    // 等待元素出现
+    // 等待元素出现（S4_CONTROLS 必须只包含真实存在于 DOM 中的控件；
+    // 被 HTML 注释的控件归 S4_STORAGE_ONLY_CONTROLS）
     const selector = cfg.type === "number" ? `input#${cfg.id}` : `select#${cfg.id}`;
     try {
       await page.waitForSelector(selector, { timeout: 5000 });
     } catch {
-      console.warn(`    [S4] ⚠ #${cfg.id} 元素未出现（可能在 HTML 中已被注释），跳过 DOM 测试。`);
-      continue;
+      throw new Error(`[S4] #${cfg.id} 元素未出现（S4_CONTROLS 必须只包含 DOM 中真实存在的控件）`);
     }
 
     // 对于下拉框，等待初始化完成
@@ -396,8 +407,7 @@ async function s4TranslationBehaviorPersistence(page, extensionId, serviceWorker
     try {
       await page.waitForSelector(selector, { timeout: 5000 });
     } catch {
-      console.warn(`    [S4] ⚠ 刷新后 #${cfg.id} 未出现，跳过 verify。`);
-      continue;
+      throw new Error(`[S4] 刷新后 #${cfg.id} 未出现（持久化验证无法进行）`);
     }
 
     if (cfg.type === "select") {
@@ -470,15 +480,17 @@ async function s4TranslationBehaviorPersistence(page, extensionId, serviceWorker
 // ═════════════════════════════════════════════════════════════════
 
 /**
- * [S5.1] 验证启用 AI 改进后，翻译结果中包含 mock 响应片段。
+ * [S5.1] 验证 AI 改进翻译效果（真实触发路径）。
+ *
+ * issue #88 改写：autoImproveByAI 已在 eecfb00 移除，AI 翻译只能由用户
+ * 点击悬浮按钮组中的 #btnAi 触发（shouldForce 路径）。旧实现轮询
+ * 「自动改进」的 mock 片段，在真实产品中永远超时——以 warn 收尾即假绿。
  *
  * 流程：
- *   1. 设置 autoImproveByAI = "yes"、aiImproveForLongerThan = 0
- *   2. 导航到测试页面
- *   3. 触发翻译
- *   4. 轮询 DOM 中是否出现 mock 响应片段
- *
- * 如果 scope 中没有 mockServerConfig（setupBasic 模式），输出警告并跳过。
+ *   1. 配置 openrouter → mock 服务器
+ *   2. 触发 Google 翻译（AI 按钮附着在翻译结果上）
+ *   3. 点击 shadow DOM 中的 #btnAi 触发 AI 翻译
+ *   4. 轮询 DOM 必须出现 mock 响应片段（超时 = 硬失败）
  *
  * @param {import("playwright").Page} page - Playwright 页面对象
  * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
@@ -487,18 +499,24 @@ async function s4TranslationBehaviorPersistence(page, extensionId, serviceWorker
  * @returns {Promise<void>}
  */
 async function s51AutoImproveByAiEffect(page, serviceWorker, testPageUrl, scope) {
-  console.log("[S5.1] AI 改进翻译效果验证...");
+  console.log("[S5.1] AI 改进翻译效果验证（#btnAi 触发）...");
 
-  // 检查是否有 mock 服务器配置
+  // settings-translation needsMock=true：mockServerConfig 必须存在（缺失 = 编排缺陷，硬失败）
   if (!scope.mockServerConfig) {
-    console.warn("  [S5.1] ⚠ mockServerConfig 未定义，跳过（需要 mock LLM 服务器支持）。");
-    console.log("[S5.1] 跳过 ✓\n");
-    return;
+    throw new Error("[S5.1] mockServerConfig 未定义（needsMock=true 场景必须走 setupFull）");
   }
 
-  // 设置自动 AI 改进为开启状态
-  await writeStorage(serviceWorker, "autoImproveByAI", "yes");
-  await writeStorage(serviceWorker, "aiImproveForLongerThan", 0);
+  // 配置 openrouter → mock 服务器
+  const apiBase = scope.mockServerConfig.openRouterApiBase;
+  await serviceWorker.evaluate(async (base) => {
+    await chrome.storage.local.set({
+      aiProvider: "openrouter",
+      apiKeyOpenRouter: "mock-openrouter-key",
+      openRouterApiBase: base,
+      openRouterModel: "openai/gpt-4o-mini",
+      aiImproveForLongerThan: 0,
+    });
+  }, apiBase);
 
   // 导航到测试页面，等待内容脚本就绪
   await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
@@ -506,7 +524,7 @@ async function s51AutoImproveByAiEffect(page, serviceWorker, testPageUrl, scope)
   await waitForPageTranslatorReady(serviceWorker, page.url());
   await page.waitForTimeout(1500);
 
-  // 触发整页翻译
+  // 触发整页翻译（Google）→ AI 按钮附着在翻译结果上
   await sendMessageToTab(serviceWorker, page.url(), {
     action: "translatePage",
     targetLanguage: "fr",
@@ -516,7 +534,19 @@ async function s51AutoImproveByAiEffect(page, serviceWorker, testPageUrl, scope)
   await page.waitForFunction(() => {
     return document.querySelectorAll("translated").length > 0;
   }, null, { timeout: 30000 });
-  console.log("  [S5.1] Google 翻译完成，等待 AI 改进...");
+  console.log("  [S5.1] Google 翻译完成，点击 #btnAi 触发 AI 翻译...");
+
+  // 点击 shadow DOM 中的 AI 按钮（真实触发路径；setup.mjs 已把 closed shadow 补丁为 open）
+  const clicked = await page.evaluate(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    const btnAi = host?.shadowRoot?.getElementById("btnAi");
+    if (!btnAi) return false;
+    btnAi.click();
+    return true;
+  });
+  if (!clicked) {
+    throw new Error("[S5.1] 未找到 #btnAi（悬浮按钮宿主未渲染）");
+  }
 
   // 轮询等待 mock 响应文本出现在 DOM 中
   const expectedSnippet = scope.mockServerConfig.expectedAiSnippet;
@@ -532,11 +562,12 @@ async function s51AutoImproveByAiEffect(page, serviceWorker, testPageUrl, scope)
     await page.waitForTimeout(1000);
   }
 
-  if (mockFound) {
-    console.log(`  [S5.1] DOM 中发现 mock 响应片段 "${expectedSnippet}" ✓`);
-  } else {
-    console.warn(`  [S5.1] ⚠ 超时：DOM 中未发现 mock 响应片段 "${expectedSnippet}"。AI 改进可能未生效或 mock 服务器未响应。`);
+  if (!mockFound) {
+    throw new Error(
+      `[S5.1] 点击 #btnAi 后 45s 内 DOM 中未发现 mock 响应片段 "${expectedSnippet}"（AI 翻译未生效或 mock 未响应）`
+    );
   }
+  console.log(`  [S5.1] DOM 中发现 mock 响应片段 "${expectedSnippet}" ✓`);
 
   console.log("[S5.1] 通过 ✓\n");
 }
@@ -880,9 +911,9 @@ async function s8ModelSelectionPersistence(page, extensionId, serviceWorker) {
   console.log(`  [S8] #genericModel 选项数: ${optionCount}`);
 
   if (optionCount < 2) {
-    console.warn("  [S8] ⚠ 选项数不足 2，无法选择第 2 个选项。跳过选择测试。");
-    console.log("[S8] 跳过 ✓\n");
-    return;
+    // openai 提供商在 mock 环境下有约 50 个模型（或静态 fallback 9 个）；
+    // 不足 2 即真实缺陷，硬失败（issue #88：症状不能当跳过前提）。
+    throw new Error(`[S8] #genericModel 选项数不足 2（实际 ${optionCount}），无法完成选择测试`);
   }
 
   // 选择第 2 个选项（索引 1）
@@ -1081,7 +1112,8 @@ async function s9CustomProviderModelList(page, extensionId, serviceWorker, scope
  *   4. 等待模型下拉框填充
  *   5. 验证 #genericModel 中有选项
  *
- * 如果 scope 中没有 mockServerConfig，输出警告并跳过。
+ * settings-translation 为 needsMock=true 场景（必须走 setupFull）；
+ * mockServerConfig 缺失为编排缺陷 → 硬失败。
  *
  * @param {import("playwright").Page} page - Playwright 页面对象
  * @param {string} extensionId - 扩展 ID
@@ -1091,11 +1123,9 @@ async function s9CustomProviderModelList(page, extensionId, serviceWorker, scope
 async function s10CustomApiBaseModelList(page, extensionId, scope) {
   console.log("[S10] 自定义 API Base 模型列表验证...");
 
-  // 检查是否有 mock 服务器配置
+  // settings-translation needsMock=true：mockServerConfig 必须存在（缺失 = 编排缺陷，硬失败）
   if (!scope.mockServerConfig) {
-    console.warn("  [S10] ⚠ mockServerConfig 未定义，跳过（需要 mock LLM 服务器支持）。");
-    console.log("[S10] 跳过 ✓\n");
-    return;
+    throw new Error("[S10] mockServerConfig 未定义（needsMock=true 场景必须走 setupFull）");
   }
 
   // 导航到翻译标签页
@@ -1113,12 +1143,10 @@ async function s10CustomApiBaseModelList(page, extensionId, scope) {
   // 等待 #genericApiBase 出现
   await page.waitForSelector("#genericApiBase", { timeout: 5000 });
 
-  // 获取 mock 服务器 URL（用于 openai 兼容 API）
-  const mockBaseUrl = scope.mockServerConfig.openRouterApiBase || scope.mockServerConfig.mockBaseUrl;
+  // 获取 mock 服务器 URL（用于 openai 兼容 API；配置契约保证存在，缺失 = 硬失败）
+  const mockBaseUrl = scope.mockServerConfig.openRouterApiBase;
   if (!mockBaseUrl) {
-    console.warn("  [S10] ⚠ 无法从 mockServerConfig 中获取 mock 服务器 URL，跳过。");
-    console.log("[S10] 跳过 ✓\n");
-    return;
+    throw new Error("[S10] mockServerConfig.openRouterApiBase 缺失（mock 配置契约被破坏）");
   }
   console.log(`  [S10] 使用 mock 服务器 URL: ${mockBaseUrl}`);
 

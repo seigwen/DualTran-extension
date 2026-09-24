@@ -177,3 +177,6 @@ jobs:
 
     - name: Visual checks (checkpoints ↔ captures bidirectional coverage, expect[] present)
       run: node scripts/check-visual-checks.js
+
+    - name: Platform probes (every env probe enumerates its shapes with a test reference, P1 issue #88)
+      run: node scripts/check-platform-probes.js

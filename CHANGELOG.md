@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Gemini (and any aliased provider ID) silently fell back to the OpenAI-compatible client** (#88): `createModelClient` looked up models.dev provider data with DualTran's internal ID (`google-gemini`), but models.dev keys the entry `google` — the dedicated `@ai-sdk/google` client was never selected, so requests went to a `/chat/completions` URL against the native `generateContent` API. Surfaced by the hardened multi-provider E2E (was silently skipped before). Fix: single source of truth `INTERNAL_TO_MODELSDEV` + `resolveModelsDevId()` in `providerRegistry.js`, consumed by `aiProxy.js`, `sseClient.js` (fallback fetch) and `providerModelPreview.js`. RED tests: `tests/ai/createModelClient.test.js` C5.1–C5.3.
+- Mock server Gemini fidelity (#88): `:streamGenerateContent` now answers with SSE frames (was plain JSON — the SDK's SSE parser produced zero chunks), and tag extraction is format-aware (`contents[].parts[].text`, not only `messages[].content`).
+
 ### Added
+- Test-system hardening from the #85 escape analysis (issue #88): a **platform-shape probe lint** (`scripts/check-platform-probes.js`) requires every environment probe in `src/` to enumerate its shapes with a test reference; a **skip-typing rule** in `check-assertion-strength.js` forbids untyped E2E skip branches (`SKIP-ENV: <objective premise>` / `SKIP-DATA:` or hard failure) and the E2E orchestrator now prints a typed-skip summary; a **set-completeness oracle** (`assertAllHaveNonEmptyText` / `assertSelectOptionsComplete`) asserts "every item has a non-empty label" for list-like UI; three new visual checkpoints (`options-hotkeys`, `options-sites`, `options-style`); and destructive paths (reset-to-defaults, config export/import) are now exercised through real clicks in isolated extension contexts. Test-only change — no user-facing behavior change.
 - Initial open-source release
 
 ### Fixed
