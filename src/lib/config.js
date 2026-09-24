@@ -192,9 +192,12 @@ const twpConfig = (function () {
       }
     }
 
+    // Push hotkeys to the browser-level API when that capability exists.
+    // `browser` alone is not a sufficient signal: Chrome 148+ exposes the
+    // `browser` namespace as an alias but has no commands.update (issue #85).
     if (
       typeof browser !== "undefined" &&
-      typeof browser.commands !== "undefined"
+      typeof browser.commands?.update === "function"
     ) {
       for (const name in config.hotkeys) {
         browser.commands.update({
@@ -212,10 +215,10 @@ const twpConfig = (function () {
    * restore the config to default and reaload the extension
    */
   twpConfig.restoreToDefault = function () {
-    // try to reset the keyboard shortcuts
+    // try to reset the keyboard shortcuts (Firefox-only capability; see #85)
     if (
       typeof browser !== "undefined" &&
-      typeof browser.commands !== "undefined"
+      typeof browser.commands?.update === "function"
     ) {
       for (const name of Object.keys(
         chrome.runtime.getManifest().commands || {}

@@ -1711,10 +1711,16 @@ twpConfig.onReady(function () {
     }
   }
 
-  // Whether to allow modifying shortcuts in extension's own page. true for Firefox, false for Chromium (MV3). Chromium can only modify via native browser entry
-  const canUpdateBrowserShortcut = (typeof browser !== 'undefined') ? true : false;
+  // Whether shortcuts can be edited from the extension's own page.
+  // Detect the CAPABILITY (commands.update), not the mere presence of the
+  // `browser` namespace: Chrome 148+ exposes `browser` as an alias of `chrome`,
+  // but has no commands.update — matching on the namespace would wrongly take
+  // the Firefox branch there (issue #85).
+  const browserApi =
+    (typeof browser !== "undefined" && typeof browser.commands?.update === "function") ? browser :
+    (typeof chrome !== "undefined" && typeof chrome.commands?.update === "function") ? chrome : undefined;
+  const canUpdateBrowserShortcut = browserApi !== undefined;
   console.log(`Browser supports commands.update: ${canUpdateBrowserShortcut}`);
-  const browserApi = (typeof browser !== 'undefined') ? browser : (typeof chrome !== 'undefined' ? chrome : undefined);
   // For Firefox, hide native shortcut manager and show extension's own shortcut UI; for Chromium, vice versa
   if (canUpdateBrowserShortcut) { // fireFox
     console.log("Browser supports commands.update, can update browser-level shortcuts.");
@@ -1732,8 +1738,12 @@ twpConfig.onReady(function () {
    * @param {*} description Description text
    */
   function addHotkey(hotkeyname, description) { // Dynamically build shortcut editing UI
-    if (hotkeyname === "_execute_browser_action" && !description) { // Default description for special command
-      description = "Enable the extension";
+    // Reserved action commands (MV3 `_execute_action`, legacy MV2
+    // `_execute_browser_action` / `_execute_page_action`) come back from
+    // chrome.commands.getAll() with an empty description — give them a
+    // localized fallback label (issue #85).
+    if (hotkeyname.startsWith("_execute_") && !description) {
+      description = chrome.i18n.getMessage("lblActivateTheExtension") || "Activate the extension";
     }
 
     const li = document.createElement("li"); // Outer LI
