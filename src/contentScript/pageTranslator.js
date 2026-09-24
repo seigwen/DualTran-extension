@@ -143,6 +143,29 @@ const openAiRateLimitWaitingTime = 10 * 1000 // When an AI translation API error
 export const abortControllers = []
 export const aiCache = []
 
+// ── Block-level indicator lifetime (RULE: block indicator lifetime rule) ─────
+// A block's AI spinner must live exactly as long as the REQUEST. The settle
+// callback in aiTranslateText fires it at each block's terminal state; this cap
+// only covers the silent-death case (no callback ever fires: the service worker
+// is killed mid-stream). The transport's own inactivity timeout (60s) covers
+// stalled-but-alive streams, so the cap sits safely beyond it.
+const AI_BLOCK_INDICATOR_GUARD_MS = 180_000
+
+/**
+ * Anchor the block-level AI spinner inline at the end of the text the user is
+ * currently reading (parity with the Google spinner, which lands at the end of
+ * the source text):
+ *   - newLine mode: proxy._el IS the <translated> container → "before" puts the
+ *     spinner right after the source text node it belongs to.
+ *   - replaceOriginal mode: proxy._el is the block itself → "append" trails the
+ *     translated text inside the block.
+ * @param {Element} el
+ * @returns {"before"|"append"}
+ */
+function aiBlockIndicatorPosition(el) {
+  return el?.nodeName?.toLowerCase() === "translated" ? "before" : "append";
+}
+
 // ── Hover-button handler state (MUST stay at module top level) ───────────────
 // handleSingletonBtnClick is a module-level function
 // registered via setCallbacks(); it references these. If these were scoped inside
@@ -912,9 +935,19 @@ function shouldApplyAiArrival(btnAi, capturedEpoch) {
   return isAiArrivalAllowedForBlock(capturedEpoch)
 }
 
-let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
+let aiTranslateText = async (toBeTranslated, showToastForError = true, onBlockSettled = null)=>{
+  // Block-settle callback: fires once per block when it reaches a terminal
+  // state (translated / error / discarded). The caller owns the indicator
+  // lifecycle (RULE: block indicator lifetime rule) — aiTranslateText returns
+  // at dispatch time, so "request finished" cannot be inferred from its return
+  // value.
+  const settleBlock = (btn) => {
+    if (typeof onBlockSettled !== "function") return
+    try { onBlockSettled(btn) } catch (e) { console.warn("[DualTran] onBlockSettled failed", e) }
+  }
+
   if (!hasActiveProviderApiKey()) {
-    toBeTranslated.forEach((btnAi) => resetAiButtonToIdle(btnAi))
+    toBeTranslated.forEach((btnAi) => { resetAiButtonToIdle(btnAi); settleBlock(btnAi) })
     promptToConfigureAiProvider()
     return false
   }
@@ -949,6 +982,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
        // After page-level AI translation succeeds, mark this URL as AI-translated in sessionStorage,
        // so AI translation state is automatically restored on Turbo/pjax navigation back
       if (!isSelectedPanel) saveAiAppliedFlag();
+      settleBlock(btnAi);
       continue
     }
 
@@ -979,6 +1013,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
         targetLanguage: targetLanguageCodeForAI,
         translated: cached,
       });
+      settleBlock(btnAi);
       continue;
     }
 
@@ -1143,6 +1178,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
             btnAi.sourceString,
             aiTextForCache
           );
+          settleBlock(btnAi);
           // Continue loop — there may be more blocks in the remainder.
         } else {
           // Incomplete block, wait for more stream data.
@@ -1196,6 +1232,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
           tooltipColor: "red",
           titleText: null,
         })
+        settleBlock(btnAi)
       })
 
     if(showToastForError){
@@ -1238,6 +1275,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true)=>{
           tooltipColor: "red",
           titleText: null,
         });
+        settleBlock(btn);
         stuckCount++;
       }
     });
@@ -3579,27 +3617,53 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
       console.log("[AI-STATE] aiTranslateDynamically: translating " + toBeTranslated.length + " blocks")
 
-      // Show purple loading indicators for each block
-      toBeTranslated.forEach((proxy) => {
-        if (proxy._el && proxy._el.parentNode) {
-          setBlockTranslationIndicator(proxy._el, "ai", "loading");
-        }
-      });
+      // Show purple loading indicators for each block, and clean each one up
+      // when its own request settles. The indicator must live as long as the
+      // REQUEST, not the dispatch: aiTranslateText() returns at dispatch time
+      // (the stream arrives via callbacks), so clearing here would flash the
+      // spinner for a few milliseconds only (RULE: block indicator lifetime rule).
+      const pendingIndicatorBlocks = new Set(toBeTranslated);
+      let indicatorGuardTimer = null;
 
-      await aiTranslateText(toBeTranslated)
-      console.log("[AI-STATE] aiTranslateDynamically: aiTranslateText returned")
-
-      // Remove purple loading indicators — AI translation done
-      // (successful blocks have translationStatus="translated", failed ones have "translationError")
-      toBeTranslated.forEach((proxy) => {
-        if (proxy._el && proxy._el.parentNode) {
+      const settleBlockIndicator = (proxy) => {
+        if (!pendingIndicatorBlocks.delete(proxy)) return; // idempotent per block
+        const el = proxy._el;
+        if (el && el.parentNode) {
+          const position = aiBlockIndicatorPosition(el);
           if (proxy.translationStatus === "translationError") {
-            setBlockTranslationIndicator(proxy._el, "ai", "error", proxy._lastErrorMessage || "AI translation error");
+            const message = proxy._st?.()?.errorMessage || "AI translation error";
+            setBlockTranslationIndicator(el, "ai", "error", message, position);
           } else {
-            setBlockTranslationIndicator(proxy._el, "ai", "done");
+            setBlockTranslationIndicator(el, "ai", "done", undefined, position);
           }
         }
+        if (pendingIndicatorBlocks.size === 0 && indicatorGuardTimer !== null) {
+          clearTimeout(indicatorGuardTimer);
+          indicatorGuardTimer = null;
+        }
+      };
+
+      toBeTranslated.forEach((proxy) => {
+        if (proxy._el && proxy._el.parentNode) {
+          setBlockTranslationIndicator(proxy._el, "ai", "loading", undefined, aiBlockIndicatorPosition(proxy._el));
+        }
       });
+
+      // Safety cap: a silently dead stream (e.g. the service worker is killed
+      // mid-flight, so no callback ever fires) must not strand spinners forever.
+      indicatorGuardTimer = setTimeout(() => {
+        pendingIndicatorBlocks.forEach((proxy) => {
+          if (proxy._el && proxy._el.parentNode) {
+            setBlockTranslationIndicator(proxy._el, "ai", "done", undefined, aiBlockIndicatorPosition(proxy._el));
+          }
+        });
+        pendingIndicatorBlocks.clear();
+        indicatorGuardTimer = null;
+      }, AI_BLOCK_INDICATOR_GUARD_MS);
+
+      await aiTranslateText(toBeTranslated, true, settleBlockIndicator)
+      console.log("[AI-STATE] aiTranslateDynamically: aiTranslateText returned")
+
        // Note: shouldForceAiAfterPageTranslation is NOT reset here.
        // Keep it as true so subsequently loaded dynamic content is also automatically AI-translated.
       updateAiRenderStateInternal()
