@@ -365,6 +365,63 @@ describe("twpConfig", () => {
     expect(mockState.reloadMock).toHaveBeenCalledOnce();
   });
 
+  // ── Chrome 148+ `browser` alias namespace（issue #85）──
+  // Chrome 148 起 `browser` 同时存在，但没有 commands.update → 能力探测必须跳过
+  // 浏览器级 API 调用，而不是抛 TypeError / 中断 import 与 restoreToDefault。
+
+  it("imports config on Chrome 148+, where the browser namespace has no commands.update (#85)", async () => {
+    globalThis.browser = { commands: { getAll: vi.fn() } };
+    // Seed a non-empty hotkeys map: the buggy loop only runs when config.hotkeys
+    // has entries (populated from chrome.commands.getAll at load).
+    mockState.commandResults = [{ name: "_execute_action", shortcut: "" }];
+    const twpConfig = await loadReadyConfig();
+    mockState.storageSetMock.mockClear();
+    mockState.reloadMock.mockClear();
+
+    expect(() =>
+      twpConfig.import(JSON.stringify({ targetLanguage: "de" }))
+    ).not.toThrow();
+
+    expect(twpConfig.get("targetLanguage")).toBe("de");
+    expect(mockState.reloadMock).toHaveBeenCalledOnce();
+  });
+
+  it("restores defaults on Chrome 148+, where the browser namespace has no commands.update (#85)", async () => {
+    globalThis.browser = { commands: { getAll: vi.fn() } };
+    // restoreToDefault iterates the manifest's declared commands.
+    mockState.manifest = {
+      version: "1.2.3",
+      commands: { "hotkey-toggle-translation": { suggested_key: { default: "Alt+T" } } },
+    };
+    const twpConfig = await loadReadyConfig();
+    twpConfig.set("targetLanguage", "de");
+    mockState.reloadMock.mockClear();
+
+    expect(() => twpConfig.restoreToDefault()).not.toThrow();
+
+    expect(twpConfig.get("targetLanguage")).toBeNull();
+    expect(mockState.reloadMock).toHaveBeenCalledOnce();
+  });
+
+  it("still pushes every hotkey through browser.commands.update on Firefox (#85)", async () => {
+    const updateMock = vi.fn();
+    globalThis.browser = { commands: { update: updateMock, getAll: vi.fn() } };
+    mockState.manifest = {
+      version: "1.2.3",
+      commands: {
+        "hotkey-toggle-translation": { suggested_key: { default: "Alt+T" } },
+        "hotkey-show-original": {},
+      },
+    };
+    const twpConfig = await loadReadyConfig();
+    updateMock.mockClear();
+
+    twpConfig.restoreToDefault();
+
+    expect(updateMock).toHaveBeenCalledWith({ name: "hotkey-toggle-translation", shortcut: "Alt+T" });
+    expect(updateMock).toHaveBeenCalledWith({ name: "hotkey-show-original", shortcut: "" });
+  });
+
   it("adds unique sites to translate-when-hovering", async () => {
     const twpConfig = await loadReadyConfig();
 

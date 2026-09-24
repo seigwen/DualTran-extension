@@ -387,9 +387,16 @@ function createOptionsDom() {
   });
 }
 
-function installBrowserGlobals({ matchMediaMatches = false, confirmResult = true } = {}) {
+function installBrowserGlobals({
+  matchMediaMatches = false,
+  confirmResult = true,
+  commandsGetAllResults = null,
+  manifestCommands = {},
+  browserGlobal,
+} = {}) {
   const messages = {
     lblSettings: "Settings",
+    lblActivateTheExtension: "Activate the extension",
     doYouWantOverwriteAllSettings: "Overwrite settings?",
     doYouWantDeleteTranslationCache: "Delete cache?",
     doYouWantRestoreSettings: "Restore settings?",
@@ -404,8 +411,11 @@ function installBrowserGlobals({ matchMediaMatches = false, confirmResult = true
     i18n: {
       getMessage: vi.fn((key) => messages[key] ?? ""),
     },
+    // Chrome 148+ shape: the `commands` namespace exists (getAll) but has no
+    // `update`; Firefox shape: `update` is a callable function.
+    commands: commandsGetAllResults === null ? undefined : { getAll: vi.fn((cb) => cb(commandsGetAllResults)) },
     runtime: {
-      getManifest: vi.fn(() => ({ commands: {} })),
+      getManifest: vi.fn(() => ({ commands: manifestCommands })),
       sendMessage: vi.fn((_message, callback) => callback?.("42 MB")),
     },
     storage: {
@@ -423,11 +433,23 @@ function installBrowserGlobals({ matchMediaMatches = false, confirmResult = true
   globalThis.prompt = vi.fn();
   globalThis.confirm = vi.fn(() => confirmResult);
   globalThis.alert = vi.fn();
+
+  // Platform-shape simulation: Chrome 148+ provides a `browser` alias namespace
+  // (without commands.update); Firefox provides `browser.commands.update`.
+  if (browserGlobal !== undefined) {
+    globalThis.browser = browserGlobal;
+  }
+}
+
+/** Firefox platform shape: `browser` global with a callable commands.update (issue #85). */
+function firefoxBrowserStub() {
+  return { commands: { update: vi.fn(), getAll: vi.fn() } };
 }
 
 async function loadOptionsModule(overrides = {}, env = {}) {
   resetConfig(overrides);
   createOptionsDom();
+  delete globalThis.browser;
   installBrowserGlobals(env);
   vi.resetModules();
   return import("../../src/options/options.js");
@@ -470,6 +492,7 @@ describe("options/options", () => {
   // 防止泄漏到其他测试文件导致级联失败
   afterEach(() => {
     vi.restoreAllMocks();
+    delete globalThis.browser;
   });
 
   it("defaults to the languages section and highlights its nav link", async () => {
@@ -665,6 +688,65 @@ describe("options/options", () => {
 
     expect(globalThis.confirm).toHaveBeenCalled();
     expect(state.configMock.import).toHaveBeenCalledWith('{"restored":true}');
+  });
+
+  // ── 快捷键列表：保留命令 label 兜底 + 平台形态门禁（issue #85）──
+  // 背景：Chrome 148 起同时提供 `browser` 命名空间，旧的 `typeof browser !== "undefined"`
+  // 探测在 Chromium 上恒真 → 列表/按钮显隐反转 + 保留命令 _execute_action 空 label。
+
+  it("renders a fallback label for a reserved command with an empty description", async () => {
+    await loadOptionsModule({}, {
+      commandsGetAllResults: [{ name: "_execute_action", description: "", shortcut: "" }],
+      browserGlobal: firefoxBrowserStub(),
+    });
+
+    const row = document.getElementById("_execute_action");
+    expect(row).not.toBeNull();
+    expect(row.querySelector(":scope > div").textContent.trim()).toBe("Activate the extension");
+  });
+
+  it("keeps the legacy MV2 reserved command name covered by the fallback label", async () => {
+    await loadOptionsModule({}, {
+      commandsGetAllResults: [{ name: "_execute_browser_action", description: "", shortcut: "" }],
+      browserGlobal: firefoxBrowserStub(),
+    });
+
+    const row = document.getElementById("_execute_browser_action");
+    expect(row).not.toBeNull();
+    expect(row.querySelector(":scope > div").textContent.trim()).toBe("Activate the extension");
+  });
+
+  it("treats the Chrome 148+ browser alias namespace as Chromium (native manager shown, list hidden)", async () => {
+    await loadOptionsModule({}, {
+      commandsGetAllResults: [{ name: "_execute_action", description: "", shortcut: "" }],
+      // Chrome 148+: `browser` exists as an alias of `chrome`, but there is no commands.update
+      browserGlobal: { i18n: {}, commands: { getAll: () => {} } },
+    });
+
+    expect(document.querySelector("#hotkeysListContainer").style.display).toBe("none");
+    expect(document.querySelector("#openNativeShortcutManager").style.display).toBe("block");
+    expect(document.querySelectorAll("#KeyboardShortcuts .shortcut-row")).toHaveLength(0);
+  });
+
+  it("still uses the in-page shortcut editor on Firefox (commands.update available)", async () => {
+    await loadOptionsModule({ hotkeys: { "hotkey-toggle-translation": "Alt+T" } }, {
+      commandsGetAllResults: [
+        { name: "_execute_action", description: "", shortcut: "" },
+        { name: "hotkey-toggle-translation", description: "Switch", shortcut: "Alt+T" },
+      ],
+      manifestCommands: { "hotkey-toggle-translation": { suggested_key: { default: "Alt+T" } } },
+      browserGlobal: firefoxBrowserStub(),
+    });
+
+    expect(document.querySelector("#hotkeysListContainer").style.display).toBe("block");
+    expect(document.querySelector("#openNativeShortcutManager").style.display).toBe("none");
+
+    const rows = document.querySelectorAll("#KeyboardShortcuts .shortcut-row");
+    expect(rows).toHaveLength(2);
+    rows.forEach((row) => {
+      expect(row.querySelector(":scope > div").textContent.trim()).not.toBe("");
+    });
+    expect(document.getElementById("hotkey-toggle-translation").querySelector('[name="input"]').value).toBe("Alt+T");
   });
 
   it("loads model options for custom providers with apiBase and apiKey", async () => {

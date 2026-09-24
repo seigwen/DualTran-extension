@@ -230,6 +230,10 @@
   "hotkeyError_letter": {
     "message": "输入一个字母"
   },
+  "lblActivateTheExtension": {
+    "message": "激活扩展程序",
+    "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
+  },
   "lblAdd": {
     "message": "添加"
   },

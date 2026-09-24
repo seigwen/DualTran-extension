@@ -6,7 +6,7 @@
  *   - 存储标签（H3-H5）：存储空间计算、重置默认设置、备份/恢复按钮存在性
  *   - 其他标签（H6）：各项开关下拉框的持久化
  *
- * 共有 6 个测试步骤 (H1–H6)。
+ * 共有 7 个测试步骤 (H1–H8)。
  *
  * @module settings-advanced
  */
@@ -28,7 +28,7 @@ export const name = "settings-advanced";
 /** 此场景不需要 Mock LLM 服务器 */
 export const needsMock = false;
 
-/** 纳入 smoke 快速回归子集（6 步，纯 UI 交互） */
+/** 纳入 smoke 快速回归子集（7 步，纯 UI 交互） */
 export const smoke = true;
 
 // ═════════════════════════════════════════════════════════════════
@@ -130,13 +130,16 @@ async function h1HotkeyPersistence(page, extensionId, serviceWorker) {
 // ═════════════════════════════════════════════════════════════════
 
 /**
- * [H2] 验证「打开原生快捷键管理器」按钮存在且可点击。
+ * [H2] 验证「打开原生快捷键管理器」按钮存在、可见且可点击。
  *
  * 流程：
  *   1. 导航到 options#hotkeys
- *   2. 确认 #openNativeShortcutManager 按钮存在
+ *   2. 确认 #openNativeShortcutManager 按钮存在且可见（不可见 = 硬失败）
  *   3. 点击按钮（不验证原生对话框是否打开，因为那是浏览器行为）
  *   4. 捕获点击是否抛出 JS 错误
+ *
+ * 注（issue #85）：本步骤原先在按钮不可见时「warn + skip」，掩盖了 Chrome 148+
+ * 上因 `typeof browser` 探测误判导致按钮被隐藏的真实缺陷。现改为硬失败断言。
  *
  * @param {import("playwright").Page} page - Playwright 页面对象
  * @param {string} extensionId - 扩展 ID
@@ -149,6 +152,7 @@ async function h2NativeShortcutManagerButton(page, extensionId, serviceWorker, c
 
   // 导航到快捷键标签页
   await page.goto(`chrome-extension://${extensionId}/options/options.html#hotkeys`, { waitUntil: "load" });
+  await page.waitForTimeout(1500); // 等待 commands.getAll 回调完成渲染
 
   // 检查按钮是否存在
   const buttonExists = await page.evaluate(() => {
@@ -157,13 +161,10 @@ async function h2NativeShortcutManagerButton(page, extensionId, serviceWorker, c
   });
 
   if (!buttonExists) {
-    // 按钮可能因平台不支持而被隐藏（如 options.js 中的非 Chromium 浏览器判断）
-    console.warn("  [H2] ⚠ #openNativeShortcutManager 不存在（可能因平台不支持而被隐藏），跳过点击测试。");
-    console.log("[H2] 跳过 ✓\n");
-    return;
+    throw new Error("[H2] #openNativeShortcutManager 按钮不存在（应始终存在于 options.html）");
   }
 
-  // 检查按钮是否可见
+  // 检查按钮是否可见 —— Chromium 桌面端必须显示原生管理器按钮（issue #85 硬失败）
   const buttonVisible = await page.evaluate(() => {
     const btn = document.getElementById("openNativeShortcutManager");
     if (!btn) return false;
@@ -172,9 +173,9 @@ async function h2NativeShortcutManagerButton(page, extensionId, serviceWorker, c
   });
 
   if (!buttonVisible) {
-    console.warn("  [H2] ⚠ #openNativeShortcutManager 存在但不可见（非桌面端环境），跳过点击测试。");
-    console.log("[H2] 跳过 ✓\n");
-    return;
+    throw new Error(
+      "[H2] #openNativeShortcutManager 不可见 —— Chromium 桌面端应显示原生快捷键管理器入口（issue #85：`typeof browser` 探测误判会把路径切到 Firefox 分支）"
+    );
   }
 
   console.log("  [H2] #openNativeShortcutManager 按钮存在且可见 ✓");
@@ -183,8 +184,16 @@ async function h2NativeShortcutManagerButton(page, extensionId, serviceWorker, c
   let clickErrored = false;
   try {
     await page.click("#openNativeShortcutManager");
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(800);
     console.log("  [H2] 点击按钮未抛出 JS 错误 ✓");
+
+    // chrome.tabs.create 会打开 chrome://extensions/shortcuts —— 关闭它，
+    // 避免额外页面泄漏到后续步骤（issue #85 引入按钮可见性硬断言后此路径必达）。
+    for (const p of page.context().pages()) {
+      if (p !== page && p.url().startsWith("chrome://extensions")) {
+        await p.close().catch(() => {});
+      }
+    }
   } catch (err) {
     clickErrored = true;
     console.warn(`  [H2] ⚠ 点击按钮时捕获异常: ${err.message}`);
@@ -196,6 +205,95 @@ async function h2NativeShortcutManagerButton(page, extensionId, serviceWorker, c
   } else {
     console.log("[H2] 完成（有警告） ✓\n");
   }
+}
+
+// ═════════════════════════════════════════════════════════════════
+// H8: 快捷键列表每行 label 非空（含 Firefox 能力形态）
+// ═════════════════════════════════════════════════════════════════
+
+/**
+ * [H8] 验证「键盘快捷键」列表里**每一行都有非空 label**（issue #85）。
+ *
+ * 流程（原生 Chromium 路径）：
+ *   1. 导航到 options#hotkeys
+ *   2. 断言页内列表容器隐藏、原生管理器按钮显示（Chromium 语义）
+ *
+ * 流程（Firefox 能力形态，新开页面注入 `browser.commands.update`）：
+ *   3. addInitScript 注入 Firefox 形态的 browser 全局 → 列表渲染
+ *   4. 断言每行 (:scope > div) 非空，且保留命令行的 label 等于页面内
+ *      chrome.i18n.getMessage("lblActivateTheExtension")
+ *
+ * 背景：Chrome 148 起 `browser` 命名空间同时存在，保留命令 `_execute_action`
+ * 的 description 为空 → 首行 label 空白。此步骤是用户症状的浏览器层锚点。
+ *
+ * @param {import("playwright").Page} page - Playwright 页面对象
+ * @param {string} extensionId - 扩展 ID
+ * @returns {Promise<void>}
+ */
+async function h8HotkeyRowLabels(page, extensionId) {
+  console.log("[H8] 快捷键列表 label 非空测试...");
+
+  // ── 原生 Chromium 路径 ──
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#hotkeys`, { waitUntil: "load" });
+  await page.waitForTimeout(1500);
+
+  const chromiumPath = await page.evaluate(() => ({
+    listDisplay: getComputedStyle(document.getElementById("hotkeysListContainer")).display,
+    nativeBtnDisplay: getComputedStyle(document.getElementById("openNativeShortcutManager")).display,
+  }));
+  if (chromiumPath.listDisplay !== "none") {
+    throw new Error(`[H8] 页内快捷键列表应隐藏（Chromium 语义），实际 display=${chromiumPath.listDisplay}`);
+  }
+  if (chromiumPath.nativeBtnDisplay === "none") {
+    throw new Error("[H8] 原生快捷键管理器按钮应显示（Chromium 语义）");
+  }
+  console.log("  [H8] Chromium 路径：列表隐藏 + 原生按钮显示 ✓");
+
+  // ── Firefox 能力形态（注入 browser.commands.update）──
+  const ffPage = await page.context().newPage();
+  try {
+    await ffPage.addInitScript(() => {
+      try {
+        window.browser = { commands: { update: function () {}, getAll: (cb) => chrome.commands.getAll(cb) } };
+      } catch (_) { /* ignore */ }
+    });
+    await ffPage.goto(`chrome-extension://${extensionId}/options/options.html#hotkeys`, { waitUntil: "load" });
+    await ffPage.waitForTimeout(2000);
+
+    const dumped = await ffPage.evaluate(() => {
+      const rows = [...document.querySelectorAll("#KeyboardShortcuts .shortcut-row")];
+      return {
+        listDisplay: getComputedStyle(document.getElementById("hotkeysListContainer")).display,
+        expectedFallback: chrome.i18n.getMessage("lblActivateTheExtension"),
+        rows: rows.map((li) => ({ id: li.id, label: (li.querySelector(":scope > div")?.textContent ?? "").trim() })),
+      };
+    });
+
+    if (dumped.listDisplay !== "block") {
+      throw new Error(`[H8] Firefox 形态下页内列表应显示，实际 display=${dumped.listDisplay}`);
+    }
+    if (dumped.rows.length === 0) {
+      throw new Error("[H8] Firefox 形态下快捷键列表为空（commands.getAll 未渲染）");
+    }
+    const emptyRows = dumped.rows.filter((r) => r.label === "");
+    if (emptyRows.length > 0) {
+      throw new Error(`[H8] 存在空 label 行: ${emptyRows.map((r) => r.id).join(", ")}`);
+    }
+    const reservedRow = dumped.rows.find((r) => r.id.startsWith("_execute_"));
+    if (!reservedRow) {
+      throw new Error("[H8] 未找到浏览器保留命令行（_execute_*）");
+    }
+    if (!dumped.expectedFallback || reservedRow.label !== dumped.expectedFallback) {
+      throw new Error(
+        `[H8] 保留命令行 label="${reservedRow.label}"，期望 i18n 兜底 "${dumped.expectedFallback}"`
+      );
+    }
+    console.log(`  [H8] Firefox 形态：${dumped.rows.length} 行全部非空，保留命令行 = "${reservedRow.label}" ✓`);
+  } finally {
+    await ffPage.close().catch(() => {});
+  }
+
+  console.log("[H8] 通过 ✓\n");
 }
 
 // ═════════════════════════════════════════════════════════════════
@@ -650,6 +748,10 @@ export async function run(scope) {
     h2NativeShortcutManagerButton(page, extensionId, serviceWorker, collector)
   );
 
+  await runStep("H8", () =>
+    h8HotkeyRowLabels(page, extensionId)
+  );
+
   await runStep("H3", () =>
     h3StorageCalculation(page, extensionId, collector)
   );
@@ -676,7 +778,7 @@ export async function run(scope) {
 
   // ── 汇总结果 ──
   console.log(`\n=== 场景 "${name}" 执行完毕 ===`);
-  console.log(`总步骤数: 7, 失败: ${stepErrors.length}`);
+  console.log(`总步骤数: 8, 失败: ${stepErrors.length}`);
 
   if (stepErrors.length > 0) {
     for (const { step, error } of stepErrors) {
