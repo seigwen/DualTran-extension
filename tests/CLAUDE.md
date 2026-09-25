@@ -218,6 +218,18 @@ tests/
 
 - 参考实现：`aiUiState.split.test.js`「display-claim completeness」四格 + `cross-level-journey.mjs` Step 4（E2E 锚点，红能力已验证）。
 
+### 指示器生命周期测试（Indicator Lifetime Testing，issue #90）
+
+**规则：任何「显示 loading → 等待 → 清理」的指示器测试，必须断言清理发生在「到达」之后，而不是「派发」之后——等待表达式 resolve 的时刻不构成证据。**
+
+- **顺序断言，不是时长断言**：断言「spinner 的移除必须晚于该块文本到达」这一**顺序**（每个 spinner 的移除事件与该块到达事件的先后），禁止断言「spinner 存活 ≥ N ms」——后者与 mock 速度耦合，会在快 mock 下假绿、慢环境假红。
+- **派发后仍在**：测试必须覆盖「派发返回了但流还没到达」的中间态——断言 spinner 仍挂在该块上（旧代码在此格变红：清理被绑在派发返回上）。
+- **逐块语义**：一个块到达终态只清理它自己的 spinner；兄弟块的 spinner 必须仍在（数据驱动，至少两块）。
+- **静默死亡守卫**：守卫兜底必须有一格（传输层永不回调 → 推进超过守卫常量 → spinner 被清）；守卫常量必须大于传输层不活动超时。
+- **双模式**：newLine / replaceOriginal 两模式都测（newLine 锚在 `<translated>` 前、replaceOriginal 锚在块内——**目标块 own direct-child**，禁止 `querySelector` 首匹配：嵌套块会读到后代 span 造成假阳性）。
+- **RED 能力验证**：新检查必须证明能抓目标 bug（pre-fix 源码 stash 循环 / pre-fix 构建 E2E 各跑一次必红）。
+- 参考实现：`aiBlockIndicator.integration.test.js`（6 格 + 实现点映射）+ `blockTranslationIndicator.test.js`（position 12 格）+ E2E `ai-block-indicator.mjs`（双模式顺序断言）。
+
 ### 事件缺失场景测试（Event-Absence Testing）
 
 **任何订阅引擎事件的 UI 组件，必须提供"查询当前状态"的初始化路径 + 测试。**

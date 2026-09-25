@@ -367,3 +367,15 @@ describe("AI block indicator lifecycle — dispatch vs arrival", () => {
     expect(spinnerBefore(a.translatedEl)).toBeNull();
   });
 });
+
+// ── Implementation-point map (CLAUDE.md rule: block indicator lifetime rule, #90) ──
+// settleBlockIndicator (pageTranslator.js) — arrival-driven per-block cleanup with
+//   per-block idempotency → "spinner survives the dispatch return" + sibling cells.
+// onBlockSettled (pageTranslator.js) — per-block terminal callback contract → the
+//   stream-arrival cell, the error-path cell, and the guard cell exercise it.
+// aiBlockIndicatorPosition (pageTranslator.js) — anchor decision (newLine "before" /
+//   replaceOriginal "append") → the anchor-parity cell asserts both.
+// AI_BLOCK_INDICATOR_GUARD_MS (pageTranslator.js) — silent-death cap → the
+//   "never-stranded" cell advances exactly past it.
+// setBlockTranslationIndicator (blockTranslationIndicator.js) — position-aware
+//   insert/find/remove → module cells in blockTranslationIndicator.test.js.

@@ -206,6 +206,15 @@ Content Script (fetchSSE.js)
 - **实现点清单（规则对称性）：** `setAiModeActive`（epoch 自增唯一入口）、`_isAiArrivalAllowed`（判定唯一实现）、`applyAiSuccessWithModeCheck`（到达应用唯一入口）、`switchToAiDisplay`（显示声明唯一入口）、`applyAiResult`（不得写 displayMode）。
 - **测试：** `hoverBtnBehavior.integration.test.js`「Arrival gate」套件（陈旧旗标×双模式×{内存/持久缓存} + 面板豁免 + 在飞切走 Q22/Q23 + guard 三格）+ `hoverBtnStreamArrival.integration.test.js`（真实流式解析到达）+ `aiUiState.split.test.js`（displayMode 所有权三格）。
 
+**RULE: 块级翻译指示器生命周期规则（block indicator lifetime rule, #90）—— 指示器生命周期 = 请求生命周期；清理绑「到达」，不绑「派发」：**
+- **症状与根因（#90）：** 点页级 AI 按钮看不到段落级 loading 图标——受控实测：spinner 插入 t=6ms、移除 t=48ms，首个 AI 文本 t=2068ms 才到达（全程不可见）。根因：`aiTranslateDynamically` 把清理绑在 `await aiTranslateText(...)` 之后，而该函数在**派发时刻**返回（响应经回调到达、`translateWithAI` fire-and-forget）；Google 路径无此问题（`backgroundTranslateHTML` 是真 promise，到达时 resolve）。
+- **对称性要求：** 任何「显示 loading → 等待 → 清理」链条，必须确认等待表达式 resolve 的时刻属于**到达**而非**派发**——「看起来是 await」不构成证据；有歧义时用慢 mock 探针实锤三时刻时间线（插入 / 移除 / 首达）。
+- **到达驱动实现：** `aiTranslateText(toBeTranslated, showToastForError, onBlockSettled)` 第三参数为**逐块终态回调**——每个块到达终态时触发（6 站点：无 key 早退 / 内存缓存命中 / 持久缓存命中 / 流式到达 / `onError` / `onFinished` stuck 块）；调用方（`settleBlockIndicator`）据此清理该块指示器——**逐块语义**（兄弟块 spinner 不受影响），清理必须**幂等**（pending 集合去重）。
+- **静默死亡守卫：** `AI_BLOCK_INDICATOR_GUARD_MS` 兜底「回调永不触发」的静默死亡（如 SW 被杀）；守卫上限必须**大于**传输层不活动超时（`fetchSSE` `inactivityTimeoutMs: 60_000`），否则活着的慢流会被守卫误清。
+- **锚点规则：** 块级 AI spinner 必须行内贴附于「用户正在阅读的文本末尾」——newLine：`<translated>` 容器**之前**（尾随原文，与 Google spinner 同视觉关系）；replaceOriginal：块内 append（尾随译文）；**禁止**渲染为块下方独立一行。
+- **实现点清单（规则对称性）：** `settleBlockIndicator`（pageTranslator.js，到达驱动清理唯一实现，含每块幂等去重）、`aiBlockIndicatorPosition`（锚点判定唯一实现）、`onBlockSettled`（逐块终态回调契约）、`AI_BLOCK_INDICATOR_GUARD_MS`（守卫常量）、`setBlockTranslationIndicator`（blockTranslationIndicator.js，position 感知的插入/查找/移除）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- **测试：** jsdom `tests/contentScript/aiBlockIndicator.integration.test.js`（派发后 spinner 仍在 / 逐块清理 / 双模式 / 真实错误消息 / 守卫兜底 / 锚点行内 / 实现点映射 + `onBlockSettled` 契约）+ `tests/contentScript/blockTranslationIndicator.test.js`（position 支持 12 格）+ E2E `tests/browser-e2e/ai-block-indicator.mjs`（双模式**顺序断言**：spinner 移除必须晚于该块 AI 文本到达——与 mock 速度无关）。**新增检查必须做 RED 能力验证**（pre-fix 源码/构建下必须变红）。
+
 **RULE: 视觉检查点规则（visual checkpoint rule, V1 #67）—— 截图点与清单双向覆盖，产物不入库，变更须演练效度对照：**
 - **清单 SSOT：** 每个视觉截图点必须在 `tests/browser-e2e/visual-checks.mjs` 的 `CHECKPOINTS` 中声明（`id` + `capture` + `expect[]`）；`expect[]` 空 = 审查无判据，禁止。
 - **双向覆盖：** `visual-audit.mjs` 中每个 `screenshotCheckpoint(page, "<id>")` 调用点的 id 必须在清单存在（且反向亦然）；id 必须是静态字符串字面量。由 `check-visual-checks.js`（第 11 个 lint）CI 强制。
