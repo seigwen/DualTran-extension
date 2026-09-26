@@ -107,6 +107,10 @@ describe("pageTranslator helpers", () => {
   let resolveDontSortResults;
   let shouldTriggerAiImprove;
   let resolveNextAiRenderState;
+  // T10 (issue #96): the module-load 120ms visibility timer callback,
+  // captured during the import below so the containment test can invoke
+  // it deterministically (no 120ms wait).
+  let moduleLoadVisibilityTimerCallback;
 
   beforeAll(async () => {
     // 在动态 import 之前设置 chrome global，避免 getTabHostName 顶层调用失败
@@ -125,10 +129,21 @@ describe("pageTranslator helpers", () => {
       commands: { getAll: vi.fn((cb) => cb?.([])) },
     });
 
-    const mod = await import("../../src/contentScript/pageTranslator.js");
-    resolveDontSortResults = mod.resolveDontSortResults;
-    shouldTriggerAiImprove = mod.shouldTriggerAiImprove;
-    resolveNextAiRenderState = mod.resolveNextAiRenderState;
+    // T10 (issue #96): capture the module-load 120ms visibility timer
+    // callback while the module is imported (T9 probe pattern).
+    const originalSetTimeout = globalThis.setTimeout;
+    globalThis.setTimeout = function (fn, ms, ...args) {
+      if (ms === 120) moduleLoadVisibilityTimerCallback = fn;
+      return originalSetTimeout(fn, ms, ...args);
+    };
+    try {
+      const mod = await import("../../src/contentScript/pageTranslator.js");
+      resolveDontSortResults = mod.resolveDontSortResults;
+      shouldTriggerAiImprove = mod.shouldTriggerAiImprove;
+      resolveNextAiRenderState = mod.resolveNextAiRenderState;
+    } finally {
+      globalThis.setTimeout = originalSetTimeout;
+    }
   });
 
   it("C3: resolveDontSortResults('yes') returns true", () => {
@@ -212,5 +227,23 @@ describe("pageTranslator helpers", () => {
     // 没有任何翻译块，不应改变状态
     expect(resolveNextAiRenderState("success", 0, 0, 0)).toBeNull();
     expect(resolveNextAiRenderState("idle", 0, 0, 0)).toBeNull();
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // T10: 模块加载期 120ms 定时器回调链必须失败遏制（绝不外抛）
+  // 行为锁定测试（issue #96，master 34f0e01 Coverage job 实锤）：
+  // 本文件运行 >120ms 时（coverage 仪器化下必然发生），定时器在文件
+  // 执行中途触发 → onTabVisible() → detectTabLanguage 的 mock 对
+  // 任何消息都回 "example.com" → 进入非 "und" 分支读
+  // platformInfo.isMobile.any —— 而本文件的 platformInfo mock 是 {}。
+  // 修复前 TypeError 从回调逃逸 → vitest 记 1 unhandled error →
+  // zero-tolerance 语义下 exit 1（1996 测试全过仍红）。
+  // 修复：产品代码回调链整体 try/catch（最佳努力检查，失败不得外抛）。
+  // 断言直接调用捕获到的回调——确定性，不依赖等待 120ms。
+  // ═══════════════════════════════════════════════════════════
+
+  it("T10: 模块加载期 120ms 定时器回调在本文件薄 mock 环境下不得抛异常（#96）", () => {
+    expect(moduleLoadVisibilityTimerCallback).toBeTypeOf("function");
+    expect(() => moduleLoadVisibilityTimerCallback()).not.toThrow();
   });
 });
