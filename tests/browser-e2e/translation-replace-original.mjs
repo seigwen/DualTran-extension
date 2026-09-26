@@ -53,18 +53,33 @@ async function countReplaceOriginalElements(page) {
 export async function run(scope) {
   const { page, serviceWorker, testPageUrl, mockServerConfig } = scope;
 
+  // #94: 哨兵色/前置配置写入前的初始值（场景收尾恢复，防止泄漏进后续场景）
+  const initialTranslatedColor = await readStorage(serviceWorker, "translatedColor");
+  const initialAiTranslatedColor = await readStorage(serviceWorker, "aiTranslatedColor");
+  const initialShowOriginal = await readStorage(serviceWorker, "showOriginalTextWhenHovering");
+
   // ═══════════════════════════════════════════════════════════════
   // Step 1: 配置 replaceOriginal 模式
   // ═══════════════════════════════════════════════════════════════
   console.log("[replace-original] Step 1: Configuring replaceOriginal mode...");
 
   const apiBase = mockServerConfig?.openRouterApiBase || "http://localhost:8788";
+  // #94: 哨兵色——replaceOriginal 模式的负向检查必须与具体色值无关：场景内显式写入
+  // 哨兵色，断言译文 computed 色 ≠ 哨兵色（旧检查硬编码「旧默认绿 11,112,33」，
+  // 默认色改蓝后永不命中 = 静默失明）。showOriginal 置 yes：encapsulateTextNode
+  // 的 <font> 是该模式下 applyTranslatedColorToNode 唯一可染色目标，关闭则负向
+  // 检查对该缺陷恒不可见（假绿）。
+  const GOOGLE_SENTINEL = "#ff00ff";
+  const AI_SENTINEL = "#00ff00";
   await serviceWorker.evaluate(async (config) => {
     await chrome.storage.local.set({
       targetLanguage: "fr",
       targetLanguages: ["fr", "en", "es"],
       whereToDisplayTranslatedText: "replaceOriginal",
       translateDynamicallyCreatedContent: "yes",
+      translatedColor: config.googleSentinel,
+      aiTranslatedColor: config.aiSentinel,
+      showOriginalTextWhenHovering: "yes",
       // AI 配置（用于 Step 4）
       aiProvider: "openrouter",
       apiKeyOpenRouter: "mock-openrouter-key",
@@ -72,12 +87,16 @@ export async function run(scope) {
       openRouterModel: "openai/gpt-4o-mini",
       aiImproveForLongerThan: 0,
     });
-  }, { apiBase });
+  }, { apiBase, googleSentinel: GOOGLE_SENTINEL, aiSentinel: AI_SENTINEL });
 
-  // 验证配置写入成功
+  // 验证配置写入成功（哨兵色未生效 = 负向检查失效，硬失败）
   const storedMode = await readStorage(serviceWorker, "whereToDisplayTranslatedText");
   if (storedMode !== "replaceOriginal") {
     throw new Error(`[replace-original] Config not set. Expected "replaceOriginal", got "${storedMode}"`);
+  }
+  const storedSentinel = await readStorage(serviceWorker, "translatedColor");
+  if (storedSentinel !== GOOGLE_SENTINEL) {
+    throw new Error(`[replace-original] 哨兵色未写入（translatedColor=${storedSentinel}）——负向检查前提被破坏`);
   }
   console.log("[replace-original] Step 1: Config set ✓");
 
@@ -107,27 +126,43 @@ export async function run(scope) {
   const googleCount = await assertReplaceOriginalNoDuplicates(page);
   console.log(`[replace-original] Step 2: ${googleCount} AI spans, no duplicates ✓`);
 
-  // 译文颜色规则：replaceOriginal 模式 → 译文颜色为原文颜色（不得应用"谷歌译文颜色"）
+  const colorViolations = [];
+
+  // 译文颜色规则（#94 哨兵版）：replaceOriginal 模式 → 译文颜色为原文颜色
+  // （不得应用"谷歌译文颜色"/"AI 译文颜色"）。检查与具体色值无关：
+  // 场景已写入哨兵色，任何译文 computed 色 == 哨兵色即违规。
+  // 旧实现硬编码「旧默认绿 11,112,33」——默认色改为色板蓝后该检查永不命中（静默失明）。
   const colorState = await page.evaluate(() => {
-    const container = document.querySelector(".dualtran-result-container");
-    const el = container || document.querySelector("p");
+    const sentinelRgb = "rgb(255, 0, 255)"; // #ff00ff
+    const containers = Array.from(document.querySelectorAll(".dualtran-result-container"));
+    const colored = [];
+    for (const c of containers) {
+      // 容器自身 + 其后代（encapsulateTextNode 的 <font> 在容器内）
+      for (const el of [c, ...c.querySelectorAll("*")]) {
+        if (getComputedStyle(el).color === sentinelRgb) {
+          colored.push(`${el.tagName.toLowerCase()}${el.className ? "." + String(el.className).split(/\s+/)[0] : ""}`);
+        }
+      }
+    }
     return {
-      hasContainer: !!container,
-      containerColor: container ? getComputedStyle(container).color : null,
+      hasContainer: containers.length > 0,
+      sentinelLeaks: colored.slice(0, 5),
+      sentinelLeakCount: colored.length,
       bodyTextSample: (document.body.innerText || "").substring(0, 60),
     };
   });
-  console.log(`[replace-original] Step 2 color check: container=${colorState.hasContainer}, color=${colorState.containerColor}`);
-  // 若容器存在且 computed color 是"谷歌译文颜色"绿色（rgba(11,112,33)），则违反译文颜色规则
-  if (colorState.hasContainer) {
-    const rgb = colorState.containerColor || "";
-    const isDefaultGreen = rgb.includes("11, 112, 33") || rgb.includes("11,112,33");
-    if (isDefaultGreen) {
-      throw new Error(
-        "[replace-original] 译文颜色规则被违反：replaceOriginal 模式下 Google 译文不应应用\"谷歌译文颜色\"（translatedColor），实际颜色为 " + rgb
-      );
-    }
+  console.log(`[replace-original] Step 2 color check: container=${colorState.hasContainer}, sentinelLeaks=${colorState.sentinelLeakCount}`);
+  if (!colorState.hasContainer) {
+    throw new Error("[replace-original] Step 2: 未找到 .dualtran-result-container——颜色负向检查前提被破坏");
   }
+  if (colorState.sentinelLeakCount > 0) {
+    colorViolations.push(
+      `Step 2 Google 侧：replaceOriginal 模式下译文不应应用"谷歌译文颜色"（translatedColor），实际泄漏哨兵色 ${colorState.sentinelLeaks.join(", ")}`
+    );
+  }
+
+  // #94 AI 侧负向检查（模式对称性）：AI 译文同样不得应用"AI 译文颜色"哨兵。
+  // Step 4 已产生 AI 内容后由同一哨兵断言覆盖（见下方 aiSentinel 检查）。
 
   // ═══════════════════════════════════════════════════════════════
   // Step 3: Soak 测试（5 秒）— 捕获 serial feedback loop
@@ -226,6 +261,25 @@ export async function run(scope) {
     const aiCount = await assertReplaceOriginalNoDuplicates(page);
     console.log(`[replace-original] Step 4: ${aiCount} AI spans after AI translation, no duplicates ✓`);
 
+    // #94 AI 侧负向检查：AI 译文（哨兵 = #00ff00）同样不得在 replaceOriginal 模式下
+    // 被染色（applyAiTranslatedTextColor 的 data-dualtran-block 守卫，模式对称性）。
+    const aiColorLeak = await page.evaluate(() => {
+      const sentinelRgb = "rgb(0, 255, 0)"; // #00ff00
+      const spans = Array.from(document.querySelectorAll(".dualtran-aitranslatedtext-replacemode"));
+      const leaked = spans.filter((s) => getComputedStyle(s).color === sentinelRgb);
+      return { total: spans.length, leaked: leaked.length };
+    });
+    if (aiColorLeak.total === 0) {
+      throw new Error("[replace-original] Step 4: 未找到 AI 译文 span——AI 侧颜色负向检查前提被破坏");
+    }
+    if (aiColorLeak.leaked > 0) {
+      colorViolations.push(
+        `Step 4 AI 侧：AI 译文不应应用"AI 译文颜色"（aiTranslatedColor），实际 ${aiColorLeak.leaked}/${aiColorLeak.total} 个 AI span 泄漏哨兵色`
+      );
+    } else {
+      console.log(`[replace-original] Step 4: AI 侧哨兵检查通过（${aiColorLeak.total} spans, 0 泄漏）✓`);
+    }
+
     // Soak 测试（3 秒）
     const beforeAiSoak = await countReplaceOriginalElements(page);
     await page.waitForTimeout(3000);
@@ -239,6 +293,29 @@ export async function run(scope) {
 
     await assertReplaceOriginalNoDuplicates(page);
     console.log(`[replace-original] Step 4: AI soak passed — ${afterAiSoak.aiSpans} AI spans stable ✓`);
+  }
+
+  // #94: 场景收尾——哨兵色/前置配置恢复为场景开始前的值（防泄漏进后续场景）。
+  // storage 原位恢复：初始为 null（键不存在）→ 移除；否则写回原值。
+  for (const [key, original] of [
+    ["translatedColor", initialTranslatedColor],
+    ["aiTranslatedColor", initialAiTranslatedColor],
+    ["showOriginalTextWhenHovering", initialShowOriginal],
+  ]) {
+    if (original === null || original === undefined) {
+      await serviceWorker.evaluate(async (k) => {
+        await chrome.storage.local.remove(k);
+      }, key);
+    } else {
+      await writeStorage(serviceWorker, key, original);
+    }
+  }
+
+  // #94 汇总抛出（两侧检查全部完成后）——收尾恢复已执行再抛出，确保清理必定发生。
+  if (colorViolations.length > 0) {
+    throw new Error(
+      `[replace-original] #94 译文颜色违规（${colorViolations.length} 项）：\n  - ` + colorViolations.join("\n  - ")
+    );
   }
 
   console.log("[replace-original] All steps completed ✓");

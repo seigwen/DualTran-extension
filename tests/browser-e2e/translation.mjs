@@ -1126,11 +1126,18 @@ async function verifyFloatingButtons(page, serviceWorker, testPageUrl, mockServe
 
     // ── 场景 4：Google/AI 译文切换 ──
     console.log("  Scene 4: Google/AI translation switching...");
-    // 恢复页面并触发纯 Google 翻译（不点 AI，保持 Google 译文）
-    await sendMessageToTab(serviceWorker, page.url(), { action: "restorePage" });
-    await page.waitForTimeout(500);
+    // #94: 默认译文色断言的前置——先移除可能残留的自定义译文色，再以干净页面重新
+    // 加载（内容脚本按「无存储值 → 出厂默认」启动），随后触发纯 Google 翻译
+    // （不点 AI，保持 Google 译文）。场景隔离：不依赖前序场景/部分运行的残留值。
+    await serviceWorker.evaluate(async () => {
+      await chrome.storage.local.remove(["translatedColor", "aiTranslatedColor"]);
+    });
+    await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
+    await waitForContentScriptInjected(serviceWorker, page.url());
+    await waitForPageTranslatorReady(serviceWorker, page.url());
     await sendMessageToTab(serviceWorker, page.url(), { action: "translatePage", targetLanguage: "fr" });
     await page.waitForFunction(() => document.querySelectorAll("translated").length > 0, null, { timeout: 15000 });
+    await waitForHostState(page, "floating", "healthy", { timeoutMs: 10000 });
 
     // 记录 Google 译文
     const googleText = await page.evaluate(() => {
@@ -1138,6 +1145,76 @@ async function verifyFloatingButtons(page, serviceWorker, testPageUrl, mockServe
       return node ? (node.textContent || "").substring(0, 100) : "";
     });
     console.log(`    Google text sample: "${googleText}"`);
+
+    // #94 颜色断言收集器：先收集全部违规再一次性抛出——单次运行即可看到
+    // Google 侧与 AI 侧的全部违规（fail-fast 会让第二侧失败被第一侧掩盖）。
+    const colorViolations = [];
+
+    // #94 断言（newLine 默认色）：谷歌译文渲染色必须等于出厂色板蓝 (#1d4ed8) rgb(29, 78, 216)，
+    // 且与浮动按钮组 Google 按钮的颜色一致——「译文色 ≡ 按钮色」，两侧任一漂移必红。
+    // 本断言位于 newLine（新行显示译文）路径；「用译文替换原文」（replaceOriginal）
+    // 模式的对应负向规则由 translation-replace-original.mjs 覆盖（模式对称性）。
+    // settle 等待：按钮带 `transition: all 0.2s`，高亮切换期间 computed 值是插值
+    // （实测抓到过 rgb(45,91,219) 过渡帧）——两次快照间隔 250ms > 200ms 过渡时长，
+    // 两连读完全相同 ⇒ 任何在飞的过渡必已落定。不用 getAnimations()==0 判定：
+    // 按钮/块 spinner 是 infinite 动画，在飞期间计数恒 >0（会假红）。
+    const waitForSettledColors = async () => {
+      const read = () =>
+        page.evaluate(() => {
+          const host = document.getElementById("dualtran-floating-btn-host");
+          const btn = (id) => host?.shadowRoot?.getElementById(id) || null;
+          const blocks = Array.from(document.querySelectorAll("translated"));
+          const googleBlock = blocks.find(
+            (t) => (t.querySelector(".dualtran-google")?.textContent || "").trim().length > 0
+          );
+          const aiBlock = blocks.find(
+            (t) => (t.querySelector(".dualtran-ai")?.textContent || "").trim().length > 0
+          );
+          const probe = (el) => (el ? getComputedStyle(el).color : null);
+          const probeParts = (el) =>
+            el ? [getComputedStyle(el).color, getComputedStyle(el).backgroundColor] : null;
+          return {
+            googleTranslated: probe(googleBlock),
+            aiTranslated: probe(aiBlock?.querySelector(".dualtran-ai")),
+            googleBtn: probeParts(btn("btnGoogle")),
+            aiBtn: probeParts(btn("btnAi")),
+          };
+        });
+      let prev = await read();
+      const start = Date.now();
+      while (Date.now() - start < 8000) {
+        await page.waitForTimeout(250);
+        const next = await read();
+        if (JSON.stringify(next) === JSON.stringify(prev)) {
+          return next;
+        }
+        prev = next;
+      }
+      throw new Error("#94: 颜色探针 8s 内未稳定（按钮 transition 未落定）——断言前提被破坏");
+    };
+    const settled = await waitForSettledColors();
+
+    const googleColorProbe = {
+      ok: !!(settled.googleTranslated && settled.googleBtn),
+      translatedColor: settled.googleTranslated,
+      btnColors: settled.googleBtn,
+    };
+    if (!googleColorProbe.ok) {
+      throw new Error("#94: 无法读取谷歌译文色或 Google 按钮色（元素缺失）——断言前提被破坏");
+    }
+    if (googleColorProbe.translatedColor !== "rgb(29, 78, 216)") {
+      colorViolations.push(
+        `谷歌译文默认色应为色板蓝 rgb(29, 78, 216)（#1d4ed8），实际 ${googleColorProbe.translatedColor}`
+      );
+    }
+    if (!googleColorProbe.btnColors.includes(googleColorProbe.translatedColor)) {
+      colorViolations.push(
+        `谷歌译文色与浮动按钮 Google 色不一致（译文=${googleColorProbe.translatedColor}, 按钮=${googleColorProbe.btnColors}）`
+      );
+    }
+    if (colorViolations.length === 0) {
+      console.log(`    #94 google color: ${googleColorProbe.translatedColor} ≡ button palette ✓`);
+    }
 
     // 点击 AI 按钮 → 触发 AI 翻译（Google 已翻译过，不重复调）
     await page.evaluate(() => {
@@ -1155,6 +1232,39 @@ async function verifyFloatingButtons(page, serviceWorker, testPageUrl, mockServe
       return node ? (node.textContent || "").substring(0, 100) : "";
     });
     console.log(`    AI text sample: "${aiText}"`);
+
+    // #94 断言（newLine 默认色，AI 侧）：AI 译文渲染色必须等于出厂色板紫 (#7c3aed)
+    // rgb(124, 58, 237)，且与浮动按钮组 AI 按钮的颜色一致——「译文色 ≡ 按钮色」。
+    // 与 Google 侧同样等待 transition 落定（点击 btnAi 后按钮正在翻转高亮）。
+    const settledAi = await waitForSettledColors();
+    const aiColorProbe = {
+      ok: !!(settledAi.aiTranslated && settledAi.aiBtn),
+      translatedColor: settledAi.aiTranslated,
+      btnColors: settledAi.aiBtn,
+    };
+    if (!aiColorProbe.ok) {
+      throw new Error(
+        `#94: AI 内容未到达或界面结构缺失（span=${!!settledAi.aiTranslated}, btn=${!!settledAi.aiBtn}）——AI 翻译管线失败信号`
+      );
+    }
+    if (aiColorProbe.translatedColor !== "rgb(124, 58, 237)") {
+      colorViolations.push(
+        `AI 译文默认色应为色板紫 rgb(124, 58, 237)（#7c3aed），实际 ${aiColorProbe.translatedColor}`
+      );
+    }
+    if (!aiColorProbe.btnColors.includes(aiColorProbe.translatedColor)) {
+      colorViolations.push(
+        `AI 译文色与浮动按钮 AI 色不一致（译文=${aiColorProbe.translatedColor}, 按钮=${aiColorProbe.btnColors}）`
+      );
+    }
+    if (colorViolations.length === 0) {
+      console.log(`    #94 ai color: ${aiColorProbe.translatedColor} ≡ button palette ✓`);
+    }
+
+    // #94 汇总抛出：两侧检查全部完成后再失败，单次 RED 运行可见全部违规。
+    if (colorViolations.length > 0) {
+      throw new Error(`#94 默认译文色违规（${colorViolations.length} 项）：\n  - ` + colorViolations.join("\n  - "));
+    }
 
     // 验证两种译文不同
     if (googleText && aiText && googleText !== aiText) {

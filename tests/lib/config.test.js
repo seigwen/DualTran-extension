@@ -233,6 +233,27 @@ describe("twpConfig", () => {
     expect(twpConfig.get("targetLanguageTextTranslation")).toBe("en");
   });
 
+  it("locks the factory default translation colors to the floating-button palette (#94)", async () => {
+    const twpConfig = await loadReadyConfig();
+
+    // The floating-button palette is #1d4ed8 (Google blue) / #7c3aed (AI purple)
+    // — see BTN_COLORS (singletonBtnGroup.js) and BUTTON_STYLES (floatingBtn.js).
+    // Factory defaults must be palette-exact so a fresh install renders
+    // translations in the same colors as the buttons that produced them.
+    // Changing the palette requires changing these defaults (and vice versa);
+    // E2E translation.mjs additionally asserts rendered ≡ button live.
+    expect(twpConfig.get("translatedColor")).toBe("#1d4ed8");
+    expect(twpConfig.get("aiTranslatedColor")).toBe("#7c3aed");
+  });
+
+  it("keeps a user-chosen translation color instead of the default (#94 — no migration)", async () => {
+    mockState.storageData = { translatedColor: "#123456", aiTranslatedColor: "#654321" };
+    const twpConfig = await loadReadyConfig();
+
+    expect(twpConfig.get("translatedColor")).toBe("#123456");
+    expect(twpConfig.get("aiTranslatedColor")).toBe("#654321");
+  });
+
   it("waits for async readiness before firing onReady callbacks", async () => {
     mockState.commandsGetAllMock.mockReset().mockImplementation((callback) => {
       mockState.pendingCommandsCallback = callback;

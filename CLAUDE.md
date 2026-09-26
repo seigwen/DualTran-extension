@@ -167,6 +167,8 @@ Content Script (fetchSSE.js)
 - 实现位置：`applyTranslatedColorToNode()`（pageTranslator.js）在 replaceOriginal 模式下必须跳过；`_applyAiColorToTranslatedElement()` 已有 replaceOriginal 跳过逻辑（通过 `nodesToClear` 非空判断），不得移除。
 - 测试：任何颜色相关测试必须同时覆盖两种模式（模式对称性规则）。
 - **实现点清单（规则对称性）**：`applyTranslatedColorToNode`（Google 侧，PR #20 已加守卫）、`_applyAiColorToTranslatedElement`（AI 侧，已有守卫）、`applyAiTranslatedTextColor`（aiUiState.js，`data-dualtran-block` 检测）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- **默认值与按钮色板一致性（#94）**：出厂默认 `translatedColor` = `#1d4ed8`（Google 蓝）、`aiTranslatedColor` = `#7c3aed`（AI 紫），与悬浮按钮色板逐字一致——改按钮色板必须同步改默认值，反之亦然；已手动选色的用户不做迁移（storage 值覆盖默认；「重置」保持写空值语义 = 不染色）。负向颜色检查禁止硬编码具体色值（默认色一变即静默失明）：用场景内哨兵色断言「译文色 ≠ 哨兵」（先例：`translation-replace-original.mjs` 的 #94 哨兵化）。
+- **实现点清单（规则对称性）**：`translatedColor`（config.js 默认值，tests/lib/config.test.js 锁定字面值 + 无迁移单元格）、`aiTranslatedColor`（同上）、`BTN_COLORS`（singletonBtnGroup.js 色板，singletonBtnGroup.test.js 锁定）+ E2E `translation.mjs`「译文渲染色 ≡ 浮动按钮色」双向断言。改任一处必须同步检查其余实现点 + 对应测试。
 
 **RULE: SPA 导航重建状态规则（UI rebuild state rule）—— 悬浮按钮重建时必须从 pageTranslator 实时状态初始化，不得硬编码初始态：**
 - 场景：GitHub (Turbo Drive) 等 SPA 站点，页面已翻译后导航再回退，floatingBtn host 随 body 被替换 → `floatingBtn.show()` 重建新闭包。

@@ -551,7 +551,7 @@ export async function run(scope) {
   if (t12AfterAiColor !== "rgba(0, 255, 0, 1)") {
     collector.record("T1.2", `aiTranslatedColor 应为 rgba(0,255,0,1) 实际 ${t12AfterAiColor}`);
   }
-  await writeStorage(serviceWorker, "aiTranslatedColor", initialAiColor || "rgba(32, 65, 255, 1)");
+  await writeStorage(serviceWorker, "aiTranslatedColor", initialAiColor || "#7c3aed");
 
   // ── T1.3: popupBlueWhenSiteIsTranslated select 交互 ──
   console.log("  [T1.3] popupBlueWhenSiteIsTranslated select 交互");
