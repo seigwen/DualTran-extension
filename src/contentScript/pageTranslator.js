@@ -4217,8 +4217,25 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       // 34965080915). No document context → nothing to check → no-op.
       // Symmetric with the module-load guard in singletonBtnGroup.js (DUMMY_NODE).
       if (typeof document === "undefined") return;
+      // Failure containment (issue #96): this timer also fires MID-FILE when
+      // the importing test file runs longer than 120ms (guaranteed under
+      // coverage instrumentation) while the test file's host mocks are still
+      // thin (e.g. platformInfo mocked as {} → platformInfo.isMobile is
+      // undefined). The visibility check is best-effort — the user can always
+      // translate manually — so no failure in the whole chain may escape the
+      // callback: an escaped TypeError is reported by vitest as an unhandled
+      // error and fails the zero-tolerance job even when every test passes
+      // (master 34f0e01 Coverage job, run 36236786748). Contained and warned,
+      // never rethrown — in production and under test alike.
+      const runVisibilityCheck = function () {
+        try {
+          onTabVisible();
+        } catch (e) {
+          console.warn("[DualTran] module-load visibility check failed; auto-translate skipped", e);
+        }
+      };
       if (document.visibilityState == "visible") {
-        onTabVisible();
+        runVisibilityCheck();
       } else {
         const handleVisibilityChange = function () {
           if (document.visibilityState == "visible") {
@@ -4226,7 +4243,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
               "visibilitychange",
               handleVisibilityChange
             );
-            onTabVisible();
+            runVisibilityCheck();
           }
         };
         document.addEventListener(
