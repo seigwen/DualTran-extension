@@ -43,8 +43,8 @@ const twpConfig = (function () {
     openRouterApiBase: "",
     openRouterReferer: "",
     openRouterTitle: "",
-    translatedColor: "rgba(11, 112, 33, 1)",
-    aiTranslatedColor: "#2041FF",
+    translatedColor: "#1d4ed8", // Google-blue — keep in sync with the floating button palette (BTN_COLORS/BUTTON_STYLES google)
+    aiTranslatedColor: "#7c3aed", // AI-purple — keep in sync with the floating button palette (BTN_COLORS/BUTTON_STYLES ai)
     translateLongerThan: 0,
     whereToDisplayTranslatedText: "newLine", // newLine replaceOriginal 
     pageTranslatorService: "google", // google yandex microsoft
