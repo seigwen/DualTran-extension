@@ -1,5 +1,7 @@
 "use strict";
 
+import { markTextWrite } from "./extensionTextWrites.js";
+
 export const SUCCESS_CHECK_COLOR = "#16a34a";
 export const ERROR_CROSS_COLOR = "#dc2626";
 export const AI_SUCCESS_CHECK_CLASS = "dualtran-ai-success-check";
@@ -107,6 +109,7 @@ export function applyAiTranslatingState(btnAi, {
         try {
           if (node.nodeType === 3) {
             node.textContent = "";
+            markTextWrite(node);
           } else if (node.nodeType === 1 && node.style) {
             node.style.display = "none";
           }
@@ -253,6 +256,7 @@ export function switchToAiDisplay(btnAi) {
         try {
           if (node.nodeType === 3) {
             node.textContent = "";
+            markTextWrite(node);
           } else if (node.nodeType === 1 && node.style) {
             node.style.display = "none";
           }
@@ -463,9 +467,11 @@ export function applyShowGoogleOnlyState(btnAi, nodesToRestore = []) {
           if (n.nodeType === 3) {
             // Google translation was stored in translatedText; originalText is the source language
             n.textContent = restored.translatedText;
+            markTextWrite(n);
           } else if (n.nodeType === 1) {
             n.style.display = "";
             n.textContent = restored.translatedText;
+            markTextWrite(n);
           }
         }
         // Restore hidden parent elements (e.g., <code>, <a>) hidden by AI translation

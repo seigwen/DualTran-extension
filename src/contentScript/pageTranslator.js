@@ -39,6 +39,7 @@ import platformInfo from "../lib/platformInfo.js"
 const _providerRegistry = createProviderRegistry(BUILT_IN_PROVIDERS);
 import showOriginal from "./showOriginal.js"
 import { translateWithAI } from "./fetchSSE.js"
+import { markTextWrite, isExtensionWrittenText } from "./extensionTextWrites.js"
 import {
   notifyAiStreamParseError,
   parseOpenAiStyleStreamMessage,
@@ -528,6 +529,7 @@ function restoreBlockOriginal(state, translatedElement) {
         if (restored) {
           if (n.nodeType === 3) {
             n.textContent = restored.originalText;
+            markTextWrite(n);
             const parent = n.parentNode;
             if (parent && parent.nodeType === 1 && parent.style && parent.style.display === "none") {
               parent.style.display = "";
@@ -535,6 +537,7 @@ function restoreBlockOriginal(state, translatedElement) {
           } else if (n.nodeType === 1) {
             n.style.display = "";
             n.textContent = restored.originalText;
+            markTextWrite(n);
           }
         }
       } catch (e) { console.warn("[DualTran] restoreBlockOriginal failed", e); }
@@ -542,7 +545,7 @@ function restoreBlockOriginal(state, translatedElement) {
   }
   // Clear AI span in replaceOriginal mode
   if (state.translatedTextNode && !state.googleSpan) {
-    try { state.translatedTextNode.textContent = ""; } catch (e) { console.warn("[DualTran] restoreBlockOriginal failed", e); }
+    try { state.translatedTextNode.textContent = ""; markTextWrite(state.translatedTextNode); } catch (e) { console.warn("[DualTran] restoreBlockOriginal failed", e); }
     try { state.translatedTextNode.style.display = ""; } catch (e) { console.warn("[DualTran] restoreBlockOriginal failed", e); }
   }
   // newLine mode: hide the whole <translated> element
@@ -580,6 +583,7 @@ function showBlockGoogleOnly(state, translatedElement) {
           try {
             if (n.nodeType === 3) {
               n.textContent = idx === 0 ? state.googleTranslatedText : "";
+              markTextWrite(n);
               const parent = n.parentNode;
               if (parent && parent.nodeType === 1 && parent.style && parent.style.display === "none") {
                 parent.style.display = "";
@@ -587,6 +591,7 @@ function showBlockGoogleOnly(state, translatedElement) {
             } else if (n.nodeType === 1) {
               n.style.display = idx === 0 ? "" : "none";
               n.textContent = idx === 0 ? state.googleTranslatedText : "";
+              markTextWrite(n);
             }
           } catch (e) { console.warn("[DualTran] showBlockGoogleOnly failed", e); }
         });
@@ -597,6 +602,7 @@ function showBlockGoogleOnly(state, translatedElement) {
             if (restored) {
               if (n.nodeType === 3) {
                 n.textContent = restored.translatedText;
+                markTextWrite(n);
                 const parent = n.parentNode;
                 if (parent && parent.nodeType === 1 && parent.style && parent.style.display === "none") {
                   parent.style.display = "";
@@ -604,6 +610,7 @@ function showBlockGoogleOnly(state, translatedElement) {
               } else if (n.nodeType === 1) {
                 n.style.display = "";
                 n.textContent = restored.translatedText;
+                markTextWrite(n);
               }
             }
           } catch (e) { console.warn("[DualTran] showBlockGoogleOnly failed", e); }
@@ -636,6 +643,7 @@ function writeGoogleIntoBlock(state, result, translatedElement) {
       try { translatedElement.style.display = "block"; } catch (e) { console.warn("[DualTran] showBlockGoogleOnly failed", e); }
     }
     state.googleSpan.textContent = result;
+    markTextWrite(state.googleSpan);
     state.googleSpan.style.display = "block";
     if (state.aiSpan) state.aiSpan.style.display = "none";
   } else {
@@ -645,6 +653,7 @@ function writeGoogleIntoBlock(state, result, translatedElement) {
         try {
           if (n.nodeType === 3) {
             n.textContent = idx === 0 ? result : "";
+            markTextWrite(n);
             const parent = n.parentNode;
             if (parent && parent.nodeType === 1 && parent.style && parent.style.display === "none") {
               parent.style.display = "";
@@ -652,6 +661,7 @@ function writeGoogleIntoBlock(state, result, translatedElement) {
           } else if (n.nodeType === 1) {
             n.style.display = idx === 0 ? "" : "none";
             n.textContent = idx === 0 ? result : "";
+            markTextWrite(n);
           }
         } catch (e) { console.warn("[DualTran] showBlockGoogleOnly failed", e); }
       });
@@ -761,6 +771,7 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
             try {
               if (n.nodeType === 3) {
                 n.textContent = "";
+                markTextWrite(n);
                 const parent = n.parentNode;
                 if (parent && parent.nodeType === 1 && parent.style && parent.style.display === "none") {
                   parent.style.display = "";
@@ -849,7 +860,7 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
             // Write into googleSpan unconditionally (text needed for later "show Google only");
             // visibility toggle only if AI hasn't taken over the display yet
             if (state.googleSpan) {
-              try { state.googleSpan.textContent = result; } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
+              try { state.googleSpan.textContent = result; markTextWrite(state.googleSpan); } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
             }
             if (state.displayMode === "original") {
               writeGoogleIntoBlock(state, result, translatedElement);
@@ -1993,6 +2004,19 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   let newNodes = [];
    // Removed nodes (removed by mutationObserver)
   let removedNodes = [];
+   // Text nodes the SITE rewrote in place (characterData mutations, e.g. x.com
+   // "Show more" expanding a truncated post). Tracked separately from newNodes so
+   // updatePiecesToTranslateWithNewNodes can tell "site updated existing text"
+   // apart from "new node appeared" — the node identity is unchanged, so the
+   // normal new-piece dedupe would swallow the update. Consumed and cleared on
+   // every updatePiecesToTranslateWithNewNodes tick.
+  const hostUpdatedTextNodes = new Set();
+   // Freshness guard bookkeeping (#98): consecutive stale drops per source node.
+   // A node whose text keeps changing between request dispatch and response
+   // (live counters, ticking clocks) must not spin the request loop forever —
+   // after STALE_DROP_LIMIT consecutive drops the result is accepted anyway.
+  const staleDropCounts = new WeakMap();
+  const STALE_DROP_LIMIT = 2;
 
    // NOTE: nodesToRestore is declared at module top level (hoisted) so the
    // module-level hover-button handlers can access it. Do not redeclare here.
@@ -2032,6 +2056,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   function isDualTranGeneratedNode(node) {
     return node.nodeType === 1 && (
       node.classList?.contains("dualtran-aitranslatedtext-replacemode") ||
+      node.classList?.contains("dualtran-block-indicator") ||
       node.hasAttribute?.("data-dualtran-encapsulated")
     );
   }
@@ -2040,15 +2065,54 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     * Update newNodes and removedNodes arrays in real time
     * Principle: Create a MutationObserver instance, continuously adding new nodes to newNodes array and removed nodes to removedNodes array
    */
-   const mutationObserver = new MutationObserver(function (mutations) { // The browser waits until all queued DOM operations are finished before calling this callback, hence the plural "mutations" parameter
+   const mutationObserver = new MutationObserver(handleObserverMutations);
+
+  /**
+    * MutationObserver callback — classifies each queued DOM change (#98).
+    * Extracted to a named function so tests can drive it deterministically.
+    *
+    * @param {MutationRecord[]} mutations
+   */
+  function handleObserverMutations(mutations) {
     const tmpNewNodes = [];
     mutations.forEach((mutation) => {
-       // Skip characterData-only mutations (text content changes inside existing elements).
-       // These are not new content — they're translation results being written.
-       if (mutation.type === "characterData") return;
+       // characterData mutations: text changed inside an EXISTING text node.
+       // Two sources must be told apart (#98):
+       //   1. The extension itself writing a translation result into a page text
+       //      node (newLine replace path, AI state writes, block restore/switch).
+       //      These must NOT re-enter the pipeline (feedback loop guarded by #16).
+       //   2. The SITE rewriting page text in place — e.g. x.com "Show more"
+       //      expanding a truncated post via React nodeValue assignment. These
+       //      updates MUST be re-translated, otherwise expanded content stays in
+       //      the source language.
+       // Classification is by value: if the node's current data equals the value
+       // the extension last wrote there, it is a self-write; anything else is a
+       // host update. Value comparison (not mere membership) matters: a later
+       // SITE write to the same node produces a different value and must still
+       // count as a host mutation (same semantics as read-frog's
+       // wasCharacterDataChangeExtensionDriven).
+       if (mutation.type === "characterData") {
+        const target = mutation.target;
+        if (target.nodeType !== 3) return;
+        // Rewrite that leaves the text unchanged (React re-renders commonly
+        // reassign identical values): not new content, nothing to re-translate.
+        if (mutation.oldValue === target.data) return;
+        if (isExtensionWrittenText(target)) return;
+        // Defense in depth: text inside <translated> or any DualTran-generated
+        // element is extension output, never page content.
+        if (isDescendantOfTranslated(target)) return;
+        const targetEl = target.nodeType === 3 ? target.parentElement : target;
+        if (targetEl && isDualTranGeneratedNode(targetEl)) return;
+        hostUpdatedTextNodes.add(target);
+        return;
+       }
        // New nodes: if a block-level element belonging to translatable tags, add to local tmpNewNodes array
        mutation.addedNodes.forEach((addedNode) => {
         const nodeName = addedNode.nodeName.toLowerCase();
+        // A text node created by one of the extension's own element writes
+        // (el.textContent = ...) is not page content either — skip it when its
+        // value matches what the extension last wrote (#98).
+        if (addedNode.nodeType === 3 && isExtensionWrittenText(addedNode)) return;
         // Skip nodes inside <head> (title/meta/script/style). The observer
         // watches document.documentElement (bug 2026-09-10: Turbo replaces
         // the <body> ELEMENT, so a body-scoped observer dies with it), which
@@ -2089,7 +2153,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         newNodes.push(node);
       }
     });
-  });
+  }
 
   /**
     * Update piecesToTranslate array every 2 seconds (based on newNodes information)
@@ -2100,14 +2164,21 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       newNodes.forEach((nn) => {
         if (removedNodes.indexOf(nn) != -1) return;
 
-        // Skip nodes inside DualTran-generated result containers.
+        // Skip DualTran-generated wrappers picked up by the scanner.
         // In replaceOriginal mode with showOriginal enabled, encapsulateTextNode
-        // creates <font> elements inside .dualtran-result-container parents.
-        // Also handle text nodes (nodeType 3) whose parent is inside such a container.
-        // Without this check, the observer picks them up and the loop repeats.
+        // creates <font data-dualtran-encapsulated> elements inside the source
+        // container; text written into them (element.textContent = ...) surfaces
+        // as their text child. Both must not re-enter the pipeline or the
+        // feedback loop repeats (issue #16).
+        // NOTE (#98): this used to skip EVERYTHING inside
+        // .dualtran-result-container, but in replaceOriginal mode that class
+        // sits on the SOURCE container — the blanket skip also swallowed SITE
+        // updates (e.g. x.com "Show more" replacing the truncated span), so the
+        // expanded text was never translated. Classify by the generated marker
+        // instead of by container ancestry.
         {
           const checkNode = nn.nodeType === 3 ? nn.parentElement : nn;
-          if (checkNode && checkNode.closest && checkNode.closest(".dualtran-result-container")) {
+          if (checkNode && isDualTranGeneratedNode(checkNode)) {
             return;
           }
         }
@@ -2132,11 +2203,55 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           }
         }
       });
+
+       // Site rewrote existing text in place (characterData, e.g. x.com "Show
+       // more" expanding a truncated post via React nodeValue assignment). The
+       // node identity is unchanged, so the new-piece dedupe above cannot notice
+       // the update — handle these explicitly:
+       //   1. A piece already references the node → mark it for re-translation
+       //      (isTranslated=false). The pipeline re-reads node.textContent at
+       //      request time, so the expanded text gets translated and the stale
+       //      truncated translation is overwritten in place (newLine) or written
+       //      back over the source node (replaceOriginal).
+       //   2. No piece references it (e.g. the node was empty during the first
+       //      scan) → re-scan the node so it enters the pipeline like new content.
+      for (const tn of hostUpdatedTextNodes) {
+        let referenced = false;
+        for (const ntt of piecesToTranslate) {
+          if (ntt.nodes && ntt.nodes.some((n) => n === tn)) {
+            referenced = true;
+            if (ntt.isTranslated) {
+              ntt.isTranslated = false;
+              hasNewPieces = true;
+            }
+          }
+        }
+        if (referenced) continue;
+
+        // Honor the same opt-outs the full-page scan honors, so a site write
+        // inside a notranslate/editable region stays untranslated.
+        const parentEl = tn.parentElement;
+        if (parentEl && parentEl.closest && parentEl.closest(".notranslate, [translate=\"no\"]")) continue;
+        if (parentEl && parentEl.isContentEditable) continue;
+
+        const newPiecesToTranslate = getPiecesToTranslate(tn);
+        for (const i in newPiecesToTranslate) {
+          const candidateNodes = newPiecesToTranslate[i].nodes;
+          const finded = piecesToTranslate.some((ntt) =>
+            ntt.nodes && candidateNodes.some((n2) => ntt.nodes.some((n1) => n1 === n2))
+          );
+          if (!finded) {
+            piecesToTranslate.push(newPiecesToTranslate[i]);
+            hasNewPieces = true;
+          }
+        }
+      }
     } catch (e) {
       console.error(e);
     } finally {
       newNodes = [];
       removedNodes = [];
+      hostUpdatedTextNodes.clear();
     }
     // Trigger translation for newly discovered pieces
     // But not if translateDynamically() is already running (prevents duplicate translations)
@@ -2166,6 +2281,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
        mutationObserver.observe(getObserverRoot(), {
         childList: true,
         characterData: true,
+        // oldValue lets the callback drop re-writes that leave the text
+        // unchanged (React re-renders often reassign identical values) — a
+        // no-op must not trigger a re-translation (#98).
+        characterDataOldValue: true,
         subtree: true,
       });
     }
@@ -2178,6 +2297,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     clearInterval(translateNewNodesTimerHandler);
     newNodes = [];
     removedNodes = [];
+    hostUpdatedTextNodes.clear();
      // Disconnect listener
     mutationObserver.disconnect();
      // Besides using callback functions, we can also use takeRecords to actively pull all pending notifications from the notification queue. This action clears all notifications.
@@ -3036,6 +3156,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                // Set the text node's text value to the translated text
               // nodes[j].textContent = results;
               nodes[j].textContent = results;
+              markTextWrite(nodes[j]);
               applyTranslatedColorToNode(nodes[j]);
               toRestore.translatedText = results;
             });
@@ -3076,6 +3197,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             ).then((results) => {
                // Set the text node's text value to the translated text
               nodes[j].textContent = results;
+              markTextWrite(nodes[j]);
               applyTranslatedColorToNode(nodes[j]);
               toRestore.translatedText = results;
             });
@@ -3220,15 +3342,28 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             }
           }
           const translatedTextNode = document.createTextNode(finalResults)
-          // Dual-span: create separate Google and AI spans inside <translated>
-          const googleSpan = document.createElement("span")
-          googleSpan.className = "dualtran-google"
+          // Dual-span mode: one Google span + one AI span per <translated>.
+          // On RE-translation (site rewrote the source text in place, #98) the
+          // existing spans must be REUSED, not appended again — appending would
+          // leave the stale truncated translation visible and the container
+          // non-duplicate assertion would pass while the page shows two lines.
+          let googleSpan = translatedElement.querySelector(":scope > .dualtran-google")
+          let aiSpan = translatedElement.querySelector(":scope > .dualtran-ai")
+          if (!googleSpan) {
+            googleSpan = document.createElement("span")
+            googleSpan.className = "dualtran-google"
+            translatedElement.appendChild(googleSpan)
+          }
+          if (!aiSpan) {
+            aiSpan = document.createElement("span")
+            aiSpan.className = "dualtran-ai"
+            aiSpan.style.display = "none"
+            translatedElement.appendChild(aiSpan)
+          }
           googleSpan.textContent = finalResults
-          const aiSpan = document.createElement("span")
-          aiSpan.className = "dualtran-ai"
-          aiSpan.style.display = "none"
-          translatedElement.appendChild(googleSpan)
-          translatedElement.appendChild(aiSpan)
+          // Mark the write so the observer classifies the resulting
+          // characterData mutation as extension output (#98).
+          markTextWrite(googleSpan)
 
            // Add inline button group (Google + AI)
           let sourceString = piecesToTranslateNow[i].nodes.reduce((accumulator, currentNode) => accumulator + currentNode.textContent, "")
@@ -3478,11 +3613,50 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                   console.log("array2d:", array2d)
                   console.log("translated results:", results)
 
-                  twpConfig.get("whereToDisplayTranslatedText") === "newLine"
-                     // Add translated text child node
-                    ? await addTranslatedContent(piecesToTranslateNow, results)
-                     // Replace original node text with translated node text
-                    : await translateResults(piecesToTranslateNow, results);
+                   // Freshness guard (#98): if the site rewrote a source node in
+                   // place while this request was in flight (characterData), the
+                   // result is for STALE text — writing it would replace a fresh
+                   // translation with one for the old text. Drop those pieces
+                   // (isTranslated=false re-queues them; the next tick re-reads
+                   // node.textContent and re-requests). Convergence: after
+                   // STALE_DROP_LIMIT consecutive drops for the same node the
+                   // result is accepted anyway, so a node whose text outruns the
+                   // request round-trip (live counter, ticking clock) cannot
+                   // spin the loop forever.
+                  const freshPieces = [];
+                  const freshResults = [];
+                  for (let k = 0; k < piecesToTranslateNow.length; k++) {
+                    const ptt = piecesToTranslateNow[k];
+                    const row = array2d[k] || [];
+                    let stale = false;
+                    if (ptt.nodes) {
+                      for (let j = 0; j < ptt.nodes.length; j++) {
+                        const node = ptt.nodes[j];
+                        if (row[j] === undefined || node.nodeType !== 3) continue;
+                        if (filterKeywordsInText(node.textContent) !== row[j]) {
+                          const drops = (staleDropCounts.get(node) || 0) + 1;
+                          staleDropCounts.set(node, drops);
+                          if (drops <= STALE_DROP_LIMIT) stale = true;
+                        } else {
+                          staleDropCounts.delete(node);
+                        }
+                      }
+                    }
+                    if (stale) {
+                      ptt.isTranslated = false;
+                      continue;
+                    }
+                    freshPieces.push(ptt);
+                    freshResults.push(results[k]);
+                  }
+
+                  if (freshPieces.length > 0) {
+                    twpConfig.get("whereToDisplayTranslatedText") === "newLine"
+                       // Add translated text child node
+                      ? await addTranslatedContent(freshPieces, freshResults)
+                       // Replace original node text with translated node text
+                      : await translateResults(freshPieces, freshResults);
+                  }
 
                   // Remove green loading indicators — Google translation done
                   piecesToTranslateNow.forEach((ptt) => {
@@ -3971,6 +4145,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         //   ntr.node.textContent = ntr.originalText;
         // }
         ntr.node.textContent = ntr.originalText;
+        markTextWrite(ntr.node);
       }
        // Current element is different from original element
       else {
@@ -4037,7 +4212,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    /** @internal — for testing: trigger updatePiecesToTranslateWithNewNodes manually */
    pageTranslator._updatePiecesToTranslateWithNewNodes = updatePiecesToTranslateWithNewNodes;
    /** @internal — for testing: read current observer newNodes array */
-   pageTranslator._getNewNodes = () => newNodes;
+  pageTranslator._getNewNodes = () => newNodes;
+   /** @internal — for testing #98: drive the observer callback with synthetic records */
+  pageTranslator._handleObserverMutations = handleObserverMutations;
+   /** @internal — for testing #98: read the host-updated text node set */
+  pageTranslator._getHostUpdatedTextNodes = () => hostUpdatedTextNodes;
+   /** @internal — for testing #98: read the current piecesToTranslate array */
+  pageTranslator._getPiecesToTranslateArray = () => piecesToTranslate;
 
   let alreadyGotTheLanguage = false;
    // Callback function for when tab language is detected
