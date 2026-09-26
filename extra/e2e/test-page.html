@@ -21,6 +21,17 @@
       user-select: text;
     }
   </style>
+  <!-- MOCK FIDELITY
+    分支：show-more 展开机制（真实站点行为对照）
+    - childList append（X/Twitter 懒加载：点击后追加新含文节点）：✅ 已模拟
+    - characterData 原地改写（React nodeValue 赋值，x.com legacy 客户端；来源：2026-09-26 真机实测 + 上游 issue #989）：✅ 已模拟
+    - childList 替换（x.com x-web 客户端：移除截断节点、插入含完整文本的新节点；来源：2026-09-26 真机突变捕获）：✅ 已模拟
+    - CSS line-clamp 截断（文本全量在 DOM，仅视觉截断）：⛔ 未模拟（豁免理由：本页三种机制按 DOM 变更语义枚举，CSS 截断不产生突变；上游影响：无——扩展只响应 DOM 突变）
+    - 真实数据截断（截断文本根本不在初始 DOM，点击后才从服务端取值）：⛔ 未模拟（豁免理由：本页用预置 data-full-text 属性模拟展开后文本；上游影响：无——展开后 DOM 到达方式与扩展的管道无关）
+    分支：时序
+    - 同步点击响应：✅ 已模拟（如实声明）
+    - 真实网络延迟（React 渲染 + 服务端取数）：⛔ 未模拟（豁免理由：本地即时响应；上游影响：观察者 2s tick 的时序差异由 E2E 20s 轮询窗口吸收）
+  -->
 </head>
 <body>
   <h1>DualTran local browser E2E page</h1>
@@ -76,6 +87,24 @@
     </div>
     <button id="showmore-btn">Show more</button>
   </article>
+
+  <!-- Scenario B: x.com legacy client — the site updates an EXISTING text node in
+       place (React nodeValue assignment → characterData mutation). -->
+  <article id="showmore-inplace-article" data-full-text="This post preview shows only the first part of a long article. The full text continues here with many more sentences that were previously collapsed. Readers who click show more expect every newly revealed sentence to be translated automatically, just like the preview text was. This paragraph intentionally repeats enough prose to make a clearly longer block of text for the translation pipeline to pick up and process end to end.">
+    <div id="showmore-inplace-container">
+      <span id="showmore-inplace-visible">This post preview shows only the first part of a long article.</span>
+    </div>
+    <button id="showmore-inplace-btn">Show more</button>
+  </article>
+
+  <!-- Scenario C: x.com x-web client — the site removes the truncated span and
+       inserts a new span containing the full text (childList replacement). -->
+  <article id="showmore-replace-article" data-full-text="Another truncated post preview that hides most of its content. The full version continues with additional paragraphs revealing the rest of the story, including details that only become visible after expanding. Every sentence revealed here should be translated automatically by the extension without requiring another user action. This extra prose exists so the newly inserted element carries a substantial amount of translatable text for the end-to-end check.">
+    <div id="showmore-replace-container">
+      <span id="showmore-replace-visible">Another truncated post preview that hides most of its content.</span>
+    </div>
+    <button id="showmore-replace-btn">Show more</button>
+  </article>
   <script>
     document.getElementById('showmore-btn').addEventListener('click', function() {
       var container = document.getElementById('showmore-container');
@@ -91,6 +120,40 @@
         hidden.remove();
         this.textContent = 'Show more';
       }
+    });
+
+    /**
+     * Scenario B: in-place text-node update (React nodeValue assignment).
+     * The site rewrites the EXISTING text node's data — this produces a
+     * characterData mutation, not a childList insertion. Mirrors the x.com
+     * legacy client's "Show more" behavior and other React text updates.
+     */
+    document.getElementById('showmore-inplace-btn').addEventListener('click', function() {
+      var visible = document.getElementById('showmore-inplace-visible');
+      var full = document.getElementById('showmore-inplace-article').getAttribute('data-full-text');
+      var textNode = visible.firstChild;
+      if (textNode && textNode.nodeType === 3) {
+        // In-place update of the EXISTING text node → characterData mutation.
+        textNode.data = full;
+      } else {
+        visible.textContent = full;
+      }
+      this.textContent = 'Show less';
+    });
+
+    /**
+     * Scenario C: span replacement (x.com x-web client behavior).
+     * The site removes the truncated span and inserts a NEW span with the
+     * full text — a childList remove+add inside the same container.
+     */
+    document.getElementById('showmore-replace-btn').addEventListener('click', function() {
+      var visible = document.getElementById('showmore-replace-visible');
+      var full = document.getElementById('showmore-replace-article').getAttribute('data-full-text');
+      var replacement = document.createElement('span');
+      replacement.id = 'showmore-replace-visible';
+      replacement.textContent = full;
+      visible.replaceWith(replacement);
+      this.textContent = 'Show less';
     });
   </script>
 </body>
