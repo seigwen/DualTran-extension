@@ -1,0 +1,58 @@
+/**
+ * Self-test fixture for scripts/record-mutations.mjs — a static page that
+ * fires all four mutation families on a timer, so the recorder's channel
+ * classification can be verified offline (no real-site access needed).
+ *
+ * Mutation schedule after load (each +400ms):
+ *   t0: characterData rewrite (existing text node `.data = `)
+ *   t1: childList append (fresh span with text)
+ *   t2: childList replace (remove node, insert new node)
+ *   t3: attribute rewrite on an existing element (title)
+ */
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>record-mutations self-test</title></head>
+<body>
+  <p id="cd">characterdata original text</p>
+  <div id="append-host"></div>
+  <div id="replace-host"><span id="old">old child</span></div>
+  <button id="attr-host" title="original title">attribute host</button>
+  <script>
+    const cd = document.getElementById("cd").firstChild;
+    let step = 0;
+    let timer = null;
+    const tick = () => {
+      step++;
+      if (step === 1) {
+        cd.data = "characterdata rewritten text";
+      } else if (step === 2) {
+        const span = document.createElement("span");
+        span.textContent = "appended sentence";
+        document.getElementById("append-host").appendChild(span);
+      } else if (step === 3) {
+        const host = document.getElementById("replace-host");
+        const fresh = document.createElement("span");
+        fresh.id = "fresh";
+        fresh.textContent = "replacement sentence";
+        host.removeChild(document.getElementById("old"));
+        host.appendChild(fresh);
+      } else if (step === 4) {
+        document.getElementById("attr-host").setAttribute("title", "rewritten title");
+      } else if (step === 5) {
+        // attribute-add: a NEW element arrives carrying a translatable attribute.
+        // Both the append AND the attribute write happen in the same JS task so
+        // they land in one mutation batch (batchAdded detection).
+        const fresh = document.createElement("img");
+        fresh.id = "fresh-img";
+        document.getElementById("append-host").appendChild(fresh);
+        fresh.alt = "freshly added alt text";
+        clearInterval(timer);
+      }
+    };
+    // Start at 4s: the recorder injects ~2s after navigation, so mutations
+    // must fire after that for the self-test to observe them.
+    // (On a real site the human triggers the update after recording starts.)
+    setTimeout(() => { tick(); timer = setInterval(tick, 400); }, 4000);
+  </script>
+</body>
+</html>

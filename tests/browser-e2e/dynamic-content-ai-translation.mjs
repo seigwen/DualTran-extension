@@ -25,6 +25,10 @@
  *   5. 通过 injectDynamicContent() 注入新内容（模拟向下翻页）
  *   6. 验证新内容也被 Google 翻译
  *   7. 核心断言：验证新内容也被 AI 翻译（不应被跳过）
+ *
+ * mode-symmetry-allow: 该场景的维度是「AI 持续翻译的 shouldForce 状态机」，
+ * 不是显示模式；模式矩阵由 content-update-conformance.mjs 行为级遍历覆盖
+ * （#98 复发复盘，2026-09-27）
  */
 
 import {

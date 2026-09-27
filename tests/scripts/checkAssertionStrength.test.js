@@ -181,3 +181,54 @@ export async function run(scope) {
     expect(exitCode).toBe(0);
   });
 });
+
+describe("check-assertion-strength — capture-anyway wording ban (#98 recurrence review)", () => {
+  it("flags `capturing anyway` in code (the visual-audit false green)", () => {
+    const { exitCode, out } = runCheckE2e({
+      "visual-audit.mjs": `
+export async function audit(page) {
+  await page.waitForFunction(() => document.querySelectorAll(".done").length > 0, null, { timeout: 30000 })
+    .catch(() => console.warn("[visual-audit] wait timed out; capturing anyway"));
+}
+`,
+    });
+    expect(exitCode).toBe(1);
+    expect(out).toContain("CAPTURE-ANYWAY");
+  });
+
+  it("does NOT flag prose in comments that documents the ban", () => {
+    const { exitCode } = runCheckE2e({
+      "visual-audit.mjs": `
+/**
+ * The old code did console.warn("capturing anyway") after a timeout — that
+ * made the checkpoint lie, so it is now a hard throw.
+ */
+export async function audit(page) {
+  // previously: capturing anyway after timeout
+  await page.waitForFunction(() => true, null, { timeout: 1000 });
+}
+`,
+    });
+    expect(exitCode).toBe(0);
+  });
+
+  it("flags the Chinese variant 照拍 and the 反正...继续 carry-on wording", () => {
+    const { exitCode, out } = runCheckE2e({
+      "a.mjs": `export const a = () => console.log("超时了，照拍继续");\n`,
+      "b.mjs": `export const b = () => console.log("等待失败，反正截图算了");\n`,
+    });
+    expect(exitCode).toBe(1);
+    expect((out.match(/CAPTURE-ANYWAY/g) || []).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("honours the capture-anyway-allow marker", () => {
+    const { exitCode } = runCheckE2e({
+      "scenario.mjs": `
+export function f() {
+  console.log("capturing anyway"); // capture-anyway-allow: negative fixture for the lint self-test
+}
+`,
+    });
+    expect(exitCode).toBe(0);
+  });
+});

@@ -359,7 +359,14 @@ async function runJourney(page, serviceWorker, mockServerConfig, mode, collector
     let sweep = null;
     while (Date.now() - sweepStart < 90000) {
       sweep = await page.evaluate(() => {
-        const blocks = document.querySelectorAll("[data-dualtran-block]");
+        const allBlocks = document.querySelectorAll("[data-dualtran-block]");
+        // Fixture-hidden blocks (declared with data-e2e-fixture-hidden on an
+        // ancestor): intentionally display:none fixtures (css-only-reveal
+        // negative-assumption cell). Demanding visible AI on them is a
+        // category error — they can never render AI visibly by design.
+        const blocks = [...allBlocks].filter(
+          (el) => !el.closest("[data-e2e-fixture-hidden]")
+        );
         if (!blocks.length) return { total: 0, aiVisible: 0, modes: [] };
         const isVisible = (node) => {
           let n = node;
@@ -377,7 +384,7 @@ async function runJourney(page, serviceWorker, mockServerConfig, mode, collector
           if (vis) aiVisible++;
           modes.push(vis ? "ai" : (isVisible(el) ? "other" : "hidden"));
         });
-        return { total: blocks.length, aiVisible, modes };
+        return { total: blocks.length, aiVisible, modes, excluded: allBlocks.length - blocks.length };
       });
       if (sweep.total > 0 && sweep.aiVisible === sweep.total) break;
       await page.waitForTimeout(1000);

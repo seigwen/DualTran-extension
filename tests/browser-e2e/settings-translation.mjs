@@ -655,7 +655,14 @@ async function s52DynamicContentTranslation(page, serviceWorker, dynamicContentP
     if (retryCount > 0) {
       console.log(`  [S5.2] ${retryCount} 个动态段落包含 translated 节点（额外等待后） ✓`);
     } else {
-      console.warn("  [S5.2] ⚠ 动态内容未被翻译。可能是 MutationObserver 未触发或轮询间隔未到。");
+      // #98 复发复盘（家族 E 残余清理）：这里曾是 console.warn 后继续
+      // ——「打印了警告却仍报通过」的 warn-as-terminal 模式，与 #88 清理
+      // 的 skip-as-terminal 同族：症状被记录但不会让构建变红。
+      // 动态内容未翻译是本测试的核心断言对象，必须硬失败。
+      throw new Error(
+        "[S5.2] 动态内容未被翻译（MutationObserver 未触发或轮询间隔未到）——" +
+          "这是本步骤的核心断言对象，不得以警告了事"
+      );
     }
   }
 

@@ -9,6 +9,10 @@
  * 这是对 translation.mjs（newLine 模式）的模式对称覆盖。
  * 参见 issue #17: 测试体系系统性改进。
  *
+ * mode-symmetry-allow: replaceOriginal 镜像专项场景；newLine 默认路径由
+ * translation.mjs 覆盖，双模式矩阵由 content-update-conformance.mjs 行为级遍历
+ * 覆盖（#98 复发复盘，2026-09-27）
+ *
  * @module translation-replace-original
  */
 

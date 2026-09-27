@@ -8,6 +8,10 @@
  * 错误收集（recordError、attachPageErrorCollector）通过模块级 proxy 变量
  * 桥接到 scope.collector，以保持原函数体零修改。
  *
+ * mode-symmetry-allow: newLine 默认路径专项场景；replaceOriginal 镜像由
+ * translation-replace-original.mjs 覆盖，双模式矩阵由 content-update-conformance.mjs
+ * 行为级遍历覆盖（#98 复发复盘，2026-09-27）
+ *
  * @module translation
  */
 
