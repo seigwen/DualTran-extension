@@ -440,6 +440,86 @@ for (const mode of DISPLAY_MODES) {
           expect(consistency.ok, consistency.reason).toBe(true);
         });
       }
+
+      // ── block-level switch-away DURING the request (plan 30 / Q2c / D5) ──
+      // The block-level counterpart of Q22/Q23: the user switches THIS block's
+      // intent away (clicks G or O) while its AI request is in flight. The
+      // arrival must not steal the display — newLine keeps the result hidden
+      // (re-showable later), replaceOriginal discards it. Before plan 30 the
+      // only guard was the page-level epoch, so a block-level G/O click let
+      // the AI arrival pop up anyway (D5: "click G then AI pops up").
+      it("block-level switch away DURING the AI request never steals the display (D5)", async () => {
+        currentBlock = createBlock(mode);
+        applyPagePrecondition(precondition);
+
+        const arrangement = arrangeArrival("persistent-cache");
+        const held = arrangement.held;
+        const inFlight = handleBtn("ai", currentBlock.container);
+        for (let i = 0; i < 100 && !held.length; i++) await flushAsync();
+        expect(held.length, "persistent-cache callback was never registered").toBeGreaterThan(0);
+
+        // The user clicks G on THIS block while its AI request is in flight.
+        // The resolver may noop (AI has claimed displayMode), but the intent
+        // write happens unconditionally BEFORE the resolver — the switch-away
+        // edge is recorded.
+        await handleBtn("google", currentBlock.container);
+
+        // The held AI result now arrives.
+        held[0]({ translated: "AI译文" });
+        await inFlight;
+        await settle();
+
+        const state = getBlockState(currentBlock.container);
+        const truth = readVisibleBlockTruth(currentBlock.container, { originalText: "Hello world" });
+
+        // The arrival must NOT steal the display: whatever Google/original
+        // showed before stays visible.
+        expect(truth.visibleMode).not.toBe("ai");
+        expect(state.displayMode).not.toBe("ai");
+        // Intent record follows the last user action.
+        expect(state.intentMode).toBe("google");
+        // Visible truth still agrees with the actual-display record.
+        const consistency = checkVisibleMatchesState(currentBlock.container, state, {
+          originalText: "Hello world",
+        });
+        expect(consistency.ok, consistency.reason).toBe(true);
+      });
+
+      // ── intent-display divergence (plan 30 / Q5c): the legal midstate ──
+      // Per-mode registration (assertion-strength discipline): the two modes
+      // genuinely differ mid-flight (newLine switches spans on click, so only
+      // the display RECORD lags; replaceOriginal shows nothing until arrival),
+      // so each mode gets its own expectation instead of a conditional.
+      it(
+        mode === "newLine"
+          ? "AI in flight: intent ai + display record still google (legal divergence, newLine)"
+          : "AI in flight: intent ai + nothing AI visible yet (legal divergence, replaceOriginal)",
+        async () => {
+          currentBlock = createBlock(mode);
+          applyPagePrecondition(precondition);
+
+          const arrangement = arrangeArrival("persistent-cache");
+          const held = arrangement.held;
+          const inFlight = handleBtn("ai", currentBlock.container);
+          for (let i = 0; i < 100 && !held.length; i++) await flushAsync();
+          expect(held.length, "persistent-cache callback was never registered").toBeGreaterThan(0);
+
+          // Mid-flight: the user asked for AI (intent), while the actual
+          // display has not converged yet. The divergence is LEGAL.
+          const state = getBlockState(currentBlock.container);
+          expect(state.intentMode).toBe("ai");
+          // The display RECORD must not run ahead of the actual display in
+          // either mode: it stays google until the arrival applies it.
+          expect(state.displayMode).toBe("google");
+
+          held[0]({ translated: "AI译文" });
+          await inFlight;
+          await settle();
+
+          // After the arrival the display record catches up.
+          expect(getBlockState(currentBlock.container).displayMode).toBe("ai");
+        }
+      );
     });
   }
 }

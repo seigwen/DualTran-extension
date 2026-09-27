@@ -167,11 +167,9 @@ async function assertBaselinePristine(page) {
  * 断言悬停组 AI 按钮的标签不是被装饰污染的（#83 机械子集）。
  *
  * 用户报告：点 AI 后按钮标签右侧出现一个绿色的 ✓。修复后标签必须保持纯
- * 文本。判定分两层以避免假阳性：
- *   - **无条件**：按钮内不得出现 ✓ 字形，也不得有 success 装饰 span
- *     （任何状态下都成立的不变量）。
- *   - **成功态**：标签必须恰好是 `AI` 且无子元素（该状态的确切形状）。
- * 未处于成功态时不做标签形状断言（该检查点的截图不保证 AI 已到达）。
+ * 文本。plan 30 之后更进一步：按钮**只表达意图**——任何实际状态装饰
+ * （✓ 字形、success-check span、✕ error cross、success/loading/error class）
+ * 都不允许出现，**无条件**（不再区分成功态；成功信号已移到页面的译文文本）。
  *
  * @param {import("playwright").Page} page
  */
@@ -183,22 +181,24 @@ async function assertHoverAiButtonHasNoSuccessGlyph(page) {
     const label = btn.querySelector("span:not(.dualtran-ai-tooltip)");
     return {
       missing: false,
-      isSuccess: btn.classList.contains("dualtran-ai-success"),
       labelText: (label?.textContent || "").trim(),
       hasGlyph: (btn.textContent || "").includes("\u2713"),
       checkSpans: btn.querySelectorAll(".dualtran-ai-success-check").length,
+      crosses: btn.querySelectorAll(".dualtran-ai-error-cross").length,
+      stateClasses: ["dualtran-ai-success", "dualtran-ai-loading", "dualtran-ai-error"]
+        .filter((c) => btn.classList.contains(c)).length,
       childSpans: label ? label.children.length : -1,
     };
   });
-  if (r.missing) throw new Error("#83 保真度违规：悬停组 AI 按钮不存在");
-  if (r.hasGlyph || r.checkSpans > 0) {
+  if (r.missing) throw new Error("plan 30 保真度违规：悬停组 AI 按钮不存在");
+  if (r.hasGlyph || r.checkSpans > 0 || r.crosses > 0 || r.stateClasses > 0) {
     throw new Error(
-      `#83 保真度违规：AI 按钮标签被 ✓ 装饰污染（用户已要求移除）— ${JSON.stringify(r)}`
+      `plan 30 保真度违规：AI 按钮被实际状态装饰污染（应只表达意图）— ${JSON.stringify(r)}`
     );
   }
-  if (r.isSuccess && (r.labelText !== "AI" || r.childSpans !== 0)) {
+  if (r.labelText !== "AI" || r.childSpans !== 0) {
     throw new Error(
-      `#83 保真度违规：AI 成功态标签应为纯 "AI" — ${JSON.stringify(r)}`
+      `plan 30 保真度违规：AI 按钮标签应为纯 "AI"（意图形态，无子装饰）— ${JSON.stringify(r)}`
     );
   }
 }

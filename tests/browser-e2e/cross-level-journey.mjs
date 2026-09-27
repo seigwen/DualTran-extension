@@ -158,35 +158,39 @@ async function clickFloatingButton(page, id) {
 }
 
 /**
- * 断言悬停组 AI 按钮到达成功态后标签是纯 `AI`、无 ✓ 装饰（#83）。
+ * plan 30 (Q3a/Q3e): 悬停组 AI 按钮只表达**意图**——点击后按钮不带任何实际
+ * 状态装饰（无 success/loading/error class、无 ✓/✕ 字形、标签是纯 "AI"）。
+ * 实际状态由页面表达：本断言先等 AI 译文在块里到达（实际状态的落点），
+ * 再验证按钮仍是干净的纯 "AI" 意图形态——成功信号已从按钮移到页面。
  *
  * 为什么要先重悬停（2026-09-22 探针实测）：悬停组**不是活体绑定**——块级 AI
  * 到达写的是 `createSingletonBlockProxy` 的分离代理，真实按钮只在交互入口
- * （悬停/点击）经 `updateSingletonUI` 重渲染。实测时序：点 AI 后 15s 内按钮
- * class 一直不变（到达期间的重渲染发生在请求刚发出时，那时还是 queuing/
- * translating 态），而指针回到译文（复刻本报告的真实用户动作：点完 AI 回头
- * 读译文）触发一次 mouseover → success + 激活高亮立即落地。因此断言必须先
- * 模拟「指针回到译文」，否则等到超时也等不到这次重渲染（首版断言即栽在这）。
- *
- * 轮询重发 mouseover 的意图：到达完成前重渲染出的是 translating 态，完成后
- * 同一动作重渲染出 success——轮询让两种时序都能收敛，且最终读取的仍是
- * DOM 真相（按钮的实际形状），不是状态字段。
+ * （悬停/点击）经 `updateSingletonUI` 重渲染。因此断言先模拟「指针回到译文」，
+ * 否则等不到这次重渲染（首版断言即栽在这）。
  *
  * @param {import("playwright").Page} page
  * @param {number} timeoutMs
  */
-async function assertAiButtonSuccessLabelIsPlainAi(page, timeoutMs = 30000) {
+async function assertAiButtonStaysPlainIntentOnly(page, timeoutMs = 30000) {
   const start = Date.now();
-  let landed = false;
+  let blockAiText = "";
   while (Date.now() - start < timeoutMs) {
     await hoverBlock(page, 0); // 指针回到译文 → showButtonGroup → updateSingletonUI
-    landed = await page.evaluate(() => {
-      const host = document.getElementById("dualtran-singleton-btn-host");
-      const btn = host?.shadowRoot?.querySelector(".dualtran-ai-btn");
-      return !!btn && btn.classList.contains("dualtran-ai-success");
+    blockAiText = await page.evaluate(() => {
+      const el = document.querySelector("[data-dualtran-block], translated");
+      if (!el) return "";
+      // Both display modes: newLine carries AI text in `.dualtran-ai`,
+      // replaceOriginal in `.dualtran-aitranslatedtext-replacemode`.
+      const aiSpan = el.querySelector(".dualtran-ai, .dualtran-aitranslatedtext-replacemode");
+      return (aiSpan?.textContent || "").trim();
     });
-    if (landed) break;
+    if (blockAiText.length > 0) break;
     await page.waitForTimeout(250);
+  }
+  if (!blockAiText) {
+    throw new Error(
+      `plan 30 断言失败：AI 译文在 ${timeoutMs}ms 内未到达页面（实际状态缺少落点）`
+    );
   }
 
   const r = await page.evaluate(() => {
@@ -196,22 +200,26 @@ async function assertAiButtonSuccessLabelIsPlainAi(page, timeoutMs = 30000) {
     const label = btn.querySelector("span:not(.dualtran-ai-tooltip)");
     return {
       missing: false,
-      isSuccess: btn.classList.contains("dualtran-ai-success"),
       labelText: (label?.textContent || "").trim(),
+      childSpans: label ? label.children.length : -1,
       hasGlyph: (btn.textContent || "").includes("\u2713"),
       checkSpans: btn.querySelectorAll(".dualtran-ai-success-check").length,
-      childSpans: label ? label.children.length : -1,
+      crosses: btn.querySelectorAll(".dualtran-ai-error-cross").length,
+      stateClasses: ["dualtran-ai-success", "dualtran-ai-loading", "dualtran-ai-error"]
+        .filter((c) => btn.classList.contains(c)).length,
     };
   });
-  if (r.missing) throw new Error("#83 断言失败：悬停组 AI 按钮不存在");
-  if (!r.isSuccess) {
+  if (r.missing) throw new Error("plan 30 断言失败：悬停组 AI 按钮不存在");
+  if (
+    r.hasGlyph ||
+    r.checkSpans > 0 ||
+    r.crosses > 0 ||
+    r.stateClasses > 0 ||
+    r.labelText !== "AI" ||
+    r.childSpans !== 0
+  ) {
     throw new Error(
-      `#83 断言失败：AI 按钮在 ${timeoutMs}ms 内未到达成功态（到达未完成或状态未落地）— ${JSON.stringify(r)}`
-    );
-  }
-  if (r.hasGlyph || r.checkSpans > 0 || r.labelText !== "AI" || r.childSpans !== 0) {
-    throw new Error(
-      `#83 断言失败：AI 按钮标签被装饰污染（应为纯 "AI"）— ${JSON.stringify(r)}`
+      `plan 30 断言失败：AI 按钮被实际状态装饰污染（应只表达意图）— ${JSON.stringify(r)}`
     );
   }
 }
@@ -295,12 +303,12 @@ async function runJourney(page, serviceWorker, mockServerConfig, mode, collector
     }
     console.log(`  ${label} Step 2 PASSED: block0 visible=ai (the #70 assertion)`);
 
-    // #83: the user-reported moment — hover block → click AI → arrival. The
-    // AI button must be in its success state with a PLAIN "AI" label (the ✓
-    // decoration was removed by user request). Asserted here because this is
-    // the exact journey the report describes.
-    await assertAiButtonSuccessLabelIsPlainAi(page);
-    console.log(`  ${label} Step 2 PASSED: AI button label is a plain "AI" (no ✓ decoration, #83)`);
+    // plan 30: the user-reported moment — hover block → click AI → arrival. The
+    // ACTUAL state now lands on the page (AI text in the block); the button
+    // itself stays a plain, intent-only "AI" with zero state decoration.
+    // Asserted here because this is the exact journey the report describes.
+    await assertAiButtonStaysPlainIntentOnly(page);
+    console.log(`  ${label} Step 2 PASSED: AI button stays plain intent-only (actual state on the page, plan 30)`);
 
     // 静态 id（V1 lint 规则 4）：id 必须是字面量，才能与 visual-checks.mjs
     // 的声明双向匹配。

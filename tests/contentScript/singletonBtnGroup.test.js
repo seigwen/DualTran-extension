@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
 import { BtnAiProxy, createBlockState, getProxiesForTranslation, getAllProxies, registerBlock, getBlockState, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, updateSingletonUI, setCallbacks, BTN_COLORS } from "../../src/contentScript/singletonBtnGroup.js";
+import { applyAiTranslatingState, applyAiSuccessState, applyAiErrorState } from "../../src/contentScript/aiUiState.js";
 
 describe("BtnAiProxy", () => {
   let dom, doc, singleton, stateMap, element;
@@ -49,19 +50,38 @@ describe("BtnAiProxy", () => {
     expect(proxy.translationStatus).toBe("translating");
   });
 
-  test("btnAiTxtNode returns singleton node when currentTarget matches", () => {
+  test("btnAiTxtNode absorbs writes even when the block IS the hover target (plan 30 / Q3a)", () => {
+    // Regression guard: this cell used to pin the OPPOSITE contract — the
+    // proxy fell through to the LIVE singleton node when the block was the
+    // hover target, so the page-level AI flow ("queuing"/"translating...")
+    // decorated the visible button. Plan 30: the visible button is rendered
+    // from state by updateSingletonUI; every proxy surface must absorb,
+    // target or not.
     singleton.currentTarget = element;
     const proxy = new BtnAiProxy(element, stateMap, singleton);
-    expect(proxy.btnAiTxtNode).toBe(singleton.aiTextNode);
+    expect(proxy.btnAiTxtNode).not.toBe(singleton.aiTextNode);
+    proxy.btnAiTxtNode.textContent = "translating...";
+    expect(singleton.aiTextNode.textContent).toBe("");
   });
 
-  test("btnAiTxtNode returns DUMMY_NODE when currentTarget is different", () => {
+  test("btnAiTxtNode returns DUMMY_NODE when currentTarget is different (off-target control)", () => {
     const other = doc.createElement("translated");
     singleton.currentTarget = other;
     const proxy = new BtnAiProxy(element, stateMap, singleton);
     expect(proxy.btnAiTxtNode).not.toBe(singleton.aiTextNode);
     // Should not throw on textContent write
     expect(() => { proxy.btnAiTxtNode.textContent = "test"; }).not.toThrow();
+  });
+
+  test("tooltip / style / classList absorb too — no decoration reaches the live button (Q3a)", () => {
+    singleton.currentTarget = element;
+    const proxy = new BtnAiProxy(element, stateMap, singleton);
+    proxy.tooltip.textContent = "translating...";
+    proxy.style.color = "darkgreen";
+    proxy.classList.add("dualtran-ai-loading");
+    expect(singleton.tooltipNode.textContent).toBe("");
+    expect(singleton.aiBtn.style.color).toBe("");
+    expect(singleton.aiBtn.classList.contains("dualtran-ai-loading")).toBe(false);
   });
 
   test("ownerDocument returns a document with createElement", () => {
@@ -74,11 +94,12 @@ describe("BtnAiProxy", () => {
     expect(span).not.toBeNull();
   });
 
-  test("setAttribute updates singleton when target matches", () => {
+  test("setAttribute absorbs — the live button title is never overwritten (Q3a)", () => {
     singleton.currentTarget = element;
+    singleton.aiBtn.setAttribute("title", "Show AI translation");
     const proxy = new BtnAiProxy(element, stateMap, singleton);
     proxy.setAttribute("title", "Success!");
-    expect(singleton.aiBtn.getAttribute("title")).toBe("Success!");
+    expect(singleton.aiBtn.getAttribute("title")).toBe("Show AI translation");
   });
 
   test("setAttribute is silent no-op when target differs", () => {
@@ -1070,54 +1091,77 @@ describe("三按钮结构 + 色板（#65：Original / Google / AI，对齐浮动
     expect(asHex(ai.style.borderColor)).toBe("#ddd6fe");
   });
 
-  test("激活态随块 displayMode 切换：original → O 激活；ai → A 激活", () => {
+  test("激活态随块 intentMode 切换：intent original → O 激活；intent ai → A 激活（plan 30）", () => {
     // applyButtonPalette is the single writer of the three inline styles;
-    // this test drives it through updateSingletonUI on displayMode flips.
+    // this test drives it through updateSingletonUI on intent flips.
+    // Plan 30: the palette follows the block's INTENT, not the actual display.
     const st = getBlockState(translatedEl);
     const { original, google, ai } = buttons();
 
-    st.displayMode = "original";
+    st.intentMode = "original";
     updateSingletonUI(translatedEl);
     expect(asHex(original.style.background)).toBe("#374151");
     expect(asHex(original.style.color)).toBe("#ffffff");
     expect(asHex(google.style.color)).toBe("#1d4ed8");
     expect(asHex(ai.style.color)).toBe("#7c3aed");
 
-    st.displayMode = "ai";
-    st.aiStatus = "translated";
+    st.intentMode = "ai";
     updateSingletonUI(translatedEl);
     expect(asHex(ai.style.background)).toBe("#7c3aed");
     expect(asHex(ai.style.color)).toBe("#ffffff");
     expect(asHex(original.style.background)).toBe("#f3f4f6");
   });
 
-  test("AI 成功态标签为纯 “AI”——不得渲染 ✓ 装饰 (#83)", () => {
-    // The success state keeps its class marker (flow semantics), but the label
-    // must stay a plain "AI" — the highlighted button alone communicates the
-    // state (user request, #83). updateSingletonUI is the render seam.
+  test("意图-显示解耦：AI 在飞（intent ai，display google）→ A 激活、页面仍显 Google（plan 30）", () => {
+    // The legal midstate of the intent model: the user asked for AI (or the
+    // AI flow started), the request is in flight, the page still shows the
+    // Google text — the button highlights AI while the display stays google.
     const st = getBlockState(translatedEl);
+    const { google, ai } = buttons();
 
-    st.displayMode = "ai";
-    st.aiStatus = "translated";
+    st.intentMode = "ai";
+    st.displayMode = "google";
+    st.aiStatus = "translating";
     updateSingletonUI(translatedEl);
 
+    // Intent owns the button highlight.
+    expect(asHex(ai.style.background)).toBe("#7c3aed");
+    expect(ai.classList.contains("dualtran-btn-active")).toBe(true);
+    expect(google.classList.contains("dualtran-btn-active")).toBe(false);
+    // Actual display record is untouched by the render.
+    expect(st.displayMode).toBe("google");
+    // No decoration: the button is a plain intent expression (plan 30 / Q3a).
+    expect(ai.classList.contains("dualtran-ai-loading")).toBe(false);
+    expect(ai.classList.contains("dualtran-ai-success")).toBe(false);
+    expect(ai.querySelector("span").textContent).toBe("AI");
+  });
+
+  test("按钮只表达意图——不渲染任何实际状态装饰 (#83 的终态，plan 30 / Q3a)", () => {
+    // Plan 30 removed the last decorations: no success marker, no ✕ cross,
+    // no "translating..." label, no error tooltip. Whatever the actual state
+    // (translated / error / translating), the button renders identically —
+    // actual state lives on the page (spinner / ⚠ / text).
+    const st = getBlockState(translatedEl);
     const { ai } = buttons();
-    // The label span only — the button also contains the (display:none) tooltip.
     const label = ai.querySelector("span:not(.dualtran-ai-tooltip)");
-    expect(ai.textContent).not.toContain("✓");
-    expect(ai.querySelector(".dualtran-ai-success-check")).toBeNull();
-    expect(label.textContent).toBe("AI");
-    expect(label.children.length).toBe(0);
-    // State marker survives — only the glyph goes.
-    expect(ai.classList.contains("dualtran-ai-success")).toBe(true);
 
-    // Symmetry: the error state keeps its ✕ (only the ✓ was removed).
-    st.aiStatus = "translationError";
-    st.errorMessage = "boom";
-    updateSingletonUI(translatedEl);
-    const cross = buttons().ai.querySelector(".dualtran-ai-error-cross");
-    expect(cross).not.toBeNull();
-    expect(cross.textContent).toBe("✕");
+    for (const [aiStatus, errorMessage] of [
+      ["translated", undefined],
+      ["translationError", "boom"],
+      ["translating", undefined],
+    ]) {
+      st.aiStatus = aiStatus;
+      st.errorMessage = errorMessage;
+      updateSingletonUI(translatedEl);
+
+      expect(label.textContent).toBe("AI");
+      expect(label.children.length).toBe(0);
+      expect(ai.classList.contains("dualtran-ai-success")).toBe(false);
+      expect(ai.classList.contains("dualtran-ai-loading")).toBe(false);
+      expect(ai.classList.contains("dualtran-ai-error")).toBe(false);
+      expect(ai.querySelector(".dualtran-ai-error-cross")).toBeNull();
+      expect(ai.querySelector(".dualtran-ai-success-check")).toBeNull();
+    }
   });
 
   test("点击回调走单一 onBtnClick(id, target) 收口", () => {

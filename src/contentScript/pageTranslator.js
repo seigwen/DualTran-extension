@@ -72,6 +72,7 @@ import { wordsCount } from "../util/globalWordsCount.js"
 import { registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, setCallbacks, getProxiesForTranslation, getAllProxies, getBlockState, updateSingletonUI } from "./singletonBtnGroup.js";
 import { resolveSingletonBtnClick } from "./singletonBtnClickResolver.js";
 import { setBlockTranslationIndicator, injectBlockIndicatorStyles } from "./blockTranslationIndicator.js";
+import { getState as getUiStateStoreState, dumpLog as dumpUiStateLog } from "./uiStateStore.js";
 
 /**
  * Convert the dontSortResults config value to a boolean (pure function, for unit testing).
@@ -781,6 +782,21 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
   const state = getBlockState(translatedElement);
   if (!state) return;
 
+  // Block-level intent write (plan 30 / Q2a): unconditional, BEFORE the
+  // resolver — every click (incl. noop / promptConfig / retry) is an intent.
+  // Clicking away from AI while the block's AI request is in flight bumps the
+  // block intent epoch (Q2c): the arrival then keeps the result without
+  // stealing the display (newLine) or discards it (replaceOriginal) — the
+  // block-level counterpart of the page-level Q22/Q23 suppression.
+  if (state.intentMode !== buttonId) {
+    const wasAiIntent = state.intentMode === "ai";
+    const aiInFlight = state.aiStatus === "queuing" || state.aiStatus === "translating";
+    if (wasAiIntent && buttonId !== "ai" && aiInFlight) {
+      state.blockIntentEpoch = (state.blockIntentEpoch ?? 0) + 1;
+    }
+    state.intentMode = buttonId;
+  }
+
   const action = resolveSingletonBtnClick(state, buttonId, {
     hasApiKey: hasActiveProviderApiKey(),
     hasStoredGoogleText: _hasStoredGoogleText(state),
@@ -898,7 +914,8 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
         showBlockProgressIndicator(translatedElement, "ai");
         // #70: capture the page-level mode epoch before the request. The engine
         // keeps (but does not show) a mid-flight switch-away result (Q22), so
-        // displayMode may be claimed only when the arrival was applied.
+        // displayMode may be claimed only when the arrival was applied — the
+        // block-level switch-away edge (plan 30 / Q2c) joins the page gate.
         const epochBeforeFetch = aiModeEpoch;
         try {
           await aiTranslateText([createSingletonBlockProxy(state)], false, () => {
@@ -907,7 +924,7 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
             settleBlockProgressIndicator(translatedElement, "ai", failed, state.errorMessage);
           });
           if (state.requestEpoch !== myEpoch) return; // late write — discarded (#65)
-          if (state.aiStatus === "translated" && isAiArrivalAllowedForBlock(epochBeforeFetch)) {
+          if (state.aiStatus === "translated" && isBlockArrivalDisplayAllowed(state, epochBeforeFetch)) {
             state.displayMode = "ai";
           } else if (state.aiStatus === "translationError") {
             // Fall back: keep Google visible
@@ -972,7 +989,7 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
           settleBlockProgressIndicator(translatedElement, "ai", failed, state.errorMessage);
         });
         if (state.requestEpoch !== myEpoch) return; // late write — discarded (#65)
-        if (state.aiStatus === "translated" && isAiArrivalAllowedForBlock(epochBeforeFetch)) {
+        if (state.aiStatus === "translated" && isBlockArrivalDisplayAllowed(state, epochBeforeFetch)) {
           state.displayMode = "ai";
         } else if (state.aiStatus === "translationError") {
           state.displayMode = state.googleBtnState === "success" || state.googleTranslatedText ? "google" : "original";
@@ -1034,7 +1051,42 @@ function isAiArrivalAllowedForBlock(capturedEpoch) {
 function shouldApplyAiArrival(btnAi, capturedEpoch) {
   const isPageBlock = !!(btnAi && typeof btnAi._st === "function")
   if (!isPageBlock) return true
+  // Block-level switch-away edge (plan 30 / Q2c / D5): the block's request
+  // record captured `aiRequestBlockIntentEpoch` at dispatch; if the live
+  // `blockIntentEpoch` moved since (a block-level click switched away from
+  // the in-flight AI), the arrival is kept/discarded without stealing the
+  // display — the block-level counterpart of Q22/Q23.
+  try {
+    const st = btnAi._st()
+    if (
+      st &&
+      st.aiRequestBlockIntentEpoch !== undefined &&
+      st.blockIntentEpoch !== st.aiRequestBlockIntentEpoch
+    ) {
+      return false
+    }
+  } catch (_) {}
   return isAiArrivalAllowedForBlock(capturedEpoch)
+}
+
+/**
+ * Block-scope arrival verdict for the HOVER-GROUP executor (plan 30 / Q2c):
+ * combines the page-level #70 gate with the block-level switch-away edge.
+ * The executor captured `epochBeforeFetch` (page) and the request captured
+ * `state.aiRequestBlockIntentEpoch` (block) at dispatch — if either moved,
+ * the arrival is kept/discarded without stealing the display.
+ */
+function isBlockArrivalDisplayAllowed(state, epochBeforeFetch) {
+  if (!isAiArrivalAllowedForBlock(epochBeforeFetch)) return false
+  try {
+    if (
+      state.aiRequestBlockIntentEpoch !== undefined &&
+      state.blockIntentEpoch !== state.aiRequestBlockIntentEpoch
+    ) {
+      return false
+    }
+  } catch (_) {}
+  return true
 }
 
 let aiTranslateText = async (toBeTranslated, showToastForError = true, onBlockSettled = null)=>{
@@ -1068,6 +1120,14 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true, onBlockSe
   let contentSequence = ""
   for (let i = 0; i < toBeTranslated.length; i++) {
   let btnAi = toBeTranslated[i]
+  // Capture the block's intent epoch at dispatch (plan 30 / Q2c / D5) — ONE
+  // implementation point covering all three arrival paths (memory-cache,
+  // persistent-cache, stream). The arrival gate compares it with the live
+  // value to detect a block-level switch-away during this request.
+  try {
+    const st = btnAi._st ? btnAi._st() : null
+    if (st) st.aiRequestBlockIntentEpoch = st.blockIntentEpoch ?? 0
+  } catch (_) {}
   // 1. Check in-memory cache first (fast path)
   // @arrival-path: memory-cache
   let cacheItem = aiCache.find(item => btnAi.sourceString === item.original && item.targetLanguage === targetLanguageCodeForAI)
@@ -1123,7 +1183,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true, onBlockSe
     // @arrival-path: stream
     btnAi.translationId = "i" + Math.random().toString().substring(2, 10)
     btnAi.translationStatus = "queuing"
-     // Clear previous error message (if any) to prevent stale errors after successful retry
+    // Clear previous error message (if any) to prevent stale errors after successful retry
     try { const st = btnAi._st(); if (st) st.errorMessage = undefined; } catch (e) { console.warn("[DualTran] aiTranslateText failed", e); }
     btnAi.btnAiTxtNode.textContent = "queuing"
     btnAi.tooltip.textContent = "This text will be translated by AI soon"
@@ -2075,6 +2135,16 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   let currentPageLanguage = "und";
    // Page language state (original/translated)
   let pageLanguageState = "original"; // "original" or "translated"
+  /**
+   * Current page-level intent (plan 30 / Q4d): new blocks register with the
+   * page's live intent so incremental content matches what the user asked
+   * for. Mirrors the store's derivation rule (uiStateStore.deriveIntentUi):
+   * the engine mirrors drive it — no dependency on the floating button.
+   */
+  function currentPageIntentMode() {
+    if (pageLanguageState !== "translated") return "original";
+    return aiRenderState !== "idle" && aiModeActive ? "ai" : "google";
+  }
    // Current target language. Initially loaded from config; when the user changes the target language during use, currentTargetLanguage updates accordingly
   currentTargetLanguage = twpConfig.get("targetLanguage");
    // Translation service engine (google/yandex)
@@ -3315,6 +3385,12 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                 "", // Google text restored via nodesToRestore
                 nodes
               );
+              // Intent inheritance (plan 30 / Q4d): the new block joins the
+              // page's live intent instead of defaulting to "google".
+              {
+                const st = getBlockState(lastTextNode.parentNode);
+                if (st) st.intentMode = currentPageIntentMode();
+              }
             }
           }
         }
@@ -3585,6 +3661,12 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
               null, // No nodes to clear in new-line mode
               { googleSpan, aiSpan }
             );
+            // Intent inheritance (plan 30 / Q4d): the new block joins the
+            // page's live intent instead of defaulting to "google".
+            {
+              const st = getBlockState(translatedElement);
+              if (st) st.intentMode = currentPageIntentMode();
+            }
           }
         }
          // dontSortResult: true: use translated node order; false: maintain original HTML node order (re-sorted results)
@@ -4119,6 +4201,29 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   };
 
   /**
+   * Intent event (plan 30 / PR-B, D1/D2): the engine announces a REQUESTED
+   * display mode ("google" | "ai" | "original") at the semantic emit points
+   * (E1 translatePage / E2 restorePage / E3 translatePageAi). The floating
+   * button subscribes and applies it to the highlight + aiModeActive mirror +
+   * intent latch — so external ops (popup / context menu / shortcut) and
+   * automatic paths (auto-translate / SPA recovery) update the button exactly
+   * like a direct click does.
+   *
+   * Emitted AFTER the engine mirrors are updated (order discipline): the
+   * subscriber's derivation is already correct when the intent lands, and the
+   * latch covers any residual ordering window.
+   */
+  const requestedModeObservers = [];
+  pageTranslator.onRequestedModeChange = function (callback) {
+    requestedModeObservers.push(callback);
+  };
+  function emitRequestedModeChange(mode) {
+    requestedModeObservers.forEach((callback) => {
+      try { callback(mode); } catch (e) { console.warn("[DualTran] onRequestedModeChange failed", e); }
+    });
+  }
+
+  /**
    * Q5: set whether the user is currently in AI mode. The floating button calls
    * this when the user clicks AI (true) or switches away to Google/Original
    * (false). Every switch-away bumps `aiModeEpoch` (#70): the engine suppresses
@@ -4166,6 +4271,37 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
   pageTranslator.getAiModeActive = function () {
     return aiModeActive;
+  };
+
+  /**
+   * Intent propagation (plan 30 / Q2a): a page-level intent action reaches
+   * every registered block at the dispatch moment. Blocks that are already
+   * in-flight (AI) do not re-fire anything — the write is a plain intent
+   * record change; display keeps following actual events.
+   */
+  pageTranslator.propagateIntentToBlocks = function (mode) {
+    if (mode !== "google" && mode !== "ai" && mode !== "original") return;
+    getAllProxies().forEach((p) => {
+      try {
+        const st = p._st ? p._st() : null;
+        if (!st) return;
+        if (st.intentMode === mode) return;
+        // Switch-away edge (Q2c): leaving AI intent while an AI request is in
+        // flight bumps the block's intent epoch, so the arrival keeps/loses
+        // the display instead of stealing it (newLine keeps / replaceOriginal
+        // discards — applied by the arrival gate below). Rule symmetry: the
+        // same in-flight predicate as the click path in
+        // handleSingletonBtnClick — an idle block has nothing to suppress,
+        // and bumping it would churn the epoch for later requests.
+        if (st.intentMode === "ai" && mode !== "ai") {
+          const aiInFlight = st.aiStatus === "queuing" || st.aiStatus === "translating";
+          if (aiInFlight) {
+            st.blockIntentEpoch = (st.blockIntentEpoch ?? 0) + 1;
+          }
+        }
+        st.intentMode = mode;
+      } catch (e) { console.warn("[DualTran] propagateIntentToBlocks failed", e); }
+    });
   };
 
   /**
@@ -4221,6 +4357,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
   pageTranslator.translatePageAi = function (targetLanguage) {
     if (!hasActiveProviderApiKey()) {
+      // E3 (plan 30 / §3.2, audit fix): the intent is announced even on the
+      // no-key early return. An external no-key AI op (popup / context menu /
+      // shortcut) must still move the highlight (D1): the click path writes
+      // it inline, external ops depend on this event. Q4: the latch holds AI
+      // until derivation converges — with no flow started it releases only
+      // via restore/rebuild.
+      emitRequestedModeChange("ai");
       shouldForceAiAfterPageTranslation = false;
       promptToConfigureAiProvider();
       return false;
@@ -4231,6 +4374,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
      // otherwise _shouldSkipAiTranslation will skip the request due to rateLimitCountdown > 0
     openAiRateLimitCountDown = 0;
     setAiRenderState("loading");
+    // E3 (plan 30): the AI intent is announced after the engine mirror update.
+    emitRequestedModeChange("ai");
     if (pageLanguageState === "original") {
       pageTranslator.translatePage(targetLanguage);
     } else {
@@ -4255,8 +4400,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   pageTranslator.translatePage = function (targetLanguage) {
     const shouldForceAiForThisRun = shouldForceAiAfterPageTranslation
     fooCount++;
-     // Restore original page
-    pageTranslator.restorePage();
+     // Restore original page. silent=true (plan 30 / E2): this internal call
+     // must not announce an "original" intent — the run's own intent is
+     // announced below (E1), and a spurious original would race it.
+    pageTranslator.restorePage(true);
     shouldForceAiAfterPageTranslation = shouldForceAiForThisRun
     hadGoogleTranslationError = false
     pendingGoogleBatches = 0
@@ -4292,6 +4439,18 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     );
     currentPageLanguage = currentTargetLanguage;
 
+    // E1 (plan 30): announce the run's intent AFTER the mirror update and
+    // AFTER the observers (order discipline — see onRequestedModeChange).
+    // D6: the announcement is gated by the derivation rule (aiModeActive),
+    // not the raw armed flag. When the user explicitly switched away (the
+    // Google click wrote aiModeActive=false before this run), the run's AI
+    // arrivals are kept/discarded without stealing the display (Q22/Q23),
+    // so the run's effective intent is Google — announcing "ai" from the
+    // stale armed flag alone clobbered the explicit click (E2E
+    // floating-btn-three-state replaceOriginal step 2: armed marker from
+    // the previous pass, Google click → AI highlighted).
+    emitRequestedModeChange(shouldForceAiForThisRun && aiModeActive ? "ai" : "google");
+
      // Translate title
     translatePageTitle();
 
@@ -4303,7 +4462,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   };
 
    // Restore original page
-  pageTranslator.restorePage = function () {
+  pageTranslator.restorePage = function (silent = false) {
     shouldForceAiAfterPageTranslation = false;
     hadGoogleTranslationError = false;
     pendingGoogleBatches = 0;
@@ -4350,6 +4509,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       callback(pageLanguageState)
     );
     currentPageLanguage = originalTabLanguage;
+
+    // E2 (plan 30): announce the restore intent AFTER the mirror update and
+    // the observers. silent=true suppresses it for internal calls (translatePage
+    // restores first, then announces its own intent — E1).
+    if (!silent) emitRequestedModeChange("original");
 
     if (originalPageTitle) {
       document.title = originalPageTitle;
@@ -4477,6 +4641,16 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       }
     } else if (request.action === "restorePage") {
       pageTranslator.restorePage();
+    } else if (request.action === "getFloatingUiState") {
+      // Plan 30 / Q5b: the floating button's intent SSOT (highlight + latch +
+      // displayMode) for E2E state-consistency assertions. The store module
+      // is the single owner — query it directly (same process, shared import).
+      sendResponse({ ...getUiStateStoreState() });
+    } else if (request.action === "getFloatingUiStateLog") {
+      // Diagnostic aid (plan 30 / D6): the floating UI store's change log,
+      // for E2E failure dumps — "which writer moved the highlight" is the
+      // first question for every state bug (08-ui-state-ssot-plan.md).
+      sendResponse(dumpUiStateLog());
     } else if (request.action === "getOriginalTabLanguage") {
       pageTranslator.onGetOriginalTabLanguage(function () {
         sendResponse(originalTabLanguage);

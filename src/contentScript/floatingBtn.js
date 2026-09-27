@@ -797,7 +797,6 @@ if (window.self !== window.top) {
         intervention: s.intervention,
         googleInFlight: s.googleInFlight,
         aiInFlight: s.aiInFlight,
-        hasGoogleFailedBlocks: s.pageRenderState === "error",
         hasAiFailedBlocks: s.aiRenderState === "error",
         aiResultAvailable: pageTranslator.hasAiResults ? pageTranslator.hasAiResults() : false,
         hasApiKey: true, // translatePageAi returns false when no key — handled below
@@ -811,11 +810,20 @@ if (window.self !== window.top) {
         return;
       }
       console.log(`${buttonId} button clicked`);
-      setState({ intervention: true }, "handleButtonClick");
-      setHighlight(buttonId);
+      // Intent write: latch + highlight ATOMICALLY (single setState). Two
+      // separate writes would mis-fire the latch auto-release: the first
+      // (intervention:true) finds highlight still equal to the derivation and
+      // releases the latch before the highlight write lands, letting the
+      // watchdog revert the click. One atomic patch keeps them consistent.
+      const intentPatch = setState(
+        { intervention: true, highlight: buttonId },
+        "handleButtonClick"
+      );
+      if (intentPatch.highlight !== undefined) updateButtons();
       // Q5: engine needs to know whether the user is in AI mode when an AI
       // response arrives (decides display switch vs discard).
       pageTranslator.setAiModeActive?.(buttonId === "ai");
+      setState({ aiModeActive: buttonId === "ai" }, "handleButtonClick");
 
       const action = resolveFloatingBtnClick(buildUiState(), buttonId);
       switch (action.type) {
@@ -938,6 +946,33 @@ if (window.self !== window.top) {
         setState({ displayMode: "google" }, "onPageLanguageStateChange");
         setHighlight("google");
       }
+      updateButtons();
+    });
+
+    // Intent event subscription (plan 30 / PR-B, D1/D2): the engine announces
+    // every requested mode change (click / external op / auto-translate / SPA
+    // recovery) at its semantic emit points. This handler is the SECOND
+    // (idempotent) writer of highlight + aiModeActive mirror — the click path
+    // writes instantly (covers noop/promptConfig clicks that emit nothing),
+    // this handler covers everything else. The latch guarantees ordering
+    // independence during the write/mirror race windows.
+    pageTranslator.onRequestedModeChange?.((mode) => {
+      if (mode !== "google" && mode !== "ai" && mode !== "original") return;
+      // Atomic intent write (highlight + latch + aiModeActive mirror in ONE
+      // setState): separate writes let the watchdog revert the highlight
+      // before the latch lands — the derivation still mirrors the old intent.
+      setState(
+        {
+          highlight: mode,
+          intervention: mode !== "original", // original → clear (restore semantics)
+          aiModeActive: mode === "ai",
+        },
+        "onRequestedModeChange"
+      );
+      pageTranslator.setAiModeActive?.(mode === "ai");
+      // Block-level propagation (plan 30 / Q2a): page intent reaches every
+      // registered block at the dispatch moment.
+      pageTranslator.propagateIntentToBlocks?.(mode);
       updateButtons();
     });
 

@@ -77,10 +77,12 @@ describe("uiStateStore — watchdog arbitration (L2)", () => {
       { pageLanguageState: "translated" },
       "onPageLanguageStateChange"
     );
-    // Watchdog corrects highlight/displayMode to engine-derived google
+    // Watchdog corrects the HIGHLIGHT to the engine-derived intent (google).
     expect(applied.highlight).toBe("google");
-    expect(applied.displayMode).toBe("google");
     expect(getState().highlight).toBe("google");
+    // displayMode is NOT arbitrated (intent model): it is an actual-display
+    // record maintained by the actual-display event writers alone.
+    expect(getState().displayMode).toBe("original");
   });
 
   it("corrects translated + AI success + aiModeActive → highlight AI (reload-restore path)", () => {
@@ -98,9 +100,39 @@ describe("uiStateStore — watchdog arbitration (L2)", () => {
       "engine"
     );
     expect(applied.highlight).toBe("ai");
-    expect(applied.displayMode).toBe("ai");
     expect(getState().highlight).toBe("ai");
-    expect(getState().displayMode).toBe("ai");
+    // displayMode is OUT of arbitration (intent model): actual-display events
+    // own it; the watchdog must not infer what the page shows.
+    expect(getState().displayMode).toBe("original");
+  });
+
+  it("intent rule: AI flow loading (no intervention) → highlight AI immediately", () => {
+    // Intent model (plan 30 / Q1a): the highlight follows the INTENT — an AI
+    // flow that has started but not yet rendered (loading) still means "AI".
+    // Old model required aiRenderState === "success" and kept Google during
+    // the loading window.
+    const applied = setState(
+      {
+        pageLanguageState: "translated",
+        aiRenderState: "loading",
+        aiModeActive: true,
+      },
+      "engine"
+    );
+    expect(applied.highlight).toBe("ai");
+    expect(getState().highlight).toBe("ai");
+  });
+
+  it("intent rule: AI flow error (no intervention) → highlight AI (click = retry)", () => {
+    const applied = setState(
+      {
+        pageLanguageState: "translated",
+        aiRenderState: "error",
+        aiModeActive: true,
+      },
+      "engine"
+    );
+    expect(applied.highlight).toBe("ai");
   });
 
   it("does NOT correct translated + AI idle (auto-translate path, aiModeActive default true) → Google", () => {
@@ -109,7 +141,8 @@ describe("uiStateStore — watchdog arbitration (L2)", () => {
       "engine"
     );
     expect(getState().highlight).toBe("google");
-    expect(getState().displayMode).toBe("google");
+    // displayMode is not derived (intent model) — actual-display writers own it.
+    expect(getState().displayMode).toBe("original");
   });
 
   it("never overrides user intervention (highlight=ai with engine original)", () => {
@@ -169,16 +202,98 @@ describe("uiStateStore — resetForRebuild (SPA navigation)", () => {
       },
       "engine"
     );
-    setState({ intervention: true, highlight: "google" }, "user");
+    // displayMode is the actual-display record (written by actual-display
+    // events alone). Seed it as one would have been written.
+    setState({ intervention: true, highlight: "google", displayMode: "ai" }, "user");
     resetForRebuild();
     expect(getState().intervention).toBe(false);
     expect(getState().highlight).toBe("ai");
+    // Actual-display record survives the rebuild (not derived, not reset).
     expect(getState().displayMode).toBe("ai");
+  });
+
+  it("rebuild derives AI during the loading window too (intent, not display)", () => {
+    // Plan 30 / Q1a: rebuild derivation follows the same intent rule as live
+    // arbitration — aiRenderState !== "idle" is AI, including in-flight.
+    setState(
+      {
+        pageLanguageState: "translated",
+        aiRenderState: "loading",
+        aiModeActive: true,
+      },
+      "engine"
+    );
+    resetForRebuild();
+    expect(getState().highlight).toBe("ai");
   });
 
   it("derives Original on rebuild when engine is original", () => {
     resetForRebuild();
     expect(getState().highlight).toBe("original");
     expect(getState().displayMode).toBe("original");
+  });
+});
+
+describe("uiStateStore — intent latch (intervention) lifecycle", () => {
+  beforeEach(() => {
+    __resetForTest();
+  });
+
+  it("latch suppresses divergence: explicit intent kept even when derivation disagrees", () => {
+    // User clicks AI while the engine still mirrors "no AI" — the latch must
+    // keep the explicit intent (no watchdog flip-back).
+    setState({ intervention: true, highlight: "ai" }, "handleButtonClick");
+    setState({ pageRenderState: "loading" }, "onPageRenderStateChange");
+    expect(getState().highlight).toBe("ai");
+  });
+
+  it("latch auto-releases when derivation converges to the highlighted value", () => {
+    setState({ intervention: true, highlight: "ai" }, "handleButtonClick");
+    // Engine catches up: same mode as the explicit intent → latch releases.
+    setState(
+      { pageLanguageState: "translated", aiRenderState: "loading", aiModeActive: true },
+      "engine"
+    );
+    expect(getState().intervention).toBe(false);
+    expect(getState().highlight).toBe("ai");
+  });
+
+  it("latch stays while derivation disagrees, then releases on converge", () => {
+    setState({ intervention: true, highlight: "ai" }, "handleButtonClick");
+    // Derivation would say google (AI idle) → latch keeps AI, stays set.
+    setState({ pageLanguageState: "translated" }, "engine");
+    expect(getState().highlight).toBe("ai");
+    expect(getState().intervention).toBe(true);
+    // AI flow starts → derivation says ai → converge → release.
+    setState({ aiRenderState: "loading", aiModeActive: true }, "engine");
+    expect(getState().intervention).toBe(false);
+    expect(getState().highlight).toBe("ai");
+  });
+
+  it("restore (explicit original intent, atomic handler write) clears the latch", () => {
+    // The restore path is an EXPLICIT intent write: the event handler clears
+    // the latch atomically with the original transition (same seam as the
+    // real floatingBtn handler). The store alone cannot tell "restore" from
+    // "engine was already original" — so the clear must ride the handler.
+    setState({ intervention: true, highlight: "ai" }, "handleButtonClick");
+    setState({ pageLanguageState: "original", intervention: false }, "onPageLanguageStateChange");
+    expect(getState().intervention).toBe(false);
+    expect(getState().highlight).toBe("original");
+  });
+
+  it("no-key AI click semantics: engine stays original → latch KEEPS AI until restore/rebuild", () => {
+    // Q4: clicking AI without an API key keeps AI highlighted (the click is
+    // still an intent). Generic engine events while the page is original must
+    // NOT release the latch or flip the highlight back.
+    setState({ intervention: true, highlight: "ai" }, "handleButtonClick");
+    setState({ pageRenderState: "loading" }, "engine");
+    expect(getState().highlight).toBe("ai");
+    expect(getState().intervention).toBe(true);
+  });
+
+  it("rebuild clears the latch unconditionally", () => {
+    setState({ intervention: true, highlight: "ai" }, "handleButtonClick");
+    resetForRebuild();
+    expect(getState().intervention).toBe(false);
   });
 });

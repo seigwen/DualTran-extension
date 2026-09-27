@@ -337,11 +337,11 @@ async function verifyGoogleTranslation(page, serviceWorker, verifyPageUrl) {
  *   1. 导航到验证页面
  *   2. 先触发 Google 翻译（生成 <translated> 节点和 AI 按钮）
  *   3. 等待 AI 自动改进（autoImproveByAI = "yes"）通过 Mock 服务器处理
- *   4. 通过 DOM 可观测信号检测 AI 翻译进度：
- *      - .dualtran-ai-btn 上的 dualtran-ai-success class（成功状态标记）
- *      - .dualtran-ai-error-cross（✗ 错误指示器）
- *      - 按钮文本（"queuing"、"translating..."）
- *      - Mock 响应文本是否出现在 DOM 中
+ *   4. 通过 DOM 可观测信号检测 AI 翻译进度（plan 30：实际状态在页面，
+ *      按钮只表达意图——不再读按钮上的 class）：
+ *      - Mock 响应文本是否出现在 DOM 中（成功信号）
+ *      - .dualtran-block-indicator.dualtran-block-error（块级 ⚠ 错误指示器）
+ *      - .dualtran-block-indicator.dualtran-block-spinner（块级 loading）
  *   5. 额外测试：选中文本的 AI 翻译
  *
  * 重要：内容脚本运行在隔离世界（ISOLATED WORLD），自定义 JS 属性
@@ -476,27 +476,27 @@ async function verifyAiTranslation(page, serviceWorker, verifyPageUrl, mockServe
             }
           });
 
-          // Check singleton button group for AI rendering state
+          // plan 30 / Q3e: actual translation state lands on the PAGE, never on
+          // the buttons. Success = AI text in the DOM (hasMockResponse above);
+          // failure = the block-level ⚠ indicator; loading = the block spinner.
+          // The old reads of `.dualtran-ai-success` / `.dualtran-ai-error-cross`
+          // on the singleton AI button are gone — those decorations no longer
+          // exist (the button expresses intent only).
           const singletonHost = document.getElementById("dualtran-singleton-btn-host");
-          let singleAiSuccess = false;
-          let singleAiError = false;
-          if (singletonHost && singletonHost.shadowRoot) {
-            const aiBtn = singletonHost.shadowRoot.querySelector(".dualtran-ai-btn");
-            if (aiBtn) {
-              // #83: the success state is read from the class marker — the ✓
-              // glyph that used to sit next to the label was removed.
-              singleAiSuccess = aiBtn.classList.contains("dualtran-ai-success");
-              singleAiError = !!aiBtn.querySelector(".dualtran-ai-error-cross");
-            }
-          }
+          const blockError = !!document.querySelector(
+            ".dualtran-block-indicator.dualtran-block-error"
+          );
+          const blockSpinner = !!document.querySelector(
+            ".dualtran-block-indicator.dualtran-block-spinner"
+          );
 
           return {
             hasSingleton: !!singletonHost,
             hasMockResponse,
             aiProcessedCount,
             totalTranslated: translatedNodes.length,
-            singleAiSuccess,
-            singleAiError,
+            blockError,
+            blockSpinner,
           };
         }, mockServerConfig.expectedAiSnippet);
       } catch (pollError) {
@@ -510,14 +510,11 @@ async function verifyAiTranslation(page, serviceWorker, verifyPageUrl, mockServe
       // 每 5 次轮询输出一次进度
       pollIteration++;
       if (pollIteration % 5 === 0) {
-        console.log(`    poll #${pollIteration}: mockInDOM=${aiResult.hasMockResponse} aiProcessed=${aiResult.aiProcessedCount} total=${aiResult.totalTranslated} singletonSuccess=${aiResult.singleAiSuccess} singletonError=${aiResult.singleAiError}`);
+        console.log(`    poll #${pollIteration}: mockInDOM=${aiResult.hasMockResponse} aiProcessed=${aiResult.aiProcessedCount} total=${aiResult.totalTranslated} blockError=${aiResult.blockError}`);
       }
 
-      // 退出条件：DOM 中出现了 mock 响应文本，或单例显示成功/错误
+      // 退出条件：DOM 中出现了 mock 响应文本（成功信号，plan 30：实际状态在页面）
       if (aiResult.hasMockResponse || aiResult.aiProcessedCount > 0) {
-        break;
-      }
-      if (aiResult.hasSingleton && (aiResult.singleAiSuccess || aiResult.singleAiError)) {
         break;
       }
 
@@ -542,7 +539,7 @@ async function verifyAiTranslation(page, serviceWorker, verifyPageUrl, mockServe
     console.log(`    Mock response text detected: ${aiResult.hasMockResponse}`);
     console.log(`    AI-processed <translated> nodes: ${aiResult.aiProcessedCount}`);
     console.log(`    Total <translated> nodes: ${aiResult.totalTranslated}`);
-    console.log(`    Singleton AI: success=${aiResult.singleAiSuccess} error=${aiResult.singleAiError}`);
+    console.log(`    Block-level error indicator: ${aiResult.blockError}`);
 
     // 输出拦截到的对话框日志
     if (dialogLogs.length > 0) {
@@ -550,16 +547,13 @@ async function verifyAiTranslation(page, serviceWorker, verifyPageUrl, mockServe
       dialogLogs.forEach(d => console.log(`    ${d}`));
     }
 
-    // ── 结果判定 ──
+    // ── 结果判定（plan 30：实际状态在页面，不在按钮）──
     if (aiResult.hasMockResponse || aiResult.aiProcessedCount > 0) {
       console.log("  AI translation end-to-end flow verified with mock server.");
-    } else if (aiResult.singleAiSuccess) {
-      // 按钮显示成功但 DOM 中没有找到 mock 文本——响应文本可能被转换了
-      console.log("  Singleton AI button shows success indicators. Checking if translation text was applied...");
-    } else if (aiResult.singleAiError) {
-      // 单例按钮显示错误
+    } else if (aiResult.blockError) {
+      // 页面出现块级 ⚠ 错误指示器
       dumpDiagnosticLogs(aiConsoleLogs, swConsoleLogs, dialogLogs);
-      throw new Error("AI auto-improve failed: singleton AI button shows error. Mock server may not be reachable.");
+      throw new Error("AI auto-improve failed: block-level error indicator present. Mock server may not be reachable.");
     } else if (aiResult.hasSingleton && aiResult.totalTranslated > 0) {
       // 单例存在但没有被处理——配置或 API key 可能有问题
       dumpDiagnosticLogs(aiConsoleLogs, swConsoleLogs, dialogLogs);

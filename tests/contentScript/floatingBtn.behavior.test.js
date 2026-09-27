@@ -35,6 +35,7 @@ const {
     onPageLanguageStateChange: [],
     onPageRenderStateChange: [],
     onAiRenderStateChange: [],
+    onRequestedModeChange: [],
   },
   pageTranslatorMock: {
     translatePage: vi.fn(),
@@ -63,6 +64,9 @@ const {
     }),
     onAiRenderStateChange: vi.fn((callback) => {
       pageTranslatorCallbacks.onAiRenderStateChange.push(callback);
+    }),
+    onRequestedModeChange: vi.fn((callback) => {
+      pageTranslatorCallbacks.onRequestedModeChange.push(callback);
     }),
   },
   platformState: {
@@ -120,6 +124,9 @@ function emitPageRenderStateChange(value) {
 function emitAiRenderStateChange(value) {
   pageTranslatorCallbacks.onAiRenderStateChange.forEach((cb) => cb(value));
 }
+function emitRequestedModeChange(mode) {
+  pageTranslatorCallbacks.onRequestedModeChange.forEach((cb) => cb(mode));
+}
 
 async function flushMicrotasks(times = 6) {
   for (let i = 0; i < times; i++) await Promise.resolve();
@@ -137,6 +144,7 @@ describe("floatingBtn — three-state behavior", () => {
     pageTranslatorCallbacks.onPageLanguageStateChange.length = 0;
     pageTranslatorCallbacks.onPageRenderStateChange.length = 0;
     pageTranslatorCallbacks.onAiRenderStateChange.length = 0;
+    pageTranslatorCallbacks.onRequestedModeChange.length = 0;
     configValues.targetLanguage = "fr";
     configValues.pageTranslatorService = "google";
     configValues.alwaysTranslateSites = [];
@@ -176,6 +184,7 @@ describe("floatingBtn — three-state behavior", () => {
     pageTranslatorMock.onPageLanguageStateChange.mockClear();
     pageTranslatorMock.onPageRenderStateChange.mockClear();
     pageTranslatorMock.onAiRenderStateChange.mockClear();
+    pageTranslatorMock.onRequestedModeChange.mockClear();
 
     document.body.innerHTML = "";
     document.head.innerHTML = "";
@@ -743,20 +752,26 @@ describe("floatingBtn — three-state behavior", () => {
     expect(isHighlighted(getGoogleButton())).toBe(false);
   });
 
-  it("reload-restore: AI in flight (loading) → Google stays highlighted (page still shows Google)", async () => {
+  it("reload-restore: AI in flight (loading) → AI highlighted immediately (intent, plan 30)", async () => {
+    // Intent model: an AI flow that has STARTED (loading) means the intent is
+    // AI — the button highlights AI right away while the page still shows the
+    // Google text + spinner (legal midstate). The old model kept Google until
+    // aiRenderState === "success".
     await loadModule();
     emitPageLanguageStateChange("translated");
     emitAiRenderStateChange("loading");
-    expect(isHighlighted(getGoogleButton())).toBe(true);
-    expect(isHighlighted(getAiButton())).toBe(false);
+    expect(isHighlighted(getAiButton())).toBe(true);
+    expect(isHighlighted(getGoogleButton())).toBe(false);
   });
 
-  it("reload-restore: AI error after auto-translate → Google stays highlighted (page falls back to Google)", async () => {
+  it("reload-restore: AI error after auto-translate → AI stays highlighted (click = retry, plan 30)", async () => {
+    // Intent model: failure keeps the AI intent (re-click = retry). The page
+    // carries the actual state (⚠ error icons); the button still says AI.
     await loadModule();
     emitPageLanguageStateChange("translated");
     emitAiRenderStateChange("error");
-    expect(isHighlighted(getGoogleButton())).toBe(true);
-    expect(isHighlighted(getAiButton())).toBe(false);
+    expect(isHighlighted(getAiButton())).toBe(true);
+    expect(isHighlighted(getGoogleButton())).toBe(false);
   });
 
   // ──────────────────────────────────────────────
@@ -1163,5 +1178,65 @@ describe("floatingBtn — three-state behavior", () => {
     expect(document.querySelectorAll("#dualtran-floating-btn-host")).toHaveLength(1);
     expect(document.getElementById("dualtran-floating-btn-host")).toBe(originalHost);
     expect(originalHost.shadowRoot).toBeTruthy();
+  });
+
+  // ──────────────────────────────────────────────
+  // Intent-source completeness (plan 30 / Q1: five intent sources).
+  // The highlight must follow each source; the intent event (E1/E2/E3)
+  // carries the external/automatic sources that never touch a button click.
+  // ──────────────────────────────────────────────
+
+  it("intent source ①: click — already covered by the scenario cells above (reference cell)", async () => {
+    await loadModule();
+    getAiButton().click();
+    expect(isHighlighted(getAiButton())).toBe(true);
+  });
+
+  it("intent source ②: external op — popup 'AI 翻译' intent event → AI highlighted + aiModeActive true (D1/D2)", async () => {
+    await loadModule();
+    // The popup calls translatePageAi() → the engine emits E3 ("ai").
+    // Before plan 30 this never reached the UI (D1/D2).
+    emitRequestedModeChange("ai");
+    expect(isHighlighted(getAiButton())).toBe(true);
+    expect(isHighlighted(getGoogleButton())).toBe(false);
+    expect(pageTranslatorMock.setAiModeActive).toHaveBeenCalledWith(true);
+
+    // External restore (popup "show original") → original highlighted.
+    emitRequestedModeChange("original");
+    expect(isHighlighted(getOriginalButton())).toBe(true);
+    expect(pageTranslatorMock.setAiModeActive).toHaveBeenCalledWith(false);
+  });
+
+  it("intent source ②: external op 'Google 翻译' → Google highlighted", async () => {
+    await loadModule();
+    emitRequestedModeChange("google");
+    expect(isHighlighted(getGoogleButton())).toBe(true);
+    expect(pageTranslatorMock.setAiModeActive).toHaveBeenCalledWith(false);
+  });
+
+  it("intent source ③+④: auto-translate / AI recovery — engine events derive the highlight (no latch)", async () => {
+    await loadModule();
+    // Auto-translate: translated with no AI flow → Google.
+    emitPageLanguageStateChange("translated");
+    expect(isHighlighted(getGoogleButton())).toBe(true);
+    // AI recovery stream starts (loading) → AI immediately (intent model).
+    emitAiRenderStateChange("loading");
+    expect(isHighlighted(getAiButton())).toBe(true);
+  });
+
+  it("intent ②→external latch: popup AI during in-flight Google keeps AI until derivation converges", async () => {
+    await loadModule();
+    // User clicked Google (latch on, highlight google). Page still original.
+    getGoogleButton().click();
+    // External op: popup AI translate → intent event → highlight AI (latch
+    // re-armed), even though the engine mirrors are not yet updated.
+    emitRequestedModeChange("ai");
+    expect(isHighlighted(getAiButton())).toBe(true);
+    // Engine catches up (translated + AI loading) → derivation agrees → the
+    // latch releases (observable side effect: subsequent engine events are
+    // derived again, not held).
+    emitPageLanguageStateChange("translated");
+    emitAiRenderStateChange("loading");
+    expect(isHighlighted(getAiButton())).toBe(true);
   });
 });
