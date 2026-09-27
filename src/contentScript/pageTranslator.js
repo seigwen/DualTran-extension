@@ -168,6 +168,55 @@ function aiBlockIndicatorPosition(el) {
   return el?.nodeName?.toLowerCase() === "translated" ? "before" : "append";
 }
 
+// ── Shared page-side block indicators (plan 30 / PR-A, fixes D3) ─────────────
+// ONE mechanism for both the page-level flow (aiTranslateDynamically batch) and
+// the block-level direct-click flow (the #65 hover buttons): a spinner at the
+// block's reading position, cleaned up on ARRIVAL (promise settle /
+// `onBlockSettled`), never at dispatch (RULE: block indicator lifetime rule,
+// #90 — single implementation), plus a per-element silent-death guard for a
+// request that never settles (the service worker was killed mid-stream).
+// The page-level batch adapter (`settleBlockIndicator` inside
+// aiTranslateDynamically) keeps only its own per-block idempotency and
+// delegates both directions here.
+const _blockIndicatorGuards = new WeakMap(); // block element → { google?: timerId, ai?: timerId }
+
+function _cancelBlockProgressGuard(el, type) {
+  const guards = _blockIndicatorGuards.get(el);
+  if (guards && guards[type]) {
+    clearTimeout(guards[type]);
+    delete guards[type];
+  }
+}
+
+function showBlockProgressIndicator(el, type) {
+  if (!el || !el.parentNode) return;
+  setBlockTranslationIndicator(el, type, "loading", undefined, aiBlockIndicatorPosition(el));
+  _cancelBlockProgressGuard(el, type);
+  const guards = _blockIndicatorGuards.get(el) || {};
+  guards[type] = setTimeout(() => {
+    settleBlockProgressIndicator(el, type, false);
+  }, AI_BLOCK_INDICATOR_GUARD_MS);
+  _blockIndicatorGuards.set(el, guards);
+}
+
+function settleBlockProgressIndicator(el, type, failed = false, message) {
+  if (!el) return;
+  _cancelBlockProgressGuard(el, type);
+  if (!el.parentNode) return;
+  if (failed) {
+    setBlockTranslationIndicator(el, type, "error", message || "Translation error", aiBlockIndicatorPosition(el));
+  } else {
+    setBlockTranslationIndicator(el, type, "done", undefined, aiBlockIndicatorPosition(el));
+  }
+}
+
+/** Remove both channels' indicators (e.g. the user restored the block). */
+function clearBlockProgressIndicators(el) {
+  if (!el) return;
+  settleBlockProgressIndicator(el, "google");
+  settleBlockProgressIndicator(el, "ai");
+}
+
 // ── Hover-button handler state (MUST stay at module top level) ───────────────
 // handleSingletonBtnClick is a module-level function
 // registered via setCallbacks(); it references these. If these were scoped inside
@@ -747,6 +796,10 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
 
     case "restoreBlock":
       state.requestEpoch = (state.requestEpoch ?? 0) + 1; // invalidate all in-flight responses (#65)
+      // Page-side feedback (plan 30 / PR-A): restoring invalidates the block's
+      // in-flight requests, so their indicators must go at once (request
+      // lifetime, not guard lifetime).
+      clearBlockProgressIndicators(translatedElement);
       restoreBlockOriginal(state, translatedElement);
       return;
 
@@ -798,20 +851,33 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
 
     case "fetchGoogle": {
       applyGoogleTranslating(state);
+      // Page-side feedback (plan 30 / PR-A): direct G click shows the green
+      // spinner until the request settles on the page (arrival-bound).
+      showBlockProgressIndicator(translatedElement, "google");
       try {
         const result = await backgroundTranslateSingleText(
           "google", currentTargetLanguage, state.sourceString
         );
-        if (state.requestEpoch !== myEpoch) return; // late write — discarded (#65)
+        if (state.requestEpoch !== myEpoch) {
+          settleBlockProgressIndicator(translatedElement, "google"); // invalidated — clear quietly
+          return; // late write — discarded (#65)
+        }
         if (result) {
           state.googleTranslatedText = result;
           writeGoogleIntoBlock(state, result, translatedElement);
           applyGoogleSuccess(state);
+          settleBlockProgressIndicator(translatedElement, "google");
         } else {
           applyGoogleIdle(state);
+          settleBlockProgressIndicator(translatedElement, "google", true, "No translation response received");
         }
-      } catch (_) {
-        if (state.requestEpoch === myEpoch) applyGoogleIdle(state);
+      } catch (e) {
+        if (state.requestEpoch === myEpoch) {
+          applyGoogleIdle(state);
+          settleBlockProgressIndicator(translatedElement, "google", true, e?.message);
+        } else {
+          settleBlockProgressIndicator(translatedElement, "google");
+        }
       }
       try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
       return;
@@ -827,12 +893,19 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
         // Behavior 2: run AI on top of Google (also serves A-retry)
         state.aiStatus = "translating";
         state.errorMessage = undefined;
+        // Page-side feedback (plan 30 / PR-A): purple spinner, cleared on the
+        // block's terminal state via the arrival-driven settle callback.
+        showBlockProgressIndicator(translatedElement, "ai");
         // #70: capture the page-level mode epoch before the request. The engine
         // keeps (but does not show) a mid-flight switch-away result (Q22), so
         // displayMode may be claimed only when the arrival was applied.
         const epochBeforeFetch = aiModeEpoch;
         try {
-          await aiTranslateText([createSingletonBlockProxy(state)], false);
+          await aiTranslateText([createSingletonBlockProxy(state)], false, () => {
+            if (state.requestEpoch !== myEpoch) return; // invalidated — restore cleared it
+            const failed = state.aiStatus === "translationError";
+            settleBlockProgressIndicator(translatedElement, "ai", failed, state.errorMessage);
+          });
           if (state.requestEpoch !== myEpoch) return; // late write — discarded (#65)
           if (state.aiStatus === "translated" && isAiArrivalAllowedForBlock(epochBeforeFetch)) {
             state.displayMode = "ai";
@@ -844,6 +917,7 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
           if (state.requestEpoch === myEpoch) {
             state.aiStatus = "translationError";
             state.errorMessage = e?.message || "AI translation error";
+            settleBlockProgressIndicator(translatedElement, "ai", true, state.errorMessage);
           }
         }
         try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
@@ -852,6 +926,8 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
 
       // mode === "original": Behavior 3 — Google+AI concurrently, final display AI
       applyGoogleTranslating(state);
+      // Page-side feedback (plan 30 / PR-A): both channels run → both spinners.
+      showBlockProgressIndicator(translatedElement, "google");
       backgroundTranslateSingleText("google", currentTargetLanguage, state.sourceString)
         .then((result) => {
           if (state.requestEpoch !== myEpoch) return; // late write — discarded (#65)
@@ -868,20 +944,33 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
               state.displayMode = "google";
               try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
             }
+            settleBlockProgressIndicator(translatedElement, "google");
           } else {
             applyGoogleIdle(state);
+            settleBlockProgressIndicator(translatedElement, "google", true, "No translation response received");
           }
         })
-        .catch(() => { if (state.requestEpoch === myEpoch) applyGoogleIdle(state); });
+        .catch((e) => {
+          if (state.requestEpoch === myEpoch) {
+            applyGoogleIdle(state);
+            settleBlockProgressIndicator(translatedElement, "google", true, e?.message);
+          }
+        });
 
       state.aiStatus = "translating";
       state.errorMessage = undefined;
+      // Page-side feedback (plan 30 / PR-A): purple spinner for the AI channel.
+      showBlockProgressIndicator(translatedElement, "ai");
       // #70: same guard as the Google-shown branch — claim displayMode only
       // when the arrival was actually applied (mid-flight switch-away keeps
       // the result without showing it, Q22).
       const epochBeforeFetch = aiModeEpoch;
       try {
-        await aiTranslateText([createSingletonBlockProxy(state)], false);
+        await aiTranslateText([createSingletonBlockProxy(state)], false, () => {
+          if (state.requestEpoch !== myEpoch) return; // invalidated — restore cleared it
+          const failed = state.aiStatus === "translationError";
+          settleBlockProgressIndicator(translatedElement, "ai", failed, state.errorMessage);
+        });
         if (state.requestEpoch !== myEpoch) return; // late write — discarded (#65)
         if (state.aiStatus === "translated" && isAiArrivalAllowedForBlock(epochBeforeFetch)) {
           state.displayMode = "ai";
@@ -892,6 +981,7 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
         if (state.requestEpoch === myEpoch) {
           state.aiStatus = "translationError";
           state.errorMessage = e?.message || "AI translation error";
+          settleBlockProgressIndicator(translatedElement, "ai", true, state.errorMessage);
         }
       }
       try { updateSingletonUI(translatedElement); } catch (e) { console.warn("[DualTran] handleSingletonBtnClick failed", e); }
@@ -3945,44 +4035,25 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       // REQUEST, not the dispatch: aiTranslateText() returns at dispatch time
       // (the stream arrives via callbacks), so clearing here would flash the
       // spinner for a few milliseconds only (RULE: block indicator lifetime rule).
+      // Plan 30 / PR-A: both directions delegate to the shared per-block helpers
+      // (showBlockProgressIndicator / settleBlockProgressIndicator) — the
+      // silent-death guard now lives per element in _blockIndicatorGuards, one
+      // implementation shared with the direct-click path.
       const pendingIndicatorBlocks = new Set(toBeTranslated);
-      let indicatorGuardTimer = null;
 
       const settleBlockIndicator = (proxy) => {
         if (!pendingIndicatorBlocks.delete(proxy)) return; // idempotent per block
-        const el = proxy._el;
-        if (el && el.parentNode) {
-          const position = aiBlockIndicatorPosition(el);
-          if (proxy.translationStatus === "translationError") {
-            const message = proxy._st?.()?.errorMessage || "AI translation error";
-            setBlockTranslationIndicator(el, "ai", "error", message, position);
-          } else {
-            setBlockTranslationIndicator(el, "ai", "done", undefined, position);
-          }
-        }
-        if (pendingIndicatorBlocks.size === 0 && indicatorGuardTimer !== null) {
-          clearTimeout(indicatorGuardTimer);
-          indicatorGuardTimer = null;
+        if (proxy.translationStatus === "translationError") {
+          const message = proxy._st?.()?.errorMessage || "AI translation error";
+          settleBlockProgressIndicator(proxy._el, "ai", true, message);
+        } else {
+          settleBlockProgressIndicator(proxy._el, "ai");
         }
       };
 
       toBeTranslated.forEach((proxy) => {
-        if (proxy._el && proxy._el.parentNode) {
-          setBlockTranslationIndicator(proxy._el, "ai", "loading", undefined, aiBlockIndicatorPosition(proxy._el));
-        }
+        showBlockProgressIndicator(proxy._el, "ai");
       });
-
-      // Safety cap: a silently dead stream (e.g. the service worker is killed
-      // mid-flight, so no callback ever fires) must not strand spinners forever.
-      indicatorGuardTimer = setTimeout(() => {
-        pendingIndicatorBlocks.forEach((proxy) => {
-          if (proxy._el && proxy._el.parentNode) {
-            setBlockTranslationIndicator(proxy._el, "ai", "done", undefined, aiBlockIndicatorPosition(proxy._el));
-          }
-        });
-        pendingIndicatorBlocks.clear();
-        indicatorGuardTimer = null;
-      }, AI_BLOCK_INDICATOR_GUARD_MS);
 
       await aiTranslateText(toBeTranslated, true, settleBlockIndicator)
       console.log("[AI-STATE] aiTranslateDynamically: aiTranslateText returned")
