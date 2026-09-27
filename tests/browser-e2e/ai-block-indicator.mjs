@@ -93,6 +93,27 @@ async function installIndicatorProbe(page) {
       return spinner.parentNode || null;
     };
 
+    /**
+     * 同一批突变内的 add+remove（直点缓存命中路径：派发与终态在同一任务内，
+     * MutationObserver 回调时 spinner 已脱离 DOM）——add 时的兄弟/父节点捕获
+     * 失效，改用突变记录自身的 target 解析所属块：
+     *   - "append" 锚点：target 就是块元素本身（replaceOriginal）
+     *   - "before" 锚点：target 是容器，块是其直接子元素（<translated>）
+     */
+    const resolveBlockFromMutation = (m) => {
+      const t = m.target;
+      if (!t || t.nodeType !== 1) return null;
+      if (t.nodeName.toLowerCase() === "translated" || t.hasAttribute?.("data-dualtran-block")) {
+        return t;
+      }
+      for (const child of t.children || []) {
+        if (child.nodeName.toLowerCase() === "translated" || child.hasAttribute?.("data-dualtran-block")) {
+          return child;
+        }
+      }
+      return null;
+    };
+
     /** 只读块「自身」的 AI 文本（直接子 span），不误读嵌套块的 span。 */
     const aiTextOf = (target) => {
       if (!target || !target.children) return "";
@@ -135,7 +156,7 @@ async function installIndicatorProbe(page) {
         });
         m.removedNodes.forEach((n) => {
           if (isSpinner(n) || isIndicator(n)) {
-            const target = targetOf.get(n) || null;
+            const target = targetOf.get(n) || resolveBlockFromMutation(m) || null;
             window.__aiIndicatorEvents.push({
               kind: "remove",
               wasSpinner: isSpinner(n),
@@ -187,6 +208,42 @@ async function clickAiButton(page) {
   });
 }
 
+/** 点击页面级浮动按钮组的按钮（shadow DOM 内）。 */
+async function clickFloatingButton(page, id) {
+  await page.evaluate((btnId) => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    const btn = host?.shadowRoot?.getElementById(btnId);
+    if (!btn) throw new Error(`floating button not found: ${btnId}`);
+    btn.click();
+  }, id);
+}
+
+/** 悬停一个块（冒泡 delegation 路径；#65 保真纪律）。 */
+async function hoverBlock(page, blockIndex) {
+  await page.evaluate((idx) => {
+    const el = document.querySelectorAll("[data-dualtran-block]")[idx];
+    if (!el) throw new Error(`hover: no block at index ${idx}`);
+    el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+  }, blockIndex);
+  await page.waitForTimeout(200);
+}
+
+/** 点悬停按钮组的某个按钮（shadow root 内）。 */
+async function clickSingletonButton(page, which) {
+  const selector = {
+    original: ".dualtran-original-btn",
+    google: ".dualtran-google-btn",
+    ai: ".dualtran-ai-btn",
+  }[which];
+  if (!selector) throw new Error(`clickSingletonButton: unknown button "${which}"`);
+  await page.evaluate((sel) => {
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    const btn = host?.shadowRoot?.querySelector(sel);
+    if (!btn) throw new Error(`singleton button not found: ${sel}`);
+    btn.click();
+  }, selector);
+}
+
 /**
  * 等待一轮「派发 → 到达 → 清理」闭环完成。
  *
@@ -207,6 +264,17 @@ async function waitForLifecycleCompletion(page, timeoutMs = 90_000) {
     `AI indicator lifecycle did not complete within ${timeoutMs}ms.\n` +
     `  last: ${JSON.stringify({ spinnersRemaining: last?.spinnersRemaining, aiTextBlocks: last?.aiTextBlocks, eventCount: last?.events?.length })}`
   );
+}
+
+/** 等待直点阶段首个 spinner 插入（短超时，失败信息更精确）。 */
+async function waitForFirstDirectSpinner(page, timeoutMs = 20_000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const probe = await readProbe(page);
+    if (probe.events.some((e) => e.kind === "add")) return true;
+    await page.waitForTimeout(250);
+  }
+  return false;
 }
 
 /**
@@ -356,6 +424,37 @@ export async function run(scope) {
 
     // ── 锚点断言（真实像素）──
     await assertAnchorInline(page);
+
+    // ── 直点路径（plan 30 / PR-A, D3）：悬停块 → 组内 A 点击 → 必须有页面侧
+    //    spinner，且其清理仍发生在到达之后（#90 顺序断言，与 mock 速度无关）。
+    //    前置：先 O 恢复 → 该块回到原文态（无 AI 文本可本地再现），A 点击才会
+    //    真正发起 fetchAi（displayMode=original → 并发通道）。──
+    console.log(`  [${mode}] direct-click stage: hover block → O → hover → A → arrival order`);
+    await hoverBlock(page, 0);
+    await clickSingletonButton(page, "original");
+    await page.waitForTimeout(400);
+
+    // 重置探针：只观察本阶段的插入/移除事件
+    await page.evaluate(() => {
+      window.__aiIndicatorEvents = [];
+    });
+
+    await hoverBlock(page, 0);
+    await clickSingletonButton(page, "ai");
+
+    // 先等首个 spinner 插入——失败信息直接指向 D3（无反馈），而不是拖到
+    // 90s 的通用"lifecycle did not complete"超时（RED 信息更精确）。
+    const sawDirectSpinner = await waitForFirstDirectSpinner(page);
+    if (!sawDirectSpinner) {
+      throw new Error(
+        `[${mode}] DIRECT-CLICK: no AI spinner on the page after a hover-group AI click ` +
+        `(D3: the direct path had zero page-side feedback before plan 30 / PR-A).`
+      );
+    }
+
+    // 等待本阶段闭环：所有 spinner 已清理、该块 AI 文本已到达
+    const directProbe = await waitForLifecycleCompletion(page);
+    assertIndicatorLifetime(directProbe, `${mode}/direct-click`);
 
     console.log(`  [${mode}] PASS`);
   }
