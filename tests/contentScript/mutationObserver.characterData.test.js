@@ -336,3 +336,94 @@ describe("#98 站点更新触发已翻译 piece 重译", () => {
     expect(referenced).toBe(false);
   });
 });
+
+describe("#98 容器过滤改判据回归锁（replaceOriginal 下站点更新仍须重译）", () => {
+  /**
+   * #98 的第二根因：updatePiecesToTranslateWithNewNodes 曾无条件跳过
+   * 「位于 .dualtran-result-container 内」的一切节点。但 replaceOriginal
+   * 模式下这个 class 恰好落在**源容器**上（译文写回源节点），于是站点在
+   * 容器内做的更新（x.com 替换截断 span）被整体吞掉——展开文字永不翻译。
+   *
+   * 修复：改为按 `isDualTranGeneratedNode`（扩展自产标记）判据过滤，
+   * 容器后代不再被整体豁免。本组测试锁定该改判据，防止回归。
+   */
+  it("源容器带 .dualtran-result-container 时，站点在容器内的更新仍须重译", () => {
+    const container = document.createElement("p");
+    container.classList.add("dualtran-result-container");
+    const textNode = document.createTextNode("truncated preview");
+    container.appendChild(textNode);
+    document.body.appendChild(container);
+
+    const pieces = getPiecesToTranslateArray();
+    const piece = { nodes: [textNode], isTranslated: true };
+    pieces.push(piece);
+
+    // 捕获重译请求（重译入队后 isTranslated 会被 translateDynamically 同步置回
+    // true 表示「在飞」——所以断言的是请求已发出且携带展开后的新文本，
+    // 而不是 isTranslated 的瞬时值）。
+    const sentPayloads = [];
+    chrome.runtime.sendMessage.mockImplementation((payload, callback) => {
+      if (payload?.action === "translateHTML") {
+        sentPayloads.push(payload);
+      }
+      if (typeof callback === "function") callback(undefined);
+    });
+
+    // 站点原地展开（characterData），容器已带 result-container class
+    const oldValue = textNode.data;
+    textNode.data = "truncated preview plus expanded remainder";
+    handleObserverMutations([charDataRecord(textNode, oldValue)]);
+    updatePiecesToTranslateWithNewNodes();
+
+    // 修复前：容器后代被无条件跳过 → 没有任何重译请求、hostUpdatedTextNodes 被丢弃
+    expect(sentPayloads.length).toBeGreaterThan(0);
+    expect(JSON.stringify(sentPayloads)).toContain("expanded remainder");
+    expect(getHostUpdatedTextNodes().size).toBe(0);
+  });
+
+  it("站点在容器内新增节点时，新节点仍进入管道（容器后代不整体豁免）", () => {
+    const container = document.createElement("div");
+    container.classList.add("dualtran-result-container");
+    document.body.appendChild(container);
+
+    const newSpan = document.createElement("span");
+    newSpan.textContent = "lazily inserted sentence for translation";
+    container.appendChild(newSpan);
+
+    pageTranslator._getNewNodes().push(newSpan);
+    updatePiecesToTranslateWithNewNodes();
+
+    const pieces = getPiecesToTranslateArray();
+    const referenced = pieces.some((ptt) =>
+      ptt.nodes && ptt.nodes.some((n) => n === newSpan.firstChild)
+    );
+    expect(referenced).toBe(true);
+  });
+
+  it("负向对照：.dualtran-aitranslatedtext-replacemode 内的更新仍被过滤（扩展产物）", () => {
+    const container = document.createElement("div");
+    container.classList.add("dualtran-result-container");
+    const aiSpan = document.createElement("span");
+    aiSpan.classList.add("dualtran-aitranslatedtext-replacemode");
+    const aiText = document.createTextNode("Traduction IA");
+    aiSpan.appendChild(aiText);
+    container.appendChild(aiSpan);
+    document.body.appendChild(container);
+
+    const oldValue = aiText.data;
+    aiText.data = "Traduction IA mise à jour";
+    handleObserverMutations([charDataRecord(aiText, oldValue)]);
+
+    // 扩展自产物：不得进入 hostUpdatedTextNodes（反馈环防护）
+    expect(getHostUpdatedTextNodes().has(aiText)).toBe(false);
+
+    // 新增节点同理：AI span 本身不得作为新内容入管道
+    pageTranslator._getNewNodes().push(aiSpan);
+    updatePiecesToTranslateWithNewNodes();
+    const pieces = getPiecesToTranslateArray();
+    const referenced = pieces.some((ptt) =>
+      ptt.nodes && ptt.nodes.some((n) => n === aiText)
+    );
+    expect(referenced).toBe(false);
+  });
+});

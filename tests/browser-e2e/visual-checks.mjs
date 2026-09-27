@@ -289,4 +289,43 @@ export const CHECKPOINTS = [
       "No overlapping text or clipped containers introduced by the round trip",
     ],
   },
+  // ── 内容更新通道一致性（#98 复发复盘 —— 视觉层检查点对）──
+  // 这一对是「站点在翻译后更新内容」在视觉通道的锚点：#98 两次逃逸都表现
+  // 为「展开后的整段仍是英文」，而 17 个既有检查点没有一个拍到展开动作。
+  // 两图必须真实不同（mustDifferFrom，复用 #75 保真度门禁）：展开前后若
+  // 逐像素相同，说明展开动作没有落到视觉产物上（检查点撒谎）。
+  {
+    id: "content-update-before-expand",
+    scenario: "content-update-conformance",
+    capture: {
+      page: "mock test-page.html",
+      when: "initial translation complete, before any content-update channel is triggered",
+    },
+    mustDifferFrom: ["content-update-after-expand"],
+    expect: [
+      "Collapsed preview blocks show translated (French) text above the source lines",
+      "The show-more buttons are still in their collapsed label state (\"Show more\")",
+      "No expanded long paragraph is visible yet — the update channels have not run",
+    ],
+  },
+  {
+    id: "content-update-after-expand",
+    scenario: "content-update-conformance",
+    capture: {
+      page: "mock test-page.html",
+      when: "after every content-update channel has been triggered (append / replace / in-place / textContent / attributes / CSS reveal)",
+    },
+    programmatic: ["assertExpandedBlockShowsTranslation"],
+    expect: [
+      // ⚠️ 2026-09-27 校准（#75 教训）：newLine 模式是**双行**形态——原文保留 +
+      // 译文新行。首版判据写成「不得有英文残留」会把正确的双行形态判成缺陷（假阳性）。
+      // 真值以干净产物为准：源文行是英文，其下方必须有覆盖到尾句的法语译文行；
+      // 「未翻译」的症状 = 展开段**缺少**对应译文行 / 译文行只覆盖了旧截断预览。
+      "Each expanded show-more block shows a FULL-WIDTH French translation line BELOW the English source line — the translation must cover the whole expanded paragraph, not only the old truncated preview",
+      "The revealed tail sentences (\"...trailing sentence for the ... channel\") have their French counterparts in the translation line — if the last sentence of the expansion has no translation below it, that is the #98 symptom",
+      "Expand buttons switched to their expanded label state (\"Show less\" / \"Afficher moins\")",
+      "The attribute-channel inputs show translated placeholder/title text (French), and the injected field's placeholder is translated too",
+      "No duplicate/stacked translation lines and no empty or collapsed containers",
+    ],
+  },
 ];

@@ -221,6 +221,66 @@ const SKIP_TYPED_RE = /\bSKIP-(ENV|DATA):\s*(.+)/;
 const SKIP_PREMISE_MIN = 3;
 const SKIP_EXEMPT_MARKER = "skip-typing-allow";
 
+/**
+ * Capture-anyway wording ban (#98 recurrence review, family E residual).
+ *
+ * A declared-artefact wait that times out and then logs "capturing anyway" /
+ * "继续" / "照拍" and proceeds makes the artefact lie: the checkpoint's
+ * screenshot / summary claims a state that was never reached (see #75's
+ * fidelity class). The blanket "all console.warn is bad" audit was rejected
+ * (huge false-positive surface — progress logs are legitimate); this narrow
+ * rule bans exactly the wording family that means "the premise failed but we
+ * carry on anyway".
+ *
+ * Legitimate uses are comments / prose that *describe* the ban (this very
+ * block, or the replacement comment in visual-audit.mjs) — those are stripped
+ * by comment handling. A code-level occurrence is a violation unless the line
+ * carries the `capture-anyway-allow` escape marker.
+ */
+const CAPTURE_ANYWAY_RE = /captur(?:ing|e)\s+anyway|照拍|反正[^，。]{0,6}(?:继续|截图)/i;
+const CAPTURE_ANYWAY_MARKER = "capture-anyway-allow";
+
+/**
+ * Scan E2E modules for capture-anyway wording in *code* (comments excluded).
+ */
+function scanCaptureAnyway(filePath) {
+  const raw = fs.readFileSync(filePath, "utf8");
+  const lines = raw.split("\n");
+  const violations = [];
+  let inBlockComment = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    // Track /* */ block comments so prose about the ban never trips it.
+    let cleaned = "";
+    for (let j = 0; j < line.length; j++) {
+      if (inBlockComment) {
+        const end = line.indexOf("*/", j);
+        if (end === -1) break;
+        inBlockComment = false;
+        j = end + 1;
+        continue;
+      }
+      const start = line.indexOf("/*", j);
+      const slashes = line.indexOf("//", j);
+      if (slashes !== -1 && (start === -1 || slashes < start)) break; // rest is line comment
+      if (start === -1) {
+        cleaned += line.slice(j);
+        break;
+      }
+      cleaned += line.slice(j, start);
+      inBlockComment = true;
+      j = start + 1;
+    }
+    if (cleaned.includes(CAPTURE_ANYWAY_MARKER)) continue;
+    const m = cleaned.match(CAPTURE_ANYWAY_RE);
+    if (m) {
+      violations.push({ line: i + 1, text: m[0] });
+    }
+  }
+  return violations;
+}
+
 function scanE2eSkipTyping(filePath) {
   const raw = fs.readFileSync(filePath, "utf8");
   const lines = raw.split("\n");
@@ -297,6 +357,10 @@ function main() {
     const rel = path.relative(ROOT, file).replace(/\\/g, "/");
     for (const v of scanE2eSkipTyping(file)) {
       allViolations.push({ file: rel, line: v.line, type: "UNSKIPPED-TYPE", name: v.text });
+    }
+    // ── Capture-anyway wording ban (#98 recurrence review, family E residual) ──
+    for (const v of scanCaptureAnyway(file)) {
+      allViolations.push({ file: rel, line: v.line, type: "CAPTURE-ANYWAY", name: v.text });
     }
   }
 

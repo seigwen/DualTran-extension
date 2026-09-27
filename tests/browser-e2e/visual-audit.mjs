@@ -507,11 +507,14 @@ export async function run(scope) {
     action: "translatePage",
     targetLanguage: "fr",
   });
+  // #98 复发复盘（家族 E 残余清理）：replaceOriginal 等待超时后曾以
+  // console.warn("capturing anyway") 继续截图——「截图照拍、检查点撒谎」，
+  // 与 #75 的保真度缺陷同族（声明产物必须真实）。超时即硬失败。
   await page.waitForFunction(
     () => document.querySelectorAll(".dualtran-result-container").length > 0,
     null,
     { timeout: 30000 }
-  ).catch(() => console.warn("[visual-audit] replaceOriginal wait timed out; capturing anyway"));
+  );
   await page.waitForTimeout(500);
   const replaceShot = await screenshotCheckpoint(page, "replace-original-mode", { scenario: name });
   // 保真度指纹：replaceOriginal 必须与 baseline 不同（#75 直接指纹）

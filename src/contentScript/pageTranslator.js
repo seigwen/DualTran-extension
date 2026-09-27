@@ -40,6 +40,7 @@ const _providerRegistry = createProviderRegistry(BUILT_IN_PROVIDERS);
 import showOriginal from "./showOriginal.js"
 import { translateWithAI } from "./fetchSSE.js"
 import { markTextWrite, isExtensionWrittenText } from "./extensionTextWrites.js"
+import { markAttributeWrite, isExtensionWrittenAttribute } from "./extensionAttributeWrites.js"
 import {
   notifyAiStreamParseError,
   parseOpenAiStyleStreamMessage,
@@ -2011,12 +2012,25 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    // normal new-piece dedupe would swallow the update. Consumed and cleared on
    // every updatePiecesToTranslateWithNewNodes tick.
   const hostUpdatedTextNodes = new Set();
+   // Attribute-channel counterpart (#98 follow-up): the site rewrote a
+   // translatable attribute (placeholder/alt/title/value) on an EXISTING
+   // element. element → Set<attrName>, consumed and cleared on every
+   // updatePiecesToTranslateWithNewNodes tick. Without this channel a site
+   // update of an attribute after translation is never re-translated — the
+   // same user-visible family as the x.com "Show more" escape, one level up.
+  const hostUpdatedAttributes = new Map();
    // Freshness guard bookkeeping (#98): consecutive stale drops per source node.
    // A node whose text keeps changing between request dispatch and response
    // (live counters, ticking clocks) must not spin the request loop forever —
    // after STALE_DROP_LIMIT consecutive drops the result is accepted anyway.
   const staleDropCounts = new WeakMap();
   const STALE_DROP_LIMIT = 2;
+   // Attribute-channel counterpart of staleDropCounts (#98 follow-up):
+   // element → Map<attrName, consecutive stale drops>. After
+   // STALE_DROP_LIMIT drops the result is accepted anyway, so a site that
+   // rewrites an attribute faster than the request round-trip cannot spin
+   // the loop forever.
+  const attrStaleDropCounts = new WeakMap();
 
    // NOTE: nodesToRestore is declared at module top level (hoisted) so the
    // module-level hover-button handlers can access it. Do not redeclare here.
@@ -2106,6 +2120,32 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         hostUpdatedTextNodes.add(target);
         return;
        }
+       // attribute mutations (#98 follow-up, attribute channel): the site
+       // rewrote a translatable attribute on an EXISTING element (lazy
+       // placeholder swap, dynamic alt/title/value update). Same two-source
+       // classification as characterData: value comparison against the
+       // extension's own last write decides self-write vs host update.
+       if (mutation.type === "attributes") {
+        const target = mutation.target;
+        if (target.nodeType !== 1) return;
+        const attrName = mutation.attributeName;
+        if (!attrName) return;
+        // Rewrite that leaves the value unchanged (React re-renders commonly
+        // reassign identical values): nothing new to translate.
+        if (mutation.oldValue === target.getAttribute(attrName)) return;
+        // The extension's own write (translateAttributes) — must not re-enter
+        // the pipeline (attribute-channel twin of the #16 feedback loop).
+        if (isExtensionWrittenAttribute(target, attrName)) return;
+        // Defense in depth: attributes of extension-generated elements are
+        // extension output, never page content.
+        if (isDescendantOfTranslated(target) || isDualTranGeneratedNode(target)) return;
+        // Honor the same opt-outs the scan honors.
+        if (target.closest && target.closest(".notranslate, [translate=\"no\"]")) return;
+        if (target.isContentEditable) return;
+        if (!hostUpdatedAttributes.has(target)) hostUpdatedAttributes.set(target, new Set());
+        hostUpdatedAttributes.get(target).add(attrName);
+        return;
+       }
        // New nodes: if a block-level element belonging to translatable tags, add to local tmpNewNodes array
        mutation.addedNodes.forEach((addedNode) => {
         const nodeName = addedNode.nodeName.toLowerCase();
@@ -2186,6 +2226,27 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
          // Get pieces from each new node
         let newPiecesToTranslate = getPiecesToTranslate(nn);
 
+         // Attribute channel (#98 follow-up): a NEW element carrying a
+         // translatable attribute (dynamic form fields, lazily inserted img)
+         // must have that attribute collected too. The initial scan runs
+         // getAttributesToTranslate() once at translatePage time; without this
+         // the attribute of an injected element is never translated.
+        {
+          const attrRoot = nn.nodeType === 3 ? nn.parentElement : nn;
+          if (attrRoot && attrRoot.nodeType === 1) {
+            const newAttrs = getAttributesToTranslate(attrRoot);
+            for (const ati of newAttrs) {
+              const tracked = attributesToTranslate.some(
+                (existing) => existing.node === ati.node && existing.attrName === ati.attrName
+              );
+              if (!tracked) {
+                attributesToTranslate.push(ati);
+                hasNewPieces = true;
+              }
+            }
+          }
+        }
+
          // Check if piecesToTranslate array already contains the newly obtained piece; if not, push it into piecesToTranslate array
         for (const i in newPiecesToTranslate) {
           const newNodes = newPiecesToTranslate[i].nodes;
@@ -2246,12 +2307,40 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           }
         }
       }
+       // Site rewrote a translatable attribute on an existing element
+       // (#98 follow-up, attribute channel). Merge into attributesToTranslate:
+       // an already-tracked (element, attr) pair is reset for re-translation;
+       // an untracked pair enters the pipeline like newly discovered content.
+       if (hostUpdatedAttributes.size > 0) {
+        for (const [el, attrNames] of hostUpdatedAttributes) {
+          for (const attrName of attrNames) {
+            const freshEntries = getAttributesToTranslate(el).filter(
+              (ati) => ati.node === el && ati.attrName === attrName
+            );
+            if (freshEntries.length === 0) continue; // attribute gone / now empty / opted out
+            const fresh = freshEntries[0];
+            const existing = attributesToTranslate.find(
+              (ati) => ati.node === el && ati.attrName === attrName
+            );
+            if (existing) {
+              // Site wrote a different value than the one we translated →
+              // requeue. `original` becomes the site's current value so
+              // restorePage puts back the latest site text, not a stale one.
+              existing.original = fresh.original;
+              existing.isTranslated = false;
+            } else {
+              attributesToTranslate.push(fresh);
+            }
+          }
+        }
+       }
     } catch (e) {
       console.error(e);
     } finally {
       newNodes = [];
       removedNodes = [];
       hostUpdatedTextNodes.clear();
+      hostUpdatedAttributes.clear();
     }
     // Trigger translation for newly discovered pieces
     // But not if translateDynamically() is already running (prevents duplicate translations)
@@ -2285,6 +2374,15 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         // unchanged (React re-renders often reassign identical values) — a
         // no-op must not trigger a re-translation (#98).
         characterDataOldValue: true,
+        // Attribute channel (#98 follow-up): without `attributes` a site that
+        // updates placeholder/alt/title/value after translation is invisible
+        // to the observer, so the updated attribute is never re-translated.
+        // attributeOldValue lets the callback drop identical-value writes and
+        // classify extension self-writes by value (same semantics as the
+        // characterData branch).
+        attributes: true,
+        attributeOldValue: true,
+        attributeFilter: ["placeholder", "alt", "title", "value"],
         subtree: true,
       });
     }
@@ -2956,16 +3054,37 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   function getAttributesToTranslate(root = document.body) {
     const attributesToTranslate = [];
 
-    const placeholdersElements = root.querySelectorAll(
+    // Element-level re-scan support (#98 follow-up): when called with an
+    // ELEMENT root (dynamic consumption of a host attribute update), the
+    // element ITSELF must be considered too — the attribute-rewrite channel
+    // targets an element already in the tree, not a descendant of a new node.
+    function collect(selector) {
+      const out = [];
+      try {
+        if (root && root.nodeType === 1 && root.matches && root.matches(selector)) {
+          out.push(root);
+        }
+      } catch (_) {
+        /* detached / invalid root — descendants below still work */
+      }
+      if (root && typeof root.querySelectorAll === "function") {
+        out.push(...root.querySelectorAll(selector));
+      }
+      return out;
+    }
+
+    const placeholdersElements = collect(
       "input[placeholder], textarea[placeholder]"
     );
-    const altElements = root.querySelectorAll(
+    const altElements = collect(
       'area[alt], img[alt], input[type="image"][alt]'
     );
-    const valueElements = root.querySelectorAll(
+    const valueElements = collect(
       'input[type="button"], input[type="submit"], input[type="reset"]'
     );
-    const titleElements = root.querySelectorAll("body [title]");
+    // `body [title]` is the document-level selector (excludes <body> itself);
+    // for an element-level re-scan the root may BE the title-bearing element.
+    const titleElements = collect(root === document.body ? "body [title]" : "[title]");
 
     function hasNoTranslate(elem) {
       if (
@@ -3441,7 +3560,37 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     for (const i in attributesToTranslateNow) {
       const ati = attributesToTranslateNow[i];
       try {
+        // Freshness guard (#98 follow-up, attribute channel): if the site
+        // rewrote this attribute while the request was in flight, the result
+        // is for STALE text — writing it would replace a fresh translation
+        // with one for the old value. Requeue instead (isTranslated=false;
+        // the next tick re-reads the current value and re-requests).
+        if (ati.node.getAttribute(ati.attrName) !== ati.original) {
+          let perElement = attrStaleDropCounts.get(ati.node);
+          if (!perElement) {
+            perElement = new Map();
+            attrStaleDropCounts.set(ati.node, perElement);
+          }
+          const drops = (perElement.get(ati.attrName) || 0) + 1;
+          perElement.set(ati.attrName, drops);
+          if (drops <= STALE_DROP_LIMIT) {
+            ati.isTranslated = false;
+            continue;
+          }
+          // Convergence bound reached: accept the (possibly stale) result so
+          // a continuously-rewritten attribute cannot loop forever. Refresh
+          // `original` first so restorePage still restores the site's text.
+          ati.original = ati.node.getAttribute(ati.attrName) || ati.original;
+          perElement.delete(ati.attrName);
+        } else {
+          const perElement = attrStaleDropCounts.get(ati.node);
+          if (perElement) perElement.delete(ati.attrName);
+        }
         ati.node.setAttribute(ati.attrName, results[i]);
+        // Mark the write so the observer classifies the resulting attribute
+        // mutation as extension output (#98 follow-up).
+        markAttributeWrite(ati.node, ati.attrName);
+        ati.isTranslated = true;
       } catch (e) {
         console.log(e)
       }
@@ -4159,6 +4308,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     for (const ati of attributesToTranslate) {
       if (ati.isTranslated) {
         ati.node.setAttribute(ati.attrName, ati.original);
+        // Mark the restore write too — otherwise the observer would read this
+        // as a host update and re-translate the restored source text
+        // (#98 follow-up, attribute channel).
+        markAttributeWrite(ati.node, ati.attrName);
       }
     }
     attributesToTranslate = [];
@@ -4217,6 +4370,14 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   pageTranslator._handleObserverMutations = handleObserverMutations;
    /** @internal — for testing #98: read the host-updated text node set */
   pageTranslator._getHostUpdatedTextNodes = () => hostUpdatedTextNodes;
+   /** @internal — for testing #98 follow-up: read the host-updated attribute map */
+  pageTranslator._getHostUpdatedAttributes = () => hostUpdatedAttributes;
+   /** @internal — for testing #98 follow-up: read the attributesToTranslate array */
+  pageTranslator._getAttributesToTranslateArray = () => attributesToTranslate;
+   /** @internal — for testing #98 follow-up: run getAttributesToTranslate on a root */
+  pageTranslator._getAttributesToTranslate = (root) => getAttributesToTranslate(root);
+   /** @internal — for testing #98 follow-up: run translateAttributes with fixed results */
+  pageTranslator._translateAttributes = (now, results) => translateAttributes(now, results);
    /** @internal — for testing #98: read the current piecesToTranslate array */
   pageTranslator._getPiecesToTranslateArray = () => piecesToTranslate;
 

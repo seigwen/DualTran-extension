@@ -909,6 +909,46 @@ export async function readStorageMulti(serviceWorker, keys) {
   }, keys);
 }
 
+// ═══════════════════════════════════════════════════════════════
+// 显示模式遍历原语（内容更新通道一致性套件，issue #98 复发复盘）
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * 译文显示模式全集。每个「内容更新通道」都必须在两种模式下各验证一次
+ * ——#98 修复留下的 replaceOriginal 半边零覆盖就是这个维度缺失的直接代价。
+ *
+ * 单一事实源：tests/shared/content-update-channels.mjs 的
+ * CHANNEL_DISPLAY_MODES 与此保持一致；`check-content-update-channels.js`
+ * 校验场景文件确实做了行为级遍历（本常量 / forEachDisplayMode 的调用点）。
+ */
+export const DISPLAY_MODES = Object.freeze(["newLine", "replaceOriginal"]);
+
+/**
+ * 以「行为级」方式遍历全部显示模式执行同一段验证逻辑。
+ *
+ * 用法（内容更新通道一致性套件）：
+ *   await forEachDisplayMode(scope, async (mode) => {
+ *     ... 每个模式独立导航 + 翻译 + 逐通道断言 ...
+ *   });
+ *
+ * 为什么必须是行为级：`check-mode-symmetry.mjs` 旧实现只用文本 `includes`
+ * 判定，注释里出现 "newLine"/"replaceOriginal" 即算通过——实测两个场景文件
+ * （translation.mjs / dynamic-content-showmore.mjs）在去除注释后两个模式词
+ * 零出现，lint 仍然全绿。任何「文本存在性」式判定都可能被注释满足。
+ *
+ * @param {{serviceWorker: import("playwright").Worker}} scope
+ * @param {(mode: string, index: number) => Promise<void>} fn 每个模式的验证体
+ * @returns {Promise<void>}
+ */
+export async function forEachDisplayMode(scope, fn) {
+  const { serviceWorker } = scope;
+  for (let index = 0; index < DISPLAY_MODES.length; index++) {
+    const mode = DISPLAY_MODES[index];
+    await writeStorage(serviceWorker, "whereToDisplayTranslatedText", mode);
+    await fn(mode, index);
+  }
+}
+
 /**
  * 场景边界状态复位（V2 保真度加固，issue #75）。
  *

@@ -28,6 +28,16 @@
     - childList 替换（x.com x-web 客户端：移除截断节点、插入含完整文本的新节点；来源：2026-09-26 真机突变捕获）：✅ 已模拟
     - CSS line-clamp 截断（文本全量在 DOM，仅视觉截断）：⛔ 未模拟（豁免理由：本页三种机制按 DOM 变更语义枚举，CSS 截断不产生突变；上游影响：无——扩展只响应 DOM 突变）
     - 真实数据截断（截断文本根本不在初始 DOM，点击后才从服务端取值）：⛔ 未模拟（豁免理由：本页用预置 data-full-text 属性模拟展开后文本；上游影响：无——展开后 DOM 到达方式与扩展的管道无关）
+    分支：内容更新通道（tests/shared/content-update-channels.mjs 的 SSOT；每个 active 通道在两种显示模式下各跑一次）
+    - `childlist-append`（站点 append 新含文节点，懒加载）：✅ 已模拟
+    - `childlist-replace`（站点移除截断节点、插入含完整文本的新节点）：✅ 已模拟
+    - `characterdata-rewrite`（站点原地改写既有文本节点，React nodeValue）：✅ 已模拟
+    - `container-textcontent-rewrite`（站点对容器整体 textContent 赋值，节点形状改变）：✅ 已模拟
+    - `attribute-rewrite`（站点改写既有元素的 placeholder/title/alt/value）：✅ 已模拟
+    - `attribute-add`（站点注入带可翻译属性的新元素）：✅ 已模拟
+    - `css-only-reveal`（文本始终在 DOM，仅 CSS 显隐切换，不产生突变 —— 负向格）：✅ 已模拟
+    - `closed-shadow-root`（封闭影子根内更新）：⛔ 未模拟（豁免理由：observer 挂在 document.documentElement，封闭影子根不在该树内，扩展物理不可见；上游影响：无——本页无依赖该行为的检查）
+    - 站点更新落点在扩展标记元素内部（`.dualtran-result-container` 吞更新机制的可复现形态；append / replace 两通道的落点均如此——2026-09-27 RED 校准实测：原 append 的追加目标/原 replace 的被替换 span 均在标记元素之外，第二根因不可复现，已修正）：✅ 已模拟
     分支：时序
     - 同步点击响应：✅ 已模拟（如实声明）
     - 真实网络延迟（React 渲染 + 服务端取数）：⛔ 未模拟（豁免理由：本地即时响应；上游影响：观察者 2s tick 的时序差异由 E2E 20s 轮询窗口吸收）
@@ -90,7 +100,7 @@
 
   <!-- Scenario B: x.com legacy client — the site updates an EXISTING text node in
        place (React nodeValue assignment → characterData mutation). -->
-  <article id="showmore-inplace-article" data-full-text="This post preview shows only the first part of a long article. The full text continues here with many more sentences that were previously collapsed. Readers who click show more expect every newly revealed sentence to be translated automatically, just like the preview text was. This paragraph intentionally repeats enough prose to make a clearly longer block of text for the translation pipeline to pick up and process end to end.">
+  <article id="showmore-inplace-article" data-full-text="This post preview shows only the first part of a long article. The full text continues here with many more sentences that were previously collapsed. Readers who click show more expect every newly revealed sentence to be translated automatically, just like the preview text was. This paragraph intentionally repeats enough prose to make a clearly longer block of text for the translation pipeline to pick up, and it ends with a trailing sentence for the inplace channel.">
     <div id="showmore-inplace-container">
       <span id="showmore-inplace-visible">This post preview shows only the first part of a long article.</span>
     </div>
@@ -99,12 +109,50 @@
 
   <!-- Scenario C: x.com x-web client — the site removes the truncated span and
        inserts a new span containing the full text (childList replacement). -->
-  <article id="showmore-replace-article" data-full-text="Another truncated post preview that hides most of its content. The full version continues with additional paragraphs revealing the rest of the story, including details that only become visible after expanding. Every sentence revealed here should be translated automatically by the extension without requiring another user action. This extra prose exists so the newly inserted element carries a substantial amount of translatable text for the end-to-end check.">
+  <article id="showmore-replace-article" data-full-text="Another truncated post preview that hides most of its content. The full version continues with additional paragraphs revealing the rest of the story, including details that only become visible after expanding. Every sentence revealed here should be translated automatically by the extension without requiring another user action. This extra prose exists so the newly inserted element carries a substantial block of translatable text, and it ends with a trailing sentence for the replace channel.">
     <div id="showmore-replace-container">
       <span id="showmore-replace-visible">Another truncated post preview that hides most of its content.</span>
     </div>
     <button id="showmore-replace-btn">Show more</button>
   </article>
+
+  <!-- Scenario D (channel: container-textcontent-rewrite): the site rewrites a
+       whole container via `container.textContent = ...` — the old text node is
+       destroyed and a new one inserted (childList remove+add; a distinct
+       mutation shape from the single-span replace above). -->
+  <article id="showmore-textcontent-article" data-full-text="A container-wide rewrite starts from a short teaser line. Assigning textContent destroys the previous text node and inserts a brand new one, which is a childList mutation rather than an in-place characterData edit. The extension must notice the new node identity and translate the whole rewritten paragraph, and it ends with a trailing sentence for the textcontent channel.">
+    <div id="showmore-textcontent-container">
+      <span id="showmore-textcontent-visible">A container-wide rewrite starts from a short teaser line.</span>
+    </div>
+    <button id="showmore-textcontent-btn">Show more</button>
+  </article>
+
+  <!-- Attribute channels: attribute-rewrite (site updates an EXISTING element's
+       translatable attribute) + attribute-add (site injects a NEW element that
+       carries a translatable attribute). -->
+  <article id="content-update-attr-article">
+    <div id="attr-rewrite-wrap">
+      <input id="attr-rewrite-input" type="text" placeholder="Search topics" title="Search the whole site">
+    </div>
+    <button id="attr-rewrite-btn">Update attributes</button>
+    <div id="attr-add-wrap"></div>
+    <button id="attr-add-btn">Inject dynamic field</button>
+  </article>
+
+  <!-- Negative-assumption cell (channel: css-only-reveal): the text is present
+       in the DOM from the start and only CSS visibility changes — no mutation
+       ever fires. The scanner must not skip hidden text, so the translation
+       must already exist once the block becomes visible.
+       data-e2e-fixture-hidden marks the deliberately display:none container so
+       whole-page sweeps (cross-level-journey step 5) exclude it instead of
+       demanding visible AI on a fixture that is hidden by design. -->
+  <article id="content-update-css-article" data-full-text="Hidden with CSS from the very first paint: this paragraph is already in the DOM, so no mutation will ever announce it. The scanner is expected to translate it during the initial pass, which means revealing it later must show a translation immediately, and it ends with a trailing sentence for the css reveal channel.">
+    <div id="css-reveal-container" data-e2e-fixture-hidden style="display:none">
+      <span id="css-reveal-text">Hidden with CSS from the very first paint: this paragraph is already in the DOM, so no mutation will ever announce it. The scanner is expected to translate it during the initial pass, which means revealing it later must show a translation immediately, and it ends with a trailing sentence for the css reveal channel.</span>
+    </div>
+    <button id="css-reveal-btn">Reveal (CSS only)</button>
+  </article>
+
   <script>
     document.getElementById('showmore-btn').addEventListener('click', function() {
       var container = document.getElementById('showmore-container');
@@ -114,7 +162,11 @@
         var span = document.createElement('span');
         span.id = 'showmore-hidden';
         span.textContent = ' This is the additional hidden content that only becomes visible after the user clicks the show-more button. The extension should translate this text automatically once it becomes visible to the user.';
-        container.appendChild(span);
+        // 落点在「扩展会标记的文本宿主」内部（.dualtran-result-container）。
+        // 标记元素必须**幸存**这次站点更新，否则 #98 第二根因（容器过滤吞
+        // 站点更新）在模拟页里不可复现——2026-09-27 RED 校准实测：更新落在
+        // 标记元素之外时，撤销该修复断言不会变红（假绿）。
+        document.getElementById('showmore-visible').appendChild(span);
         this.textContent = 'Show less';
       } else {
         hidden.remove();
@@ -149,11 +201,70 @@
     document.getElementById('showmore-replace-btn').addEventListener('click', function() {
       var visible = document.getElementById('showmore-replace-visible');
       var full = document.getElementById('showmore-replace-article').getAttribute('data-full-text');
+      // 替换发生在文本宿主内部：宿主（扩展会标记 .dualtran-result-container）
+      // 幸存，使「容器过滤吞更新」的回归必红（2026-09-27 RED 校准）。
       var replacement = document.createElement('span');
-      replacement.id = 'showmore-replace-visible';
+      replacement.id = 'showmore-replace-expanded';
       replacement.textContent = full;
-      visible.replaceWith(replacement);
+      visible.firstChild.replaceWith(replacement);
       this.textContent = 'Show less';
+    });
+
+    /**
+     * Scenario D (channel: container-textcontent-rewrite): container-level
+     * `textContent =` assignment. Destroys the old text node, inserts a new
+     * one — a childList remove+add whose node identity differs from Scenario C
+     * (the replaced node is the CONTAINER's subtree, not the span itself).
+     */
+    document.getElementById('showmore-textcontent-btn').addEventListener('click', function() {
+      var container = document.getElementById('showmore-textcontent-container');
+      var full = document.getElementById('showmore-textcontent-article').getAttribute('data-full-text');
+      container.textContent = full;
+      this.textContent = 'Show less';
+    });
+
+    /**
+     * Attribute channel: attribute-rewrite — the site rewrites a translatable
+     * attribute on an EXISTING element (placeholder + title here). This is the
+     * attribute-level twin of the show-more family: content that appears after
+     * translation must be translated.
+     */
+    document.getElementById('attr-rewrite-btn').addEventListener('click', function() {
+      var input = document.getElementById('attr-rewrite-input');
+      input.setAttribute('placeholder', 'Search topics, replies and direct messages across the whole site');
+      input.setAttribute('title', 'Search the whole site including private conversations');
+      this.textContent = 'Attributes updated';
+    });
+
+    /**
+     * Attribute channel: attribute-add — the site injects a NEW element that
+     * carries a translatable attribute (dynamic form field + image alt).
+     */
+    document.getElementById('attr-add-btn').addEventListener('click', function() {
+      var wrap = document.getElementById('attr-add-wrap');
+      if (document.getElementById('attr-added-input')) return;
+      var input = document.createElement('input');
+      input.id = 'attr-added-input';
+      input.type = 'text';
+      input.setAttribute('placeholder', 'Type to search members of this workspace');
+      wrap.appendChild(input);
+      var img = document.createElement('img');
+      img.id = 'attr-added-img';
+      img.setAttribute('alt', 'Preview thumbnail of the newly attached product photo');
+      wrap.appendChild(img);
+      this.textContent = 'Field injected';
+    });
+
+    /**
+     * Negative-assumption cell (channel: css-only-reveal): no mutation at all —
+     * the block is merely shown. If the initial scan skipped hidden text, the
+     * reveal shows an untranslated paragraph (the assertion direction is
+     * "translation must ALREADY be there").
+     */
+    document.getElementById('css-reveal-btn').addEventListener('click', function() {
+      var container = document.getElementById('css-reveal-container');
+      container.style.display = container.style.display === 'none' ? 'block' : 'none';
+      this.textContent = container.style.display === 'none' ? 'Reveal (CSS only)' : 'Hide (CSS only)';
     });
   </script>
 </body>
