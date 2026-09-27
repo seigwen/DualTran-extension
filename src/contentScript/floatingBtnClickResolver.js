@@ -23,7 +23,6 @@ export function resolveFloatingBtnClick(uiState, buttonId) {
     highlight,
     googleInFlight,
     aiInFlight,
-    hasGoogleFailedBlocks,
     hasAiFailedBlocks,
     aiResultAvailable,
     hasApiKey,
@@ -89,7 +88,7 @@ function resolveOriginalClick(uiState) {
 }
 
 function resolveGoogleClick(uiState) {
-  const { pageLanguageState, displayMode, googleInFlight, hasGoogleFailedBlocks } = uiState;
+  const { pageLanguageState, displayMode, googleInFlight } = uiState;
 
   // Google translation already displayed → no-op (Q16-revised).
   if (displayMode === "google") {

@@ -16,6 +16,7 @@ import {
   waitForContentScriptInjected,
   waitForPageTranslatorReady,
   sendMessageToTab,
+  assertUiStateMatchesEngine,
 } from "./setup.mjs";
 
 export const name = "floating-btn-three-state";
@@ -172,6 +173,25 @@ async function runThreeStateJourney(page, serviceWorker, testPageUrl, mockServer
     assertHighlighted(state, "google", `[${mode}] after auto-translate`);
     assertNotHighlighted(state, "original", `[${mode}] after auto-translate`);
     console.log(`  [${mode}] Google highlighted after auto-translate ✓`);
+
+    // ── 步骤 7：外部操作（右键菜单 / popup / 快捷键 → translate-page-ai）──
+    // D1/D2 修复（plan 30）：外部意图必须移动高亮。此前这条路径只调引擎、
+    // 不通知 UI —— 页面已 Google 翻译时用外部入口发起 AI 翻译，按钮停在旧态。
+    // 现在 E3 意图事件把 "ai" 送到 floatingBtn（highlight + aiModeActive 闩锁）。
+    console.log(`  [${mode}] Step 7: external AI op (context-menu path) → AI highlighted (D1/D2)`);
+    await sendMessageToTab(serviceWorker, page.url(), { action: "translate-page-ai" });
+    await page.waitForFunction(() => {
+      const host = document.getElementById("dualtran-floating-btn-host");
+      const btn = host?.shadowRoot?.getElementById("btnAi") || null;
+      return !!btn?.classList.contains("dualtran-floating-btn-active");
+    }, null, { timeout: 10000 });
+    state = await getButtonState(page);
+    assertHighlighted(state, "ai", `[${mode}] after external AI op`);
+    assertNotHighlighted(state, "google", `[${mode}] after external AI op`);
+    // Cross-module consistency: the actual highlight must equal the intent
+    // SSOT (with the derivation fallback), latched or not.
+    await assertUiStateMatchesEngine(page, serviceWorker);
+    console.log(`  [${mode}] AI highlighted after external op ✓`);
 
     console.log(`  [${mode}] Three-state journey PASSED`);
   } catch (err) {

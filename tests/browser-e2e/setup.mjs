@@ -1837,15 +1837,43 @@ export async function assertUiStateMatchesEngine(page, serviceWorker, opts = {})
     );
   }
 
-  const { pageLanguageState, aiRenderState, aiModeActive } = engine;
-  const aiFlowStarted = aiRenderState !== "idle" && aiModeActive;
-  const expected = pageLanguageState === "translated"
-    ? (aiFlowStarted ? "ai" : "google")
-    : "original";
+  // Plan 30 / Q5b: PRIMARY assertion — the actual highlight must equal the
+  // INTENT SSOT (uiStateStore.highlight, the single source every writer
+  // (click / intent event / derivation) lands in). The engine-derivation
+  // remains as the fallback verdict when the store query is unavailable
+  // (older builds) — derivation and SSOT must agree except inside a
+  // latched divergence window, which IS the legal midstate the model allows.
+  const storeState = await sendMessageToTab(serviceWorker, page.url(), {
+    action: "getFloatingUiState",
+  });
 
-  if (opts.expectTranslated && pageLanguageState !== "translated") {
+  let expected;
+  if (storeState && typeof storeState.highlight === "string") {
+    expected = storeState.highlight;
+    const { pageLanguageState, aiRenderState, aiModeActive } = engine;
+    const derived = pageLanguageState === "translated"
+      ? (aiRenderState !== "idle" && aiModeActive ? "ai" : "google")
+      : "original";
+    // Divergence is legal ONLY while the intent latch is set (explicit intent
+    // awaiting derivation catch-up). Without the latch, SSOT must equal the
+    // derivation — otherwise a writer is out of the model.
+    if (expected !== derived && !storeState.intervention) {
+      throw new Error(
+        `[DualTran Test] SSOT/derivation divergence without latch: ` +
+        `store=${JSON.stringify(storeState)}, engine=${JSON.stringify(engine)}, derived=${derived}`
+      );
+    }
+  } else {
+    const { pageLanguageState, aiRenderState, aiModeActive } = engine;
+    const aiFlowStarted = aiRenderState !== "idle" && aiModeActive;
+    expected = pageLanguageState === "translated"
+      ? (aiFlowStarted ? "ai" : "google")
+      : "original";
+  }
+
+  if (opts.expectTranslated && engine.pageLanguageState !== "translated") {
     throw new Error(
-      `[DualTran Test] Expected page translated, engine says ${pageLanguageState}`
+      `[DualTran Test] Expected page translated, engine says ${engine.pageLanguageState}`
     );
   }
 

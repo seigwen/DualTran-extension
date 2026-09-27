@@ -20,7 +20,6 @@ function baseState(overrides = {}) {
     intervention: false, // user has clicked a button on this page
     googleInFlight: false,
     aiInFlight: false,
-    hasGoogleFailedBlocks: false,
     hasAiFailedBlocks: false,
     aiResultAvailable: false, // newLine mode: AI text exists and can be re-shown locally
     hasApiKey: true,

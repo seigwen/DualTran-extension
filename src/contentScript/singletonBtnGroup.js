@@ -64,9 +64,20 @@ const blockStateMap = new WeakMap();
  * @property {string} translationId
  * @property {"idle"|"queuing"|"translating"|"translated"|"translationError"|"userPinned"} aiStatus
  * @property {"idle"|"translating"|"success"} googleBtnState
- * @property {"original"|"google"|"ai"} displayMode
+ * @property {"original"|"google"|"ai"} displayMode — ACTUAL display record
+ *   (plan 30): written by actual-display events alone (success display
+ *   switches / restore); drives the resolver's noop decisions.
+ * @property {"original"|"google"|"ai"} intentMode — INTENT record (plan 30):
+ *   what the user asked for (click), what a page-level intent action
+ *   propagated, or what the rebuild derivation seeded. The button highlight
+ *   reads THIS, not displayMode — the two may legally diverge mid-flight
+ *   (AI in flight → intent ai while the page still shows Google).
  * @property {number} requestEpoch — monotonic write-back guard (#65): restored
  *   blocks bump it, so late in-flight responses (Google/AI) are discarded.
+ * @property {number} blockIntentEpoch — block-scope switch-away edge counter
+ *   (plan 30 / Q2c, #70 family): bumped when a click switches the block away
+ *   from an in-flight AI request; the arrival checks it and keeps the result
+ *   without stealing the display (newLine: kept; replaceOriginal: discarded).
  * @property {string} [errorMessage]
  */
 
@@ -75,17 +86,19 @@ const blockStateMap = new WeakMap();
  * Called by pageTranslator.js instead of createInlineButtonGroup().
  */
 /**
- * Create a block state with canonical defaults for the 4 state machine fields.
+ * Create a block state with canonical defaults for the state machine fields.
  * registerBlock() merges this with data fields and DOM references.
- * @returns {{ aiStatus: string, googleBtnState: string, displayMode: string, translationId: string, requestEpoch: number }}
+ * @returns {{ aiStatus: string, googleBtnState: string, displayMode: string, intentMode: string, translationId: string, requestEpoch: number, blockIntentEpoch: number }}
  */
 export function createBlockState() {
   return {
     aiStatus: "idle",
     googleBtnState: "idle",
     displayMode: "original",
+    intentMode: "original",
     translationId: "",
     requestEpoch: 0,
+    blockIntentEpoch: 0,
   };
 }
 
@@ -103,6 +116,10 @@ export function registerBlock(translatedElement, sourceString, translatedTextNod
     aiSpan,       // <span class="dualtran-ai"> — AI writes here
     // Override: registerBlock is called after Google translation completes
     displayMode: "google",
+    // Intent at registration = Google (same reasoning): the block's first
+    // registered moment is the Google pass. Page-level intent changes reach
+    // it afterwards via propagateIntentToBlocks.
+    intentMode: "google",
   });
 }
 
@@ -136,20 +153,26 @@ export class BtnAiProxy {
   get displayMode() { return this._st().displayMode; }
   set displayMode(v) { this._st().displayMode = v; }
 
-  // ── Singleton-backed DOM nodes (only live when currentTarget matches) ──
-  get btnAiTxtNode()  { return this._isTarget() ? this._s.aiTextNode : DUMMY_NODE; }
-  get tooltip()       { return this._isTarget() ? this._s.tooltipNode  : DUMMY_NODE; }
-  get classList()     { return this._isTarget() ? this._s.aiBtn.classList : DUMMY_CLASSLIST; }
-  get style()         { return this._isTarget() ? this._s.aiBtn.style       : DUMMY_STYLE; }
+  // ── Absorbing DOM surfaces (plan 30 / Q3a) ──
+  // The engine's UI writes must NEVER reach the visible button: the button is
+  // rendered from state by updateSingletonUI, and actual translation state is
+  // expressed on the page (spinners / ⚠ / translated text). These surfaces
+  // used to fall through to the live singleton node when the block was the
+  // hover target, so the page-level AI flow ("queuing"/"translating..." labels,
+  // dualtran-ai-loading/-success/-error classes, ✕ cross, dynamic tooltips,
+  // title, button color) decorated the visible button mid-stream. Absorption
+  // is unconditional — target or not (same contract as createSingletonBlockProxy).
+  get btnAiTxtNode()  { return DUMMY_NODE; }
+  get tooltip()       { return DUMMY_NODE; }
+  get classList()     { return DUMMY_CLASSLIST; }
+  get style()         { return DUMMY_STYLE; }
   get ownerDocument() { return document; }
 
-  setAttribute(name, value) {
-    if (this._isTarget()) this._s.aiBtn.setAttribute(name, value);
-  }
+  /** Absorbed — the live button's title stays the static i18n tooltip (plan 30 / Q3a). */
+  setAttribute(_name, _value) {}
 
   // ── Internals ──
   _st() { return this._map.get(this._el) || {}; }
-  _isTarget() { return this._s.currentTarget === this._el; }
 }
 
 // ── Proxy helpers for aiTranslateDynamically / updateAiRenderStateInternal ──
@@ -355,7 +378,6 @@ function createSingletonHost() {
         pointer-events: none;
       }
       .dualtran-ai-btn:hover .dualtran-ai-tooltip { display: block; }
-      .dualtran-ai-error-cross { color: #dc2626; margin-left: 4px; font-weight: 600; }
     </style>
     <div class="dualtran-btn-group">
       <button class="dualtran-original-btn">Original</button>
@@ -556,65 +578,30 @@ export function hideButtonGroup() {
 }
 
 /**
- * Update the singleton's button UI to reflect the state of the given block.
+ * Render the singleton hover button group for a block.
  *
- * #65: three buttons (Original / Google / AI). Button colors come from the
- * BTN_COLORS palette (inline styles, active state = block displayMode);
- * the AI error decorations (✕ / "translating..." / error tooltip) are kept,
- * but they no longer fight the palette over the button text color — the
- * decoration's own color lives on the indicator span.
+ * Plan 30 (intent model): the buttons express INTENT ONLY — no loading/error
+ * decoration (the old "translating..." label, ✕ cross, error tooltip and
+ * success/loading/error classes are REMOVED). Actual state lives on the page:
+ * spinners, translated text, ⚠ error icons. The highlight reads the block's
+ * `intentMode` (falling back to the legacy displayMode derivation for blocks
+ * whose state was created before the field existed).
  *
- * #83: the AI success ✓ glyph was REMOVED by user request — the label stays a
- * plain "AI" and the success state is carried by the `dualtran-ai-success`
- * class alone (the highlighted button already communicates the state).
+ * #83: the label stays a plain "AI" — nothing decorates it anymore.
  */
 export function updateSingletonUI(translatedElement) {
   if (!_singleton.aiBtn) return;
   const state = blockStateMap.get(translatedElement);
   if (!state) return;
 
-  // Reset state classes
-  _singleton.aiBtn.classList.remove("dualtran-ai-loading", "dualtran-ai-success", "dualtran-ai-error");
-  // Remove the error indicator from a previous render. #83: the success ✓ glyph
-  // was removed, so the cross is the only decoration that can be present.
-  _singleton.aiBtn.querySelectorAll(".dualtran-ai-error-cross").forEach(el => el.remove());
-
-  const status = state.aiStatus;
-  if (status === "translated") {
-    // #83: success state = class marker only, label stays a plain "AI".
-    // The ✓ decoration that used to be appended here was removed by user
-    // request (the highlighted button already communicates the state).
-    _singleton.aiBtn.classList.add("dualtran-ai-success");
-    _singleton.aiTextNode.textContent = "AI";
-    _singleton.tooltipNode.textContent = "AI translated successfully!";
-    _singleton.tooltipNode.style.color = "";
-  } else if (status === "translationError") {
-    _singleton.aiBtn.classList.add("dualtran-ai-error");
-    const cross = document.createElement("span");
-    cross.textContent = "✕";
-    cross.className = "dualtran-ai-error-cross";
-    _singleton.aiTextNode.textContent = "AI";
-    _singleton.aiTextNode.appendChild(cross);
-    // Restore error reason from blockState to tooltip (stored in state.errorMessage when error occurred)
-    _singleton.tooltipNode.textContent = state.errorMessage || "AI translation error";
-    _singleton.tooltipNode.style.color = "#dc2626";
-  } else if (status === "translating") {
-    _singleton.aiBtn.classList.add("dualtran-ai-loading");
-    _singleton.aiTextNode.textContent = "translating...";
-    _singleton.tooltipNode.textContent = "translating...";
-    _singleton.tooltipNode.style.color = "";
-  } else {
-    // Idle state: clear tooltip to avoid residual error/success info from previous block
-    _singleton.aiTextNode.textContent = "AI";
-    _singleton.tooltipNode.textContent = "";
-    _singleton.tooltipNode.style.color = "";
-  }
-
-  // Active-state highlight follows the block's display mode (legacy state
-  // fallback mirrors the pre-#65 handlers).
-  const displayMode = state.displayMode ||
+  // Intent-driven active-state highlight (plan 30 / Q2a). Legacy fallback
+  // mirrors the pre-plan-30 derivation for state objects created without
+  // intentMode (e.g. tests building bare states).
+  const intentMode =
+    state.intentMode ||
+    state.displayMode ||
     (state.aiStatus === "translated" ? "ai" : "google");
-  applyButtonPalette(displayMode);
+  applyButtonPalette(intentMode);
 }
 
 // ── Event delegation ────────────────────────────────────────────

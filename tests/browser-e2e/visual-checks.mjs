@@ -240,7 +240,7 @@ export const CHECKPOINTS = [
       page: "mock test-page.html",
       when: "newLine: after hovering block 0 and clicking AI in the block group (page was previously Google-translated)",
     },
-    programmatic: ["assertAiButtonSuccessLabelIsPlainAi"],
+    programmatic: ["assertAiButtonStaysPlainIntentOnly"],
     expect: [
       "Block 0 shows the AI translation text — NOT the Google translation (#70 assertion: the block-level AI click must win over the page-level Google state)",
       "The AI text uses the configured AI color treatment, not the Google one",
@@ -255,7 +255,7 @@ export const CHECKPOINTS = [
       page: "mock test-page.html",
       when: "replaceOriginal: after hovering block 0 and clicking AI in the block group",
     },
-    programmatic: ["assertAiButtonSuccessLabelIsPlainAi"],
+    programmatic: ["assertAiButtonStaysPlainIntentOnly"],
     expect: [
       "Block 0's visible text is the AI translation (not the original source text, not the Google translation)",
       "No leftover empty wrappers or residual original fragments inside block 0",

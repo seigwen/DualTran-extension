@@ -340,55 +340,72 @@ describe("Behavior 4 — AI → Google+AI → G → Google only → AI → show 
   });
 });
 
-describe("Behavior 4b — G after AI resets the singleton AI button to initial state", () => {
+describe("Behavior 4b — intent model: button shows intent, state machine resets after G", () => {
   function singletonAiBtn() {
     const host = document.getElementById("dualtran-singleton-btn-host");
     return host ? host.shadowRoot.querySelector(".dualtran-ai-btn") : null;
   }
 
-  it("newLine: AI button shows success after AI, returns to idle after G", async () => {
+  it("newLine: AI click highlights AI button (intent), G click moves the highlight, no state classes exist", async () => {
     createSingletonButtonGroup();
     const { translatedEl } = createNewLineBlock();
 
-    // AI → singleton button renders success state — no ✓ glyph (#83)
+    // AI click → intent ai → AI button is the active one. Plan 30: the button
+    // carries NO state decoration (no success class, no ✓ — the label is a
+    // plain "AI"); it only expresses intent via the active palette.
     await handleBtn("ai", translatedEl);
     const aiBtn = singletonAiBtn();
     expect(aiBtn).not.toBeNull();
-    expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(true);
+    expect(getBlockState(translatedEl).intentMode).toBe("ai");
+    expect(aiBtn.classList.contains("dualtran-btn-active")).toBe(true);
+    // Decoration removal (plan 30 / Q3a): none of the old state markers exist.
+    expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(false);
+    expect(aiBtn.classList.contains("dualtran-ai-loading")).toBe(false);
+    expect(aiBtn.classList.contains("dualtran-ai-error")).toBe(false);
     expect(aiBtn.querySelector(".dualtran-ai-success-check")).toBeNull();
+    expect(aiBtn.querySelector(".dualtran-ai-error-cross")).toBeNull();
     expect(aiBtn.querySelector("span").textContent).toBe("AI");
 
-    // G → Google-only display AND AI button back to its initial (pre-AI) state
+    // G → Google-only display AND intent moves to google (last action wins),
+    // with the state machine still resetting as before (userPinned / no id).
     await handleBtn("google", translatedEl);
     const st = getBlockState(translatedEl);
     expect(st.displayMode).toBe("google");
+    expect(st.intentMode).toBe("google");
     expect(st.aiStatus).toBe("userPinned");
     expect(st.translationId).toBe("");
-    expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(false);
-    expect(aiBtn.classList.contains("dualtran-ai-error")).toBe(false);
-    expect(aiBtn.classList.contains("dualtran-ai-loading")).toBe(false);
-    expect(aiBtn.querySelector(".dualtran-ai-success-check")).toBeNull();
+    const googleBtn = document
+      .getElementById("dualtran-singleton-btn-host")
+      .shadowRoot.querySelector(".dualtran-google-btn");
+    expect(googleBtn.classList.contains("dualtran-btn-active")).toBe(true);
+    expect(aiBtn.classList.contains("dualtran-btn-active")).toBe(false);
+    // No decoration appears at any point.
+    expect(aiBtn.querySelector(".dualtran-ai-error-cross")).toBeNull();
     expect(aiBtn.querySelector("span").textContent).toBe("AI");
   });
 
-  it("replaceOriginal: AI button shows success after AI, returns to idle after G", async () => {
+  it("replaceOriginal: same intent-only contract after AI → G", async () => {
     createSingletonButtonGroup();
     const { p } = createReplaceOriginalBlock();
 
-    // AI → success (class marker only — no ✓ glyph, #83)
     await handleBtn("ai", p);
     const aiBtn = singletonAiBtn();
     expect(aiBtn).not.toBeNull();
-    expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(true);
+    expect(getBlockState(p).intentMode).toBe("ai");
+    expect(aiBtn.classList.contains("dualtran-btn-active")).toBe(true);
+    // Plan 30 / Q3a: no state decoration exists on the button anymore.
+    expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(false);
     expect(aiBtn.querySelector(".dualtran-ai-success-check")).toBeNull();
+    expect(aiBtn.querySelector(".dualtran-ai-error-cross")).toBeNull();
 
-    // G → Google-only, AI button back to initial state
+    // G → Google-only: intent + state machine move on
     await handleBtn("google", p);
     const st = getBlockState(p);
     expect(st.displayMode).toBe("google");
+    expect(st.intentMode).toBe("google");
     expect(st.aiStatus).toBe("userPinned");
     expect(st.translationId).toBe("");
-    expect(aiBtn.classList.contains("dualtran-ai-success")).toBe(false);
+    expect(aiBtn.classList.contains("dualtran-btn-active")).toBe(false);
     expect(aiBtn.querySelector(".dualtran-ai-success-check")).toBeNull();
     expect(aiBtn.querySelector("span").textContent).toBe("AI");
   });
@@ -775,5 +792,204 @@ describe("Arrival gate — hover A after page-level Google (issue #70)", () => {
     pageTranslator.setAiModeActive(true);
     const capturedEpoch = pageTranslator._getAiModeEpoch();
     expect(pageTranslator._isAiArrivalAllowed(capturedEpoch)).toBe(true);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────
+// Intent events — engine-level emit points (plan 30 / §3.2, §5.2)
+//
+// The floating button's intent subscription is only as complete as the
+// engine's emit points. These cells drive the REAL engine through E1
+// translatePage / E2 restorePage / E3 translatePageAi and pin:
+//   - the announced mode per entry point,
+//   - E2's silent variant (translatePage's internal restore) emits nothing,
+//   - E3 covers the NO-KEY early return: an external no-key AI op
+//     (popup / context menu / shortcut) must still move the highlight
+//     (D1) — without the branch emit it announces nothing and the UI
+//     stays stale.
+// ──────────────────────────────────────────────────────────────
+
+describe("Intent events — engine emit points (plan 30 / §3.2)", () => {
+  const emitLog = [];
+
+  beforeAll(() => {
+    pageTranslator.onRequestedModeChange((mode) => emitLog.push(mode));
+  });
+
+  beforeEach(() => {
+    emitLog.length = 0;
+    mockState.configValues.apiKeyOpenAI = "test-key";
+    pageTranslator._setForceAiTranslation(false);
+  });
+
+  afterEach(() => {
+    pageTranslator.restorePage(true);
+    pageTranslator._setForceAiTranslation(false);
+  });
+
+  it("E1: translatePage announces the run's intent — google without the AI marker", () => {
+    pageTranslator.translatePage("fr");
+    expect(emitLog).toEqual(["google"]);
+  });
+
+  it("E1: translatePage announces ai when the AI flow is forced (SPA recovery marker path)", () => {
+    pageTranslator._setForceAiTranslation(true);
+    pageTranslator.translatePage("fr");
+    expect(emitLog).toEqual(["ai"]);
+  });
+
+  it("E2: restorePage announces original", () => {
+    pageTranslator.translatePage("fr");
+    emitLog.length = 0;
+    pageTranslator.restorePage();
+    expect(emitLog).toEqual(["original"]);
+  });
+
+  it("E2 (silent): the internal restore inside translatePage emits nothing (order discipline)", () => {
+    pageTranslator.restorePage(true);
+    expect(emitLog).toEqual([]);
+  });
+
+  it("E3: translatePageAi announces ai on the keyed path", () => {
+    pageTranslator.translatePageAi("fr");
+    // E3 fires at the entry; the page-language==original branch then runs
+    // translatePage, whose own E1 re-announces "ai" (idempotent — the latch
+    // makes duplicate announcements harmless).
+    expect(emitLog).toEqual(["ai", "ai"]);
+  });
+
+  it("E3: translatePageAi announces ai even with NO API key — external no-key op must move the highlight (D1)", () => {
+    mockState.configValues.apiKeyOpenAI = "";
+    const previousConfirm = globalThis.confirm;
+    globalThis.confirm = vi.fn(() => false); // decline the config prompt — the intent stands regardless
+    try {
+      const started = pageTranslator.translatePageAi("fr");
+      expect(started).toBe(false); // no-key early return
+      expect(emitLog).toEqual(["ai"]);
+    } finally {
+      globalThis.confirm = previousConfirm;
+    }
+  });
+});
+
+// ──────────────────────────────────────────────────────────────
+// Intent propagation — the page intent reaches every registered
+// block at the dispatch moment (plan 30 / Q2a, §5.2), and the
+// switch-away edge bumps blockIntentEpoch only for blocks whose AI
+// request is in flight (Q2c; symmetric with the click path's check
+// in handleSingletonBtnClick).
+// ──────────────────────────────────────────────────────────────
+
+describe("Intent propagation — page intent reaches every block (plan 30 / Q2a)", () => {
+  it("propagateIntentToBlocks writes the announced mode into every registered block", () => {
+    const a = createNewLineBlock();
+    const b = createNewLineBlock();
+
+    pageTranslator.propagateIntentToBlocks("ai");
+    expect(getBlockState(a.translatedEl).intentMode).toBe("ai");
+    expect(getBlockState(b.translatedEl).intentMode).toBe("ai");
+
+    pageTranslator.propagateIntentToBlocks("original");
+    expect(getBlockState(a.translatedEl).intentMode).toBe("original");
+    expect(getBlockState(b.translatedEl).intentMode).toBe("original");
+  });
+
+  it("switch-away propagation bumps blockIntentEpoch only for blocks with an AI request in flight", () => {
+    const inFlight = createNewLineBlock();
+    const idle = createNewLineBlock();
+    const stInFlight = getBlockState(inFlight.translatedEl);
+    const stIdle = getBlockState(idle.translatedEl);
+
+    stInFlight.intentMode = "ai";
+    stInFlight.aiStatus = "translating";
+    stIdle.intentMode = "ai";
+    stIdle.aiStatus = "idle";
+
+    pageTranslator.propagateIntentToBlocks("google");
+
+    // The in-flight block records the switch-away edge (its arrival must not
+    // steal the display); the idle block has nothing to suppress.
+    expect(stInFlight.blockIntentEpoch).toBe(1);
+    expect(stInFlight.intentMode).toBe("google");
+    expect(stIdle.blockIntentEpoch).toBe(0);
+    expect(stIdle.intentMode).toBe("google");
+  });
+
+  it("re-propagating the same mode is a no-op (no epoch churn)", () => {
+    const block = createNewLineBlock();
+    const st = getBlockState(block.translatedEl);
+    st.intentMode = "ai";
+    st.aiStatus = "queuing";
+
+    pageTranslator.propagateIntentToBlocks("ai"); // same mode
+    expect(st.blockIntentEpoch).toBe(0);
+    expect(st.intentMode).toBe("ai");
+  });
+
+  it("invalid mode values are ignored (guarded input)", () => {
+    const block = createNewLineBlock();
+    const st = getBlockState(block.translatedEl);
+    st.intentMode = "ai";
+
+    pageTranslator.propagateIntentToBlocks("bogus");
+    expect(st.intentMode).toBe("ai");
+    expect(st.blockIntentEpoch).toBe(0);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────
+// Intent inheritance — dynamically registered blocks join the page's
+// live intent at registration (plan 30 / Q4d, §5.2). Both registerBlock
+// call sites: addTranslatedContent (newLine) and translateResults
+// (replaceOriginal).
+//
+// The distinguishing signal: registerBlock seeds intentMode = "google",
+// so a block registered while the page intent is "ai" proves the
+// inheritance write ran (without it the seed stays "google").
+// ──────────────────────────────────────────────────────────────
+
+describe("Intent inheritance — dynamic blocks join the page intent (plan 30 / Q4d)", () => {
+  afterEach(() => {
+    pageTranslator.restorePage(true);
+    pageTranslator._setForceAiTranslation(false);
+  });
+
+  it("newLine: a block registered by addTranslatedContent inherits the AI intent", async () => {
+    pageTranslator._setForceAiTranslation(true);
+    pageTranslator.translatePage("fr"); // page intent is now ai (translated + loading)
+
+    const textNode = document.createTextNode("Hello world");
+    const p = document.createElement("p");
+    p.appendChild(textNode);
+    const translatedElement = document.createElement("translated");
+    p.appendChild(translatedElement);
+    document.body.appendChild(p);
+
+    await pageTranslator._addTranslatedContent(
+      [{ nodes: [textNode], translatedElement, nodesToBeInTranslatedNode: [textNode] }],
+      [["Bonjour le monde"]]
+    );
+
+    const st = getBlockState(translatedElement);
+    expect(st).not.toBeNull();
+    expect(st.intentMode).toBe("ai"); // inherited — not the "google" seed
+    expect(st.displayMode).toBe("google"); // registration still seeds the actual-display record
+  });
+
+  it("replaceOriginal: a block registered by translateResults inherits the AI intent", () => {
+    pageTranslator._setForceAiTranslation(true);
+    pageTranslator.translatePage("fr");
+
+    const textNode = document.createTextNode("Hello world");
+    const p = document.createElement("p");
+    p.appendChild(textNode);
+    document.body.appendChild(p);
+
+    pageTranslator._translateResults([{ nodes: [textNode] }], [["Bonjour"]]);
+
+    const st = getBlockState(p);
+    expect(st).not.toBeNull();
+    expect(st.intentMode).toBe("ai");
+    expect(st.displayMode).toBe("google");
   });
 });
