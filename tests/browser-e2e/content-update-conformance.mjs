@@ -274,12 +274,14 @@ async function triggerSiteAction(page, driver) {
     const r = el.getBoundingClientRect();
     const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
     if (!top || top === el || el.contains(top)) return false;
-    // 扩展自产元素（悬停组/浮动按钮宿主）覆盖
+    // 扩展自产元素（悬停组/浮动按钮宿主）覆盖判定：这是 overlay 命中测试，
+    // 不是宿主三态断言——宿主 shadowRoot 生命周期与本站点无关。
+    const overlaySel = "#dualtran-singleton-btn-host, #dualtran-floating-btn-host"; // host-state-allow: overlay hit-test, not a host-lifecycle assertion
     return (
       top.classList.contains("notranslate") ||
       top.id === "dualtran-singleton-btn-host" ||
       top.id === "dualtran-floating-btn-host" ||
-      !!top.closest("#dualtran-singleton-btn-host, #dualtran-floating-btn-host")
+      !!top.closest(overlaySel)
     );
   }, sel);
 
