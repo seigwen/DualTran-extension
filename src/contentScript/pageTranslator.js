@@ -72,7 +72,7 @@ import { wordsCount } from "../util/globalWordsCount.js"
 import { registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, setCallbacks, getProxiesForTranslation, getAllProxies, getBlockState, updateSingletonUI } from "./singletonBtnGroup.js";
 import { resolveSingletonBtnClick } from "./singletonBtnClickResolver.js";
 import { setBlockTranslationIndicator, injectBlockIndicatorStyles } from "./blockTranslationIndicator.js";
-import { getState as getUiStateStoreState } from "./uiStateStore.js";
+import { getState as getUiStateStoreState, dumpLog as dumpUiStateLog } from "./uiStateStore.js";
 
 /**
  * Convert the dontSortResults config value to a boolean (pure function, for unit testing).
@@ -4441,7 +4441,15 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
     // E1 (plan 30): announce the run's intent AFTER the mirror update and
     // AFTER the observers (order discipline — see onRequestedModeChange).
-    emitRequestedModeChange(shouldForceAiForThisRun ? "ai" : "google");
+    // D6: the announcement is gated by the derivation rule (aiModeActive),
+    // not the raw armed flag. When the user explicitly switched away (the
+    // Google click wrote aiModeActive=false before this run), the run's AI
+    // arrivals are kept/discarded without stealing the display (Q22/Q23),
+    // so the run's effective intent is Google — announcing "ai" from the
+    // stale armed flag alone clobbered the explicit click (E2E
+    // floating-btn-three-state replaceOriginal step 2: armed marker from
+    // the previous pass, Google click → AI highlighted).
+    emitRequestedModeChange(shouldForceAiForThisRun && aiModeActive ? "ai" : "google");
 
      // Translate title
     translatePageTitle();
@@ -4638,6 +4646,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       // displayMode) for E2E state-consistency assertions. The store module
       // is the single owner — query it directly (same process, shared import).
       sendResponse({ ...getUiStateStoreState() });
+    } else if (request.action === "getFloatingUiStateLog") {
+      // Diagnostic aid (plan 30 / D6): the floating UI store's change log,
+      // for E2E failure dumps — "which writer moved the highlight" is the
+      // first question for every state bug (08-ui-state-ssot-plan.md).
+      sendResponse(dumpUiStateLog());
     } else if (request.action === "getOriginalTabLanguage") {
       pageTranslator.onGetOriginalTabLanguage(function () {
         sendResponse(originalTabLanguage);

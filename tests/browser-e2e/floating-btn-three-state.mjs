@@ -8,6 +8,11 @@
  *   4. AI 译文显示后点 Google → 本地切回 Google 译文（不发请求）
  *   5. 点 Original → 恢复原文 + Original 高亮
  *   6. 自动翻译（未介入）→ Google 高亮（内容驱动）
+ *   7. 外部操作（右键菜单路径 → translate-page-ai）→ AI 高亮 + AI 译文落地（D1/D2）
+ *
+ * D6 回归格：replaceOriginal 次的步骤 2 同时充当 D6 格——步骤 7（或步骤 3）
+ * 的成功已在 sessionStorage 武装 AI marker，下一次导航即在「已武装」页面
+ * 上执行显式 Google 点击：显式意图必须压过武装的 AI 自动恢复（高亮 Google）。
  *
  * 模式对称性：newLine + replaceOriginal 各跑一遍（测试套件规则）。
  */
@@ -185,6 +190,19 @@ async function runThreeStateJourney(page, serviceWorker, testPageUrl, mockServer
       const btn = host?.shadowRoot?.getElementById("btnAi") || null;
       return !!btn?.classList.contains("dualtran-floating-btn-active");
     }, null, { timeout: 10000 });
+    // Wait for the AI translation to actually LAND (text in the page): the
+    // success arms the sessionStorage AI-restore marker, and the NEXT pass
+    // must then load on an armed page — that is the deterministic D6 setup
+    // (an explicit Google click on an armed page must win over the armed
+    // AI auto-restore; the button must show Google, not AI).
+    await page.waitForFunction(({ snippet, m }) => {
+      if (m === "replaceOriginal") {
+        return [...document.querySelectorAll(".dualtran-aitranslatedtext-replacemode")]
+          .some((el) => (el.textContent || "").trim().length > 0);
+      }
+      return [...document.querySelectorAll(".dualtran-ai")]
+        .some((el) => (el.textContent || "").includes(snippet));
+    }, { snippet: expectedAiSnippet, m: mode }, { timeout: 45000 });
     state = await getButtonState(page);
     assertHighlighted(state, "ai", `[${mode}] after external AI op`);
     assertNotHighlighted(state, "google", `[${mode}] after external AI op`);
@@ -196,6 +214,24 @@ async function runThreeStateJourney(page, serviceWorker, testPageUrl, mockServer
     console.log(`  [${mode}] Three-state journey PASSED`);
   } catch (err) {
     collector?.record?.(`three-state-${mode}`, err.message);
+    // Failure diagnostic (plan 30 / D6): dump the floating UI store's change
+    // log so a failure names the writer that moved the highlight (the store
+    // is the SSOT; "which writer" is the first question for state bugs).
+    try {
+      const log = await sendMessageToTab(serviceWorker, page.url(), {
+        action: "getFloatingUiStateLog",
+      });
+      console.log(`  [${mode}] uiStateStore change log (last entries first):`);
+      for (const entry of (log || []).slice(-12).reverse()) {
+        console.log(
+          `    - ${entry.source}: ${JSON.stringify(entry.patch)} ` +
+            `→ before=${JSON.stringify({ highlight: entry.before?.highlight, intervention: entry.before?.intervention, aiModeActive: entry.before?.aiModeActive, aiRenderState: entry.before?.aiRenderState, pageLanguageState: entry.before?.pageLanguageState })} ` +
+            `after=${JSON.stringify({ highlight: entry.after?.highlight, intervention: entry.after?.intervention, aiModeActive: entry.after?.aiModeActive, aiRenderState: entry.after?.aiRenderState, pageLanguageState: entry.after?.pageLanguageState })}`
+        );
+      }
+    } catch (dumpErr) {
+      console.log(`  [${mode}] change-log dump failed: ${dumpErr.message}`);
+    }
     throw err;
   }
 }
@@ -208,6 +244,23 @@ export async function run(scope) {
   console.log("└──────────────────────────────────────────────────┘");
 
   collector?.attachPage?.(page, "floating-btn-three-state");
+
+  // 场景自含 AI 前置（#94 原则）：步骤 3/7 依赖真实 AI 翻译落地（落地才武装
+  // sessionStorage AI marker → 下一趟导航才是「已武装」页面）。此前该前置靠
+  // storage 残留：全套运行时前序场景恰好配过 AI（绿），孤立运行时无 key 静默
+  // 降级（无 AI 译文、marker 不武装，D6 格根本触不到）——两套运行方式行为不同。
+  // 显式写入 mock AI 配置，两种运行方式完全一致。
+  const apiBase = mockServerConfig?.openRouterApiBase || "http://localhost:8788";
+  await serviceWorker.evaluate(async (config) => {
+    await chrome.storage.local.set({
+      aiProvider: "openrouter",
+      apiKeyOpenRouter: "mock-openrouter-key",
+      openRouterApiBase: config.apiBase,
+      openRouterModel: "openai/gpt-4o-mini",
+      aiImproveForLongerThan: 0,
+      showFloatingBtn: "yes",
+    });
+  }, { apiBase });
 
   // newLine 模式
   await runThreeStateJourney(page, serviceWorker, testPageUrl, mockServerConfig, "newLine", collector);

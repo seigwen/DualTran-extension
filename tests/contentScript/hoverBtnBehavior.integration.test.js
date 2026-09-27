@@ -820,6 +820,11 @@ describe("Intent events — engine emit points (plan 30 / §3.2)", () => {
     emitLog.length = 0;
     mockState.configValues.apiKeyOpenAI = "test-key";
     pageTranslator._setForceAiTranslation(false);
+    // Baseline premise for the emit cells: the user is in AI mode (the SPA
+    // recovery path restores AI only when the user's last choice was AI —
+    // aiModeActive=false means arrivals are kept/discarded without stealing
+    // the display, Q22/Q23).
+    pageTranslator.setAiModeActive(true);
   });
 
   afterEach(() => {
@@ -836,6 +841,20 @@ describe("Intent events — engine emit points (plan 30 / §3.2)", () => {
     pageTranslator._setForceAiTranslation(true);
     pageTranslator.translatePage("fr");
     expect(emitLog).toEqual(["ai"]);
+  });
+
+  it("E1 (D6): an armed AI marker does NOT override an explicit Google intent — announcement follows the derivation gate", () => {
+    // The replacement for this cell's scenario: the page is ARMED (sessionStorage
+    // AI marker restored shouldForceAiAfterPageTranslation=true) but the user
+    // explicitly switched to Google (the click wrote aiModeActive=false before
+    // the run). The run's AI arrivals are kept/discarded without stealing the
+    // display (Q22/Q23) — so the announcement must be "google". Before the D6
+    // fix the emit announced "ai" from the stale armed flag alone, clobbering
+    // the explicit click (E2E: floating-btn-three-state replaceOriginal step 2).
+    pageTranslator._setForceAiTranslation(true);
+    pageTranslator.setAiModeActive(false);
+    pageTranslator.translatePage("fr");
+    expect(emitLog).toEqual(["google"]);
   });
 
   it("E2: restorePage announces original", () => {
