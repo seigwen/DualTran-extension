@@ -46,56 +46,31 @@ const changeLog = []; // { ts, source, patch, before, after }
 const subscribers = new Set();
 
 /**
- * Resolve what the UI state MUST be when no user intervention happened
- * (live event arbitration — reflects what the page ACTUALLY shows):
+ * Resolve the INTENT-driven UI mode from the engine mirrors (the single
+ * derivation rule, plan 30 / Q1a+Q4e — replaces the old
+ * deriveEngineDrivenUi + deriveRebuildUi pair):
  *
- *   - pageLanguageState === "original" → Original
- *   - pageLanguageState === "translated" + aiRenderState === "success"
- *     + aiModeActive → AI (the page IS showing AI translations)
- *   - pageLanguageState === "translated" + otherwise → Google
+ *   - pageLanguageState === "original" → "original"
+ *   - translated + AI flow started (aiModeActive && aiRenderState !== "idle")
+ *     → "ai"   (includes in-flight/loading and error: click = retry)
+ *   - translated + otherwise → "google"
  *
- * Why aiRenderState === "success" (not "!== idle"): without intervention,
- * AI only ever runs when the user previously chose AI (sessionStorage
- * marker → shouldForceAiAfterPageTranslation). While AI is in flight
- * (loading) the page still shows Google — the button must stay Google
- * until AI actually displays. On error the page falls back to Google.
- * (Bug report: refresh after AI translation → page shows AI but button
- * stays Google highlighted.)
+ * The highlight follows the INTENT, not what the page currently shows: an
+ * AI flow in flight keeps the AI button highlighted while the page still
+ * shows Google + a spinner (legal midstate, plan 30 §〇).
  */
-function deriveEngineDrivenUi(engine) {
-  const aiDisplayed =
+function deriveIntentUi(engine) {
+  const aiIntent =
     engine.pageLanguageState === "translated" &&
-    engine.aiRenderState === "success" &&
-    engine.aiModeActive;
-  const mode = aiDisplayed
-    ? "ai"
-    : engine.pageLanguageState === "translated"
-      ? "google"
-      : "original";
-  return { highlight: mode, displayMode: mode };
-}
-
-/**
- * Resolve the initial UI state after an SPA rebuild (resetForRebuild).
- * Full derivation INCLUDING the AI flow: on rebuild the page may already
- * show AI translations (user clicked AI before navigating), and the
- * rebuilt button group must restore that. Mirrors resolveInitialUiState
- * in floatingBtnClickResolver.js (keep in sync):
- *
- *   - page untranslated → Original
- *   - translated + AI flow started (aiRenderState !== "idle" AND
- *     aiModeActive) → AI
- *   - translated + otherwise → Google
- */
-function deriveRebuildUi(engine) {
-  const aiFlowStarted = engine.aiRenderState !== "idle" && engine.aiModeActive;
+    engine.aiModeActive &&
+    engine.aiRenderState !== "idle"; // loading | success | error
   const mode =
     engine.pageLanguageState === "translated"
-      ? aiFlowStarted
+      ? aiIntent
         ? "ai"
         : "google"
       : "original";
-  return { highlight: mode, displayMode: mode };
+  return { highlight: mode };
 }
 
 function pushLog(source, patch, before, after) {
@@ -110,20 +85,30 @@ function pushLog(source, patch, before, after) {
 }
 
 /**
- * Watchdog arbitration (L2): when the user has NOT intervened, the UI
- * highlight/displayMode must match the engine-driven expectation
- * (conservative — AI highlight is a user choice, never derived live).
- * Returns the corrected patch (empty when consistent).
+ * Watchdog arbitration (L2): the highlight must match the INTENT derivation
+ * unless the intent latch (intervention) is set. displayMode is NOT
+ * arbitrated — it is an actual-display record owned by the actual-display
+ * event writers (plan 30 / Q4e).
+ *
+ * Latch (plan 30 / Q1b+Q4a): once an explicit intent is written, the latch
+ * holds the highlight against derivation divergences until the derivation
+ * converges to the same mode (then it auto-releases — no leak) or a
+ * restore/rebuild clears it. Returns the corrected patch (empty when the
+ * state is consistent or latched-and-divergent).
  */
 function arbitrateEngineDrivenState(state) {
-  if (state.intervention) return {};
-  const expected = deriveEngineDrivenUi(state);
+  const expected = deriveIntentUi(state);
+  if (state.intervention) {
+    // Auto-release: derivation caught up with the explicit intent.
+    if (state.highlight === expected.highlight) {
+      return { intervention: false };
+    }
+    // Latched divergence — keep the explicit intent.
+    return {};
+  }
   const patch = {};
   if (state.highlight !== expected.highlight) {
     patch.highlight = expected.highlight;
-  }
-  if (state.displayMode !== expected.displayMode) {
-    patch.displayMode = expected.displayMode;
   }
   return patch;
 }
@@ -169,7 +154,7 @@ export function setState(patch, source) {
       }
     }
   }
-  if (corrected) {
+  if (corrected && correction.highlight !== undefined) {
     console.warn(
       "[uiStateStore] watchdog corrected engine-driven UI state mismatch:",
       { correction, engineState: { ...engineState }, uiState: { ...uiState } }
@@ -199,11 +184,12 @@ export function resetForRebuild() {
   uiState.intervention = false;
   uiState.googleInFlight = false;
   uiState.aiInFlight = false;
-  const { highlight, displayMode } = deriveRebuildUi(engineState);
+  const { highlight } = deriveIntentUi(engineState);
   uiState.highlight = highlight;
-  uiState.displayMode = displayMode;
+  // displayMode is NOT derived on rebuild (intent model): the button group
+  // re-registers blocks from actual display; the highlight comes from intent.
   pushLog("resetForRebuild", { reset: true }, uiState, uiState);
-  subscribers.forEach((cb) => cb({ reset: true, highlight, displayMode }));
+  subscribers.forEach((cb) => cb({ reset: true, highlight }));
 }
 
 /** Export the change log (diagnostic tool for state bugs). */

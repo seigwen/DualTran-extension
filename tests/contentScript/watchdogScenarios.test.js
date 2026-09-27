@@ -22,7 +22,9 @@ describe("watchdog vs floatingBtn semantics (M3 scenarios)", () => {
   it("S2: auto-translate (no intervention) → Google highlight derived", () => {
     setState({ pageLanguageState: "translated" }, "onPageLanguageStateChange");
     expect(getState().highlight).toBe("google");
-    expect(getState().displayMode).toBe("google");
+    // Intent model: displayMode is an actual-display record, NOT arbitrated.
+    // It is written by actual-display events (render success → google) only.
+    expect(getState().displayMode).toBe("original");
   });
 
   it("S3: restore page → original derived + intervention cleared atomically", () => {
