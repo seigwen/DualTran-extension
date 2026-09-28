@@ -178,6 +178,57 @@ async function rd2DefaultSendsNoReasoningField(page, serviceWorker, scope) {
   console.log("[RD2] 通过 ✓\n");
 }
 
+/** Clean up after the scenario so the shared page is not left AI-translated.
+ *
+ * Why this is mandatory (learned in CI, not locally): this scenario leaves the
+ * shared test page in a fully AI-translated state, and the content script records
+ * a per-URL `dualtran:aiApplied:` sessionStorage marker. The runner's
+ * `resetScenarioState` clears sessionStorage on `about:blank` — where the test
+ * origin's storage is unreachable — so the marker survives, and the next scenario
+ * that loads the same page (visual-audit) gets it auto-restored into a translated
+ * state, failing its `baseline-untranslated` pristine check.
+ *
+ * The check at the end is deliberately hard: if a fresh visit is not pristine, the
+ * blame belongs to THIS scenario (the one that dirtied the shared page), not to the
+ * unrelated scenario that trips over it next.
+ */
+async function cleanupTranslationState(page, serviceWorker, testPageUrl) {
+  // 1) Drop the per-URL AI-restore marker (the mechanism that re-translates the page).
+  await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(300);
+  await page.evaluate(() => {
+    try {
+      for (const k of Object.keys(sessionStorage)) {
+        if (k.startsWith("dualtran:aiApplied:")) sessionStorage.removeItem(k);
+      }
+      sessionStorage.clear();
+    } catch (_) { /* restricted context */ }
+  });
+
+  // 2) Restore the DOM (belt-and-braces: leaves the live page clean too).
+  await sendMessageToTab(serviceWorker, page.url(), { action: "restorePage" }).catch(() => {});
+  await page.waitForTimeout(500);
+
+  // 3) Verify the invariant visual-audit depends on: a FRESH visit is pristine.
+  await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
+  await page.waitForTimeout(1500);
+  const left = await page.evaluate(() => ({
+    translated: document.querySelectorAll("translated").length,
+    aiSpans: document.querySelectorAll(".dualtran-ai, .dualtran-aitranslatedtext-replacemode").length,
+    resultContainers: document.querySelectorAll(".dualtran-result-container").length,
+    bodyHasAiSnippet: document.body.innerText.includes("[aimock]"),
+    markers: (() => { try { return Object.keys(sessionStorage).filter((k) => k.startsWith("dualtran:")); } catch { return []; } })(),
+  }));
+  const offenders = Object.entries(left).filter(([, v]) => (v === true ? true : Array.isArray(v) ? v.length > 0 : v > 0));
+  if (offenders.length > 0) {
+    throw new Error(
+      `[reasoning-depth] 场景收尾失败：共享页在全新访问下仍非未翻译纯净态 ` +
+        `${JSON.stringify(left)} —— 本场景必须自行清理，否则会污染后续场景（issue #75 家族）`
+    );
+  }
+  console.log("  [cleanup] 全新访问下共享页保持未翻译纯净态 ✓");
+}
+
 // ─── 主入口 ─────────────────────────────────────────────────────
 
 export async function run(scope) {
@@ -202,6 +253,9 @@ export async function run(scope) {
   await assertNoDuplicateTranslationElements(page).catch((err) => {
     stepErrors.push({ step: "duplicate-elements", error: err });
   });
+
+  // 场景边界复位（必须做——见 cleanupTranslationState 的注释）
+  await cleanupTranslationState(page, serviceWorker, scope.testPageUrl);
 
   if (stepErrors.length > 0) {
     const summary = stepErrors.map((e) => `${e.step}: ${e.error.message}`).join("\n  ");
