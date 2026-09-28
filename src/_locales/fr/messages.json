@@ -170,6 +170,12 @@
   "enterShortcut": {
     "message": "Tapez un raccourci"
   },
+  "errorAiNoResponse": {
+    "message": "No response from AI provider. Please verify your API key and model name."
+  },
+  "errorAiResponseNoTranslationTags": {
+    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+  },
   "errorApiKeyNotFound": {
     "message": "Clé API introuvable !"
   },
@@ -200,6 +206,15 @@
   "fileIsCorrupted": {
     "message": "Le fichier semble être corrompu"
   },
+  "floatingButtonAiTranslateTooltip": {
+    "message": "Show AI translation"
+  },
+  "floatingButtonGoogleTranslateTooltip": {
+    "message": "Show Google translation"
+  },
+  "floatingButtonOriginalTooltip": {
+    "message": "Show original text"
+  },
   "floatingButtonTooltip": {
     "message": "Click to toggle translation state; drag to move this button"
   },
@@ -215,6 +230,10 @@
   "hotkeyError_letter": {
     "message": "Tapez une lettre"
   },
+  "lblActivateTheExtension": {
+    "message": "Activate the extension",
+    "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
+  },
   "lblAdd": {
     "message": "Ajouter"
   },
@@ -227,6 +246,10 @@
   },
   "lblAiProvider": {
     "message": "Fournisseur d'IA"
+  },
+  "lblAiReasoningDepth": {
+    "message": "Reasoning depth",
+    "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
     "message": "Color of AI translated text "
@@ -260,6 +283,10 @@
   },
   "lblDarkMode": {
     "message": "Mode sombre"
+  },
+  "lblEnableAiTranslationCache": {
+    "message": "Enable AI translation cache",
+    "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
     "message": "Activer DeepL comme service de traduction de texte"
@@ -513,6 +540,10 @@
   "msgCannotLoadDeepSeekModelsHttp": {
     "message": "Impossible de charger les modèles DeepSeek (HTTP $1)",
     "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDefault": {
+    "message": "Default",
+    "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgDonateWithPaypal": {
     "message": "Faire un don avec PayPal"

@@ -165,6 +165,33 @@ beforeAll(async () => {
   getNewNodes = pageTranslator._getNewNodes;
 });
 
+// ── Implementation-point map (CLAUDE.md rule: reasoning-depth dialect mapping, plan 32) ──
+// getReasoningDepthForProvider (pageTranslator.js) — the per-provider depth reader the
+//   AI cache + transport paths thread through; an unset value must yield "" (send
+//   nothing), never a fabricated default. Asserted in the cell below. The RULE's other
+//   implementation points live in tests/ai/reasoningDepth.test.js (dialect table,
+//   option builder, providerOptions builder) and
+//   tests/background/aiProxyReasoningDepth.test.js (the port→streamText hand-off).
+describe("getReasoningDepthForProvider (plan 32)", () => {
+  it("reads providerConfigs[provider].reasoningDepth — unset yields \"\", never a default", async () => {
+    await vi.waitFor(() => {
+      expect(pageTranslator._getReasoningDepthForProvider).toBeTypeOf("function");
+    }, { timeout: 5000 });
+    const reader = pageTranslator._getReasoningDepthForProvider;
+
+    mockState.configValues.providerConfigs = { openai: { reasoningDepth: "high" } };
+    expect(reader("openai")).toBe("high");
+    // Unknown provider → no fabricated default (the pre-feature behavior).
+    expect(reader("anthropic")).toBe("");
+    // Known provider whose depth was never set.
+    mockState.configValues.providerConfigs = { anthropic: {} };
+    expect(reader("anthropic")).toBe("");
+    // Container missing entirely.
+    mockState.configValues.providerConfigs = undefined;
+    expect(reader("openai")).toBe("");
+  });
+});
+
 describe("translateResults (replaceOriginal 模式)", () => {
   beforeEach(() => {
     vi.clearAllMocks();

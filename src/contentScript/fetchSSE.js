@@ -65,6 +65,9 @@ function _resolveProviderSettings(providerId, ensureConfigString) {
   const userApiBase = (providerConfigsForModel[providerId]?.apiBase || "").trim();
   const isUserCustom = !!userApiBase;
 
+  // Reasoning depth (per-provider, stored with apiKey/model). "" = no parameter sent.
+  const reasoningDepth = providerConfigsForModel[providerId]?.reasoningDepth || "";
+
   // Compute the effective base URL
   // - User-customized: strip endpoint suffixes (/chat/completions, /messages), auto-append version path (/v1, /v1beta)
   // - Built-in default: extract base path (Google keeps /v1beta, others use origin + /v1)
@@ -137,7 +140,7 @@ function _resolveProviderSettings(providerId, ensureConfigString) {
     }
   }
 
-  return { apiKey, model, extra };
+  return { apiKey, model, extra, reasoningDepth };
 }
 
 const baseRequestBody = {
@@ -333,7 +336,7 @@ export async function translateWithAI(content, onMessage, onError, onFinished, s
   // ③ Read apiKey + model (Vercel AI SDK handles all providers uniformly, driven by registry)
   const resolved = _resolveProviderSettings(provider, ensureConfigString, twpConfig);
   if (!resolved) return;
-  let { apiKey, model, extra } = resolved;
+  let { apiKey, model, extra, reasoningDepth } = resolved;
 
   // ③b Azure-specific validation (endpoint + deployment)
   if (provider === "azure-openai") {
@@ -371,6 +374,7 @@ export async function translateWithAI(content, onMessage, onError, onFinished, s
     ],
     temperature: baseRequestBody.temperature,
     topP: baseRequestBody.top_p,
+    reasoningDepth,
     onMessage: (text) => {
       try {
         if (!text) return;

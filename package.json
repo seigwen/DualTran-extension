@@ -31,6 +31,7 @@
     "test:e2e:provider-migration": "node tests/browser-e2e/run-all.mjs --scenario=provider-migration",
     "test:e2e:models-dev-cache": "node tests/browser-e2e/run-all.mjs --scenario=models-dev-cache",
     "test:e2e:i18n": "node tests/browser-e2e/run-all.mjs --scenario=i18n-behavior",
+    "test:e2e:reasoning-depth": "node tests/browser-e2e/run-all.mjs --scenario=reasoning-depth",
     "test:all": "vitest run --coverage && npm run test:browser-e2e",
     "test:pre-publish": "npm run build && vitest run --coverage && npm run test:browser-e2e",
     "postbuild": "vitest run tests/manifest",

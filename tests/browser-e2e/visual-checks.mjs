@@ -179,10 +179,12 @@ export const CHECKPOINTS = [
       page: "options.html#ai",
       when: "loaded",
     },
+    programmatic: ["assertReasoningDepthSelectShape"],
     expect: [
       "AI provider section renders with provider select and key field visible",
       "No unstyled native controls breaking the dark/light theme",
       "Long labels wrap instead of overflowing their containers",
+      "Reasoning depth select renders below the model select, with a non-empty label on EVERY option row (a row with blank text would be indistinguishable from a rendering fault)",
     ],
   },
   {

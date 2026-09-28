@@ -444,6 +444,21 @@ function getModelForProvider(providerId) {
 }
 
 /**
+ * Read the configured reasoning depth for a provider.
+ *
+ * Stored alongside apiKey/model in providerConfigs (per-provider semantics).
+ * An unset value means "send no reasoning parameter" — the pre-existing
+ * behavior — so this must never fabricate a default depth.
+ *
+ * @param {string} providerId — e.g. "openai", "anthropic", "zhipu"
+ * @returns {string} depth value, or "" when unset
+ */
+function getReasoningDepthForProvider(providerId) {
+  const providerConfigs = twpConfig.get("providerConfigs") || {};
+  return providerConfigs[providerId]?.reasoningDepth || "";
+}
+
+/**
  * Build urlWithoutParams for cache key.
  * @returns {string}
  */
@@ -457,10 +472,11 @@ function getCacheUrlKey() {
  * @param {string} targetLanguage
  * @param {string} providerId
  * @param {string} modelId
+ * @param {string} reasoningDepth
  * @param {string} originalText
  * @returns {Promise<string|null>} cached translated text or null
  */
-async function getCachedAiTranslation(sourceLanguage, targetLanguage, providerId, modelId, originalText) {
+async function getCachedAiTranslation(sourceLanguage, targetLanguage, providerId, modelId, reasoningDepth, originalText) {
   if (twpConfig.get("enableAiTranslationCache") !== "yes") return null;
   try {
     return await new Promise((resolve) => {
@@ -470,6 +486,7 @@ async function getCachedAiTranslation(sourceLanguage, targetLanguage, providerId
         targetLanguage,
         providerId,
         modelId,
+        reasoningDepth,
         urlWithoutParams: getCacheUrlKey(),
         originalText,
       }, (result) => {
@@ -487,10 +504,11 @@ async function getCachedAiTranslation(sourceLanguage, targetLanguage, providerId
  * @param {string} targetLanguage
  * @param {string} providerId
  * @param {string} modelId
+ * @param {string} reasoningDepth
  * @param {string} originalText
  * @param {string} translatedText
  */
-function setCachedAiTranslation(sourceLanguage, targetLanguage, providerId, modelId, originalText, translatedText) {
+function setCachedAiTranslation(sourceLanguage, targetLanguage, providerId, modelId, reasoningDepth, originalText, translatedText) {
   if (twpConfig.get("enableAiTranslationCache") !== "yes") return;
   try {
     chrome.runtime.sendMessage({
@@ -499,6 +517,7 @@ function setCachedAiTranslation(sourceLanguage, targetLanguage, providerId, mode
       targetLanguage,
       providerId,
       modelId,
+      reasoningDepth,
       urlWithoutParams: getCacheUrlKey(),
       originalText,
       translatedText,
@@ -1155,7 +1174,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true, onBlockSe
     const modelId = getModelForProvider(providerId);
     const cached = await getCachedAiTranslation(
       "und", targetLanguageCodeForAI,
-      providerId, modelId, btnAi.sourceString
+      providerId, modelId, getReasoningDepthForProvider(providerId), btnAi.sourceString
     );
     if (cached) {
       applyAiSuccessWithModeCheck(btnAi, {
@@ -1337,6 +1356,7 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true, onBlockSe
             "und", targetLanguageCodeForAI,
             twpConfig.get("aiProvider") || "openai",
             getModelForProvider(twpConfig.get("aiProvider") || "openai"),
+            getReasoningDepthForProvider(twpConfig.get("aiProvider") || "openai"),
             btnAi.sourceString,
             aiTextForCache
           );
@@ -4583,6 +4603,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   pageTranslator._translateDynamically = translateDynamically;
    /** @internal — for testing provider → model mapping */
   pageTranslator._getModelForProvider = getModelForProvider;
+   /** @internal — for testing provider → reasoning depth mapping */
+  pageTranslator._getReasoningDepthForProvider = getReasoningDepthForProvider;
    /** @internal — for testing AI continuous translation mode (detects "dynamic content AI translation failure" regressions) */
   pageTranslator._aiTranslateDynamically = aiTranslateDynamically;
    /** @internal — for testing: set shouldForceAiAfterPageTranslation internal state */

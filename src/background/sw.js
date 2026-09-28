@@ -270,15 +270,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // so cache reads and writes are relayed through the service worker.
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "aiTranslationCacheGet") {
-    const { sourceLanguage, targetLanguage, providerId, modelId, urlWithoutParams, originalText } = request;
-    aiTranslationCacheGet(sourceLanguage, targetLanguage, providerId, modelId, urlWithoutParams, originalText)
+    const { sourceLanguage, targetLanguage, providerId, modelId, reasoningDepth, urlWithoutParams, originalText } = request;
+    aiTranslationCacheGet(sourceLanguage, targetLanguage, providerId, modelId, reasoningDepth, urlWithoutParams, originalText)
       .then(result => sendResponse(result || null))
       .catch(() => sendResponse(null));
     return true;
   }
   if (request.action === "aiTranslationCacheSet") {
-    const { sourceLanguage, targetLanguage, providerId, modelId, urlWithoutParams, originalText, translatedText } = request;
-    aiTranslationCacheSet(sourceLanguage, targetLanguage, providerId, modelId, urlWithoutParams, originalText, translatedText)
+    const { sourceLanguage, targetLanguage, providerId, modelId, reasoningDepth, urlWithoutParams, originalText, translatedText } = request;
+    aiTranslationCacheSet(sourceLanguage, targetLanguage, providerId, modelId, reasoningDepth, urlWithoutParams, originalText, translatedText)
       .catch(e => console.error("[AI-CACHE] set via sw failed:", e));
     sendResponse(true);
   }
