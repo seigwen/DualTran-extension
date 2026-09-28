@@ -12,6 +12,12 @@
  *   - 相同 depth → 命中
  *   - depth 缺省与 "" 等价（同一 key）
  *   - 旧条目（无 depth 段时代写入）不会被新 key 命中 → 升级后自然失效
+ *
+ * Implementation-point map (plan-32 rule; keep in sync with the RULE block in
+ * CLAUDE.md — check-rule-symmetry.js resolves every identifier named there to a
+ * test file):
+ *   - `buildCacheKey`（src/background/aiTranslationCache.js，key 组成的唯一实现 —— 本文件通过 digestInputs 直接断言其输入串）
+ *   - `reasoningDepth`（同一 key 的第五段；get/set/store.put 全链透传）
  */
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
