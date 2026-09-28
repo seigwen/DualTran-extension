@@ -297,3 +297,13 @@ describe("uiStateStore — intent latch (intervention) lifecycle", () => {
     expect(getState().intervention).toBe(false);
   });
 });
+
+// ── Implementation-point map (CLAUDE.md rule: 意图驱动高亮规则, plan 30 / #102) ──
+// deriveIntentUi (uiStateStore.js) — the single intent derivation rule
+//   (original → original; translated + aiModeActive && aiRenderState !== "idle"
+//   → ai, including loading/error; translated otherwise → google). Pinned by
+//   the arbitration cells above (loading/error → ai) and by the
+//   resetForRebuild cells (the rebuild derives the same intent mirror).
+// arbitrateEngineDrivenState (uiStateStore.js) — watchdog arbitration +
+//   latch self-release; pinned by the "watchdog arbitration (L2)" suite and
+//   the "intent latch (intervention) lifecycle" suite above.
