@@ -413,8 +413,9 @@ import { enableDarkMode, disableDarkMode } from "./darkmode.js"; // Import dark 
 import { loadAiProviderModelOptions, normalizeOpenAiCompatibleModelsEndpoint } from "./aiModelApi.js";
 import { refreshAiModelSelect } from "./aiModelRefresh.js";
 import { loadPreviewModels } from "../lib/ai/providerModelPreview.js";
-import { createProviderRegistry, BUILT_IN_PROVIDERS, mergeRegistries, lookupKnownApiBase } from "../lib/ai/providerRegistry.js";
+import { createProviderRegistry, BUILT_IN_PROVIDERS, mergeRegistries, lookupKnownApiBase, resolveModelsDevId } from "../lib/ai/providerRegistry.js";
 import { migrateProviderConfig } from "../lib/ai/providerMigration.js";
+import { buildReasoningDepthOptions } from "../lib/ai/reasoningDepth.js";
 import 'toolcool-color-picker'; // Import third-party color picker component (custom element)
 
 // Execute main initialization logic after config is loaded
@@ -2270,10 +2271,18 @@ twpConfig.onReady(function () {
         const keyLabel = document.querySelector("#genericApiKeyLabel");
         const baseLabel = document.querySelector("#genericApiBaseLabel");
         const modelLabel = document.querySelector("#genericModelLabel");
+        const reasoningLabel = document.querySelector("#genericReasoningDepthLabel");
         const apiKeyLink = document.querySelector("#genericApiKeyLink");
         if (keyLabel) keyLabel.textContent = name ? `${name} API Key` : "API Key";
         if (baseLabel) baseLabel.textContent = name ? `${name} API Endpoint URL` : "API Endpoint URL";
         if (modelLabel) modelLabel.textContent = name ? `${name} Model` : "Model";
+        // Drop the i18n binding once a provider-specific label is applied —
+        // the other three labels carry no data-i18n either, so a later
+        // translateDocument() pass cannot revert this to the generic text.
+        if (reasoningLabel) {
+          reasoningLabel.textContent = name ? `${name} Reasoning Depth` : "Reasoning Depth";
+          if (name) reasoningLabel.removeAttribute("data-i18n");
+        }
         if (apiKeyLink) {
           if (def?.apiKeyUrl) {
             apiKeyLink.href = def.apiKeyUrl;
@@ -2345,8 +2354,15 @@ twpConfig.onReady(function () {
         const hasModelApi = providerDef?.modelListUrl || providerDef?.id === "google-gemini" || canLoadCustomProviderModels;
         const storedModel = stored.model || "";
 
-        // Helper: hide the "Loading" span above the select
+        // Helper: hide the "Loading" span above the select.
+        // The model list is populated and the stored model applied by this
+        // point, so this is also the correct moment to rebuild the
+        // reasoning-depth options for the now-active model.
         function _hideLoading() {
+          // Rebuild first: the async model list load sets the select's value
+          // programmatically (no change event fires), so this is the only place
+          // the per-model reasoning options get refreshed after load.
+          _rebuildReasoningDepthOptions(providerId, modelSelect?.value || storedModel || "");
           const labelP = modelSelect?.previousElementSibling;
           if (!labelP) return;
           const span = labelP.querySelector(".model-loading-msg");
@@ -2438,6 +2454,75 @@ twpConfig.onReady(function () {
       }
     }
 
+    /**
+     * Rebuild the reasoning-depth dropdown for the current provider + model.
+     *
+     * Options come from models.dev's declared `reasoning_options` for the
+     * SELECTED model, clipped to what the AI SDK actually accepts for this
+     * provider (reasoningDepth.js is the single source of that judgment).
+     * A stored value that is absent from the fresh list is preserved as an
+     * option so switching models never silently discards the user's setting.
+     */
+    function _rebuildReasoningDepthOptions(providerId, modelId) {
+      const select = document.querySelector("#genericReasoningDepth");
+      if (!select || select._isMissingElement) return;
+      const stored = (twpConfig.get("providerConfigs") || {})[providerId] || {};
+      const storedDepth = stored.reasoningDepth || "";
+
+      const applyOptions = (def) => {
+        const options = buildReasoningDepthOptions({
+          provider: providerId,
+          npm: def?.npm,
+          reasoningOptions: def?.reasoningOptions,
+        });
+        select.innerHTML = "";
+        const defaultOpt = document.createElement("option");
+        defaultOpt.value = "";
+        defaultOpt.textContent = i18nOrDefault("msgDefault", "Default");
+        select.appendChild(defaultOpt);
+        for (const opt of options) {
+          if (opt.value === "") continue; // Default already added above
+          const el = document.createElement("option");
+          el.value = opt.value;
+          el.textContent = opt.label;
+          select.appendChild(el);
+        }
+        // Preserve a stored value that the new model does not offer — silently
+        // dropping it would make the user's setting disappear on a model switch.
+        if (storedDepth && !options.some((o) => o.value === storedDepth)) {
+          const el = document.createElement("option");
+          el.value = storedDepth;
+          el.textContent = storedDepth;
+          select.appendChild(el);
+        }
+        select.value = storedDepth || "";
+        select.disabled = false;
+      };
+
+      if (typeof chrome !== "undefined" && chrome.storage?.local) {
+        chrome.storage.local.get("modelsdev:providers", (cacheRes) => {
+          const devData = cacheRes?.["modelsdev:providers"]?.data?.[resolveModelsDevId(providerId)];
+          const modelInfo = modelId ? devData?.models?.[modelId] : null;
+          applyOptions({
+            npm: devData?.npm,
+            reasoningOptions: modelInfo?.reasoning_options,
+          });
+        });
+      } else {
+        applyOptions({});
+      }
+    }
+
+    /** Persist the selected reasoning depth into providerConfigs (per provider). */
+    function _saveReasoningDepth(providerId) {
+      const select = document.querySelector("#genericReasoningDepth");
+      if (!select || select._isMissingElement) return;
+      const providerConfigs = twpConfig.get("providerConfigs") || {};
+      if (!providerConfigs[providerId]) providerConfigs[providerId] = {};
+      providerConfigs[providerId].reasoningDepth = select.value || "";
+      twpConfig.set("providerConfigs", providerConfigs);
+    }
+
     function _saveGenericProviderConfig(providerId) {
       const providerConfigs = twpConfig.get("providerConfigs") || {};
       if (!providerConfigs[providerId]) providerConfigs[providerId] = {};
@@ -2447,6 +2532,8 @@ twpConfig.onReady(function () {
       if (apiKeyInput) providerConfigs[providerId].apiKey = apiKeyInput.value.trim();
       if (apiBaseInput) providerConfigs[providerId].apiBase = apiBaseInput.value.trim();
       if (modelSelect) providerConfigs[providerId].model = modelSelect.value || "";
+      const depthSelect = document.querySelector("#genericReasoningDepth");
+      if (depthSelect) providerConfigs[providerId].reasoningDepth = depthSelect.value || "";
       twpConfig.set("providerConfigs", providerConfigs);
     }
 
@@ -2464,16 +2551,24 @@ twpConfig.onReady(function () {
     });
     document.querySelector("#genericModel")?.addEventListener("change", () => {
       _saveGenericProviderConfig(_aiProviderDropdown.value);
+      // The declared reasoning options are per-model — rebuild for the new model.
+      _rebuildReasoningDepthOptions(_aiProviderDropdown.value, document.querySelector("#genericModel")?.value || "");
+    });
+    document.querySelector("#genericReasoningDepth")?.addEventListener("change", () => {
+      _saveReasoningDepth(_aiProviderDropdown.value);
     });
 
     // All providers use the generic panel uniformly
     _aiProviderDropdown.addEventListener("change", () => {
       _loadGenericProviderConfig(_aiProviderDropdown.value);
+      _rebuildReasoningDepthOptions(_aiProviderDropdown.value, document.querySelector("#genericModel")?.value || "");
     });
 
     // Initialize: after dropdown is populated, load config for the actually selected value
     _loadProviderDropdown().then(() => {
-      _loadGenericProviderConfig(_aiProviderDropdown.value || activeId);
+      const activeProviderId = _aiProviderDropdown.value || activeId;
+      _loadGenericProviderConfig(activeProviderId);
+      _rebuildReasoningDepthOptions(activeProviderId, document.querySelector("#genericModel")?.value || "");
     });
 
     // ── "Add Custom Provider" Button ──

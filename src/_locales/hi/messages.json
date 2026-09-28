@@ -1,9 +1,66 @@
 {
+  "aiProviderAnthropic": {
+    "message": "Anthropic"
+  },
+  "aiProviderAzureOpenAI": {
+    "message": "Azure OpenAI"
+  },
+  "aiProviderBaidu": {
+    "message": "Baidu ERNIE"
+  },
+  "aiProviderBytedance": {
+    "message": "ByteDance Doubao"
+  },
+  "aiProviderCerebras": {
+    "message": "Cerebras"
+  },
+  "aiProviderCohere": {
+    "message": "Cohere"
+  },
+  "aiProviderDeepInfra": {
+    "message": "Deep Infra"
+  },
+  "aiProviderDeepSeek": {
+    "message": "DeepSeek"
+  },
+  "aiProviderGoogleGemini": {
+    "message": "Google Gemini"
+  },
+  "aiProviderGrok": {
+    "message": "xAI (Grok)"
+  },
+  "aiProviderGroq": {
+    "message": "Groq"
+  },
+  "aiProviderIflytek": {
+    "message": "iFlytek Spark"
+  },
+  "aiProviderMistral": {
+    "message": "Mistral AI"
+  },
+  "aiProviderMoonshot": {
+    "message": "Moonshot (Kimi)"
+  },
   "aiProviderOpenAI": {
     "message": "OpenAI"
   },
   "aiProviderOpenRouter": {
     "message": "OpenRouter"
+  },
+  "aiProviderPerplexity": {
+    "message": "Perplexity"
+  },
+  "aiProviderQwen": {
+    "message": "Alibaba Qwen"
+  },
+  "aiProviderTogether": {
+    "message": "Together AI"
+  },
+  "aiProviderVercel": {
+    "message": "Vercel AI Gateway"
+  },
+  "aiProviderZhipu": {
+    "message": "Zhipu AI (GLM)"
   },
   "alertSpecifyTargetLanguage": {
     "message": "कृपया पहले लक्ष्य भाषा निर्दिष्ट करें।"
@@ -113,6 +170,12 @@
   "enterShortcut": {
     "message": "शॉर्टकट टाइप करें"
   },
+  "errorAiNoResponse": {
+    "message": "No response from AI provider. Please verify your API key and model name."
+  },
+  "errorAiResponseNoTranslationTags": {
+    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+  },
   "errorApiKeyNotFound": {
     "message": "API कुंजी नहीं मिली!"
   },
@@ -143,6 +206,15 @@
   "fileIsCorrupted": {
     "message": "फ़ाइल दूषित प्रतीत होती है"
   },
+  "floatingButtonAiTranslateTooltip": {
+    "message": "Show AI translation"
+  },
+  "floatingButtonGoogleTranslateTooltip": {
+    "message": "Show Google translation"
+  },
+  "floatingButtonOriginalTooltip": {
+    "message": "Show original text"
+  },
   "floatingButtonTooltip": {
     "message": "Click to toggle translation state; drag to move this button"
   },
@@ -158,6 +230,10 @@
   "hotkeyError_letter": {
     "message": "एक पत्र लिखें"
   },
+  "lblActivateTheExtension": {
+    "message": "Activate the extension",
+    "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
+  },
   "lblAdd": {
     "message": "जोड़ना"
   },
@@ -170,6 +246,10 @@
   },
   "lblAiProvider": {
     "message": "एआई प्रदाता"
+  },
+  "lblAiReasoningDepth": {
+    "message": "Reasoning depth",
+    "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
     "message": "Color of AI translated text "
@@ -203,6 +283,10 @@
   },
   "lblDarkMode": {
     "message": "अंधेरा मोड"
+  },
+  "lblEnableAiTranslationCache": {
+    "message": "Enable AI translation cache",
+    "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
     "message": "डीपएल को टेक्स्ट अनुवाद सेवा के रूप में सक्षम करें"
@@ -456,6 +540,10 @@
   "msgCannotLoadDeepSeekModelsHttp": {
     "message": "DeepSeek मॉडल लोड नहीं हो सके (HTTP $1)",
     "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDefault": {
+    "message": "Default",
+    "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgDonateWithPaypal": {
     "message": "पेपैल के साथ दान करें"

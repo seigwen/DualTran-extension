@@ -247,6 +247,10 @@
   "lblAiProvider": {
     "message": "AI 提供商"
   },
+  "lblAiReasoningDepth": {
+    "message": "推理深度",
+    "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
+  },
   "lblAiTranslatedStyle": {
     "message": "AI译文颜色"
   },
@@ -536,6 +540,10 @@
   "msgCannotLoadDeepSeekModelsHttp": {
     "message": "无法加载DeepSeek模型 (HTTP $1)",
     "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
+  },
+  "msgDefault": {
+    "message": "默认",
+    "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgDonateWithPaypal": {
     "message": "PayPal 捐款"

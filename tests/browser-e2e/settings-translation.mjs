@@ -7,7 +7,7 @@
  *   - AI 提供商：切换提供商、API Key/Base 持久化、模型选择持久化
  *   - 翻译行为效果：AI 改进生效、动态内容翻译
  *
- * 共有 10 个测试步骤 (S1–S10)。
+ * 共有 13 个测试步骤 (S1–S12 + T2)。
  *
  * @module settings-translation
  */
@@ -1328,6 +1328,269 @@ async function s11ColdStartPersistence(scope) {
 }
 
 // ═════════════════════════════════════════════════════════════════
+// S12: 推理深度选择持久化
+// ═════════════════════════════════════════════════════════════════
+
+/**
+ * [S12] 验证推理深度（reasoning depth）选择控件的完整用户流程与持久化。
+ *
+ * 流程：
+ *   1. 导航到 options#ai
+ *   2. 选择 openai 提供商，等待模型列表加载
+ *   3. 等待 #genericReasoningDepth 被重建（选项来自该模型的 models.dev 声明）
+ *   4. 选择一个非 Default 的深度（若该模型未声明 effort，则只断言 Default 存在）
+ *   5. 刷新页面 → 验证 providerConfigs[provider].reasoningDepth 持久化
+ *   6. 验证重建后的下拉框把存量值选中（设置不会因换模型/刷新而静默丢失）
+ *
+ * @param {import("playwright").Page} page - Playwright 页面对象
+ * @param {string} extensionId - 扩展 ID
+ * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
+ * @returns {Promise<void>}
+ */
+async function s12ReasoningDepthPersistence(scope) {
+  console.log("[S12] 推理深度选择持久化测试...");
+
+  // 在隔离的扩展上下文中执行：共享上下文里 S1–S10 会留下自定义 apiBase
+  // （模型列表被 mock /v1/models 覆盖为 anthropic/claude-3.5-haiku 等），
+  // 使「下拉框含种子模型」这类断言被无关状态污染。隔离上下文 storage 全新，
+  // 种子即唯一事实来源（与 S11 的隔离策略一致）。
+  await runWithIsolatedExtensionContext(async ({ page: isoPage, extensionId, serviceWorker }) => {
+    await s12Body(isoPage, extensionId, serviceWorker);
+  });
+  console.log("[S12] 通过 ✓\n");
+}
+
+/**
+ * S12 主体（在隔离上下文中执行）。
+ * @param {import("playwright").Page} page
+ * @param {string} extensionId
+ * @param {import("playwright").Worker} serviceWorker
+ */
+async function s12Body(page, extensionId, serviceWorker) {
+
+  // ── 种子数据：让「声明驱动的选项生成」这条路被真正走到 ──
+  // 不种子时，E2E 环境的 models.dev 缓存对所选模型常常没有 reasoning_options
+  // 声明，下拉框只剩 Default——测试会「绿得毫无意义」（控件存在 ≠ 功能可用）。
+  // 同时清空 apiKey：让模型下拉框走预览缓存路径（确定性；带 key 会先去真实
+  // 模型列表端点，失败与否取决于网络）。
+  const TEST_MODEL = "gpt-4o-mini";
+
+  // 先等 SW 的启动拉取落定（缓存 >10 providers 即为真实数据落盘；无网络则超时）。
+  // 不这样做的话，SW 的拉取会在种子之后落盘并覆盖它——种子里的 reasoning_options
+  // 声明会消失，下拉框退回只有 Default（曾以「假红」形态暴露这个竞态）。
+  await serviceWorker.evaluate(async () => {
+    const deadline = Date.now() + 15000;
+    for (;;) {
+      const res = await chrome.storage.local.get("modelsdev:providers");
+      const n = Object.keys(res["modelsdev:providers"]?.data || {}).length;
+      if (n > 10) return;                      // 真实数据已落盘
+      if (Date.now() > deadline) return;       // 无网络：不会被覆盖，直接继续
+      await new Promise((r) => setTimeout(r, 500));
+    }
+  });
+
+  await serviceWorker.evaluate(async (model) => {
+    // 种子须超过 aiProxy.getProvidersData() 的 >10 providers 有效性阈值，
+    // 否则任何再次读缓存的路径都会判定「缓存无效」并重新拉取、覆盖种子。
+    const data = {
+      openai: {
+        id: "openai",
+        name: "OpenAI",
+        npm: "@ai-sdk/openai",
+        env: ["OPENAI_API_KEY"],
+        models: {
+          [model]: {
+            id: model,
+            name: model,
+            reasoning: true,
+            reasoning_options: [{ type: "effort", values: ["low", "medium", "high"] }],
+          },
+        },
+      },
+    };
+    // 填充占位 provider（仅用于越过阈值；无 models 声明，不影响本用例）
+    for (let i = 0; i < 12; i++) {
+      data[`filler-provider-${i}`] = { id: `filler-provider-${i}`, name: `Filler ${i}`, models: {} };
+    }
+
+    const writeSeed = () =>
+      chrome.storage.local.set({
+        "modelsdev:providers": { data, ts: Date.now() },
+        // 预览缓存只放种子模型 → 模型下拉框内容完全确定
+        "previewModels:v4:openai": { models: [{ value: model, text: model }], ts: Date.now() },
+      });
+
+    await writeSeed();
+    // 落盘后校验：若被并发拉取覆盖（声明消失），再写一次
+    await new Promise((r) => setTimeout(r, 800));
+    const check = await chrome.storage.local.get("modelsdev:providers");
+    if (!check["modelsdev:providers"]?.data?.openai?.models?.[model]) {
+      await writeSeed();
+    }
+  }, TEST_MODEL);
+
+  await writeStorage(serviceWorker, "aiProvider", "openai");
+  const seededConfigs = (await readStorage(serviceWorker, "providerConfigs")) || {};
+  seededConfigs.openai = { apiKey: "", apiBase: "", model: TEST_MODEL, reasoningDepth: "" };
+  await writeStorage(serviceWorker, "providerConfigs", seededConfigs);
+
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#ai`, { waitUntil: "load" });
+  await page.waitForSelector("#aiProvider");
+  await page.waitForFunction(() => {
+    const sel = document.getElementById("aiProvider");
+    return sel instanceof HTMLSelectElement && sel.options.length >= 3;
+  }, null, { timeout: 15000 });
+
+  // 真实用户顺序：先选供应商，再选模型（模型的「变更」事件才会按新模型重建）
+  await setOptionsSelectValueAndWait(page, "aiProvider", "openai");
+  await page.waitForTimeout(1200);
+
+  // 模型下拉框就绪且确实含种子模型
+  try {
+    await page.waitForFunction((m) => {
+      const sel = document.getElementById("genericModel");
+      return sel instanceof HTMLSelectElement && !sel.disabled
+        && [...sel.options].some((o) => o.value === m);
+    }, TEST_MODEL, { timeout: 20000 });
+  } catch (err) {
+    const diag = await page.evaluate(async () => {
+      const model = document.getElementById("genericModel");
+      const depth = document.getElementById("genericReasoningDepth");
+      const stored = await chrome.storage.local.get(["modelsdev:providers", "providerConfigs", "aiProvider"]);
+      const dev = stored["modelsdev:providers"];
+      return {
+        aiProviderValue: document.getElementById("aiProvider")?.value ?? null,
+        modelValue: model?.value ?? null,
+        modelDisabled: model?.disabled ?? null,
+        modelOpts: model ? [...model.options].map((o) => o.value) : null,
+        depthOpts: depth ? [...depth.options].map((o) => o.value) : null,
+        devProviderCount: Object.keys(dev?.data || {}).length,
+        devKeysFirst5: Object.keys(dev?.data || {}).slice(0, 5),
+        hasSeedDecl: !!(dev?.data?.openai?.models?.["gpt-4o-mini"]?.reasoning_options),
+        cfgOpenai: stored.providerConfigs?.openai ?? null,
+        cfgKeys: Object.keys(stored.providerConfigs || {}),
+        aiProviderStored: stored.aiProvider ?? null,
+      };
+    });
+    throw new Error("[S12] 模型下拉框未含种子模型。诊断: " + JSON.stringify(diag));
+  }
+  console.log(`  [S12] 模型下拉框已含种子模型 "${TEST_MODEL}" ✓`);
+
+  // 显式把模型设为种子模型（持久化 + 触发按模型声明的重建）
+  await setOptionsSelectValueAndWait(page, "genericModel", TEST_MODEL);
+  await page.waitForTimeout(1200);
+
+  // 控件必须存在（结构断言：不是「有内容」，仅证明控件已渲染）
+  const hasControl = await page.evaluate(() => {
+    const sel = document.getElementById("genericReasoningDepth");
+    return sel instanceof HTMLSelectElement;
+  });
+  if (!hasControl) {
+    throw new Error("[S12] #genericReasoningDepth 控件不存在（推理深度下拉框未渲染）");
+  }
+
+  // 等待重建完成：必须等到种子声明的值出现为止。
+  // 不能只等「有选项且文本非空」——初始 HTML 就带着 [Default] 这一项，
+  // 会立刻满足条件，读到的是重建前的状态（异步重建竞态，曾造成假绿/假红）。
+  const options = await page.evaluate(async () => {
+    const sel = document.getElementById("genericReasoningDepth");
+    for (let i = 0; i < 60; i++) {
+      const opts = Array.from(sel.options);
+      if (opts.some((o) => o.value === "high")) {
+        const textsOk = opts.every((o) => (o.textContent || "").trim().length > 0);
+        return textsOk ? opts.map((o) => ({ value: o.value, text: o.textContent.trim() })) : null;
+      }
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    return null;
+  });
+  if (!options || options.length === 0) {
+    // 重建未发生（或选项存在空白行）——转储链路各环节的实际状态以便定位
+    const diag = await page.evaluate(async () => {
+      const depthSel = document.getElementById("genericReasoningDepth");
+      const modelSel = document.getElementById("genericModel");
+      const stored = await chrome.storage.local.get(["modelsdev:providers", "providerConfigs"]);
+      const dev = stored["modelsdev:providers"];
+      return {
+        depthOptionValues: depthSel ? [...depthSel.options].map((o) => o.value) : null,
+        modelSelectValue: modelSel ? modelSel.value : null,
+        modelSelectOptionCount: modelSel ? modelSel.options.length : null,
+        modelSelectDisabled: modelSel ? modelSel.disabled : null,
+        devCacheTs: dev?.ts ?? null,
+        devDataKeys: Object.keys(dev?.data || {}),
+        hasSeededModelDecl: !!(dev?.data?.openai?.models?.["gpt-4o-mini"]?.reasoning_options),
+        openaiConfigModel: stored.providerConfigs?.openai?.model ?? null,
+      };
+    });
+    throw new Error(
+      "[S12] #genericReasoningDepth 未在超时内长出声明的 effort 值。诊断: " + JSON.stringify(diag)
+    );
+  }
+  console.log(`  [S12] 推理深度选项: ${options.map((o) => o.value || "(Default)").join(", ")}`);
+  if (options[0].value !== "") {
+    throw new Error(`[S12] 第一个选项必须是 Default（value=""），实际 "${options[0].value}"`);
+  }
+
+  // 种子声明了 effort:["low","medium","high"] → 下拉框必须真的长出这些选项。
+  // 只有 Default 说明「声明驱动」这条链路断了（比「没测」更危险，故硬失败）。
+  const targetDepth = options.find((o) => o.value)?.value || "";
+  if (!targetDepth) {
+    throw new Error(
+      "[S12] 已注入 reasoning_options 声明，但下拉框仍只有 Default —— 声明驱动的选项生成链路断裂"
+    );
+  }
+  const expected = ["low", "medium", "high"];
+  const actual = options.filter((o) => o.value).map((o) => o.value);
+  const missing = expected.filter((v) => !actual.includes(v));
+  if (missing.length > 0) {
+    throw new Error(`[S12] 声明的 effort 值未出现在下拉框中，缺少 [${missing.join(", ")}]，实际 [${actual.join(", ")}]`);
+  }
+
+  // 选一个非 Default 的深度并验证持久化
+  await setOptionsSelectValueAndWait(page, "genericReasoningDepth", targetDepth);
+  await page.waitForTimeout(500);
+  console.log(`  [S12] 已选择推理深度: "${targetDepth}"`);
+
+  // 刷新并验证持久化
+  await page.reload({ waitUntil: "load" });
+  await page.waitForSelector("#aiProvider");
+  await page.waitForTimeout(1500);
+
+  const providerConfigs = await readStorage(serviceWorker, "providerConfigs");
+  const persisted = providerConfigs?.openai?.reasoningDepth ?? null;
+
+  if (persisted !== targetDepth) {
+    throw new Error(`[S12] 推理深度持久化失败: 期望 "${targetDepth}"，实际 "${persisted}"`);
+  }
+  console.log(`  [S12] storage 中 reasoningDepth = "${persisted}" ✓`);
+
+  // 重建后仍选中存量值（换模型不丢设置）
+  if (targetDepth) {
+    const selectedAfterReload = await page.evaluate(async () => {
+      const sel = document.getElementById("genericReasoningDepth");
+      for (let i = 0; i < 60; i++) {
+        if (sel && sel.value === "") {
+          await new Promise((r) => setTimeout(r, 250));
+          continue;
+        }
+        return sel.value;
+      }
+      return sel ? sel.value : null;
+    });
+    // 存量值必须仍在选项集合中（不因重建被丢弃）
+    const stillPresent = await page.evaluate((depth) => {
+      const sel = document.getElementById("genericReasoningDepth");
+      return sel instanceof HTMLSelectElement && Array.from(sel.options).some((o) => o.value === depth);
+    }, targetDepth);
+    if (!stillPresent) {
+      throw new Error(`[S12] 刷新后存量深度 "${targetDepth}" 从选项集合中丢失`);
+    }
+    console.log(`  [S12] 刷新后存量深度仍在选项集合中（UI 当前值 "${selectedAfterReload}"）✓`);
+  }
+
+}
+
+// ═════════════════════════════════════════════════════════════════
 // 主入口
 // ═════════════════════════════════════════════════════════════════
 
@@ -1424,6 +1687,10 @@ export async function run(scope) {
 
   await runStep("S11", () =>
     s11ColdStartPersistence(scope)
+  );
+
+  await runStep("S12", () =>
+    s12ReasoningDepthPersistence(scope)
   );
 
   // ── 再次检查扩展错误 ──

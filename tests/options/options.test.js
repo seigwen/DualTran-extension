@@ -219,6 +219,8 @@ vi.mock("../../src/lib/ai/providerRegistry.js", () => {
     BUILT_IN_PROVIDERS: providerList,
     mergeRegistries: () => [],
     lookupKnownApiBase: () => "",
+    // 内部 ID → models.dev ID（与生产实现同语义：只映射已知别名）
+    resolveModelsDevId: (id) => ({ "google-gemini": "google", grok: "xai", zhipu: "zhipuai", moonshot: "moonshotai", together: "togetherai", qwen: "alibaba-cn", "azure-openai": "azure" }[id] || id),
   };
 });
 vi.mock("../../src/lib/ai/providerTypes.js", () => ({
@@ -358,6 +360,8 @@ function createOptionsDom() {
       <input id="genericApiBase" />
       <p><label id="genericModelLabel"></label><span class="model-loading-msg"></span></p>
       <select id="genericModel"></select>
+      <p><label id="genericReasoningDepthLabel"></label></p>
+      <select id="genericReasoningDepth"><option value="">Default</option></select>
       <button id="btnAddCustomProvider"></button>
       <button id="btnAddCustomModel"></button>
     </div>
@@ -398,6 +402,7 @@ function installBrowserGlobals({
   browserGlobal,
   omitStorageOnChanged = false,
   commandsUpdateInChrome = false,
+  modelsDevProviders = null,
 } = {}) {
   const messages = {
     lblSettings: "Settings",
@@ -431,9 +436,28 @@ function installBrowserGlobals({
       getManifest: vi.fn(() => ({ commands: manifestCommands })),
       sendMessage: vi.fn((_message, callback) => callback?.("42 MB")),
     },
-    storage: omitStorageOnChanged
-      ? {}
-      : { onChanged: { addListener: storageOnChangedAddListenerSpy } },
+    storage: {
+      ...(omitStorageOnChanged ? {} : { onChanged: { addListener: storageOnChangedAddListenerSpy } }),
+      // Storage reads used by the AI panel:
+      //   - "modelsdev:providers"       → models.dev provider/model declaration cache
+      //   - "previewModels:v4:<prov>"   → per-provider model list cache (a cache HIT
+      //     here keeps loadPreviewModels from starting a real models.dev fetch,
+      //     which would never settle in jsdom and would leave the model select
+      //     (and the reasoning-depth rebuild it drives) un-populated)
+      // Supports both the promise form and the callback form used by options.js.
+      local: {
+        get: vi.fn((key, cb) => {
+          let value;
+          if (key === "modelsdev:providers") {
+            value = modelsDevProviders === null ? undefined : { [key]: { data: modelsDevProviders } };
+          } else if (typeof key === "string" && key.startsWith("previewModels:v4:")) {
+            value = { [key]: { models: [{ value: "m", text: "m" }], ts: Date.now() } };
+          }
+          if (typeof cb === "function") { cb(value); return undefined; }
+          return Promise.resolve(value);
+        }),
+      },
+    },
     permissions: {
       request: vi.fn((_options, callback) => callback(true)),
       remove: vi.fn(),
@@ -1015,4 +1039,90 @@ describe("options/options", () => {
       }
     });
   }
+
+  // ── 推理深度控件（plan 32）──────────────────────────────────────────────
+  // 控件形态：下拉框；选项由「当前 provider + 当前 model」的 models.dev 声明
+  // 动态生成；存量值在换模型后不丢；选择落到 providerConfigs[provider]。
+
+  /** 构造一个 models.dev 缓存片段：provider 级别带 npm，model 级别带 reasoning_options。 */
+  function modelsDevCache({ providerId = "openai", npm, models = {} }) {
+    return { [providerId]: { npm, models } };
+  }
+
+  /**
+   * 等待推理深度下拉框完成一次异步重建。
+   * `_rebuildReasoningDepthOptions` 在 storage 读取完成后才写 DOM（Promise/microtask），
+   * 直接同步断言会读到初始的空 select。这里刷新宏任务让回调落地。
+   */
+  async function flushAsyncWork() {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+
+  it("renders the reasoning depth control with a Default option and dynamic provider label", async () => {
+    await loadOptionsModule();
+
+    const select = document.querySelector("#genericReasoningDepth");
+    expect(select, "#genericReasoningDepth should exist in the DOM").not.toBeNull();
+    expect(Array.from(select.options).map((o) => o.value)).toContain("");
+
+    // 动态标签：与另外三个标签同一机制
+    const label = document.querySelector("#genericReasoningDepthLabel");
+    expect(label).not.toBeNull();
+    expect(label.textContent).toMatch(/Reasoning Depth/);
+  });
+
+  it("keeps a stored reasoning depth when the freshly built option list does not offer it", async () => {
+    // 存量值 "xhigh"：当前 models.dev 缓存里没有该模型声明 → 选项只有 Default，
+    // 但存量值必须保留一个同名 option，否则用户在换模型时静默丢失设置。
+    await loadOptionsModule(
+      { providerConfigs: { openai: { apiKey: "k", model: "m", reasoningDepth: "xhigh" } } },
+      { modelsDevProviders: modelsDevCache({ npm: "@ai-sdk/openai", models: {} }) }
+    );
+    await flushAsyncWork();
+
+    const select = document.querySelector("#genericReasoningDepth");
+    expect(select).not.toBeNull();
+    const values = Array.from(select.options).map((o) => o.value);
+    expect(values).toContain("xhigh");
+    // 并被选中（用户的存量设置不能因为换模型而静默失效）
+    expect(select.value).toBe("xhigh");
+  });
+
+  it("persists the reasoning depth into providerConfigs for the active provider", async () => {
+    await loadOptionsModule(
+      { providerConfigs: { openai: { apiKey: "k", model: "m" } } },
+      {
+        modelsDevProviders: modelsDevCache({
+          npm: "@ai-sdk/openai",
+          models: { m: { reasoning_options: [{ type: "effort", values: ["low", "high"] }] } },
+        }),
+      }
+    );
+    await flushAsyncWork();
+
+    const select = document.querySelector("#genericReasoningDepth");
+    expect(select).not.toBeNull();
+    // 选项已按声明生成（Default + low + high）
+    expect(Array.from(select.options).map((o) => o.value)).toEqual(["", "low", "high"]);
+
+    // 直接驱动 change 事件路径（控件用 addEventListener 绑定）
+    select.value = "high";
+    select.dispatchEvent(new window.Event("change"));
+
+    // 断言落盘：providerConfigs[provider].reasoningDepth
+    const setCalls = state.configMock.set.mock.calls.filter(([key]) => key === "providerConfigs");
+    expect(setCalls.length).toBeGreaterThan(0);
+    const lastValue = setCalls.at(-1)[1];
+    const activeProvider = state.configValues.aiProvider || "openai";
+    expect(lastValue[activeProvider].reasoningDepth).toBe("high");
+  });
+
+  it("does not crash when the platform has no chrome.storage.local (degraded shape)", async () => {
+    // 覆盖降级形态：storage 命名空间存在但没有 local → 只渲染 Default，不抛错
+    await loadOptionsModule({}, { omitStorageOnChanged: true });
+
+    const select = document.querySelector("#genericReasoningDepth");
+    expect(select).not.toBeNull();
+    expect(Array.from(select.options).map((o) => o.value)).toEqual([""]);
+  });
 });

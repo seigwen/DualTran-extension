@@ -37,6 +37,7 @@
  */
 
 import { streamText } from "ai";
+import { buildProviderOptions } from "../lib/ai/reasoningDepth.js";
 
 // ── SDK mapping table: npm package name → createXxx function ──────────────
 // Only includes SDK packages usable in browser/Service Worker environments.
@@ -62,6 +63,11 @@ import { createDeepInfra } from "@ai-sdk/deepinfra";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
 /** npm package name → createXxx function */
+// NOTE: the set of packages listed here and the dialect table in
+// src/lib/ai/reasoningDepth.js must stay aligned — that module maps each of
+// these npm packages to its providerOptions dialect, and a unit test asserts
+// the two lists are equal. Adding an SDK here without adding the dialect (or
+// vice versa) reintroduces the #88 class of silent drift.
 const SDK_MAP = Object.freeze({
   "@ai-sdk/openai": createOpenAI,
   "@ai-sdk/anthropic": createAnthropic,
@@ -229,7 +235,7 @@ chrome.runtime.onConnect.addListener((port) => {
         return;
       }
       if (msg?.type === "start") {
-        const { id, provider, apiKey, model, messages, temperature = 0.1, topP = 0.1, inactivityTimeoutMs = 60000, extra = {} } = msg;
+        const { id, provider, apiKey, model, messages, temperature = 0.1, topP = 0.1, reasoningDepth = "", inactivityTimeoutMs = 60000, extra = {} } = msg;
         if (!id || !provider || !apiKey || !model || !messages) {
           port.postMessage({ type: "error", id, error: { message: "invalid start message" } });
           return;
@@ -238,9 +244,18 @@ chrome.runtime.onConnect.addListener((port) => {
         inflight.set(id, { controller, port });
         try {
           const languageModel = await createModelClient({ provider, apiKey, model, extra });
+          // Reasoning depth → providerOptions. The dialect is resolved from the
+          // same models.dev npm field that selected the SDK above, so the
+          // parameter mapping can never drift from the client choice (#88).
+          const providerData = (await getProvidersData())?.[resolveModelsDevId(provider)];
+          const providerOptions = buildProviderOptions({
+            provider,
+            npm: providerData?.npm,
+            depth: reasoningDepth,
+          });
           // maxRetries: 0 — disable AI SDK built-in retries; retry strategy is unified
           // by the content script's aiTranslateDynamically() with 10s backoff to avoid request storms.
-          const result = streamText({ model: languageModel, messages, temperature, topP, maxRetries: 0, abortSignal: controller.signal });
+          const result = streamText({ model: languageModel, messages, temperature, topP, ...(providerOptions ? { providerOptions } : {}), maxRetries: 0, abortSignal: controller.signal });
           let totalChunks = 0;
           let streamError = null;
           for await (const part of result.fullStream) {

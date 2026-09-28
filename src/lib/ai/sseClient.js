@@ -16,6 +16,7 @@
  * @param {Array<{role:string, content:string}>} options.messages
  * @param {number} [options.temperature=0.1]
  * @param {number} [options.topP=0.1]
+ * @param {string} [options.reasoningDepth=""] - reasoning effort ("", "low", "high" …); "" sends no parameter
  * @param {Function} options.onMessage - (chunk: string) => void
  * @param {Function} [options.onError]
  * @param {Function} [options.onFinished]
@@ -29,6 +30,7 @@ export async function fetchSSE(options) {
   const {
     provider, apiKey, model, messages,
     temperature = 0.1, topP = 0.1,
+    reasoningDepth = "",
     onMessage, onError, onFinished, onStatusCode,
     signal: externalSignal,
     inactivityTimeoutMs = 60_000,
@@ -118,6 +120,7 @@ export async function fetchSSE(options) {
         messages,
         temperature,
         topP,
+        reasoningDepth,
         inactivityTimeoutMs,
         extra,
       });

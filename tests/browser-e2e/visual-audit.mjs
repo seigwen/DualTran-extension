@@ -345,6 +345,57 @@ async function assertSitesTabListsHaveLabels(page) {
 }
 
 /**
+ * 断言 options#ai 的推理深度下拉框形状正确。
+ *
+ * 机械可判项（结构类，与「有内容」无关）：
+ *   - #genericReasoningDepth 存在且是 <select>
+ *   - 至少有一个选项（Default），且**每一行文本非空**——空白行在视觉上与
+ *     渲染故障无法区分（#85 同族：行存在但无标签）
+ *   - 第一行必须是 Default（value=""）——深度的空值语义是「不发送」
+ *
+ * 重建发生在模型列表加载之后（provider+model → models.dev 声明），
+ * 因此这里做有界轮询等待其落定；超时仍空白则失败。
+ *
+ * @param {import("playwright").Page} page
+ * @returns {Promise<void>}
+ */
+async function assertReasoningDepthSelectShape(page) {
+  const r = await page.evaluate(async () => {
+    const sel = document.getElementById("genericReasoningDepth");
+    if (!(sel instanceof HTMLSelectElement)) {
+      return { missing: true };
+    }
+    // 有界轮询：等待重建落定（最长 ~5s）
+    for (let i = 0; i < 20; i++) {
+      const opts = [...sel.options];
+      if (opts.length > 0 && opts.every((o) => (o.textContent ?? "").trim() !== "")) break;
+      await new Promise((res) => setTimeout(res, 250));
+    }
+    const opts = [...sel.options];
+    return {
+      missing: false,
+      count: opts.length,
+      values: opts.map((o) => o.value),
+      firstValue: opts[0]?.value ?? null,
+      blankTexts: opts.filter((o) => (o.textContent ?? "").trim() === "").length,
+    };
+  });
+
+  if (r.missing) {
+    throw new Error("[options-ai] #genericReasoningDepth 推理深度下拉框缺失（结构被破坏）");
+  }
+  if (r.count === 0) {
+    throw new Error("[options-ai] #genericReasoningDepth 无任何选项（连 Default 都未渲染）");
+  }
+  if (r.blankTexts > 0) {
+    throw new Error(`[options-ai] #genericReasoningDepth 有 ${r.blankTexts}/${r.count} 行文本为空（#85 同族）`);
+  }
+  if (r.firstValue !== "") {
+    throw new Error(`[options-ai] #genericReasoningDepth 首行必须是 Default（value=""），实际 "${r.firstValue}"`);
+  }
+}
+
+/**
  * 断言 options#style 的控件集合完整（issue #88, P3/P5）。
  *
  * 检查：双颜色选择器存在且含 value；#darkMode 下拉框三项齐全（auto/yes/no）且无空文本；
@@ -549,6 +600,7 @@ export async function run(scope) {
 
   await page.goto(`chrome-extension://${extensionId}/options/options.html#ai`, { waitUntil: "load" });
   await page.waitForTimeout(600);
+  await assertReasoningDepthSelectShape(page);
   await screenshotCheckpoint(page, "options-ai", { scenario: name });
 
   // ── 阶段 3b：options#hotkeys（issue #88, P5——#85 症状的视觉锚点）──

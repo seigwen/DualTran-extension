@@ -78,6 +78,29 @@ describe("_resolveProviderSettings — API key resolution", () => {
     mockState.configValues.openAiModel = "";
   });
 
+  // ── 推理深度解析（plan 32）──
+  // 深度与 apiKey/model 同容器（providerConfigs[provider]）；缺省 = ""（不传参）。
+
+  it("returns the configured reasoning depth from providerConfigs", () => {
+    mockState.configValues.providerConfigs = {
+      openai: { apiKey: "«reda...…»", model: "gpt-4o", reasoningDepth: "high" },
+    };
+
+    const result = _resolveProviderSettings("openai", ensureConfigString);
+
+    expect(result.reasoningDepth).toBe("high");
+  });
+
+  it("returns an empty reasoning depth when the provider has none configured", () => {
+    mockState.configValues.providerConfigs = {
+      openai: { apiKey: "«reda...…»", model: "gpt-4o" },
+    };
+
+    const result = _resolveProviderSettings("openai", ensureConfigString);
+
+    expect(result.reasoningDepth).toBe("");
+  });
+
   it("resolves API key from providerConfigs (new format)", () => {
     mockState.configValues.providerConfigs = {
       openai: { apiKey: "sk-new-format-key", model: "gpt-4o" },

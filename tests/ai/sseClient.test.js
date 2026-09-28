@@ -124,6 +124,29 @@ describe("sseClient", () => {
       const types = port.postMessage.mock.calls.map(([m]) => m?.type);
       expect(types).toEqual(["abort", "start"]);
     });
+
+    // ── 推理深度透传（plan 32）──
+    // 深度必须经 port 消息到达 Service Worker；默认 "" 保持旧行为。
+
+    it("carries reasoningDepth to the service worker through the start message", async () => {
+      const port = createMockPort();
+      vi.stubGlobal('chrome', { runtime: { connect: vi.fn(() => port) } });
+
+      await fetchSSE({ ...BASE_OPTS, reasoningDepth: "high" });
+
+      const startMsg = port.postMessage.mock.calls.find(([m]) => m?.type === "start")[0];
+      expect(startMsg.reasoningDepth).toBe("high");
+    });
+
+    it("defaults reasoningDepth to the empty string when the caller omits it", async () => {
+      const port = createMockPort();
+      vi.stubGlobal('chrome', { runtime: { connect: vi.fn(() => port) } });
+
+      await fetchSSE({ ...BASE_OPTS });
+
+      const startMsg = port.postMessage.mock.calls.find(([m]) => m?.type === "start")[0];
+      expect(startMsg.reasoningDepth).toBe("");
+    });
   });
 
   describe("fetch fallback (no chrome)", () => {
