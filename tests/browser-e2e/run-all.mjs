@@ -85,6 +85,7 @@ const SCENARIO_MODULE_PATHS = [
   "./floating-btn-position-restore.mjs",
   "./cross-level-journey.mjs",
   "./ai-block-indicator.mjs",
+  "./selected-panel.mjs",
   "./visual-audit.mjs",
 ];
 

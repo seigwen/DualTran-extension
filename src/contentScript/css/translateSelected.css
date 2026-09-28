@@ -99,6 +99,14 @@ li:hover {
     transform: translateY(-1px);
 }
 
+/* Engine intent buttons (plan 31 / #106): the hover-group buttons carry 1px
+   borders whose colors come from the intent palette (inline). This rule only
+   provides the border geometry; colors stay inline (same discipline as the
+   floating / hover groups — shadow <style> keeps layout only). */
+#sGoogle, #sOpenAI {
+    border: 1px solid transparent;
+}
+
 #moreOrLess {
     margin: 6px;
     cursor: pointer;

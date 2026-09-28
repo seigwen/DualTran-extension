@@ -51,6 +51,9 @@ const TRANSLATION_SCENARIOS = [
   "observer-feedback-loop.mjs",
   "content-update-conformance.mjs",
   "dynamic-content-ai-translation.mjs",
+  // selected-panel.mjs：划词面板为自有布局（原文块 + 译文块，不替换页面文本），
+  // 与 whereToDisplayTranslatedText 双模式语义无关——文件头带 mode-symmetry-allow 豁免。
+  "selected-panel.mjs",
 ];
 
 // 跳过检查的文件（不是翻译行为测试，不需要模式对称）
