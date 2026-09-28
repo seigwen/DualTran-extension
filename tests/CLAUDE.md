@@ -168,12 +168,13 @@ tests/
 
 ### 状态一致性不变量（State Consistency Invariant）
 
-**任何涉及"页面状态"的测试（翻译/恢复/导航）必须附带"UI 状态与引擎状态一致"断言。**
+**任何涉及"页面状态"的测试（翻译/恢复/导航）必须附带"UI 高亮与意图 SSOT 一致"断言。**
 
-- 引擎 `pageLanguageState === "translated"` → 按钮高亮 ∈ {google, ai}
 - 引擎 `pageLanguageState === "original"` → 按钮高亮 = original
-- 引擎 `aiRenderState === "success"` + `aiModeActive` → 按钮高亮 = ai
-- E2E 工具：`assertUiStateMatchesEngine(page)`（读取 pageTranslator getter + 按钮高亮，断言一致）
+- 引擎 translated → 高亮 = `aiModeActive && aiRenderState !== "idle"` ? ai : google（`deriveIntentUi` 单一规则；**loading/error 均为 ai**——「点击=意图；失败再点=重试」）
+- **解耦不变量（正面清单）**：AI 在飞（高亮 ai + 可见 google + spinner）、AI 失败（高亮 ai + ⚠）为**合法状态**——断言分两组写：`高亮 ⇔ 意图`、`可见真相 ⇔ displayMode`；禁止要求「高亮 == 可见」。
+- 块级：激活态 ⇔ 块 `intentMode`（≠`displayMode`）；`displayMode` 仅 resolver 判定用。
+- E2E 工具：`assertUiStateMatchesEngine(page)`（读 `getFloatingUiState` 意图 SSOT + 派生兜底；无闩锁时分歧硬失败）。
 - 背景：UI 依赖事件驱动，但事件只在状态**变化**时触发（`setAiRenderState` 有变化 guard）。SPA 导航后状态没变 → 无事件 → 重建的 UI 永远不知道真实状态。**事件是"变化通知"，不是"状态查询"——UI 必须有查询路径。**
 
 ### 到达闸门测试（Arrival Gate Testing，issue #70）
@@ -185,6 +186,13 @@ tests/
 - **显示声明所有权**：`displayMode = "ai"` 仅由实际显示切换写入；「到达但未显示」必须停留 `google`（防「用户看 Google 但状态说 ai → 下次点击 noop」）。
 - **面板豁免**：无块状态的代理（划词/悬停翻译面板）不被页面级显示切换抑制。
 - 参考实现：`hoverBtnBehavior.integration.test.js`「Arrival gate — hover A after page-level Google (issue #70)」套件 + `hoverBtnStreamArrival.integration.test.js`（真实流式解析）+ `aiUiState.split.test.js`（display-state ownership 三格）。
+
+### 意图源完备性（Intent-Source Completeness，plan 30）
+
+**规则：涉及按钮高亮的组件，必须对全部 5 类意图源各至少一格测试（点击 / 外部操作 / 自动翻译 / AI 流启动恢复 / SPA 重建）；新增意图入口必须同步接入并补格。**
+
+- 参考实现：`floatingBtn.behavior.test.js` 意图源完备性 4 格 + `hoverBtnBehavior.integration.test.js` 意图事件套件（E1/E2/E3 + D6 闸门格）。
+- **背离态正面清单**：断言中「高亮 ≠ 可见」的合法形态必须显式声明（AI 在飞 / AI 失败），与新派生规则的单元格成对出现。
 
 ### 跨层交互矩阵（Cross-Level Interaction Matrix，issue #72）
 

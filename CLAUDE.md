@@ -225,6 +225,16 @@ Content Script (fetchSSE.js)
 - **实现点清单（规则对称性）：** `visual-checks.mjs` `CHECKPOINTS`（清单 SSOT）、`visual-audit.mjs` `screenshotCheckpoint` 调用点（捕获）、`setup.mjs` `screenshotCheckpoint`/`waitForVisualStability`（助手）、`run-all.mjs` `captureFailureShot`（失败兜底）、`check-visual-checks.js`（lint 强制）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - **测试：** `tests/scripts/checkVisualChecks.test.js`（lint 自测 9 格）+ `tests/scripts/visualCapture.test.js`（助手契约 7 格）+ E2E `visual-audit.mjs`（真实捕获 10 检查点）+ `VISUAL_SELFTEST=inject/clean` 效度演练（遮挡/移位/隐藏三注入形态）。
 
+**RULE: 意图驱动高亮规则（intent-driven highlight rule, plan 30 / #102）—— 按钮高亮 = 意图的函数，实际状态只由页面表达：**
+
+- **症状/机制：** 高亮语义曾分裂为两套——页级「意图优先 + 实际显示兜底」× 块级「结果驱动」；07/09/11 号文档家族 5+ 次「按钮状态与实际不符」事故全部发生在两套语义的接缝处（最近一次：M10/#70 水平读边沿）。plan 30 统一为单一意图模型。
+- **语义（两层同源）：** ① 页级 `highlight` = 纯意图（`deriveIntentUi` 单一派生：`translated ? (aiModeActive && aiRenderState !== "idle" ? "ai" : "google") : "original"`）；② 块级激活态 = 块 `intentMode`。**「意图高亮 + 页面显示别的东西」是合法中间态**（AI 在飞：高亮 AI + 页面 Google + spinner；AI 失败：高亮 AI + ⚠）——一致性断言必须分开「高亮=意图」与「可见真相=实际」两组，禁止要求两者恒等。
+- **意图源 5 类（完备性清单）：** 点击（含 noop/promptConfig/retry——「点击总是切高亮」）、外部操作（popup/右键/快捷键，经意图事件显式写入）、自动翻译（→google）、AI 流启动/恢复（→ai，含在飞与失败）、SPA 重建/刷新（从引擎镜像派生）。**任何新增意图入口必须同时接入意图写入链，禁止只写引擎不改高亮。**
+- **闩锁语义：** `intervention` = 「意图在途闩锁」（非「点击优先」）——意图写入后抑制派生纠偏，派生与 highlight 对齐即自动释放；restore/rebuild 无条件清除。闩锁与 highlight 必须**原子**写（同一次 setState），拆开写会触发自释放把意图冲掉。
+- **发音闸门（D6）：** 意图事件发出（发音）必须与派生规则同门——`shouldForceAiForThisRun && aiModeActive`；陈旧持久标记（armed sessionStorage marker）不得压过显式意图。
+- **实现点清单（规则对称性）：** `deriveIntentUi`（uiStateStore.js，派生唯一规则）、`arbitrateEngineDrivenState`（watchdog 仲裁 + 闩锁自释放）、`onRequestedModeChange`（意图事件唯一入口）+ `emitRequestedModeChange`（发音，E1 translatePage / E2 restorePage(silent) / E3 translatePageAi）、`propagateIntentToBlocks`（页级→块级传播）、`isBlockArrivalDisplayAllowed`（块级到达闸门，含 `blockIntentEpoch` 比对）、`intentMode`（块级意图字段）、`resolveInitialUiState`（重建派生镜像纯函数）、`BtnAiProxy`（吸收化——页面级流经代理的 DOM 写入永不落到可见按钮）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- **测试：** `uiStateStore.test.js`（派生/闩锁）+ `watchdogScenarios.test.js`（S1–S7）+ `hoverBtnBehavior.integration.test.js`（E1/E2/E3 + D6 + 传播 + 继承）+ `floatingBtn.behavior.test.js`（意图源完备性 4 格 + SPA 重建）+ `floatingBtnClickResolver.test.js`（`resolveInitialUiState` 事件缺失格）+ `singletonBtnGroup.test.js`（吸收契约）+ `crossLevelInteraction.matrix.test.js`（D5 + 背离格）+ E2E `assertUiStateMatchesEngine`（意图 SSOT 优先）。
+
 **基础设施假设清单（Infrastructure Assumptions，M1 issue #31）—— 每个假设必须有测试引用（M3 用 check-infra-assumptions.js 强制）：**
 - **假设：** `document.body` 元素可能被框架整体替换（Turbo Drive 回退导航 `replaceWith`，2026-09-10 github.com 实测）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav」2 个
 - **假设：** `document.documentElement`（`<html>`）在 SPA 导航中存活（实测 `htmlReplaced: false`）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav: body element replaced immediately → host must be recreated」
@@ -270,7 +280,7 @@ Content Script (fetchSSE.js)
 **UI 状态架构原则（计划文档 08-ui-state-ssot-plan.md）：**
 - **SSOT**：UI 状态（highlight/displayMode/intervention/inFlight）唯一事实源是 `uiStateStore`，禁止闭包持有状态副本。floatingBtn 等组件是纯渲染器，从 `getState()` 读取。
 - **Watchdog**：引擎驱动状态必须可自愈（不一致时 setState 纠正）；用户选择状态（intervention=true）必须保留，watchdog 不得干预。
-- **Watchdog 实时派生规则（PR #29 修正）**：无干预时，`highlight`/`displayMode` 必须反映**页面实际显示**——`pageLanguageState === "translated" && aiRenderState === "success" && aiModeActive` → AI；否则 translated → Google；original → Original。**不得**只看 pageLanguageState 派生（刷新/SPA 恢复后页面显示 AI 但按钮 Google 高亮 = 第 6 次同类事故）。AI 在飞（loading）或失败（error）时页面显示 Google，按钮保持 Google。
+- **Watchdog 实时派生规则（plan 30 意图模型修正，2026-09-27）**：无干预且无意图闩锁时，`highlight` 必须与**意图派生**一致——`pageLanguageState === "translated" && aiModeActive && aiRenderState !== "idle"` → AI；translated → Google；original → Original（单一规则 `deriveIntentUi`；watchdog 只仲裁 highlight，`displayMode` 退役为实际显示记录）。**不得**读「到达时刻的实际显示」（`=== "success"`）当派生——AI 启动/恢复的加载期高亮必须已是 AI（= 意图）；失败保持 AI（点击 = 重试）。**不得**只看 pageLanguageState 派生（第 6 次同类事故）。意图闩锁（intervention）在途时 watchdog 不纠偏，派生对齐后闩锁自释放；restore/rebuild 无条件清除闩锁。
 - **状态机**：状态转换必须通过显式合法表，非法转换（如 pageLanguageState=original 时 highlight=ai）在开发/测试期报错。
 - **变更日志**：所有 setState 记录（时间戳/来源/调用栈/前后快照），`dumpLog()` 可导出，诊断状态 bug 的第一工具。
 

@@ -1012,3 +1012,12 @@ describe("Intent inheritance — dynamic blocks join the page intent (plan 30 / 
     expect(st.displayMode).toBe("google");
   });
 });
+
+// ── Implementation-point map (CLAUDE.md rule: 意图驱动高亮规则, plan 30 / #102) ──
+// isBlockArrivalDisplayAllowed (pageTranslator.js) — the block-scope arrival
+//   verdict of the direct-click executor: the page-level #70 gate plus the
+//   block-level switch-away edge (blockIntentEpoch vs aiRequestBlockIntentEpoch,
+//   captured at dispatch). Pinned here by the Q22/Q23 arrival cells above
+//   (page-epoch half, driven end-to-end through the executor) and by
+//   crossLevelInteraction.matrix.test.js "block-level switch away DURING the
+//   AI request never steals the display (D5)" (block-epoch half).
