@@ -68,6 +68,20 @@ tests/
 - 使用 `assertNoDuplicateTranslationElements(page)`（模式感知，自动选择正确的断言策略）
 - 替代旧的 `assertNoDuplicateTranslations(page)`（仅检查 `<translated>` 元素，对 replaceOriginal 无效）
 - E2E 矩阵测试：`observer-feedback-loop.mjs` 覆盖 {newLine, replaceOriginal} × {showOriginal=yes, no}
+- **行为级判定（#98 复发复盘）**：模式覆盖必须是**真实遍历**（`forEachDisplayMode(` / `DISPLAY_MODES` 枚举）——只提到模式名的**注释不算数**。`check-mode-symmetry.mjs` 去注释后判定；豁免须写在文件头，格式 `// mode-symmetry-allow: <理由>`。新增「存在性」式 lint 时，必须先写「纯注释样本 → 必须红」的自测格（声明级假绿的教训）。
+
+### 内容更新通道一致性（Content-Update Channel Conformance，#98 复发复盘）
+
+**「翻译后站点更新内容不被翻译」是一个多通道维度，禁止按站点/功能名枚举。任何此类修复必须在通道 SSOT 登记，并满足四方面门禁。**
+
+- **SSOT**：`tests/shared/content-update-channels.mjs`。每通道必填 `id / mechanism / provenance（issue 号或真机捕获日期）/ status / simulator / scenarioRefs / unitRefs / canary`。`provenance` 必填——防「凭空机制」。
+- **诊断入口**：收到「内容不翻译」报告的第一动作 = 把症状映射到通道 id → 定位 src 处理点 → 查该通道的「通道 × 显示模式」一致性格是否存在。**映射失败 = SSOT 缺通道 = 流程逃逸**，须补通道 + 补格 + 补模拟页，而不是再修一次个案。
+- **四方一致（`check-content-update-channels.js` 强制，N1–N6）**：通道 ↔ 模拟页 `✅ 已模拟` 声明 ↔ 场景（行为级双模式遍历）↔ 单测引用，任一缺失即硬失败；豁免通道须带 `reason` + `upstreamImpact`。
+- **oracle 三层**（`content-update-conformance.mjs`）：① 覆盖比例（译文区域 ≥ 0.5 × 展开后源长度）；② **通道证明 sentinel**（展开文本尾部唯一英文尾句：newLine 下源尾句必须保留且译文较基线增长 ≥ 0.5 × 尾句长度；replaceOriginal 下尾句必须从容器消失）；③ 陈旧排除 + 无重复 + soak 稳定。**负向对照格必备**（css-only-reveal 无突变时必须零变化）。
+- **RED 校准顺序铁律**：先对**干净产物**确认新断言零误报（阴性），再对**缺陷产物**确认命中（阳性）。反序会把假阳性写进门禁。
+- **修复覆盖对称性**：修复声明 N 个根因，就必须有 N 个可红的覆盖面（双模式都问）。「撤掉这半修复，哪条断言会红？」答不上来的半边 = 当场补格。
+- **warn-as-terminal 禁令（家族 E 残余）**：产出声明性产物（截图/检查点/翻译轮询）的等待超时一律 throw；禁止 `capturing anyway` / `照拍` / `反正…继续` 措辞（`check-assertion-strength.js` 窄规则扫描，豁免标记 `capture-anyway-allow`）。
+- **真机取证手续**：`scripts/record-mutations.mjs`（`--url= --seconds= --ua-profile=chrome-desktop`）录制突变分类，输出 JSON 供通道映射；bot 墙站点（x.com）须 client-hints 伪装（内置该 profile）。诊断脚本必须落地为可复用工具——不随调试会话死亡。
 
 ### 断言强度分级（Assertion Strength Ladder）
 
@@ -346,6 +360,18 @@ tests/
 - **探测点：** `src/background/translationService.js` tokens=`chrome` → 测试：`tests/services/translationService.test.js`「marks makeRequest diagnostics as in-service-worker based on chrome.runtime.id (probe shape matrix, #88)」+「reports inServiceWorker false when chrome.runtime.id is unavailable」
 
 **新增/修改探测时的纪律：** 先问「这个探测对哪些形态敏感？」，然后为每个形态登记一格测试（或 `// platform-probe-allow` + 理由）。lint 自测：`tests/scripts/checkPlatformProbes.test.js`（8 格）。
+
+### 推理深度方言映射测试纪律（Reasoning-Depth Dialect Discipline，plan 32）
+
+**规则：推理参数（providerOptions）有两个静默失败面——未知 key 被静默丢弃、值域不符抛错崩掉整个翻译。涉及 providerOptions 注入的测试必须满足以下纪律。**
+
+- **方言对齐断言（漂移守卫）**：npm → 方言判据由 `resolveDialect` 单点持有（与 `createModelClient` 选 SDK 同一判据）；`tests/ai/reasoningDepth.test.js` 用**逐包对齐断言**锁定 `DIALECT_SDK_NPM_PACKAGES` 与 `aiProxy.js` 的 `SDK_MAP`——两处独立维护同一判据会漂移，且漂移只会静默失败（issue #88 教训）。
+- **值域裁剪断言**：models.dev 声明值是**全生态并集**（mistral 声明 `max`、xai 声明 `xhigh`、anthropic 声明 `none`），**禁止照搬**；`buildProviderOptions` 对不被方言接受的值返回 `null`（不发送优于发错）。测试逐方言断言「生成集 ⊆ 方言接受集」。
+- **线级实锤（wire-level）**：E2E `reasoning-depth.mjs` 读 mock `/request-log`，断言请求体真的出现 `reasoning_effort:"high"`；`Default` 对照组不得出现任何 reasoning 字段。「选项存在 / 落盘」只证明 UI 链，**只有请求体证明到达 wire**。
+- **E2E 自清理铁律**：场景改动共享测试页后必须自清理（清 `dualtran:aiApplied:*` sessionStorage + `restorePage` + 重访硬断言纯净态）——`resetScenarioState` 不可靠（best-effort，失败静默吞）。否则污染后续场景基线（`visual-audit` 实测中招）。
+- **隔离上下文**：涉及 provider/model 列表的 E2E 步（如 S12）必须跑在 `runWithIsolatedExtensionContext` 里——前序场景遗留的自定义 apiBase 会污染 model 列表。
+- **缓存 key 段**：推理深度是 AI 翻译持久缓存 key 的一段（5 段 NUL 分隔）；测试必须断言「不同 depth → 不同 key」与「升级前 4 段条目不命中」——否则改深度会静默返回旧深度的译文。
+- **陈旧 dist 陷阱**：E2E 前必须 `npm run build`——Playwright 加载 `dist/chrome/`，陈旧产物会让线级断言在错误的构建上判定。
 
 ### 基础设施假设 → 测试映射表（M3 issue #33）
 

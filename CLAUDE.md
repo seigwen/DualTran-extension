@@ -245,6 +245,24 @@ Content Script (fetchSSE.js)
 - **实现点清单（规则对称性）**：`applyPanelButtonPalette`（点击的唯一边界效果——色板翻转 + 意图写入）、`PANEL_BTN_COLORS`（面板色板 SSOT）、`createPanelAiProxy`（装饰吸收 + 译文面直通）、`applyPanelTranslatedColor`（状态呈现的译文侧单点）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - **测试：** `translateSelected.test.js`「panel intent buttons」+「panel translation color」两套件；E2E `selected-panel.mjs`（真实用户流 + CDP pierce；每次读取新鲜解析节点——面板会被 `onUp` 重建）。
 
+**RULE: 内容更新通道一致性规则（content-update channel conformance rule, #98 复发复盘）—— 翻译后站点更新必须按「机制通道」枚举覆盖，禁止按站点/功能名枚举：**
+
+- **症状/机制：** 同一用户可见症状（「翻译后出现的站点更新内容不被翻译」）已复发 ≥3 次（#7 append、#98 characterData+容器过滤）。根因是它是一个**多通道维度**：站点更新 DOM 的机制有 8 类，历次修复只封住事发的那一条通道。
+- **对称性要求：** 任何此类修复必须（a）在 SSOT `tests/shared/content-update-channels.mjs` 登记通道（含 `provenance`）；（b）在模拟页声明 `✅ 已模拟`；（c）由场景做**行为级**双模式遍历（`forEachDisplayMode`）；（d）有单测引用或书面豁免。四方一致由 `check-content-update-channels.js`（第 14 lint）强制（N1–N6）。
+- **模拟页拓扑保真铁律：** 复现「容器过滤吞站点更新」根因的通道（append / replace），站点更新落点必须在**幸存且被扩展标记**的元素内部——追加目标 / 被替换节点位于标记元素之外时该根因不可复现（RED 校准实测：撤销修复断言不红 = 假绿）。
+- **模式循环 collect-then-throw：** `forEachDisplayMode` 循环内的硬断言必须收集后统一抛出，禁止中途 throw——否则单格红会中断循环，另一显示模式整段漏跑。
+- **实现点清单（规则对称性）：** `handleObserverMutations`（观察者分类唯一入口：characterData 值比对 + attributes 通道）、`hostUpdatedTextNodes`（站点写集合）、`getAttributesToTranslate`（元素级重扫）、`markAttributeWrite` / `isExtensionWrittenAttribute`（属性自写登记与值比对）、`updatePiecesToTranslateWithNewNodes`（消费端：新节点/站点写/属性合并 + 容器过滤改判据 `isDualTranGeneratedNode`）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+
+**RULE: 推理深度方言映射规则（reasoning-depth dialect rule, plan 32）—— 推理参数必须逐方言映射 + 值域裁剪，禁止照搬声明值：**
+
+- **症状/机制（探针实锤 2026-09-28）：** AI SDK 的 `providerOptions` 有两个静默失败面——① **未知 key 被静默丢弃**（openai-compatible 方言下传 `{deepseek: {...}}` 时请求体里没有 `reasoning_effort`、无任何 warning；正确 key 是 `openaiCompatible`）；② **值域不符时抛错并崩掉整个翻译**（zod 严格校验：`mistral.reasoningEffort='max'`、`xai.reasoningEffort='xhigh'` 均抛 `invalid provider options`）。而 models.dev 的 `reasoning_options` 声明是**面向全生态的并集**（mistral 声明 `max`、xai 声明 `xhigh`、anthropic 声明 `none`），直接照搬 = 把用户送进运行时报错。
+- **方言判据单点：** 方言由 models.dev 的 `npm` 字段决定（与 `createModelClient` 选 SDK 同一判据）；`resolveDialect` 是**唯一**判据实现，`DIALECTS` 表逐方言记录 `key`（providerOptions 键名）/ `accepts`（值域，`null` = 不校验）/ `style`（参数形状）。**新增 SDK_MAP 条目必须同步新增方言表条目**——两处独立维护同一判据会漂移，且漂移只会静默失败（issue #88 教训）。
+- **不发送优于发错：** 值不被方言接受时 `buildProviderOptions` 返回 `null`（不传 providerOptions，请求仍成功、只是没有推理提示）——**禁止**为「让参数生效」而在无对应能力的方言上强传（thin wrapper `@ai-sdk/{togetherai,perplexity,deepinfra,cerebras}` 不读 `reasoningEffort`，无独立方言键）。
+- **选项生成同样裁剪：** 下拉框选项 = 声明值 ∩ 方言接受集（`buildReasoningDepthOptions`），`Default`（value `""`）恒为首项且恒存在；`toggle` 型声明展开为 `Default` + 该方言的「开」值；`budget_tokens` 本轮不支持（显示 `Default`）。
+- **缓存一致性：** 推理深度是 AI 翻译持久缓存 key 的一段——改深度必须换条目，否则会静默返回旧深度的译文。
+- **实现点清单（规则对称性）：** `resolveDialect`（reasoningDepth.js，方言判据唯一实现）、`buildReasoningDepthOptions`（选项生成：声明值 ∩ 方言接受集）、`buildProviderOptions`（providerOptions 构造：不接受则返回 null）、`SDK_MAP`（aiProxy.js，npm → SDK 分发表——与方言表必须逐包对齐）、`buildCacheKey`（aiTranslationCache.js，深度参与 key 组成）、`getReasoningDepthForProvider`（pageTranslator.js，per-provider 深度读取，未设置返回 `""` 而非默认值）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- **测试：** `tests/ai/reasoningDepth.test.js`（28 格：方言解析 + 值域裁剪 + toggle 展开 + 拒绝即丢弃 + **与 SDK_MAP 的逐包对齐断言**）+ `tests/background/aiProxyReasoningDepth.test.js`（port `start` → `streamText` 的 providerOptions 实捕 8 格）+ `tests/background/aiTranslationCacheReasoningDepth.test.js`（深度参与 key；升级前 4 段 key 不命中）+ `tests/contentScript/pageTranslator.integration.test.js`「getReasoningDepthForProvider (plan 32)」+ E2E `tests/browser-e2e/reasoning-depth.mjs`（**线级实锤**：mock 服务器 `/request-log` 必须出现 `reasoning_effort: "high"`，对照组不得出现任何 reasoning 字段）+ E2E `settings-translation.mjs` S12（真实 UI：选深度 → reload → 持久化且重选）。
+
 **基础设施假设清单（Infrastructure Assumptions，M1 issue #31）—— 每个假设必须有测试引用（M3 用 check-infra-assumptions.js 强制）：**
 - **假设：** `document.body` 元素可能被框架整体替换（Turbo Drive 回退导航 `replaceWith`，2026-09-10 github.com 实测）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav」2 个
 - **假设：** `document.documentElement`（`<html>`）在 SPA 导航中存活（实测 `htmlReplaced: false`）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav: body element replaced immediately → host must be recreated」
@@ -310,3 +328,6 @@ The extension's translation flow works as follows:
 
 ### English first
 It's a github project, always use English for code comments and git messages.
+
+### 预授权规则（2026-09-29 用户授权）
+本项目对 CLAUDE.md / AGENTS.md 的修改不设事前审批：agent 可直接编辑（走 `~/.hermes/scripts/edit-agent-rules.py`，精确补丁 + 原子写），但必须在写完后的**同一轮内**发送一封邮件说明改了什么（脚本会自动发信：正文含 unified diff，标题 `CLAUDE.md已更新-<简述>`）。审计日志：`~/.hermes/logs/agent-rules-edits.log`。例外仍受保护：SOUL.md / .cursorrules 维持原有审批门。
