@@ -24,6 +24,11 @@
  *   B. CDP 点击 AI → 高亮翻转（AI 紫 / Google 浅蓝）；标签恒定、无 ✓/✕ 装饰（需求 4）
  *   C. aimock AI 译文进译文框（含 mock 标记；状态在译文元素）；色 = AI 哨兵（需求 1 AI 侧）
  *   D. 切回 Google → 译文色归位 Google 哨兵（跨引擎泄漏格）；标签恒定、无装饰
+ *   E. 单词路径缓存解耦（plan 33）：选中单个单词连点两次 AI，两次都必须发出真实请求
+ *      （旧代码第二次命中 aiCache 直接 0 请求——本相位即 RED 判别格）；请求计数经 mock
+ *      /request-log 按 assistant 引导语（"…the word."）过滤，与文本路径严格区分
+ *   F. 负向对照：句子二次点击仍命中内存缓存（零文本路径请求）——证明本次改动未波及
+ *      文本路径的缓存复用（该相位在旧/新代码下均应为 GREEN）
  *
  * mode-symmetry-allow: 划词面板为自有布局，不使用 whereToDisplayTranslatedText
  * 双模式语义（面板译文永远单独显示，颜色无条件应用，plan 31 §2.1 Q1 决策）。
@@ -198,6 +203,50 @@ function assertNoDecoration(snapshot, expectedLabel) {
   }
 }
 
+// ─── mock 请求日志通道（阶段 E/F：单词路径请求计数；先例 reasoning-depth.mjs） ──
+
+/** mock 服务器根 URL（去掉 provider 路径段）。 */
+function mockBase(scope) {
+  return scope.mockServerConfig.openRouterApiBase.replace(/\/openrouter\/v1$/, "");
+}
+
+async function fetchRequestLog(scope) {
+  const resp = await fetch(`${mockBase(scope)}/request-log`);
+  if (!resp.ok) throw new Error(`[selected-panel] /request-log 读取失败: HTTP ${resp.status}`);
+  const payload = await resp.json();
+  return Array.isArray(payload?.requests) ? payload.requests : [];
+}
+
+async function resetRequestLog(scope) {
+  const resp = await fetch(`${mockBase(scope)}/request-log/reset`, { method: "POST" });
+  if (!resp.ok) throw new Error(`[selected-panel] /request-log/reset 失败: HTTP ${resp.status}`);
+}
+
+/** 解析请求日志中的 chat/completions 请求体。 */
+function chatBodies(requests) {
+  return requests
+    .filter((r) => r.method === "POST" && /chat\/completions/.test(r.pathname || ""))
+    .map((r) => {
+      if (r.body && typeof r.body === "object") return r.body;
+      try { return JSON.parse(r.body); } catch { return null; }
+    })
+    .filter(Boolean);
+}
+
+/** 按第二条消息（assistant 引导语）过滤请求——单词路径 / 文本路径的唯一区分标记。 */
+function countByAssistantNeedle(requests, needle) {
+  return chatBodies(requests).filter((b) => {
+    const assistant = Array.isArray(b.messages) ? b.messages[1] : null;
+    return assistant && assistant.role === "assistant" && assistant.content === needle;
+  }).length;
+}
+
+const WORD_PATH_NEEDLE = "I understand. Please give me the word.";
+const TEXT_PATH_NEEDLE = "I understand. Please give me the text.";
+
+/** 单词路径的确定性 mock 响应（fixture #8："hello" → "aimock mock result"）。 */
+const WORD_AI_SNIPPET = "aimock mock result";
+
 /** 页面文本到达谓词：非空、非 loading、非 AI mock 文本。 */
 function isSettledGoogleText(snapshot, aiSnippet) {
   return snapshot.text.length > 0
@@ -339,5 +388,139 @@ export async function run(scope) {
       "Google 重译（文本 + 哨兵色归位）"
     );
     console.log(`  [D] 切回 Google = 译文色归位哨兵 translatedColor（无残留泄漏）；标签恒定 ✓；文本: ${JSON.stringify(landed.text.slice(0, 60))}`);
+  }
+
+  // 7) 阶段 E：单词路径缓存解耦（plan 33）——同一单词连点两次，两次都必须发出真实请求
+  //    （旧代码第二次命中 aiCache → 0 请求 → 本相位即 RED 判别格）
+  await resetRequestLog(scope);
+  await page.evaluate(() => {
+    const element = document.getElementById("selection-word");
+    if (!element) throw new Error("selection-word not found");
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    selection.addRange(range);
+    document.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, button: 0, clientX: 200, clientY: 300 }));
+  });
+  await waitForFresh(
+    cdp,
+    "eButtonTransSelText",
+    (s) => s.display === "block",
+    10000,
+    "单词选区图标出现"
+  );
+  await freshClick(cdp, "eButtonTransSelText");
+  {
+    // 面板重建 → 原文必须是单词 "hello"（路由走单词路径的前提）
+    await waitForFresh(cdp, "eOrigText", (s) => s.text === "hello", 10000, "面板原文 = 单词 hello");
+
+    // 等 Google 首翻落定（消除 Google 迟到覆盖 AI 文本的竞态；
+    // 与阶段 A 同策略，但此处不锁哨兵色——本相位不考察 Google 网络质量）
+    await waitForFresh(
+      cdp,
+      "eSelTextTrans",
+      (s) => s.text.length > 0 && !s.text.includes("Loading") && !s.text.includes(WORD_AI_SNIPPET),
+      30000,
+      "单词 Google 译文落定"
+    );
+
+    // 第一次点击 AI
+    await freshClick(cdp, "sOpenAI");
+    await waitForFresh(
+      cdp,
+      "eSelTextTrans",
+      (s) => s.text.includes(WORD_AI_SNIPPET),
+      30000,
+      "单词首次 AI 译文到达"
+    );
+
+    // 防 RED 假绿窗口：等旧代码 onFinished 的缓存写入链先完成（mock 流 <100ms；
+    // 250ms 轮询通常已覆盖，此处显式兜底）
+    await page.waitForTimeout(1200);
+    let log = await fetchRequestLog(scope);
+    const firstCount = countByAssistantNeedle(log, WORD_PATH_NEEDLE);
+    if (firstCount !== 1) {
+      throw new Error(`[E1] 单词首次点击应恰发出 1 个单词路径请求，实为 ${firstCount}`);
+    }
+    console.log("  [E1] 单词首次点击 = 1 个真实请求 ✓");
+
+    // 第二次点击 AI → 必须再发请求（旧代码此处命中缓存 = 0 请求 → RED 判别点）
+    await freshClick(cdp, "sOpenAI");
+    const deadline = Date.now() + 15000;
+    let wordCount = firstCount;
+    while (Date.now() < deadline) {
+      log = await fetchRequestLog(scope);
+      wordCount = countByAssistantNeedle(log, WORD_PATH_NEEDLE);
+      if (wordCount >= 2) break;
+      await page.waitForTimeout(250);
+    }
+    if (wordCount !== 2) {
+      throw new Error(
+        `[E2] 单词第二次点击必须再发真实请求（单词路径不得读缓存）；期望累计 2 个单词路径请求，实为 ${wordCount}`
+      );
+    }
+    console.log("  [E2] 单词二次点击 = 再发 1 个真实请求（累计 2）——缓存解耦生效 ✓");
+
+    // 等第二次流落地（保持场景收尾干净）
+    await waitForFresh(
+      cdp,
+      "eSelTextTrans",
+      (s) => s.text.includes(WORD_AI_SNIPPET),
+      15000,
+      "单词第二次 AI 译文到达"
+    );
+  }
+
+  // 8) 阶段 F：负向对照——句子二次点击仍命中内存缓存（零文本路径请求）
+  //    证明本次改动未波及文本路径的缓存复用；同时守护文本路径的缓存写入存在
+  //    （写入若被破坏，AI 会发请求 → 本格红）。前后代码均应为 GREEN。
+  await resetRequestLog(scope);
+  await page.evaluate(() => {
+    const element = document.getElementById("selection-target");
+    if (!element) throw new Error("selection-target not found");
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    selection.addRange(range);
+    document.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, button: 0, clientX: 200, clientY: 260 }));
+  });
+  await waitForFresh(
+    cdp,
+    "eButtonTransSelText",
+    (s) => s.display === "block",
+    10000,
+    "句子选区图标出现（阶段 F）"
+  );
+  await freshClick(cdp, "eButtonTransSelText");
+  {
+    // 面板重建 → 等 Google 落定（消除竞态）
+    await waitForFresh(
+      cdp,
+      "eSelTextTrans",
+      (s) => isSettledGoogleText(s, aiSnippet),
+      30000,
+      "句子 Google 译文落定（阶段 F）"
+    );
+
+    // 点击 AI → 应为缓存命中（瞬达），零文本路径请求
+    await freshClick(cdp, "sOpenAI");
+    await waitForFresh(
+      cdp,
+      "eSelTextTrans",
+      (s) => s.text.includes(aiSnippet),
+      10000,
+      "句子 AI 缓存译文到达"
+    );
+
+    // 2s 观察窗：缓存命中场景不得出现任何文本路径请求
+    await page.waitForTimeout(2000);
+    const log = await fetchRequestLog(scope);
+    const textPathCount = countByAssistantNeedle(log, TEXT_PATH_NEEDLE);
+    if (textPathCount !== 0) {
+      throw new Error(`[F] 句子二次点击应命中内存缓存（0 请求），实为 ${textPathCount} 个文本路径请求`);
+    }
+    console.log("  [F] 句子二次点击 = 缓存命中 0 请求（文本路径缓存复用未受影响）✓");
   }
 }

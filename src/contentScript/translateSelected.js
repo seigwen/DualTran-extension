@@ -20,7 +20,7 @@ console.log("translateSelected.js is running")
 import twpLang from "../lib/languages.js"
 import twpConfig from "../lib/config.js"
 import platformInfo from "../lib/platformInfo.js"
-const { backgroundTranslateSingleText, pageTranslator, aiTranslateText, aiCache, abortControllers } = await import("./pageTranslator.js")
+const { backgroundTranslateSingleText, pageTranslator, aiTranslateText, abortControllers } = await import("./pageTranslator.js")
 import Toastify from 'toastify-js'
 import detectTextLanguage from "../util/detectTextLanguage.js"
 import wordsCount from "../util/globalWordsCount.js"
@@ -200,17 +200,9 @@ let aiTranslateWord = async (toBeTranslated, showToastForError = true) => {
 
   // Use the “text translation” target language as the target language
   const targetLanguageCodeForAI = twpConfig.get("targetLanguageTextTranslation") || twpConfig.get("targetLanguage")
-  // If the cache has the same source text and target language, use the cache directly
-  let cacheItem = aiCache.find(item => btnAi.sourceString === item.original && item.targetLanguage === targetLanguageCodeForAI)
-  if (cacheItem) {
-    applyAiSuccessState(btnAi, {
-      translatedText: cacheItem.translated || "",
-      translatedTextColor: twpConfig.get("aiTranslatedColor"),
-      tooltipText: "AI translated successfully!",
-      titleText: "AI translated successfully!",
-    })
-    return
-  }
+  // Word lookups never consult aiCache (plan 33, word-path cache decoupling):
+  // a single word must always issue a live request — a cached plain translation
+  // would otherwise mask the dictionary-style detail the user is asking for.
 
   // Start translation
   let accumulatedText = ""
@@ -330,14 +322,9 @@ let aiTranslateWord = async (toBeTranslated, showToastForError = true) => {
       tooltipText: "AI translated successfully!",
       titleText: "AI translated successfully!",
     })
-    // Write to cache (keyed by source text + target language)
-    try {
-      aiCache.push({
-        original: btnAi.sourceString,
-        targetLanguage: targetLanguageCodeForAI,
-        translated: btnAi.translatedTextNode?.textContent || ""
-      })
-    } catch (_) { }
+    // No aiCache write on the word path (plan 33, word-path cache decoupling):
+    // a dictionary-style result must never enter the shared cache, where the
+    // page / hover text paths could serve it as a plain translation.
   }
 
   // Build abort controller

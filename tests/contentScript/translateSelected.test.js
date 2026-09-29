@@ -165,7 +165,7 @@ describe("translateSelected aiTranslateWord", () => {
     expect(button.tooltip.textContent).toContain(parseErrorPrefix);
   });
 
-  it("streams selected-text AI output, then marks success and stores the cache entry", async () => {
+  it("streams selected-text AI output, then marks success without writing the aiCache", async () => {
     let streamCallbacks;
     translateWithAIMock.mockImplementation((content, onMessage, onError, onFinished) => {
       streamCallbacks = { content, onMessage, onError, onFinished };
@@ -207,13 +207,10 @@ describe("translateSelected aiTranslateWord", () => {
     expect(button.translationStatus).toBe("translated");
     expect(button.translatedTextNode.textContent).toBe("bonjour");
     expect(button.tooltip.textContent).toBe("AI translated successfully!");
-    expect(aiCacheMock).toEqual([
-      {
-        original: "hello world",
-        targetLanguage: "de",
-        translated: "bonjour",
-      },
-    ]);
+    // Word-path cache decoupling (plan 33): a completed word run must NOT write
+    // the shared aiCache — a dictionary-style result would otherwise be served
+    // as a plain translation by the page / hover text paths.
+    expect(aiCacheMock).toEqual([]);
     expect(sendMessageMock).toHaveBeenCalledWith(
       expect.objectContaining({ action: "recordNewRequestToOpenAI", result: "successful" })
     );
@@ -249,23 +246,53 @@ describe("translateSelected aiTranslateWord", () => {
     expect(aiCacheMock).toEqual([]);
   });
 
-  it("reuses selected-text aiCache entries without issuing another AI request", async () => {
+  it("ignores a matching aiCache entry — a single word always issues a live request", async () => {
+    // Word-path cache decoupling (plan 33): the word path must never read the
+    // shared aiCache. A cached plain translation would mask the dictionary-style
+    // detail the user is asking for, so this "contaminated" entry must be ignored
+    // (and, on completion, neither consumed nor modified — the pool stays as-is).
     aiCacheMock.push({
-      original: "cached text",
+      original: "hello",
       targetLanguage: "de",
-      translated: "zwischengespeichert",
+      translated: "stale cached translation",
+    });
+
+    let streamCallbacks;
+    translateWithAIMock.mockImplementation((content, onMessage, onError, onFinished) => {
+      streamCallbacks = { content, onMessage, onError, onFinished };
     });
 
     const { aiTranslateWord } = await import("../../src/contentScript/translateSelected.js");
-    const button = createButton(document, { sourceString: "cached text" });
+    const button = createButton(document, { sourceString: "hello" });
 
     await aiTranslateWord([button]);
 
-    expect(translateWithAIMock).not.toHaveBeenCalled();
+    expect(translateWithAIMock).toHaveBeenCalledOnce();
+    expect(translateWithAIMock.mock.calls[0][0]).toBe("hello");
+    expect(translateWithAIMock.mock.calls[0][6]).toBe("de");
+
+    streamCallbacks.onMessage(
+      JSON.stringify({
+        choices: [{ delta: { content: "bon" }, finish_reason: null }],
+      })
+    );
+    streamCallbacks.onMessage(
+      JSON.stringify({
+        choices: [{ delta: { content: "jour" }, finish_reason: null }],
+      })
+    );
+    streamCallbacks.onFinished();
+
     expect(button.translationStatus).toBe("translated");
-    expect(button.translatedTextNode.textContent).toBe("zwischengespeichert");
-    expect(button.translatedTextNode.style.color).toBe("rgb(4, 5, 6)");
-    expect(button.tooltip.textContent).toBe("AI translated successfully!");
+    expect(button.translatedTextNode.textContent).toBe("bonjour");
+    // The pre-existing entry is untouched — nothing read, nothing written.
+    expect(aiCacheMock).toEqual([
+      {
+        original: "hello",
+        targetLanguage: "de",
+        translated: "stale cached translation",
+      },
+    ]);
   });
 });
 
@@ -539,3 +566,11 @@ describe("translateSelected panel intent buttons (palette + label + absorption)"
     expect(button.style.color).toBe("");
   });
 });
+
+// ── Implementation-point map (plan 33 word-path cache decoupling) ──
+// aiTranslateWord (translateSelected.js) — the word path never reads aiCache
+//   (the "ignores a matching aiCache entry" cell drives a live request despite a
+//   matching entry) and never writes it (the "marks success without writing the
+//   aiCache" cell asserts the pool stays empty after a completed run).
+// aiCache (pageTranslator.js) — the shared in-page cache: the word path's
+//   completed run leaves it byte-identical (both cells assert the pool state).
