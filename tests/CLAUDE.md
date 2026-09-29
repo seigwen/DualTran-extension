@@ -216,6 +216,8 @@ tests/
 - **测试引用**：`translateSelected.test.js`「translateSelected panel translation color」+「panel intent buttons」两套件（色板 parity / 意图切换 / 吸收契约 / label 恒定 / word-path 成功与失败全流程）；E2E `selected-panel.mjs`（closed shadow 经 CDP pierce：按钮色板 computed / label 恒定 / 译文框哨兵色三面断言）。
 - **面板生命周期（E2E 必知）**：`mouseup` 会在 +150ms 触发 `onUp` → `init()` 销毁并重建面板（为显示选区图标）——必须走真实用户流（选中 → 等 `#eButtonTransSelText` 可见 → 点击）且**每次读取新鲜解析节点**；缓存的 backendNodeId 读到的是 detached 幽灵节点（特征：computed style 全空 `""`、文本却为旧值）。
 - **吸收边界**：装饰面（`btnAiTxtNode`/tooltip/`classList`/`style`）吸收、译文面（`translatedTextNode`）按身份直通——`showOriginal` 用元素恒等匹配注册悬停（包 facade 会断）；`classList.contains("dualtran-ai-selected-btn")` 必须恒 true（`isSelectedPanel` 目标语言路由依赖）。
+- **单词路径缓存解耦（plan 33 / #111）**：单词路径（`aiTranslateWord`）不读、不写共享内存缓存 `aiCache`——单词每次点击直发真实请求；词典式结果永不进入共享池（页面/悬停的文本路径按 (原文, 目标语言) 命中的条目池因此只含普通译文）。反向污染（词典长文被当段落译文复用）同源切断。仅单词路径；`aiTranslateText` 的缓存复用**保持不变**。
+- **请求计数断言（单词路径判别通道）**：单词路径 / 文本路径在 mock `/request-log` 上以**请求体第二条消息**（assistant 引导语）区分——单词 = `"I understand. Please give me the word."`，文本 = `"…the text."`（`fetchSSE.js` 固定文案）。断言用**真实请求计数**（含"第二次点击必须再发请求"格），不以文本到达推断；缓存命中格用"零请求观察窗"（≥2s）锁定。
 
 ### 跨层交互矩阵（Cross-Level Interaction Matrix，issue #72）
 
