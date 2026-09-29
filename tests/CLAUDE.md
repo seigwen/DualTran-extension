@@ -194,6 +194,15 @@ tests/
 - 参考实现：`floatingBtn.behavior.test.js` 意图源完备性 4 格 + `hoverBtnBehavior.integration.test.js` 意图事件套件（E1/E2/E3 + D6 闸门格）。
 - **背离态正面清单**：断言中「高亮 ≠ 可见」的合法形态必须显式声明（AI 在飞 / AI 失败），与新派生规则的单元格成对出现。
 
+### 划词面板不变量（Selection Panel Invariants，plan 31 / #106）
+
+**规则：划词面板底栏 G/A 按钮只表意图——任何状态下 label 恒为「Google」/「AI」、无任何装饰（✓/✕/状态文字/tooltip 变异/按钮染色）；翻译状态（loading spinner / 译文 / 错误文案）只在译文元素 `eSelTextTrans` 内呈现。**
+
+- **颜色**：面板译文色单点 `applyPanelTranslatedColor`（先重置再上色；空配置值 = 不染色，与 #94「重置」语义同源；面板不使用 `whereToDisplayTranslatedText` 双模式语义——无条件按配置应用）。按钮色板 `PANEL_BTN_COLORS` 与 `BTN_COLORS` 逐字一致（跨面 parity 单测锁定）。
+- **测试引用**：`translateSelected.test.js`「translateSelected panel translation color」+「panel intent buttons」两套件（色板 parity / 意图切换 / 吸收契约 / label 恒定 / word-path 成功与失败全流程）；E2E `selected-panel.mjs`（closed shadow 经 CDP pierce：按钮色板 computed / label 恒定 / 译文框哨兵色三面断言）。
+- **面板生命周期（E2E 必知）**：`mouseup` 会在 +150ms 触发 `onUp` → `init()` 销毁并重建面板（为显示选区图标）——必须走真实用户流（选中 → 等 `#eButtonTransSelText` 可见 → 点击）且**每次读取新鲜解析节点**；缓存的 backendNodeId 读到的是 detached 幽灵节点（特征：computed style 全空 `""`、文本却为旧值）。
+- **吸收边界**：装饰面（`btnAiTxtNode`/tooltip/`classList`/`style`）吸收、译文面（`translatedTextNode`）按身份直通——`showOriginal` 用元素恒等匹配注册悬停（包 facade 会断）；`classList.contains("dualtran-ai-selected-btn")` 必须恒 true（`isSelectedPanel` 目标语言路由依赖）。
+
 ### 跨层交互矩阵（Cross-Level Interaction Matrix，issue #72）
 
 **规则：覆盖必须按「用户操作序列」组织，不能只按组件组织。** #70 逃逸的根因不是断言弱，而是覆盖空间里没有「页面级操作 → 块级操作」的跨层组合：既有场景要么只操作浮动按钮（页面级），要么只 hover 读调色板（#65）。跨层组合是结构性真空。

@@ -166,7 +166,7 @@ Content Script (fetchSSE.js)
 - 当 `whereToDisplayTranslatedText` 配置项的值为 **`newLine`（"在新行显示译文"）** 时，译文颜色遵循 options 页配置项"谷歌译文颜色"（`translatedColor`）和"AI 译文颜色"（`aiTranslatedColor`）。
 - 实现位置：`applyTranslatedColorToNode()`（pageTranslator.js）在 replaceOriginal 模式下必须跳过；`_applyAiColorToTranslatedElement()` 已有 replaceOriginal 跳过逻辑（通过 `nodesToClear` 非空判断），不得移除。
 - 测试：任何颜色相关测试必须同时覆盖两种模式（模式对称性规则）。
-- **实现点清单（规则对称性）**：`applyTranslatedColorToNode`（Google 侧，PR #20 已加守卫）、`_applyAiColorToTranslatedElement`（AI 侧，已有守卫）、`applyAiTranslatedTextColor`（aiUiState.js，`data-dualtran-block` 检测）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- **实现点清单（规则对称性）**：`applyTranslatedColorToNode`（Google 侧，PR #20 已加守卫）、`_applyAiColorToTranslatedElement`（AI 侧，已有守卫）、`applyAiTranslatedTextColor`（aiUiState.js，`data-dualtran-block` 检测）、`applyPanelTranslatedColor`（划词面板译文色单点，plan 31——面板不使用双模式语义、无条件按配置应用；先重置再上色；空值不染色）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - **默认值与按钮色板一致性（#94）**：出厂默认 `translatedColor` = `#1d4ed8`（Google 蓝）、`aiTranslatedColor` = `#7c3aed`（AI 紫），与悬浮按钮色板逐字一致——改按钮色板必须同步改默认值，反之亦然；已手动选色的用户不做迁移（storage 值覆盖默认；「重置」保持写空值语义 = 不染色）。负向颜色检查禁止硬编码具体色值（默认色一变即静默失明）：用场景内哨兵色断言「译文色 ≠ 哨兵」（先例：`translation-replace-original.mjs` 的 #94 哨兵化）。
 - **实现点清单（规则对称性）**：`translatedColor`（config.js 默认值，tests/lib/config.test.js 锁定字面值 + 无迁移单元格）、`aiTranslatedColor`（同上）、`BTN_COLORS`（singletonBtnGroup.js 色板，singletonBtnGroup.test.js 锁定）+ E2E `translation.mjs`「译文渲染色 ≡ 浮动按钮色」双向断言。改任一处必须同步检查其余实现点 + 对应测试。
 
@@ -234,6 +234,16 @@ Content Script (fetchSSE.js)
 - **发音闸门（D6）：** 意图事件发出（发音）必须与派生规则同门——`shouldForceAiForThisRun && aiModeActive`；陈旧持久标记（armed sessionStorage marker）不得压过显式意图。
 - **实现点清单（规则对称性）：** `deriveIntentUi`（uiStateStore.js，派生唯一规则）、`arbitrateEngineDrivenState`（watchdog 仲裁 + 闩锁自释放）、`onRequestedModeChange`（意图事件唯一入口）+ `emitRequestedModeChange`（发音，E1 translatePage / E2 restorePage(silent) / E3 translatePageAi）、`propagateIntentToBlocks`（页级→块级传播）、`isBlockArrivalDisplayAllowed`（块级到达闸门，含 `blockIntentEpoch` 比对）、`intentMode`（块级意图字段）、`resolveInitialUiState`（重建派生镜像纯函数）、`BtnAiProxy`（吸收化——页面级流经代理的 DOM 写入永不落到可见按钮）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - **测试：** `uiStateStore.test.js`（派生/闩锁）+ `watchdogScenarios.test.js`（S1–S7）+ `hoverBtnBehavior.integration.test.js`（E1/E2/E3 + D6 + 传播 + 继承）+ `floatingBtn.behavior.test.js`（意图源完备性 4 格 + SPA 重建）+ `floatingBtnClickResolver.test.js`（`resolveInitialUiState` 事件缺失格）+ `singletonBtnGroup.test.js`（吸收契约）+ `crossLevelInteraction.matrix.test.js`（D5 + 背离格）+ E2E `assertUiStateMatchesEngine`（意图 SSOT 优先）。
+
+**RULE: 划词面板按钮意图规则（selection-panel intent rule, plan 31 / #106）—— 按钮只表意图，状态全部在译文框：**
+
+- **症状/机制：** 面板底栏 G/A 按钮曾承载全部状态装饰——Google 成功加 `✓` span + 变色 + title 改写（`renderGoogleSuccessIndicator`）；AI 进行中 label 写成 `queuing`/`translating...`、成功后按钮 inline `color=darkgreen`、tooltip 随状态变异。用户要求：按钮「仅代表意图」——任何状态下文字恒为 `Google`/`AI`，点击只切换高亮。
+- **语义：** ① 点击 = 只切换高亮（点亮当前、取消另一个，零其它写入）；② 翻译状态（loading spinner / 译文 / 错误文案）只在译文元素 `eSelTextTrans` 内呈现；③ 引擎对按钮的装饰写入全部被吸收（不落可见按钮）。
+- **装饰吸收（`createPanelAiProxy`）：** 装饰面（`btnAiTxtNode` / tooltip / `classList` / `style` / `setAttribute`）落游离 dummy；**译文面（`translatedTextNode`）按身份直通**——`showOriginal` 注册靠元素恒等匹配（包 facade 会断悬停显示原文）；`classList.contains` 对 `dualtran-ai-selected-btn` 恒 true（`isSelectedPanel` 路由依赖，勿删）。
+- **颜色（与译文颜色规则衔接）：** 面板不使用 `whereToDisplayTranslatedText` 双模式语义（译文永远单独显示）——`translatedColor`/`aiTranslatedColor` **无条件**按配置应用，且每次切换/到达**先重置再上色**（治跨引擎泄漏）；空值 = 不染色。
+- **色板：** `PANEL_BTN_COLORS` 与悬浮组 `BTN_COLORS` **逐字一致**（跨面 parity 单测锁定；改任一处必须同步另一处）；颜色走 inline style（shadow `<style>` 只留布局）。
+- **实现点清单（规则对称性）**：`applyPanelButtonPalette`（点击的唯一边界效果——色板翻转 + 意图写入）、`PANEL_BTN_COLORS`（面板色板 SSOT）、`createPanelAiProxy`（装饰吸收 + 译文面直通）、`applyPanelTranslatedColor`（状态呈现的译文侧单点）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- **测试：** `translateSelected.test.js`「panel intent buttons」+「panel translation color」两套件；E2E `selected-panel.mjs`（真实用户流 + CDP pierce；每次读取新鲜解析节点——面板会被 `onUp` 重建）。
 
 **基础设施假设清单（Infrastructure Assumptions，M1 issue #31）—— 每个假设必须有测试引用（M3 用 check-infra-assumptions.js 强制）：**
 - **假设：** `document.body` 元素可能被框架整体替换（Turbo Drive 回退导航 `replaceWith`，2026-09-10 github.com 实测）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav」2 个
