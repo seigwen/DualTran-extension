@@ -245,6 +245,14 @@ Content Script (fetchSSE.js)
 - **实现点清单（规则对称性）**：`applyPanelButtonPalette`（点击的唯一边界效果——色板翻转 + 意图写入）、`PANEL_BTN_COLORS`（面板色板 SSOT）、`createPanelAiProxy`（装饰吸收 + 译文面直通）、`applyPanelTranslatedColor`（状态呈现的译文侧单点）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - **测试：** `translateSelected.test.js`「panel intent buttons」+「panel translation color」两套件；E2E `selected-panel.mjs`（真实用户流 + CDP pierce；每次读取新鲜解析节点——面板会被 `onUp` 重建）。
 
+**RULE: 单词路径缓存解耦规则（word-path cache decoupling rule, plan 33 / #111）—— 单词 AI 查询不读、不写共享缓存，每次点击直发请求：**
+
+- **症状/机制：** 划词面板的单词路径（`aiTranslateWord`）曾在派发前查询共享内存缓存 `aiCache`——页面/悬停的文本路径写入的同词**普通译文**会被原样当作“单词释义”显示（用户查单词要的是词典式详释）。反向污染同源：单词路径把**词典长文**写进同一池子，文本路径按 (原文, 目标语言) 命中后会把词典文当作段落译文复用。
+- **规则：** 单词路径与 `aiCache` **完全解耦**——不读（单词永远直发真实请求，含同词重复点击）、不写（词典式结果永不进入共享池）。单词判定沿用既有路由谓词 `wordsCount() === 1`（与面板路径分流单一来源，禁止引入第二套判定）。
+- **边界：** 仅单词路径；`aiTranslateText`（页面块 / 悬停面板 / 句子）的缓存复用**保持不变**（负向对照格锁定）；持久缓存（IndexedDB）不涉及（单词路径本不使用）。已接受成本：每次单词点击 = 一次真实 API 调用（用户已确认，Q1/Q2 决策记录）。
+- **实现点清单（规则对称性）**：`aiTranslateWord`（单词路径：无缓存读 + 无缓存写）、`aiCache`（共享池：单词运行前后逐字节不变）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- **测试：** `translateSelected.test.js`「translateSelected aiTranslateWord」套件（"marks success without writing the aiCache" + "ignores a matching aiCache entry — a single word always issues a live request" 两格，均 RED-first 实证）；E2E `selected-panel.mjs` 相位 E/F（单词连点两次 = 两次真实请求——旧代码第二次命中缓存实测红；句子二次点击 = 缓存命中 0 请求负向对照）。
+
 **RULE: 内容更新通道一致性规则（content-update channel conformance rule, #98 复发复盘）—— 翻译后站点更新必须按「机制通道」枚举覆盖，禁止按站点/功能名枚举：**
 
 - **症状/机制：** 同一用户可见症状（「翻译后出现的站点更新内容不被翻译」）已复发 ≥3 次（#7 append、#98 characterData+容器过滤）。根因是它是一个**多通道维度**：站点更新 DOM 的机制有 8 类，历次修复只封住事发的那一条通道。
