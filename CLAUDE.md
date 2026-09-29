@@ -310,3 +310,6 @@ The extension's translation flow works as follows:
 
 ### English first
 It's a github project, always use English for code comments and git messages.
+
+### 预授权规则（2026-09-29 用户授权）
+本项目对 CLAUDE.md / AGENTS.md 的修改不设事前审批：agent 可直接编辑（走 `~/.hermes/scripts/edit-agent-rules.py`，精确补丁 + 原子写），但必须在写完后的**同一轮内**发送一封邮件说明改了什么（脚本会自动发信：正文含 unified diff，标题 `CLAUDE.md已更新-<简述>`）。审计日志：`~/.hermes/logs/agent-rules-edits.log`。例外仍受保护：SOUL.md / .cursorrules 维持原有审批门。
