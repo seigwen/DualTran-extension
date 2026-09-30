@@ -24,8 +24,9 @@
  *      色 = AI 哨兵；标签恒定、无 ✓/✕。
  *   D. 切回 Google → 色归位哨兵（跨引擎泄漏格）；标签恒定。
  *   E. 单词路由（Q-H1）：hover 单词「hello」→ AI 走单词路径（mock /request-log 按
- *      assistant 引导语 "…the word." 计数 ≥1）；多词段落 → AI 走文本路径
- *      （"…the text." 计数 ≥1）——正反两格。
+ *      assistant 引导语 "…the word." 计数 ≥1；单词路径不读缓存，恒发活请求）；
+ *      多词段落 → AI 走文本路径（"…the text." 计数 ≥1）——段落文本改写为
+ *      运行期唯一串（防共享 profile 的 aiCache 命中 = 合法零请求）。正反两格。
  *
  * mode-symmetry-allow: 悬停浮动框为自有布局（不替换/插入页面文本），与
  * whereToDisplayTranslatedText 双模式语义无关——与 selected-panel.mjs 同豁免口径。
@@ -474,17 +475,27 @@ export async function run(scope) {
       console.log("  [E1] 单词悬停 → AI = 单词路径请求（词典），零文本路径请求 ✓");
 
       // E2: hover 多词段落 → AI 点击走文本路径（负向对照）。
-      // 注意用 paragraph-2（paragraph-1 的 AI 结果已在相位 C 进 aiCache——
-      // 二次点击命中缓存是合法零请求，见 selected-panel 相位 F）。
+      // 段落文本改写为运行期唯一串（防共享 profile 的 AI 缓存竞态）：
+      // 28 场景互热 aiCache——paragraph-2 原串已被 translation 场景全页 AI 译过，
+      // 文本路径命中缓存 = 合法零请求（单场景跑不出、全量必现——实测）。
+      const probeText2 = `Plan 37 text-path probe ${Date.now()} — a fresh multi-word sentence.`;
+      await page.evaluate((t) => {
+        const p = document.querySelector("p#paragraph-2");
+        if (!p) throw new Error("p#paragraph-2 不存在，无法写入唯一探测文本");
+        p.textContent = t;
+      }, probeText2);
       await resetRequestLog(scope);
       await page.hover("p#paragraph-2", { timeout: 5000 });
       await waitForHoverHost(page, 10000);
+      // 读到的必须是本段探测文本的译文（"Plan 37" 数字在法语译文中保留）——
+      // 同时排除两种零请求歧义：① 陈旧面板（E1 单词结果未换靶）被误读；②
+      // 段落原串（已被 translation 场景全页 AI 译过）的缓存命中。
       await waitForFresh(
         cdp,
         "eSelTextTrans",
-        (s) => isSettledGoogleText(s, aiSnippet),
+        (s) => isSettledGoogleText(s, aiSnippet) && s.text.includes("Plan 37"),
         30000,
-        "段落 Google 译文落定（E2）"
+        "段落 Google 译文落定（E2，探测文本）"
       );
 
       await freshClick(cdp, "sOpenAI");
