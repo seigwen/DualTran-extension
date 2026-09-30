@@ -219,6 +219,15 @@ tests/
 - **单词路径缓存解耦（plan 33 / #111）**：单词路径（`aiTranslateWord`）不读、不写共享内存缓存 `aiCache`——单词每次点击直发真实请求；词典式结果永不进入共享池（页面/悬停的文本路径按 (原文, 目标语言) 命中的条目池因此只含普通译文）。反向污染（词典长文被当段落译文复用）同源切断。仅单词路径；`aiTranslateText` 的缓存复用**保持不变**。
 - **请求计数断言（单词路径判别通道）**：单词路径 / 文本路径在 mock `/request-log` 上以**请求体第二条消息**（assistant 引导语）区分——单词 = `"I understand. Please give me the word."`，文本 = `"…the text."`（`fetchSSE.js` 固定文案）。断言用**真实请求计数**（含"第二次点击必须再发请求"格），不以文本到达推断；缓存命中格用"零请求观察窗"（≥2s）锁定。
 
+### 悬停面板不变量（Hover Panel Invariants，plan 37 / #125）
+
+**规则：悬停翻译框与划词面板共享同一套皮肤与状态实现点（`panelShared.js` 五件套）——只有触发与生命周期保持悬停特有。**
+
+- **共享面**：loading（`setPanelTranslationLoadingState`/`clearPanelTranslationLoadingState`）、译文色（`applyPanelTranslatedColor`）、按钮色板（`PANEL_BTN_COLORS`/`applyPanelButtonPalette`）、装饰吸收（`createPanelAiProxy`）、样式常量（`PANEL_LOADING_CSS`/`PANEL_DARK_MODE_CSS_DARK`/`PANEL_DARK_MODE_CSS_LIGHT`）。改任一处必须同步两面板 + 对应测试。
+- **悬停特有（禁止共享化）**：1.25s 悬停触发 / 跟随光标定位 / 移开换目标 / 点框外销毁 / Ctrl×2。
+- **悬停 AI 零页面级写入**：悬停 AI 成功不得写 `saveAiAppliedFlag`（经 `dualtran-ai-selected-btn` 代理 → `isSelectedPanel` 分支跳过）。
+- **E2E 缓存竞态纪律（本轮实测教训）**：28 场景共享同一 profile，IndexedDB `googleCache` / AI 缓存互热——「框先于译文」「点击必发请求」类断言有两类结构假红：① 探测文本被先前场景译过 → 缓存命中秒回（固定延迟窗无效）；② 点击前面板尚未换靶（读到上一目标的陈旧译文）。纪律：探测文本运行期唯一化 + 读取谓词锚定探测文本特征 + 确定性窗口用「SW fetch 上闸/放闸」（请求物理挂起，与读数速度无关），禁用固定延迟窗。
+
 ### 跨层交互矩阵（Cross-Level Interaction Matrix，issue #72）
 
 **规则：覆盖必须按「用户操作序列」组织，不能只按组件组织。** #70 逃逸的根因不是断言弱，而是覆盖空间里没有「页面级操作 → 块级操作」的跨层组合：既有场景要么只操作浮动按钮（页面级），要么只 hover 读调色板（#65）。跨层组合是结构性真空。
