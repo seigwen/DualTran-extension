@@ -14,7 +14,7 @@ If you discover a security vulnerability in DualTran, please report it responsib
 ### How to Report
 
 1. **Do NOT open a public GitHub issue** for security vulnerabilities
-2. Email security concerns to: [your-email@example.com]
+2. Use GitHub's **[private vulnerability reporting](https://github.com/seigwen/DualTran-extension/security/advisories/new)** form — it reaches the maintainer privately and keeps the report and its discussion in one auditable thread
 3. Include the following information:
    - Description of the vulnerability
    - Steps to reproduce

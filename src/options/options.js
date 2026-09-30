@@ -416,6 +416,7 @@ import { loadPreviewModels } from "../lib/ai/providerModelPreview.js";
 import { createProviderRegistry, BUILT_IN_PROVIDERS, mergeRegistries, lookupKnownApiBase, resolveModelsDevId } from "../lib/ai/providerRegistry.js";
 import { migrateProviderConfig } from "../lib/ai/providerMigration.js";
 import { buildReasoningDepthOptions } from "../lib/ai/reasoningDepth.js";
+import { buildIssueUrl, buildMailtoUrl, formatDiagnosticsBlock, resolveProviderDisplayName } from "../lib/feedbackLink.js";
 import 'toolcool-color-picker'; // Import third-party color picker component (custom element)
 
 // Execute main initialization logic after config is loaded
@@ -455,6 +456,7 @@ twpConfig.onReady(function () {
       $("#hotkeys"),
       $("#storage"),
       $("#others"),
+      $("#feedback"),
     ];
     divs.forEach((element) => { // Hide all uniformly
       element.style.display = "none";
@@ -2643,6 +2645,65 @@ twpConfig.onReady(function () {
       }
     );
   };
+
+  // ── Feedback section (plan 35 — user feedback channel) ──────────────
+  // Static entry: the options page cannot know the page a bug happened on,
+  // so its diagnostics block carries only environment facts (version /
+  // browser / OS / services / target language). Red line: never API keys,
+  // never API base configs — see src/lib/feedbackLink.js.
+  (function wireFeedbackSection() {
+    const feedbackVersion = chrome.runtime.getManifest().version;
+
+    function buildLocalDiagnostics() {
+      return formatDiagnosticsBlock({
+        version: feedbackVersion,
+        userAgent: navigator.userAgent,
+        pageService: twpConfig.get("pageTranslatorService"),
+        providerName: resolveProviderDisplayName(twpConfig.get("aiProvider")),
+        targetLang: twpConfig.get("targetLanguage"),
+      });
+    }
+
+    const btnOpenIssueForm = $("#btnOpenIssueForm");
+    btnOpenIssueForm.onclick = () => {
+      // Static path pre-fills version / browser / OS only — no service claim.
+      chrome.tabs.create({
+        url: buildIssueUrl({ version: feedbackVersion, userAgent: navigator.userAgent }),
+      });
+    };
+
+    const btnCopyDiagnostics = $("#btnCopyDiagnostics");
+    btnCopyDiagnostics.onclick = () => {
+      const showCopied = () => {
+        const originalLabel = btnCopyDiagnostics.textContent;
+        btnCopyDiagnostics.textContent = chrome.i18n.getMessage("msgFeedbackCopied") || originalLabel;
+        setTimeout(() => {
+          btnCopyDiagnostics.textContent = originalLabel;
+        }, 1500);
+      };
+      try {
+        // writeText failure (permissions / insecure context) restores silently —
+        // the page style has no toast, and a failed copy is visible enough.
+        Promise.resolve(navigator.clipboard.writeText(buildLocalDiagnostics()))
+          .then(showCopied)
+          .catch(() => {});
+      } catch (err) {
+        // Clipboard API entirely unavailable — no-op.
+      }
+    };
+
+    // Prefill the mailto fallback: versioned subject + diagnostics body.
+    // The user can delete the body in their mail client before sending —
+    // a visible draft, never a silent send.
+    try {
+      $("#feedbackEmailLink").setAttribute(
+        "href",
+        buildMailtoUrl({ version: feedbackVersion, body: buildLocalDiagnostics() })
+      );
+    } catch (err) {
+      // Link element missing — the static href (plain mailto) still works.
+    }
+  })();
 });
 
 window.scrollTo({ // Ensure page scrolls to top after loading

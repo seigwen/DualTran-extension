@@ -77,6 +77,12 @@
   "btnApply": {
     "message": "应用"
   },
+  "btnFeedbackCopyDiagnostics": {
+    "message": "复制诊断信息"
+  },
+  "btnFeedbackOpenGitHub": {
+    "message": "打开 GitHub 反馈表单"
+  },
   "btnListen": {
     "message": "朗读"
   },
@@ -305,6 +311,15 @@
         "example": "2"
       }
     }
+  },
+  "lblFeedbackIntro": {
+    "message": "提交问题反馈或功能建议，推荐使用 GitHub Issues——表单会自动预填扩展版本、浏览器与操作系统信息。"
+  },
+  "lblFeedbackNoGithub": {
+    "message": "没有 GitHub 账号？也可以通过以下方式联系我们："
+  },
+  "lblFeedbackStoreSupport": {
+    "message": "Chrome 应用商店「支持」区"
   },
   "lblFreeTranslationEngine": {
     "message": "免费翻译引擎"
@@ -565,6 +580,9 @@
   },
   "msgFavoriteLanguages": {
     "message": "优先选择目标语言"
+  },
+  "msgFeedbackCopied": {
+    "message": "已复制"
   },
   "msgFileLargerThan": {
     "message": "此服务不支持大于 $FILE_SIZE$ 的文件",

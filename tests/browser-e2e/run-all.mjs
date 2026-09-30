@@ -87,6 +87,7 @@ const SCENARIO_MODULE_PATHS = [
   "./ai-block-indicator.mjs",
   "./selected-panel.mjs",
   "./reasoning-depth.mjs",
+  "./feedback-entry.mjs",
   "./visual-audit.mjs",
 ];
 
