@@ -11,21 +11,21 @@
 <!-- List the changes made in this PR -->
 - [ ] ...
 
-## State/Lifecycle Impact（状态/生命周期影响——必填）
+## State/Lifecycle Impact (required)
 
-- [ ] 本次改动是否涉及 UI 状态（highlight/displayMode/intervention/inFlight）？
-      → 若是：事实源是谁？跨重建测试做了吗？一致性断言加了吗？
-- [ ] 是否涉及跨 SPA 导航/重建的状态？
-      → 若是：重建后如何恢复？（必须从 `getState()` 派生，禁止硬编码）
-- [ ] 状态机合法性表是否受影响？
-      → 若是：合法/非法转换更新了吗？（非法转换必须在开发/测试期报错）
+- [ ] Does this change touch UI state (highlight/displayMode/intervention/inFlight)?
+      → If yes: who is the source of truth? Are cross-rebuild tests in place? Are consistency assertions added?
+- [ ] Does it involve state across SPA navigation / rebuilds?
+      → If yes: how is it restored? (Must be derived from `getState()` — hardcoding is prohibited)
+- [ ] Does it affect the state-machine legality table?
+      → If yes: are the legal/illegal transitions updated? (Illegal transitions must throw during development/testing)
 
 ## Testing
 
 - [ ] Unit tests added/updated (`npm test`)
 - [ ] Build succeeds (`npm run build`)
 - [ ] Manual testing performed (describe below)
-- [ ] **用户报告场景已转化为永久回归测试（引用场景文件；13 号文档 P4）** — 无用户报告时填 N/A
+- [ ] **User-reported scenarios are converted into permanent regression tests (reference the scenario file)** — fill in N/A when there is no user report
 
 ### Manual Testing Steps
 

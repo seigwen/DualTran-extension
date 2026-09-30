@@ -87,49 +87,49 @@ body:
   - type: dropdown
     id: state-anomaly
     attributes:
-      label: 是否「按钮状态与实际不符」类问题（高级 QA 专项）
-      description: 按钮显示的翻译状态（Original/Google/AI 高亮）与页面实际内容不一致。
+      label: Is this a button-state mismatch issue? (advanced QA)
+      description: The translation state shown by the button (Original/Google/AI highlight) disagrees with the actual page content.
       options:
-        - "是——按钮高亮与实际页面不符"
-        - "否"
-        - "不确定"
+        - "Yes — the button highlight disagrees with the page"
+        - "No"
+        - "Not sure"
     validations:
       required: false
 
   - type: dropdown
     id: spa-site
     attributes:
-      label: 是否在 SPA 站点复现（GitHub/X/Twitter 等）
-      description: 这类站点使用无刷新导航（Turbo/pjax），已知与按钮状态 bug 相关（pattern 25）。
+      label: Does it reproduce on an SPA site (GitHub, X/Twitter, etc.)?
+      description: These sites navigate without a full page load (Turbo/pjax), which is a known source of button-state bugs.
       options:
-        - "是，请注明站点名"
-        - "否，普通网页"
-        - "不确定"
+        - "Yes — I'll name the site"
+        - "No, a regular web page"
+        - "Not sure"
     validations:
       required: false
 
   - type: dropdown
     id: state-recover
     attributes:
-      label: 刷新页面 / 导航离开再回来后状态是否恢复
+      label: Does the state recover after a page reload / navigating away and back?
       options:
-        - "刷新后恢复"
-        - "刷新后仍错误"
-        - "未测试"
+        - "Recovers after reload"
+        - "Still wrong after reload"
+        - "Not tested"
     validations:
       required: false
 
   - type: textarea
     id: state-steps
     attributes:
-      label: 状态异常时的精确操作序列（若适用）
-      description: 例如：翻译页面 → 点击 Google → 点击 AI → 页面导航（前进/后退）→ 按钮显示 X
+      label: Exact action sequence when the state was wrong (if applicable)
+      description: "For example: translate the page → click Google → click AI → navigate (back/forward) → the button shows X"
       placeholder: |
-        1. 打开 GitHub 某仓库页面
-        2. 点击 Google 按钮翻译
-        3. 点击仓库内链接跳转（SPA 导航）
-        4. 浏览器后退
-        5. 页面是译文但按钮高亮 Original
+        1. Open a GitHub repository page
+        2. Click the Google button to translate
+        3. Click an in-repo link (SPA navigation)
+        4. Browser back
+        5. The page shows translated text but the button highlights Original
     validations:
       required: false
 
