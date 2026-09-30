@@ -375,6 +375,12 @@ tests/
 - **缓存 key 段**：推理深度是 AI 翻译持久缓存 key 的一段（5 段 NUL 分隔）；测试必须断言「不同 depth → 不同 key」与「升级前 4 段条目不命中」——否则改深度会静默返回旧深度的译文。
 - **陈旧 dist 陷阱**：E2E 前必须 `npm run build`——Playwright 加载 `dist/chrome/`，陈旧产物会让线级断言在错误的构建上判定。
 
+### 反馈通道（User Feedback Channel，plan 35 / #116）
+
+- **产物即契约：** 反馈产物（issue URL / 诊断块 / mailto）的字段集由 `src/lib/feedbackLink.js` 白名单构造唯一决定——测试须以负向断言锁住「调用方多传的字段不出现」（apiKey / apiBase / 页面内容 / 翻译文本哨兵）；任何新增携带字段先加白名单 + 测试，再接线。
+- **E2E 登录墙形态：** 未登录浏览器点击预填链接会落 GitHub `/login?return_to=<预填 URL>`——断言必须经 `return_to` 解码回预填 URL 后再逐参数核对（`tests/browser-e2e/feedback-entry.mjs` `extractPrefillUrl`）；直连形态与登录墙形态都必须通过。**两形态断言是契约，不是妥协。**
+- **新增检查点走效度演练：** `options-feedback` 检查点变更遵守视觉检查点规则（双向覆盖 + inject/clean 双相演练）；静态路径不得预填 `service` 参数（猜错误导分诊——负向断言已锁）。
+
 ### 基础设施假设 → 测试映射表（M3 issue #33）
 
 **规则：** CLAUDE.md「基础设施假设清单」的每条假设必须有测试引用（`check-infra-assumptions.js` CI 强制）。恢复机制类假设（observer 挂载点/死亡/重建、popstate 定时器、pageshow）100% 必须有测试；非恢复机制类假设 100% 必须有文档条目。新增基础设施假设时同步更新此表 + CLAUDE.md。
