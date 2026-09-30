@@ -30,7 +30,7 @@ tests/
 ├── services/            # Translation services: translation cache, Google Translate API
 ├── integration/         # Cross-module integration: config change flow, messaging, popup↔background, storage sync, translation pipeline
 ├── manifest/            # Static validation: manifest.json structure, build artifact integrity
-├── static/              # Static validation: i18n completeness, package.json sanity
+├── static/              # Static validation: i18n completeness, package.json sanity, GitHub templates (#121)
 ├── scripts/             # Script config tests: browser-e2e-config parsing
 ├── util/                # Utility functions: language detection, word count
 ├── mock-server/         # Mock LLM server (see mock-server/CLAUDE.md)
@@ -380,6 +380,12 @@ tests/
 - **产物即契约：** 反馈产物（issue URL / 诊断块 / mailto）的字段集由 `src/lib/feedbackLink.js` 白名单构造唯一决定——测试须以负向断言锁住「调用方多传的字段不出现」（apiKey / apiBase / 页面内容 / 翻译文本哨兵）；任何新增携带字段先加白名单 + 测试，再接线。
 - **E2E 登录墙形态：** 未登录浏览器点击预填链接会落 GitHub `/login?return_to=<预填 URL>`——断言必须经 `return_to` 解码回预填 URL 后再逐参数核对（`tests/browser-e2e/feedback-entry.mjs` `extractPrefillUrl`）；直连形态与登录墙形态都必须通过。**两形态断言是契约，不是妥协。**
 - **新增检查点走效度演练：** `options-feedback` 检查点变更遵守视觉检查点规则（双向覆盖 + inject/clean 双相演练）；静态路径不得预填 `service` 参数（猜错误导分诊——负向断言已锁）。
+
+### GitHub 模板守卫（GitHub Template Guard, #121）
+
+- **用户面一律英文：** `.github/ISSUE_TEMPLATE/*` 与 `pull_request_template.md` 是 GitHub 直接渲染的静态文件，**没有 i18n 机制**（扩展的 `_locales/` 路由管不到 GitHub 网站）——任何 CJK 文案即缺陷。守卫 `tests/static/githubTemplates.test.js` 动态枚举 issue template 整目录（新增模板自动纳入）+ PR 模板，含检测器负例自测（CJK 命中 / 英文放行）。
+- **form 字段 id 集被冻结：** `bug_report.yml` 的 15 个字段 id 是预填 URL（`buildIssueUrl`）与 E2E（`feedback-entry.mjs`）的契约——重命名字段 = 预填静默失效；守卫以完整有序集合锁死。
+- **下拉值逐字节契约：** `feedbackLink.js` 映射出的 service/browser 值必须逐字节存在于对应字段的 options（GitHub 对不匹配的预填值静默丢弃）；改任一侧前先跑守卫。工作流内部注释刻意排除在本守卫外。
 
 ### 基础设施假设 → 测试映射表（M3 issue #33）
 

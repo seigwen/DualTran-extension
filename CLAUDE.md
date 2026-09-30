@@ -351,5 +351,7 @@ The extension's translation flow works as follows:
 ### English first
 It's a github project, always use English for code comments and git messages.
 
+**User-facing repo surfaces are English-only too (#121):** GitHub renders issue forms / PR templates straight from static repository files — there is no i18n mechanism there (only the extension's `_locales/` route is localized). A half-Chinese issue form blocks non-Chinese reporters exactly at the triage-critical fields. Guard: `tests/static/githubTemplates.test.js` — CJK scan over every issue template (dynamic enumeration: new templates are covered automatically) + the PR template, with negative-fixture detector self-tests; it also freezes the `bug_report.yml` field-id set (the prefill / E2E contract) and asserts every dropdown value the extension can prefill exists byte-for-byte among the form options (a mismatched value makes GitHub silently drop the prefill). Internal-only files (`.github/workflows/*` comments) are deliberately out of scope.
+
 ### 预授权规则（2026-09-29 用户授权）
 本项目对 CLAUDE.md / AGENTS.md 的修改不设事前审批：agent 可直接编辑（走 `~/.hermes/scripts/edit-agent-rules.py`，精确补丁 + 原子写），但必须在写完后的**同一轮内**发送一封邮件说明改了什么（脚本会自动发信：正文含 unified diff，标题 `CLAUDE.md已更新-<简述>`）。审计日志：`~/.hermes/logs/agent-rules-edits.log`。例外仍受保护：SOUL.md / .cursorrules 维持原有审批门。
