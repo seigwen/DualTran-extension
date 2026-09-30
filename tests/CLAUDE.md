@@ -450,7 +450,9 @@ host 类元素的断言**必须**区分三态，禁止双态存在性布尔（`e
 
 **迁移指引：** 等待宿主出现 `waitForFunction(!!host)` → `waitForHostState(page, component, "healthy", {timeoutMs})`（语义升级：shell 出现必须超时失败）；存在性断言 → `assertHostState(page, component, "healthy"[, {count, label}])`；负向（验证未创建 / 保持注入态）→ `assertHostState(..., "absent"|"shell", {count})`。按钮级读取（shadowRoot 内 `getElementById("btnGoogle")` 等）不属于 host 分类，不迁移。
 
-**真实站点工具（S5 升级，issue #57）：** `scripts/real-site-verify.mjs` 已执行器化——三态分类/注入原语抽至 `tests/shared/host-state.mjs`（与 `tests/browser-e2e/setup.mjs` 共享，S4 Q4 残留消解）；场景库 = `scripts/canary-scenarios.mjs`（声明式数据，`source` 字段追溯用户报告/事故编号）；CLI：`--scenario=<name>` 单跑 / `--list` 列场景 / 无参=全库 / `--url=` ad-hoc 保留 / `--self-test` hermetic（未映射场景 SKIP）。常态化：`.github/workflows/canary.yml`（周一 3:00 UTC + 手动，失败自动开 issue——去重/自动关闭）+ `release.yml` 发布硬门禁。
+**真实站点工具（S5 升级，issue #57；多站点扩展 plan 34 / #114）：** `scripts/real-site-verify.mjs` 已执行器化——三态分类/注入原语抽至 `tests/shared/host-state.mjs`（与 `tests/browser-e2e/setup.mjs` 共享，S4 Q4 残留消解）；场景库 = `scripts/canary-scenarios.mjs`（声明式数据，`source` 字段追溯用户报告/事故编号；**13 个 CI 场景覆盖 10 站** + `LOCAL_SCENARIOS` 本地层 x.com）；CLI：`--scenario=<name>` 单跑 / `--include-local` / `--list` 列场景 / 无参=CI 全库 / `--url=` ad-hoc 保留 / `--self-test` hermetic（未映射场景 `SKIP-DATA`）。常态化：`.github/workflows/canary.yml`（周一 3:00 UTC + 手动，失败自动开 issue——去重/自动关闭）+ `release.yml` 发布硬门禁。
+
+**译文真伪门禁（plan 34）：** `tests/shared/translation-quality.mjs`——共享采集器 `collectTranslationQualityInPage`（`page.evaluate` 注入，`<translated>` ∪ `.dualtran-result-container` 用 Set 去重）+ 纯判定 `evaluateQualityGate`（`nonEmpty ≥ max(10, 20%×count)` ∧ `cjk/nonEmpty ≥ 30%`；场景级 `quality` 字段部分覆盖；self-test 用 `SELF_TEST_QUALITY` 放松 floor 至 1——mock 页微型）。单测 `tests/shared/translationQuality.test.js`（11 格；⑤⑥⑧ 两假绿洞复现格先 RED 后 GREEN）。**退出码三态**：0=PASSED / 1=FAILED / 2=SKIPPED-ENV（gtx 限流→预检或失败归因；SKIP 不发不关 issue、不重试、release 放行但 `::warning::`）。**铁律：假绿比没门禁更危险**——新门禁落地必须先对干净产物验阴性（self-test 11/13 PASS 存档），再对缺陷产物验阳性（`CANARY_SIMULATE_THROTTLE=1` 双路径演练 drill1/2 存档）。
 
 ## Test Naming Conventions
 

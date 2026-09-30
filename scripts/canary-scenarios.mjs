@@ -14,11 +14,15 @@
  * Step types (closed set, implemented by the executor):
  *   - goto      : navigate to url (waits for URL + host healthy)
  *   - translate : click the floating Google button and wait for
- *                 translation to appear + host healthy
+ *                 translation REALITY (quality gate) + host healthy
  *   - back      : history back (waits for URL + host healthy)
  *   - forward   : history forward (waits for URL + host healthy)
  *   - roundtrip : convenience — back/forward repeated `rounds` times
  *   - settle    : no-op wait for host healthy (explicit stabilization point)
+ *   - seed-position : write {left,top} into floatingBtnPosition storage
+ *                 BEFORE the following goto (#78 saved-position lock)
+ *   - assert-floating-visible : floating layer must intersect the viewport
+ *                 ∧ visiblePct ≥ 50 (user-visible #78 lock)
  *
  * Scope notes:
  *   - All scenarios are Google-only. The canary has no API key; AI paths
@@ -26,22 +30,45 @@
  *     here: a real-site canary that secretly runs mocks would poison the
  *     signal semantics doc 13 warns about.
  *   - Assertions are tri-state (absent/shell/healthy) — see
- *     tests/shared/host-state.mjs.
+ *     tests/shared/host-state.mjs. Translation steps additionally run the
+ *     translation-reality gate (nonEmpty floor ∧ CJK ratio — plan 34);
+ *     the executor seeds targetLanguage=zh-CN for the run. Two measured
+ *     false-green holes (429 window / en→en identity) are closed by it.
+ *   - LOCAL_SCENARIOS (below; x.com) are NOT part of the CI matrix:
+ *     their carrier sites are unreachable from GitHub Actions
+ *     (Cloudflare blocks the runner IP range — plan 34 §二.3). They run
+ *     locally via --include-local / --scenario=; a local cron may
+ *     schedule them later (plan 34 Phase 2, pending 3 clean rounds).
  *
- * Self-test mapping (--self-test): step URLs are rewritten by pathname
- * against SELF_TEST_PATH_MAP onto the local spa mock pages
- * (extra/e2e/, served by the executor). Unmapped URLs cause the scenario
- * to be SKIPPED (never fall back to the real site — the self-test
- * contract is hermetic).
+ * Self-test mapping (--self-test): step URLs are rewritten by
+ * `host + pathname` (bare pathname fallback) against SELF_TEST_PATH_MAP
+ * onto the local spa mock pages (extra/e2e/, served by the executor).
+ * Unmapped scenarios report SKIP-DATA (never fall back to the real site
+ * — the self-test contract is hermetic). Position scenarios are excluded
+ * from self-test by the executor (real-site only).
  */
 
 export const SELF_TEST_PATH_MAP = {
   "/obra/superpowers/projects": "spa-source.html",
   "/obra/superpowers/security": "spa-target.html",
+  // Host-aware additions (plan 34 §三.C): keys are `host + pathname`
+  // (bare pathname stays supported as a compatible fallback). The new
+  // sites reuse the existing spa mock pages. Position scenarios
+  // (seed-position step) are excluded by the executor — they stay
+  // real-site only and report SKIP-DATA under --self-test.
+  "round-resonance-5aa9.seigwen.workers.dev/": "spa-source.html",
+  "vercel.com/": "spa-source.html",
+  "nextjs.org/": "spa-source.html",
+  "nuxt.com/": "spa-source.html",
+  "svelte.dev/": "spa-source.html",
+  "angular.dev/": "spa-source.html",
+  "astro.build/": "spa-source.html",
+  "gitlab.com/explore/projects/active": "spa-source.html",
 };
 
 const P1 = "https://github.com/obra/superpowers/projects";
 const P2 = "https://github.com/obra/superpowers/security";
+const W1 = "https://round-resonance-5aa9.seigwen.workers.dev/";
 
 export const SCENARIOS = [
   {
@@ -55,6 +82,7 @@ export const SCENARIOS = [
       { type: "goto", url: P2 },
       { type: "translate" },
       { type: "roundtrip", rounds: 12 },
+      { type: "assert-translated" }, // plan 34: lock "translation still real after Turbo roundtrips"
     ],
   },
   {
@@ -71,6 +99,7 @@ export const SCENARIOS = [
       { type: "back" },
       { type: "forward" },
       { type: "back" },
+      { type: "assert-translated" }, // plan 34: lock "translation still real after back-nav"
     ],
   },
   {
@@ -84,5 +113,92 @@ export const SCENARIOS = [
       { type: "inject-shell-hover" },
       { type: "inject-duplicate-hover" },
     ],
+  },
+  {
+    name: "workersdev-translate",
+    source: "user report 2026-09-27 (issue #78: round-resonance-5aa9.seigwen.workers.dev)",
+    description:
+      "Translate the user-reported workers.dev page — the translation-reality gate must hold (nonEmpty floor ∧ CJK ratio; the site once produced 142 empty containers).",
+    steps: [{ type: "goto", url: W1 }, { type: "translate" }],
+  },
+  {
+    name: "workersdev-78-position",
+    source: "issue #78 (floating button group invisible on workers.dev)",
+    description:
+      "Seed an off-screen saved floating position (5000,5000), load the page — the floating layer must clamp back into the viewport (intersects ∧ visiblePct ≥ 50).",
+    steps: [
+      { type: "seed-position", left: 5000, top: 5000 },
+      { type: "goto", url: W1 },
+      { type: "assert-floating-visible" },
+    ],
+  },
+  {
+    name: "vercel-translate",
+    source: "user report 2026-09-27 (issue #78)",
+    description: "Translate vercel.com (307 → 200 redirect) — translation-reality gate must hold.",
+    steps: [{ type: "goto", url: "https://vercel.com/" }, { type: "translate" }],
+  },
+  {
+    name: "vercel-78-position",
+    source: "issue #78",
+    description:
+      "Seed an off-screen saved floating position (5000,5000), load vercel.com — the floating layer must clamp back into the viewport.",
+    steps: [
+      { type: "seed-position", left: 5000, top: 5000 },
+      { type: "goto", url: "https://vercel.com/" },
+      { type: "assert-floating-visible" },
+    ],
+  },
+  {
+    name: "health-nextjs",
+    source: "plan 34 recon (CI matrix run 36602259652: 274 non-empty / 94% CJK)",
+    description: "Translate nextjs.org (SSR + React hydration representative) — translation-reality gate must hold.",
+    steps: [{ type: "goto", url: "https://nextjs.org/" }, { type: "translate" }],
+  },
+  {
+    name: "health-nuxt",
+    source: "plan 34 recon (CI matrix run 36602259652: 272 non-empty / 85% CJK)",
+    description: "Translate nuxt.com (Vue 3 + Nitro SSR representative) — translation-reality gate must hold.",
+    steps: [{ type: "goto", url: "https://nuxt.com/" }, { type: "translate" }],
+  },
+  {
+    name: "health-svelte",
+    source: "plan 34 recon (CI matrix run 36602259652: 124 non-empty / 98% CJK)",
+    description: "Translate svelte.dev (SvelteKit representative) — translation-reality gate must hold.",
+    steps: [{ type: "goto", url: "https://svelte.dev/" }, { type: "translate" }],
+  },
+  {
+    name: "health-angular",
+    source: "plan 34 recon (CI matrix run 36602259652: 85 non-empty / 96% CJK)",
+    description: "Translate angular.dev (Angular standalone representative) — translation-reality gate must hold.",
+    steps: [{ type: "goto", url: "https://angular.dev/" }, { type: "translate" }],
+  },
+  {
+    name: "health-astro",
+    source: "plan 34 recon (CI matrix run 36602259652: 258 non-empty / 94% CJK)",
+    description: "Translate astro.build (islands architecture representative) — translation-reality gate must hold.",
+    steps: [{ type: "goto", url: "https://astro.build/" }, { type: "translate" }],
+  },
+  {
+    name: "health-gitlab",
+    source: "plan 34 recon (CI matrix run 36602259652: 247 non-empty / 66% CJK — the thin-margin site)",
+    description:
+      "Translate gitlab.com/explore/projects/active (real SPA application representative) — translation-reality gate must hold. The FINAL URL is used deliberately: /explore client-redirects to /explore/projects/active (measured <1.1s in a real browser), so a waitForPath on /explore can never settle (calibration run 36659013595 caught this).",
+    steps: [{ type: "goto", url: "https://gitlab.com/explore/projects/active" }, { type: "translate" }],
+  },
+];
+
+/**
+ * Local-only layer (plan 34 §三.D / Q1): carrier sites unreachable from
+ * GitHub Actions (Cloudflare IP-reputation block). Default library runs
+ * skip these; use --include-local or name one with --scenario=.
+ */
+export const LOCAL_SCENARIOS = [
+  {
+    name: "xcom-health",
+    source: "issue #98 carrier site / plan 34 Q1 (local layer)",
+    description:
+      "Translate the x.com profile feed — translation-reality gate with default thresholds (recon dryrun baseline: 85 CJK / 179 count ≈ 47%; revisit thresholds if calibration runs come in borderline).",
+    steps: [{ type: "goto", url: "https://x.com/elonmusk" }, { type: "translate" }],
   },
 ];
