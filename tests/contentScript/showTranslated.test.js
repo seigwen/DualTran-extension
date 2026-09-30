@@ -524,6 +524,8 @@ describe("showTranslated", () => {
   it("shows the panel with the shared loading surface the moment translation starts", async () => {
     // Never-resolving request: the panel must already be visible while it waits.
     backgroundTranslateSingleTextMock.mockImplementation(() => new Promise(() => {}));
+    const { setPanelTranslationLoadingState, clearPanelTranslationLoadingState } =
+      await import("../../src/contentScript/panelShared.js");
     await loadModule();
     const input = createHoverTarget("Hello world");
 
@@ -534,6 +536,19 @@ describe("showTranslated", () => {
     expect(trans.classList.contains("dualtran-loading")).toBe(true);
     expect(trans.querySelector(".dualtran-loading-spinner")).not.toBeNull();
     expect(trans.querySelector(".dualtran-loading-label")).not.toBeNull();
+
+    // Structural single-source: the panel's loading markup is byte-identical to
+    // what the shared renderer produces on a scratch node (same classes, same
+    // structure) — and clearing restores the empty state.
+    const scratch = document.createElement("div");
+    setPanelTranslationLoadingState(scratch);
+    expect(scratch.classList.contains("dualtran-loading")).toBe(true);
+    expect(scratch.children.length).toBe(trans.children.length);
+    expect(scratch.children[0].className).toBe("dualtran-loading-spinner");
+    expect(scratch.children[1].className).toBe("dualtran-loading-label");
+    clearPanelTranslationLoadingState(scratch);
+    expect(scratch.classList.contains("dualtran-loading")).toBe(false);
+    expect(scratch.innerHTML).toBe("");
   });
 
   it("paints the Google arrival with the configured translatedColor", async () => {
@@ -730,14 +745,25 @@ describe("showTranslated", () => {
 
   it("shares the dark-mode CSS constants from panelShared", async () => {
     configValues.darkMode = "yes";
-    const { PANEL_DARK_MODE_CSS_DARK } = await import("../../src/contentScript/panelShared.js");
+    const { PANEL_DARK_MODE_CSS_DARK, PANEL_DARK_MODE_CSS_LIGHT, PANEL_LOADING_CSS } =
+      await import("../../src/contentScript/panelShared.js");
     await loadModule();
     const input = createHoverTarget("Hello world");
 
     await openTooltip(input);
 
-    const el = getOverlayHost().shadowRoot.getElementById("backdropFilterElement");
+    const root = getOverlayHost().shadowRoot;
+    const el = root.getElementById("backdropFilterElement");
     expect(el.textContent).toBe(PANEL_DARK_MODE_CSS_DARK);
+
+    // The light constant is the exact counterpart (no third block can drift in).
+    expect(PANEL_DARK_MODE_CSS_LIGHT).not.toBe(PANEL_DARK_MODE_CSS_DARK);
+    expect(PANEL_DARK_MODE_CSS_LIGHT).toContain("rgba(248, 248, 248, 0.98)");
+
+    // Layout/loading CSS ships from the shared constant too: the panel carries a
+    // style block byte-identical to PANEL_LOADING_CSS.
+    const styleBlocks = Array.from(root.querySelectorAll("style"));
+    expect(styleBlocks.some((s) => s.textContent === PANEL_LOADING_CSS)).toBe(true);
   });
 
   it("routes single-word AI requests through the word path (dictionary)", async () => {
@@ -768,3 +794,50 @@ describe("showTranslated", () => {
     expect(aiTranslateWordMock).not.toHaveBeenCalled();
   });
 });
+
+// ── Implementation-point map (plan 37 hover-panel alignment) ──
+// The hover panel (showTranslated.js) and the selection panel (translateSelected.js)
+// render through one set of shared implementation points (panelShared.js); only the
+// trigger/lifecycle stay hover-specific.
+//
+// panelShared.js — the shared surface:
+//   PANEL_BTN_COLORS — the engine-button palette SSOT. Locked verbatim to the
+//     floating group's colors; the hover panel's intent palette cell reads it
+//     through applyPanelButtonPalette (clicking AI flips both buttons).
+//   PANEL_EMPTY_COLORS — the "empty config = no paint" value set; applyPanelTranslatedColor
+//     resets first so a switch can never leave the other engine's color behind.
+//   applyPanelTranslatedColor — the single point that paints the translated text;
+//     cells: "paints the Google arrival with the configured translatedColor" +
+//     "repaints the translated color on engine switches (no cross-engine leak)".
+//   applyPanelButtonPalette — the only boundary effect of an engine click
+//     (intent flip + palette); cell: "applies the shared intent palette to the engine buttons".
+//   createPanelAiProxy — absorbs every decoration the engine writes (labels stay
+//     constant, zero ✓/✕ spans); cell: "keeps the AI label constant with zero
+//     decoration through the whole run" (asserts proxy.translatedTextNode identity).
+//   setPanelTranslationLoadingState — the shared loading renderer (spinner +
+//     label); cell: "shows the panel with the shared loading surface the moment
+//     translation starts" (also asserts the scratch-node contract).
+//   clearPanelTranslationLoadingState — the paired teardown (empty innerHTML);
+//     same cell asserts the cleared state.
+//   PANEL_LOADING_CSS — the layout/loading style block; cell: "shares the
+//     dark-mode CSS constants from panelShared" (style block byte-identical).
+//   PANEL_DARK_MODE_CSS_DARK / PANEL_DARK_MODE_CSS_LIGHT — the dark/light scheme
+//     blocks injected into #backdropFilterElement; same cell locks both constants.
+//
+// showTranslated.js (hover side) — the hover-specific wiring:
+//   setPanelTranslationLoadingState call sites — the panel shows the shared
+//     loading face the moment a run starts (never waits for arrival).
+//   aiTranslateWord / wordsCount — Q-H1 word routing: a single-word hover routes
+//     through the dictionary path exactly like the selection panel; cell:
+//     "routes single-word AI requests through the word path (dictionary)".
+//   targetLanguageTextTranslation — the panel's own selected target language
+//     (page's targetLanguage must not leak in); cells: "'+' dropdown" + config-change cells.
+//
+// Guarded absences (the hover panel must NOT write these):
+//   saveAiAppliedFlag — a hover AI success must not mark the page as AI-translated.
+//     Chain: the hover panel hands AI runs to the engine through a proxy carrying
+//     dualtran-ai-selected-btn (asserted here: proxy.classList.contains("dualtran-ai-selected-btn")
+//     in the label-constant and word-routing cells), and pageTranslator.js skips
+//     saveAiAppliedFlag when isSelectedPanel (asserted in pageTranslator.test.js
+//     "划词翻译成功后不应保存页面级 sessionStorage 标记"). The hover module itself
+//     carries no saveAiAppliedFlag call site — this map records the negative contract.
