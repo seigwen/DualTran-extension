@@ -286,6 +286,17 @@ Content Script (fetchSSE.js)
 - **实现点清单（规则对称性）：** `buildIssueUrl`（预填 URL 白名单构造 + 预算收敛）、`buildMailtoUrl`（mailto 兜底：版本化主题 + 可删正文）、`formatDiagnosticsBlock`（诊断块行名 SSOT）、`mapServiceToIssueValue`（service 参数 ↔ bug_report.yml 选项逐值映射）、`detectBrowserFromUserAgent`（browser 参数映射）、`detectOsFromUserAgent`（os 参数映射，含 Android-before-Linux 排序陷阱）、`installFeedbackReporter`（⚠ 图标委托点击 → SW 消息）、`buildOpenFeedbackIssueEffect`（SW 分发分支：open-tab 效应构造）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - **测试：** `tests/lib/feedbackLink.test.js`（20 格：golden URL 逐字节 + 白名单不泄露负向断言 + service 映射 + CJK 预算收敛 + 诊断块行门控 + mailto）+ `tests/contentScript/feedbackReporter.test.js`（委托点击契约 7 格）+ `tests/background/runtimeMessageExecutionHelpers.test.js` / `runtimeMessageDispatchLoop.integration.test.js` / `runtimeMessageFlow.integration.test.js`（效应构造 + 分发链路）+ `tests/options/options.test.js` / `tests/popup/popup.test.js` / `tests/contentScript/popupMobile.test.js`（三入口）+ E2E `tests/browser-e2e/feedback-entry.mjs` F1–F5（结构 / 逐参数 URL 断言 / 剪贴板红线哨兵 / popup 入口 / 连接拒绝→⚠→预填 URL 全链，登录墙 `return_to` 解码）。
 
+**RULE: 悬停面板对齐规则（hover-panel alignment rule, plan 37 / #125）—— 悬停框与划词框共享皮肤/状态实现点；只有触发与生命周期保持悬停特有：**
+
+- **症状/机制：** 悬停翻译框（`showTranslated.js`）与划词面板（`translateSelected.js`）各自维护皮肤、译文色、按钮色板、loading 与错误渲染，长期漂移（悬停框曾无标题栏/复制/「+」下拉；loading 延迟到译文到达才出现；错误只在 toast、框内无；Google 失败直接销毁框）。对齐的边界不是「整壳复用」（触发与生命周期语义不同），而是**共享实现点**——皮肤 + 状态渲染下沉 `panelShared.js`（五件套），触发壳保持各自特有。
+- **共享面（单源，零漂移）：** `panelShared.js` 五件套——loading 面（spinner + label 渲染/清空）、译文色（先重置再上色，空配置 = 不染色）、按钮意图色板（与划词逐字 parity）、装饰吸收代理（标签恒定、零 ✓/✕）、暗色/布局样式常量。`translateSelected.js` 对既有符号保持同名 re-export（既有测试 import 路径不变、划词回归零漂移）。改任一实现点必须同步两面板 + 对应测试。
+- **悬停特有（禁止共享化）：** 触发与生命周期保持悬停语义——1.25s 悬停触发 / 跟随光标定位 / 移开换目标 / 点框外销毁 / Ctrl×2；不移植原文块 / 页面替换 / moreOrLess。
+- **状态与错误对齐：** loading 在发起翻译的同一刻进框（译文框先于译文出现）；Google 失败 = toast + 框内红字（不再销毁框）；AI 失败 = toast + 框内红字（装饰经共享代理吸收）；超时 10s 与划词同值。
+- **「+」下拉语义同划词：** 选中语言 → 置顶收藏前三（全局 `targetLanguages` 两处共享）+ 设为目标语言 + 立即重译 + 收起。
+- **负向契约（悬停 AI 不得污染页面级状态）：** 悬停 AI 成功不得写页面「已 AI 翻译」标记——悬停 AI 运行经 `dualtran-ai-selected-btn` 代理（`isSelectedPanel` 分支天然跳过页面级标记写）。
+- **实现点清单（规则对称性）：** `setPanelTranslationLoadingState`（loading 渲染单点）、`clearPanelTranslationLoadingState`（loading 清空单点）、`applyPanelTranslatedColor`（译文色单点：先重置再上色）、`applyPanelButtonPalette`（意图色板翻转单点）、`createPanelAiProxy`（装饰吸收 + 译文面直通）、`PANEL_BTN_COLORS`（面板色板 SSOT）、`PANEL_LOADING_CSS`（布局/loading 样式常量）、`PANEL_DARK_MODE_CSS_DARK` / `PANEL_DARK_MODE_CSS_LIGHT`（暗/亮样式常量）、`aiTranslateWord`（Q-H1 单词路由）、`wordsCount`（单词判定谓词）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- **测试：** `showTranslated.test.js`（25 格：模板齐备/loading 起点/译文色/意图色板/标签恒定零装饰/错误进框/跨引擎泄漏/复制/「+」下拉/暗色常量共享/单词路由）+ `translateSelected.test.js`（re-export 契约下 17 格回归——划词行为零变化）+ E2E `hover-panel.mjs` 相位 A–E（loading 先于译文出现 / 色板 computed / 跨引擎色归位 / 单词=词典路径、多词=文本路径请求计数正反两格）。
+
 **基础设施假设清单（Infrastructure Assumptions，M1 issue #31）—— 每个假设必须有测试引用（M3 用 check-infra-assumptions.js 强制）：**
 - **假设：** `document.body` 元素可能被框架整体替换（Turbo Drive 回退导航 `replaceWith`，2026-09-10 github.com 实测）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav」2 个
 - **假设：** `document.documentElement`（`<html>`）在 SPA 导航中存活（实测 `htmlReplaced: false`）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav: body element replaced immediately → host must be recreated」
