@@ -86,6 +86,7 @@ const SCENARIO_MODULE_PATHS = [
   "./cross-level-journey.mjs",
   "./ai-block-indicator.mjs",
   "./selected-panel.mjs",
+  "./hover-panel.mjs",
   "./reasoning-depth.mjs",
   "./feedback-entry.mjs",
   "./visual-audit.mjs",
