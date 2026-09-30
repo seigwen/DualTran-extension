@@ -63,7 +63,7 @@ export const SELF_TEST_PATH_MAP = {
   "svelte.dev/": "spa-source.html",
   "angular.dev/": "spa-source.html",
   "astro.build/": "spa-source.html",
-  "gitlab.com/explore": "spa-source.html",
+  "gitlab.com/explore/projects/active": "spa-source.html",
 };
 
 const P1 = "https://github.com/obra/superpowers/projects";
@@ -182,8 +182,9 @@ export const SCENARIOS = [
   {
     name: "health-gitlab",
     source: "plan 34 recon (CI matrix run 36602259652: 247 non-empty / 66% CJK — the thin-margin site)",
-    description: "Translate gitlab.com/explore (real SPA application representative) — translation-reality gate must hold.",
-    steps: [{ type: "goto", url: "https://gitlab.com/explore" }, { type: "translate" }],
+    description:
+      "Translate gitlab.com/explore/projects/active (real SPA application representative) — translation-reality gate must hold. The FINAL URL is used deliberately: /explore client-redirects to /explore/projects/active (measured <1.1s in a real browser), so a waitForPath on /explore can never settle (calibration run 36659013595 caught this).",
+    steps: [{ type: "goto", url: "https://gitlab.com/explore/projects/active" }, { type: "translate" }],
   },
 ];
 
