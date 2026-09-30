@@ -11,8 +11,11 @@
  *
  * 断言设计（哨兵色，不用默认字面量——#94 纪律）：
  *   A. hover 段落 → 框出现（host 计数 + pierce 读 #eDivResult 可见）且译文区为
- *      共享 loading 面（spinner + label）。确定性窗口：SW fetch 对
- *      translate.googleapis.com 注入 1800ms 延迟，保证「框先于译文出现」可观测
+ *      共享 loading 面（spinner + label）。结构确定性（防共享 profile 竞态）：
+ *      ① hover 前将段落文本改写为运行期唯一串——28 场景共享同一 profile，
+ *      互热 IndexedDB googleCache，固定时间窗对「缓存命中」无效（CI 曾稳定失败）；
+ *      ② SW fetch 对 translate.googleapis.com 上闸，请求物理上无法完成，直到
+ *      相位 A 断言完毕手动放闸——loading 面恒可观测，与 CI 读数速度无关
  *      （旧代码框延迟到译文到达才出现 → 本相位 RED）。
  *   B. Google 到达 → 译文非空 + computed 色 = 哨兵 translatedColor；
  *      部件齐备（标题栏 / 复制 / 「+」下拉 / 朗读）；G 激活实心蓝 / A 非激活浅紫；
@@ -255,6 +258,14 @@ async function waitForHoverHost(page, timeoutMs = 10000) {
   }
 }
 
+/** 放闸：让被挂起的 translate.googleapis.com 请求继续（幂等，可多次调用）。 */
+async function releaseGoogleGate(serviceWorker) {
+  await serviceWorker.evaluate(() => {
+    globalThis.__hoverPanelGateOpen = true;
+    for (const resolve of (globalThis.__hoverPanelGates || []).splice(0)) resolve();
+  });
+}
+
 // ─── 场景主流程 ──────────────────────────────────────────────
 
 export async function run(scope) {
@@ -272,15 +283,26 @@ export async function run(scope) {
   const cdp = await page.context().newCDPSession(page);
   await cdp.send("DOM.enable");
 
-  // ─── 确定性 loading 窗口：SW fetch 对 Google 端点注入 1800ms 延迟 ──
-  // hover 触发后 1250ms 框出现（此时请求刚发出且被挂起）→ loading 面必然可观测。
+  // ─── 结构确定性（防 CI 竞态）：唯一文本（防缓存命中）＋ SW fetch 上闸 ──
+  // 共享 profile 的 28 场景互热 googleCache：固定延迟窗口对缓存命中无效（CI 曾
+  // 稳定失败——读到的已是到达译文）。闸门让 Google 请求物理上无法完成，直到
+  // 相位 A 断言完毕手动放闸——loading 面恒可观测，与 CI 读数速度无关。
+  const probeText = `Plan 37 hover probe ${Date.now()} — unique cache-proof sentence.`;
+  await page.evaluate((t) => {
+    const p = document.querySelector("p#paragraph-1");
+    if (!p) throw new Error("p#paragraph-1 不存在，无法写入唯一探测文本");
+    p.textContent = t;
+  }, probeText);
+
   await serviceWorker.evaluate(() => {
     const originalFetch = globalThis.fetch;
     globalThis.__hoverPanelOriginalFetch = originalFetch;
+    globalThis.__hoverPanelGates = [];
+    globalThis.__hoverPanelGateOpen = false;
     globalThis.fetch = async (...args) => {
       const url = typeof args[0] === "string" ? args[0] : (args[0]?.url || "");
-      if (url.includes("translate.googleapis.com")) {
-        await new Promise((resolve) => setTimeout(resolve, 1800));
+      if (url.includes("translate.googleapis.com") && !globalThis.__hoverPanelGateOpen) {
+        await new Promise((resolve) => globalThis.__hoverPanelGates.push(resolve));
       }
       return originalFetch.call(globalThis, ...args);
     };
@@ -314,6 +336,9 @@ export async function run(scope) {
         );
       }
       console.log("  [A] hover → 框先出现 + 共享 loading 面（spinner + label）✓");
+
+      // 相位 A 断言完毕：放闸，让被挂起的 Google 请求继续（相位 B 等待到达）。
+      await releaseGoogleGate(serviceWorker);
     }
 
     // ═══ 相位 B：Google 到达 → 哨兵色 + 部件齐备 + 色板 + 标签恒定 ═══
@@ -486,9 +511,11 @@ export async function run(scope) {
       );
     }
   } finally {
-    // 恢复 SW fetch（无论成败——不得把延迟泄漏给后续场景）
+    // 放闸 + 恢复 SW fetch（无论成败——不得把闸门/延迟泄漏给后续场景）
     await serviceWorker
       .evaluate(() => {
+        globalThis.__hoverPanelGateOpen = true;
+        for (const resolve of (globalThis.__hoverPanelGates || []).splice(0)) resolve();
         if (globalThis.__hoverPanelOriginalFetch) {
           globalThis.fetch = globalThis.__hoverPanelOriginalFetch;
           delete globalThis.__hoverPanelOriginalFetch;
