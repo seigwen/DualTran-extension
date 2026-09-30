@@ -268,6 +268,7 @@ function createOptionsDom() {
       <a href="#hotkeys">Hotkeys</a>
       <a href="#storage">Storage</a>
       <a href="#others">Others</a>
+      <a href="#feedback">Report a problem</a>
     </nav>
     <section id="languages"></section>
     <section id="sites"></section>
@@ -277,6 +278,12 @@ function createOptionsDom() {
     <section id="hotkeys"></section>
     <section id="storage"></section>
     <section id="others"></section>
+    <section id="feedback">
+      <button id="btnOpenIssueForm">Open GitHub issue form</button>
+      <button id="btnCopyDiagnostics">Copy diagnostic info</button>
+      <a id="feedbackEmailLink" href="mailto:seigwen@gmail.com">seigwen@gmail.com</a>
+      <a id="feedbackStoreLink" href="https://chromewebstore.google.com/detail/ihbcniigknaeillehompenjaacaocpnp/support" target="_blank" rel="noopener">support</a>
+    </section>
 
     <select id="selectTargetLanguage"></select>
     <select id="selectTargetLanguageForText"></select>
@@ -411,6 +418,8 @@ function installBrowserGlobals({
     doYouWantDeleteTranslationCache: "Delete cache?",
     doYouWantRestoreSettings: "Restore settings?",
     fileIsCorrupted: "File is corrupted",
+    // Feedback section (plan 35): the copy button swaps its label to this
+    msgFeedbackCopied: "Copied",
   };
 
   window.scrollTo = vi.fn();
@@ -433,7 +442,7 @@ function installBrowserGlobals({
       ...(commandsUpdateInChrome ? { update: vi.fn() } : {}),
     },
     runtime: {
-      getManifest: vi.fn(() => ({ commands: manifestCommands })),
+      getManifest: vi.fn(() => ({ commands: manifestCommands, version: "2.1.30" })),
       sendMessage: vi.fn((_message, callback) => callback?.("42 MB")),
     },
     storage: {
@@ -1124,5 +1133,136 @@ describe("options/options", () => {
     const select = document.querySelector("#genericReasoningDepth");
     expect(select).not.toBeNull();
     expect(Array.from(select.options).map((o) => o.value)).toEqual([""]);
+  });
+});
+
+// ══════════════════════════════════════════════════════════════
+// Feedback section (plan 35 — user feedback channel)
+//
+// 契约：options 新增「反馈问题」区块（nav 第 9 项 #feedback）：
+//   ① 区块存在且随 hash 切换（与其他 8 个 tab 同一套开关机制）
+//   ② 「打开 GitHub 反馈表单」按钮 → tabs.create(prefilled URL)
+//      —— 静态路径只预填 version/browser/os，不预填 service（无法可靠判定）
+//   ③ 「复制诊断信息」按钮 → clipboard.writeText(诊断块) + 文案切「已复制」
+//   ④ mailto 链接初始化时带版本主题 + 诊断正文
+// 红线：诊断块/URL 不得含 API key / API base（哨兵断言）
+// ══════════════════════════════════════════════════════════════
+
+describe("options/options — feedback section (plan 35)", () => {
+  const UA_CHROME_LINUX =
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36";
+  const GOLDEN_STATIC_URL =
+    "https://github.com/seigwen/DualTran-extension/issues/new?template=bug_report.yml&extension-version=2.1.30&browser=Chrome&os=Linux";
+  let originalNavigatorDescriptor;
+
+  async function flushMicrotasks(times = 8) {
+    for (let index = 0; index < times; index += 1) {
+      await Promise.resolve();
+    }
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    document.head.innerHTML = "";
+    document.body.innerHTML = "";
+
+    originalNavigatorDescriptor = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+    Object.defineProperty(globalThis, "navigator", {
+      value: {
+        userAgent: UA_CHROME_LINUX,
+        language: "en-US",
+        clipboard: { writeText: vi.fn(() => Promise.resolve()) },
+      },
+      configurable: true,
+    });
+  });
+
+  afterEach(() => {
+    if (originalNavigatorDescriptor) {
+      Object.defineProperty(globalThis, "navigator", originalNavigatorDescriptor);
+    } else {
+      delete globalThis.navigator;
+    }
+    delete globalThis.browser;
+  });
+
+  it("registers the #feedback section with its four controls", async () => {
+    await loadOptionsModule();
+
+    expect(document.querySelector("#feedback")).not.toBeNull();
+    expect(document.querySelector("#btnOpenIssueForm")).not.toBeNull();
+    expect(document.querySelector("#btnCopyDiagnostics")).not.toBeNull();
+    expect(document.querySelector("#feedbackEmailLink")).not.toBeNull();
+    expect(document.querySelector("#feedbackStoreLink")).not.toBeNull();
+    expect(document.querySelector('nav a[href="#feedback"]')).not.toBeNull();
+  });
+
+  it("switches to #feedback on hash change and hides it under other tabs", async () => {
+    await loadOptionsModule();
+
+    // 初始化后（hash 默认 languages）：#feedback 必须被隐藏（属于 tab 集合）
+    expect(document.querySelector("#feedback").style.display).toBe("none");
+
+    window.location.hash = "#feedback";
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+
+    expect(document.querySelector("#feedback").style.display).toBe("block");
+    expect(document.querySelector("#languages").style.display).toBe("none");
+    expect(
+      document.querySelector('nav a[href="#feedback"]').classList.contains("w3-light-grey")
+    ).toBe(true);
+  });
+
+  it("opens the prefilled GitHub issue form from the button (no service guess on the static path)", async () => {
+    await loadOptionsModule();
+
+    document.querySelector("#btnOpenIssueForm").click();
+
+    expect(chrome.tabs.create).toHaveBeenCalledTimes(1);
+    expect(chrome.tabs.create).toHaveBeenCalledWith({ url: GOLDEN_STATIC_URL });
+    expect(GOLDEN_STATIC_URL).not.toContain("service=");
+  });
+
+  it("copies the diagnostics block and flashes the copied label (no secrets inside)", async () => {
+    await loadOptionsModule({
+      targetLanguage: "zh-CN",
+      aiProvider: "openrouter",
+      openRouterApiBase: "https://SENTINEL_BASE.example/v1",
+      providerConfigs: {
+        openrouter: { apiKey: "SENTINEL_KEY_123", apiBase: "https://SENTINEL_BASE.example/v1" },
+      },
+    });
+
+    const button = document.querySelector("#btnCopyDiagnostics");
+    const originalLabel = button.textContent;
+
+    button.click();
+    await flushMicrotasks();
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledTimes(1);
+    const text = navigator.clipboard.writeText.mock.calls[0][0];
+    expect(text).toContain("DualTran: 2.1.30");
+    expect(text).toContain("Browser: Chrome");
+    expect(text).toContain("OS: Linux");
+    expect(text).toContain("Page translation: Google");
+    expect(text).toContain("AI translation: OpenRouter");
+    expect(text).toContain("Target language: zh-CN");
+    // 红线负向：种入的假 key/base 标记不得出现在诊断输出
+    expect(text).not.toContain("SENTINEL");
+
+    // 文案临时切换为「已复制」
+    expect(button.textContent).not.toBe(originalLabel);
+    expect(button.textContent).toBe("Copied");
+  });
+
+  it("prefills the feedback email link with a versioned subject and the diagnostics body", async () => {
+    await loadOptionsModule({ targetLanguage: "zh-CN" });
+
+    const href = document.querySelector("#feedbackEmailLink").getAttribute("href");
+    expect(href.startsWith("mailto:seigwen@gmail.com?")).toBe(true);
+    expect(href).toContain("subject=%5BDualTran%20v2.1.30%5D");
+    const body = decodeURIComponent(href.split("&body=")[1] || "");
+    expect(body).toContain("DualTran: 2.1.30");
+    expect(body).toContain("Target language: zh-CN");
   });
 });

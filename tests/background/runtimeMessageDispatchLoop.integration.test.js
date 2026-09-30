@@ -6,6 +6,7 @@ import {
 import {
   buildFrameFocusBroadcastEffect,
   buildOpenDonationPageEffect,
+  buildOpenFeedbackIssueEffect,
   buildOpenOptionsPageEffect,
   createRuntimeMessageEffectExecutor,
   executeMainFrameRuntimeQuery,
@@ -89,5 +90,49 @@ describe("runtime message dispatch loop integration", () => {
       [{ url: "chrome-extension://id/options/options.html" }],
       [{ url: "chrome-extension://id/options/options.html#donation" }],
     ]);
+  });
+
+  it("dispatches an openFeedbackIssue message through the shared tab executor to chrome.tabs.create", () => {
+    const createTab = vi.fn();
+    const applyTabEffects = createTabEffectExecutor({ createTab });
+    const executeEffects = createRuntimeMessageEffectExecutor({
+      applyTabEffects,
+    });
+
+    executeEffects(
+      buildOpenFeedbackIssueEffect({
+        serviceType: "ai",
+        providerId: "openai",
+        errorText: "provider exploded",
+        hostname: "example.com",
+        sourceLang: "ja",
+        targetLang: "en",
+        version: "2.1.30",
+        userAgent: "Edg/123.0.0.0",
+      })
+    );
+
+    expect(createTab).toHaveBeenCalledTimes(1);
+    const url = createTab.mock.calls[0][0].url;
+    expect(
+      url.startsWith("https://github.com/seigwen/DualTran-extension/issues/new?template=bug_report.yml&")
+    ).toBe(true);
+    const params = new URL(url).searchParams;
+    expect(params.get("service")).toBe("AI Translation (OpenAI)");
+    expect(params.get("browser")).toBe("Edge");
+    expect(params.get("additional")).toContain("Hostname: example.com");
+    expect(params.get("additional")).toContain("Error: provider exploded");
+  });
+
+  it("never opens a tab for an invalid feedback payload (dispatch-side no-op)", () => {
+    const createTab = vi.fn();
+    const applyTabEffects = createTabEffectExecutor({ createTab });
+    const executeEffects = createRuntimeMessageEffectExecutor({
+      applyTabEffects,
+    });
+
+    executeEffects(buildOpenFeedbackIssueEffect({ serviceType: "bogus", version: "2.1.30" }));
+
+    expect(createTab).not.toHaveBeenCalled();
   });
 });

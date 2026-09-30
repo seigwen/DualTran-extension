@@ -73,6 +73,18 @@ describe("i18n completeness", () => {
         );
         expect(broken).toEqual([]);
       });
+
+      it("contains every en key (locale ⊇ en — new keys must be synced, plan 35 hardening)", () => {
+        // 硬化（plan 35）：新键加入 en 后必须经 `npm run i18n:sync` 填齐全 38 语言。
+        // 缺键 = 该语言下相关 UI 回退失败/行为不一致；本格防「新键漏 sync」。
+        const missingKeys = enKeys.filter(
+          (k) => !Object.prototype.hasOwnProperty.call(messages, k)
+        );
+        expect(
+          missingKeys,
+          `Locale ${locale} is missing en keys: ${missingKeys.join(", ")}`
+        ).toEqual([]);
+      });
     });
   }
 });

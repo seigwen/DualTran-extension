@@ -77,6 +77,12 @@
   "btnApply": {
     "message": "Søke om"
   },
+  "btnFeedbackCopyDiagnostics": {
+    "message": "Copy diagnostic info"
+  },
+  "btnFeedbackOpenGitHub": {
+    "message": "Open GitHub issue form"
+  },
   "btnListen": {
     "message": "Lytte"
   },
@@ -305,6 +311,15 @@
         "example": "2"
       }
     }
+  },
+  "lblFeedbackIntro": {
+    "message": "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser and system already filled in."
+  },
+  "lblFeedbackNoGithub": {
+    "message": "No GitHub account? You can still reach us:"
+  },
+  "lblFeedbackStoreSupport": {
+    "message": "Chrome Web Store support section"
   },
   "lblFreeTranslationEngine": {
     "message": "Free translation engine"
@@ -565,6 +580,9 @@
   },
   "msgFavoriteLanguages": {
     "message": "Favorittspråk"
+  },
+  "msgFeedbackCopied": {
+    "message": "Copied"
   },
   "msgFileLargerThan": {
     "message": "Denne tjenesten støtter ikke filer større enn $FILE_SIZE$",

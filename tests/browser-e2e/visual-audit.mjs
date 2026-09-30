@@ -440,6 +440,76 @@ async function assertStyleTabControlsComplete(page) {
 }
 
 /**
+ * 断言 options#feedback 反馈区块形状正确（plan 35 入口集合）。
+ *
+ * 机械可判项：
+ *   - 区块存在且可见（hash 切换机制把它打开）
+ *   - 标题与两个按钮文本非空，且不是裸 i18n 键（btnFeedbackOpenGitHub 等
+ *     ——键串残留意味着 translateDocument 没跑或 data-i18n 拼错）
+ *   - 邮件链接是 mailto: 形态（seigwen@gmail.com），商店链接含
+ *     chromewebstore.google.com 且指向 /support
+ *   - 导航条存在 #feedback 项且为高亮态（w3-light-grey）
+ *
+ * @param {import("playwright").Page} page
+ * @returns {Promise<void>}
+ */
+async function assertFeedbackSectionShape(page) {
+  const r = await page.evaluate(() => {
+    const section = document.getElementById("feedback");
+    const navLink = document.querySelector('nav a[href="#feedback"]');
+    const btnIssue = document.getElementById("btnOpenIssueForm");
+    const btnCopy = document.getElementById("btnCopyDiagnostics");
+    const emailLink = document.getElementById("feedbackEmailLink");
+    const storeLink = document.getElementById("feedbackStoreLink");
+    const headline = section?.querySelector("b");
+    return {
+      sectionExists: !!section,
+      sectionVisible: !!section && section.style.display !== "none",
+      navExists: !!navLink,
+      navHighlighted: !!navLink && navLink.classList.contains("w3-light-grey"),
+      issueLabel: (btnIssue?.textContent ?? "").trim(),
+      copyLabel: (btnCopy?.textContent ?? "").trim(),
+      headlineText: (headline?.textContent ?? "").trim(),
+      emailHref: emailLink?.getAttribute("href") ?? "",
+      storeHref: storeLink?.getAttribute("href") ?? "",
+    };
+  });
+
+  if (!r.sectionExists) {
+    throw new Error("[options-feedback] #feedback 区块缺失（结构被破坏）");
+  }
+  if (!r.sectionVisible) {
+    throw new Error("[options-feedback] #feedback 区块存在但不可见（hash 切换机制未打开它）");
+  }
+  if (!r.navExists) {
+    throw new Error("[options-feedback] 导航条缺少 #feedback 项");
+  }
+  if (!r.navHighlighted) {
+    throw new Error("[options-feedback] #feedback 导航项未高亮（w3-light-grey）");
+  }
+  const labels = {
+    headline: r.headlineText,
+    issueButton: r.issueLabel,
+    copyButton: r.copyLabel,
+  };
+  for (const [field, text] of Object.entries(labels)) {
+    if (text === "") {
+      throw new Error(`[options-feedback] ${field} 文本为空（#85 同族：行存在但无标签）`);
+    }
+    // 裸键残留 = translateDocument 未生效或 data-i18n 拼写错误
+    if (/^(lbl|btn|msg)[A-Z]/.test(text)) {
+      throw new Error(`[options-feedback] ${field} 显示的是裸 i18n 键 "${text}"（未本地化）`);
+    }
+  }
+  if (!r.emailHref.startsWith("mailto:seigwen@gmail.com")) {
+    throw new Error(`[options-feedback] 邮件链接形态错误: "${r.emailHref}"`);
+  }
+  if (!r.storeHref.includes("chromewebstore.google.com") || !r.storeHref.includes("/support")) {
+    throw new Error(`[options-feedback] 商店支持链接形态错误: "${r.storeHref}"`);
+  }
+}
+
+/**
  * 断言 replace-original-mode 的截图与 baseline-untranslated **不同**。
  *
  * 这是 #75 的直接指纹：污染时两者逐字节相同（页面早已是 replaceOriginal
@@ -619,6 +689,12 @@ export async function run(scope) {
   await page.waitForTimeout(600);
   await assertStyleTabControlsComplete(page);
   await screenshotCheckpoint(page, "options-style", { scenario: name });
+
+  // ── 阶段 3d：options#feedback（plan 35 —— 反馈区块的视觉锚点）──
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#feedback`, { waitUntil: "load" });
+  await page.waitForTimeout(600);
+  await assertFeedbackSectionShape(page);
+  await screenshotCheckpoint(page, "options-feedback", { scenario: name });
 
   // 效度演练 ground truth 落盘（分析侧对照：注入的位置/类型/期望）
   const { writeFileSync, mkdirSync } = await import("node:fs");

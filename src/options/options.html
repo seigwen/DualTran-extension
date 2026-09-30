@@ -31,6 +31,7 @@
       <a href="#hotkeys" class="w3-bar-item  desktopOnly" data-i18n="msgHotkeys">Hotkeys</a>
       <a href="#storage" class="w3-bar-item " data-i18n="msgStorage">Storage</a>
       <a href="#others" class="w3-bar-item " data-i18n="lblOthers">Others</a>
+      <a href="#feedback" class="w3-bar-item " data-i18n="lblReport">Report a problem</a>
     </div>
   </nav>
 
@@ -538,6 +539,27 @@
             <option value="no" data-i18n="msgNo">No</option>
             <option value="yes" data-i18n="msgYes">Yes</option>
           </select>
+        </div>
+      </div>
+
+      <div id="feedback" class="w3-container">
+        <b data-i18n="lblReport">Report a problem</b>
+        <div class="w3-container">
+          <p data-i18n="lblFeedbackIntro">Report bugs or suggest features on GitHub Issues — the form opens with your
+            extension version, browser and system already filled in.</p>
+          <button class="w3-light-grey w3-round w3-margin-top" id="btnOpenIssueForm"
+            data-i18n="btnFeedbackOpenGitHub">Open GitHub issue form</button>
+          <button class="w3-light-grey w3-round w3-margin-top" id="btnCopyDiagnostics"
+            data-i18n="btnFeedbackCopyDiagnostics">Copy diagnostic info</button>
+          <br /><br />
+          <p data-i18n="lblFeedbackNoGithub">No GitHub account? You can still reach us:</p>
+          <p>
+            <a id="feedbackEmailLink" href="mailto:seigwen@gmail.com">seigwen@gmail.com</a>
+            &nbsp;·&nbsp;
+            <a id="feedbackStoreLink"
+              href="https://chromewebstore.google.com/detail/ihbcniigknaeillehompenjaacaocpnp/support"
+              target="_blank" rel="noopener" data-i18n="lblFeedbackStoreSupport">Chrome Web Store support section</a>
+          </p>
         </div>
       </div>
     </div>

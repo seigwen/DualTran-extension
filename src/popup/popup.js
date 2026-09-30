@@ -305,6 +305,17 @@ twpConfig.onReady(function () {
           window.close
         }
       );
+
+      // Feedback entry (plan 35): open the options feedback section.
+      $("#cbReportProblem").addEventListener(
+        "click",
+        (e) => {
+          chrome.tabs.create({
+            url: chrome.runtime.getURL("/options/options.html#feedback"),
+          });
+          window.close
+        }
+      );
     }
   );
 

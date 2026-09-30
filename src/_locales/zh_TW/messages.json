@@ -77,6 +77,12 @@
   "btnApply": {
     "message": "套用"
   },
+  "btnFeedbackCopyDiagnostics": {
+    "message": "複製診斷資訊"
+  },
+  "btnFeedbackOpenGitHub": {
+    "message": "開啟 GitHub 回報表單"
+  },
   "btnListen": {
     "message": "聆聽"
   },
@@ -305,6 +311,15 @@
         "example": "2"
       }
     }
+  },
+  "lblFeedbackIntro": {
+    "message": "提交問題回報或功能建議，推薦使用 GitHub Issues——表單會自動預填擴充功能版本、瀏覽器與作業系統資訊。"
+  },
+  "lblFeedbackNoGithub": {
+    "message": "沒有 GitHub 帳號？也可以透過以下方式聯絡我們："
+  },
+  "lblFeedbackStoreSupport": {
+    "message": "Chrome 線上應用程式商店「支援」區"
   },
   "lblFreeTranslationEngine": {
     "message": "免費翻譯引擎"
@@ -565,6 +580,9 @@
   },
   "msgFavoriteLanguages": {
     "message": "優先選擇目標語言"
+  },
+  "msgFeedbackCopied": {
+    "message": "已複製"
   },
   "msgFileLargerThan": {
     "message": "這個翻譯伺服器不支援檔案長度超過 $FILE_SIZE$ 的檔案",

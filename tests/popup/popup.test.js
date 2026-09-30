@@ -160,6 +160,7 @@ describe("popup", () => {
       <input type="checkbox" id="cbShowTranslatedWhenHoveringThisSite"/>
       <input type="checkbox" id="cbShowTranslatedWhenHoveringThisLang"/>
       <button id="cbMoreOptions"></button>
+      <div id="cbReportProblem">Report a problem</div>
       <div id="containerShowOriginalWhenHovering"></div>
       <div id="containerShowTranslatedWhenHoveringThisSite"></div>
       <div id="containerShowTranslatedWhenHoveringThisLang"></div>
@@ -508,6 +509,16 @@ describe("popup", () => {
 
     expect(chrome.tabs.create).toHaveBeenCalledWith({
       url: "chrome-extension://test/options/options.html",
+    });
+  });
+
+  it("opens the feedback section from the report-problem row (plan 35)", async () => {
+    await loadModule();
+
+    document.getElementById("cbReportProblem").click();
+
+    expect(chrome.tabs.create).toHaveBeenCalledWith({
+      url: "chrome-extension://test/options/options.html#feedback",
     });
   });
 

@@ -72,6 +72,7 @@ import { wordsCount } from "../util/globalWordsCount.js"
 import { registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, setCallbacks, getProxiesForTranslation, getAllProxies, getBlockState, updateSingletonUI } from "./singletonBtnGroup.js";
 import { resolveSingletonBtnClick } from "./singletonBtnClickResolver.js";
 import { setBlockTranslationIndicator, injectBlockIndicatorStyles } from "./blockTranslationIndicator.js";
+import { installFeedbackReporter } from "./feedbackReporter.js";
 import { getState as getUiStateStoreState, dumpLog as dumpUiStateLog } from "./uiStateStore.js";
 
 /**
@@ -4084,6 +4085,18 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
   // Inject CSS animation keyframes for block-level translation indicators
   injectBlockIndicatorStyles();
+
+  // Feedback entry (plan 35): clicking a block error icon sends the page
+  // context + error text to the SW, which opens the prefilled issue form.
+  // Context values are read at click time (closure over the live variables).
+  installFeedbackReporter({
+    getContext: () => ({
+      hostname: location.hostname,
+      sourceLang: originalTabLanguage,
+      targetLang: currentTargetLanguage,
+    }),
+    send: (payload) => chrome.runtime.sendMessage(payload),
+  });
 
   function updateAiRenderStateInternal() {
     if (pageLanguageState !== "translated") return;

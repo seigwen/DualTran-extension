@@ -123,6 +123,12 @@ describe("popupMobile", () => {
 
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "info").mockImplementation(() => {});
+
+    // 强制 shadow DOM 为 open（jsdom 下访问 popup 内部菜单需要；
+    // 与 floatingBtn.test.js / singletonBtnGroup.test.js 同一模式）
+    vi.spyOn(HTMLElement.prototype, "attachShadow").mockImplementation(function attachShadow(init) {
+      return Element.prototype.attachShadow.call(this, { ...init, mode: "open" });
+    });
   });
 
   async function loadAndReady() {
@@ -180,5 +186,29 @@ describe("popupMobile", () => {
     expect(
       pageTranslatorCallbacks.onGetOriginalTabLanguage.length
     ).toBeGreaterThan(0);
+  });
+
+  it("shows a feedback entry in the dropup menu that opens options#feedback (plan 35)", async () => {
+    configValues.alwaysTranslateSites = ["example.com"];
+    await loadAndReady();
+
+    // popup 已渲染 → 在 shadow root 内找到反馈项
+    const popupDiv = document.querySelector("div.notranslate");
+    expect(popupDiv).not.toBeNull();
+    const shadow = popupDiv.shadowRoot;
+    expect(shadow).not.toBeNull();
+
+    const feedbackEntry = shadow.getElementById("btnReportProblem");
+    expect(feedbackEntry).not.toBeNull();
+    expect((feedbackEntry.textContent ?? "").trim()).not.toBe("");
+
+    // 点击 → openOptionsPage 消息带 hash:#feedback
+    feedbackEntry.click();
+
+    const sent = chrome.runtime.sendMessage.mock.calls.map((c) => c[0]);
+    expect(sent).toContainEqual({
+      action: "openOptionsPage",
+      hash: "#feedback",
+    });
   });
 });

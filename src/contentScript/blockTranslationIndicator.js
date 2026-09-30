@@ -125,8 +125,15 @@ function createErrorIcon(type, errorMessage) {
   span.className = "dualtran-block-indicator dualtran-block-error";
   span.dataset.type = type;
   span.dataset.state = "error";
+  // Feedback entry (plan 35): the icon is the "just got hit by a bug" signal —
+  // clicking it opens the prefilled issue form (delegated listener in
+  // feedbackReporter.js). It must LOOK clickable and carry a stable marker;
+  // its `title` stays the PURE error text (the reporter sends it verbatim as
+  // the issue's Error line — hint suffixes would pollute it).
+  span.dataset.dualtranReport = "issue";
+  span.setAttribute("role", "button");
   span.style.cssText =
-    "display:inline-block; font-size:12px; opacity:0.5; vertical-align:middle; margin-left:4px; cursor:help;";
+    "display:inline-block; font-size:12px; opacity:0.5; vertical-align:middle; margin-left:4px; cursor:pointer;";
   span.style.color = TYPE_COLORS[type];
   span.textContent = "⚠";
   span.title = errorMessage || "Translation error";

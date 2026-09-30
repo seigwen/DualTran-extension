@@ -1489,3 +1489,65 @@ describe("replaceOriginal 模式 — 重复翻译元素防护", () => {
     }
   });
 });
+
+// ══════════════════════════════════════════════════════════════
+// 装配点：反馈 reporter wiring（plan 35 — user feedback channel）
+//
+// 本格验证「wiring 红能力」：pageTranslator.js 模块初始化时装配了
+// feedbackReporter（document 级委托）。点击一个真实的错误图标
+// （.dualtran-block-error）必须实际发出 openFeedbackIssue 消息——
+// 如果装配被删/被绕过，本格红。
+// ══════════════════════════════════════════════════════════════
+
+describe("pageTranslator — feedback reporter wiring (plan 35)", () => {
+  beforeEach(() => {
+    // 只清 body；不重置模块（listener 在模块加载时已装在 document 上）
+    document.body.innerHTML = "";
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("clicking a block error icon really sends the openFeedbackIssue message (wiring red-ability)", async () => {
+    // 构造真实形态的错误图标（与 blockTranslationIndicator 契约一致）
+    const p = document.createElement("p");
+    p.textContent = "Hello world";
+    const icon = document.createElement("span");
+    icon.className = "dualtran-block-indicator dualtran-block-error";
+    icon.dataset.type = "ai";
+    icon.dataset.state = "error";
+    icon.title = "connection refused";
+    p.appendChild(icon);
+    document.body.appendChild(p);
+
+    const sendMessageCallsBefore = chrome.runtime.sendMessage.mock.calls.length;
+
+    icon.click();
+    await vi.waitFor(() => {
+      const feedbackCalls = chrome.runtime.sendMessage.mock.calls
+        .slice(sendMessageCallsBefore)
+        .filter((c) => c[0]?.action === "openFeedbackIssue");
+      expect(feedbackCalls.length).toBe(1);
+    }, { timeout: 2000 });
+
+    const payload = chrome.runtime.sendMessage.mock.calls
+      .slice(sendMessageCallsBefore)
+      .find((c) => c[0]?.action === "openFeedbackIssue")[0];
+
+    expect(payload.serviceType).toBe("ai");
+    expect(payload.errorText).toBe("connection refused");
+    // hostname 来自 location.hostname（jsdom 环境下即 "localhost"）
+    expect(payload.hostname).toBe(location.hostname);
+    expect(typeof payload.hostname).toBe("string");
+    // 语言对字段存在（值可为 und/空，但键必须在协议内）
+    expect(Object.keys(payload).sort()).toEqual([
+      "action",
+      "errorText",
+      "hostname",
+      "serviceType",
+      "sourceLang",
+      "targetLang",
+    ]);
+  });
+});

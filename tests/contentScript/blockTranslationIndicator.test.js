@@ -379,3 +379,40 @@ describe("setBlockTranslationIndicator — position support", () => {
     expect(orphan.childNodes.length).toBe(0);
   });
 });
+
+// ──────────────────────────────────────────────────────────────
+// Error-icon clickable contract (plan 35 — user feedback channel)
+//
+// The error icon is the only "just got hit by a bug" signal in the
+// extension. It is now the dynamic entry point into the prefilled issue
+// form: the icon must LOOK clickable (cursor:pointer — it used to be
+// cursor:help) and carry a stable machine-readable marker
+// (data-dualtran-report="issue", role="button") for the delegated
+// reporter; its `title` must stay the PURE error text (the reporter
+// sends it as the issue's Error line — hint suffixes would pollute it).
+// ──────────────────────────────────────────────────────────────
+
+describe("error icon — feedback click contract", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("carries the clickable contract: cursor:pointer, role=button, data-dualtran-report", () => {
+    const p = createParagraph("Hello world");
+    setBlockTranslationIndicator(p, "ai", "error", "provider 503");
+
+    const icon = getIndicatorAfter(p, "ai");
+    expect(icon).not.toBeNull();
+    expect(icon.style.cursor).toBe("pointer");
+    expect(icon.getAttribute("role")).toBe("button");
+    expect(icon.dataset.dualtranReport).toBe("issue");
+  });
+
+  it("keeps the title as the pure error text (no hint suffix mixed in)", () => {
+    const p = createParagraph("Hello world");
+    setBlockTranslationIndicator(p, "google", "error", "429 quota exceeded");
+
+    const icon = getIndicatorAfter(p, "google");
+    expect(icon.title).toBe("429 quota exceeded");
+  });
+});

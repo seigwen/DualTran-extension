@@ -75,6 +75,7 @@ import {
 import {
   buildFrameFocusBroadcastEffect,
   buildOpenDonationPageEffect,
+  buildOpenFeedbackIssueEffect,
   buildOpenOptionsPageEffect,
   createRuntimeMessageEffectExecutor,
   executeMainFrameRuntimeQuery,
@@ -330,6 +331,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   else if (request.action === "openDonationPage") {
     runRuntimeMessageEffects(
       buildOpenDonationPageEffect(chrome.runtime.getURL("/options/options.html#donation"))
+    )
+  }
+  // Open the prefilled GitHub feedback issue form (plan 35 — block error icon)
+  else if (request.action === "openFeedbackIssue") {
+    runRuntimeMessageEffects(
+      buildOpenFeedbackIssueEffect({
+        serviceType: request.serviceType,
+        errorText: request.errorText,
+        hostname: request.hostname,
+        sourceLang: request.sourceLang,
+        targetLang: request.targetLang,
+        version: chrome.runtime.getManifest().version,
+        userAgent: navigator.userAgent,
+        providerId: twpConfig.get("aiProvider") || "",
+      })
     )
   }
   // Detect page language

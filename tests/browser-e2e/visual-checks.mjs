@@ -330,4 +330,20 @@ export const CHECKPOINTS = [
       "No duplicate/stacked translation lines and no empty or collapsed containers",
     ],
   },
+  {
+    id: "options-feedback",
+    scenario: "visual-audit",
+    capture: {
+      page: "chrome-extension://<id>/options/options.html#feedback",
+      when: "the new feedback section is opened (plan 35 entry set)",
+    },
+    programmatic: ["assertFeedbackSectionShape"],
+    expect: [
+      "The feedback section headline is the localized \"Report a problem\" (via lblReport), not a raw i18n key",
+      "Both buttons carry full-word labels (\"Open GitHub issue form\" / \"Copy diagnostic info\") — no blank or key-string labels",
+      "The fallback line shows the email link (seigwen@gmail.com) and the Chrome Web Store support link side by side",
+      "The nav sidebar shows the feedback entry highlighted and no other tab's content is visible",
+      "No layout breakage: content is not clipped or overlapping the sidebar",
+    ],
+  },
 ];

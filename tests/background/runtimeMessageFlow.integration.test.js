@@ -5,6 +5,7 @@ import {
 import {
   buildFrameFocusBroadcastEffect,
   buildOpenDonationPageEffect,
+  buildOpenFeedbackIssueEffect,
   buildOpenOptionsPageEffect,
   executeSenderTabHostNameQuery,
   executeSenderTabLanguageQuery,
@@ -70,5 +71,32 @@ describe("runtime message flow integration", () => {
         url: "chrome-extension://id/options/options.html#donation",
       },
     ]);
+  });
+
+  it("combines sender queries with the feedback open-tab effect (content script → SW → effect → tab)", () => {
+    // 端到端消息流：内容脚本点击 ⚠ 的完整等价路径 ——
+    // 载荷 → buildOpenFeedbackIssueEffect → open-tab 效果（交由 tab 执行器打开）
+    expect(executeSenderTabHostNameQuery({ tab: { url: "https://x.com/home" } })).toBe("x.com");
+
+    const effects = buildOpenFeedbackIssueEffect({
+      serviceType: "google",
+      errorText: "429 quota exceeded",
+      hostname: "x.com",
+      sourceLang: "en",
+      targetLang: "zh-CN",
+      version: "2.1.30",
+      userAgent:
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    });
+
+    expect(effects).toHaveLength(1);
+    expect(effects[0].type).toBe("open-tab");
+    const params = new URL(effects[0].url).searchParams;
+    expect(params.get("template")).toBe("bug_report.yml");
+    expect(params.get("extension-version")).toBe("2.1.30");
+    expect(params.get("service")).toBe("Google Translate");
+    expect(params.get("additional")).toBe(
+      "Hostname: x.com\nLanguage pair: en → zh-CN\nError: 429 quota exceeded"
+    );
   });
 });

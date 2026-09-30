@@ -50,6 +50,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                     <a id="btnNeverTranslate" data-i18n="btnNeverTranslate">Never translate this site</a>
                     <a id="neverTranslateThisLanguage" data-i18n="btnNeverTranslateThisLanguage" display="none">Never translate this language</a>
                     <a id="btnMoreOptions" data-i18n="btnMoreOptions">More options</a>
+                    <a id="btnReportProblem" data-i18n="lblReport">Report a problem</a>
                 </div>
             </div>
             <div class="dropup">
@@ -378,6 +379,14 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     getElemById("btnMoreOptions").onclick = (e) => {
       chrome.runtime.sendMessage({
         action: "openOptionsPage",
+      });
+    };
+
+    // Feedback entry (plan 35): open the options feedback section directly.
+    getElemById("btnReportProblem").onclick = (e) => {
+      chrome.runtime.sendMessage({
+        action: "openOptionsPage",
+        hash: "#feedback",
       });
     };
 

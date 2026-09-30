@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildFrameFocusBroadcastEffect,
   buildOpenDonationPageEffect,
+  buildOpenFeedbackIssueEffect,
   buildOpenOptionsPageEffect,
   createRuntimeMessageEffectExecutor,
   executeMainFrameRuntimeQuery,
@@ -134,5 +135,61 @@ describe("runtimeMessageExecutionHelpers", () => {
     executeEffects(effects);
 
     expect(applyTabEffects).toHaveBeenCalledWith(effects);
+  });
+
+  // ── Feedback issue effect (plan 35 — user feedback channel) ──
+
+  it("builds an open-tab effect pointing at the prefilled GitHub issue form", () => {
+    const effects = buildOpenFeedbackIssueEffect({
+      serviceType: "google",
+      errorText: "429 quota",
+      hostname: "x.com",
+      sourceLang: "en",
+      targetLang: "zh-CN",
+      version: "2.1.30",
+      userAgent:
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+      providerId: "",
+    });
+
+    expect(effects).toHaveLength(1);
+    expect(effects[0].type).toBe("open-tab");
+    expect(effects[0].url).toBe(
+      "https://github.com/seigwen/DualTran-extension/issues/new?template=bug_report.yml&extension-version=2.1.30&browser=Chrome&os=Linux&service=Google+Translate&additional=Hostname%3A+x.com%0ALanguage+pair%3A+en+%E2%86%92+zh-CN%0AError%3A+429+quota"
+    );
+  });
+
+  it("no-ops (empty effect list) when serviceType is invalid — never opens a tab", () => {
+    expect(buildOpenFeedbackIssueEffect({ serviceType: "bogus", version: "2.1.30" })).toEqual([]);
+    expect(buildOpenFeedbackIssueEffect({ version: "2.1.30" })).toEqual([]);
+    expect(buildOpenFeedbackIssueEffect({ serviceType: 42, version: "2.1.30" })).toEqual([]);
+  });
+
+  it("no-ops when the version is missing (the SW cannot build a meaningful report)", () => {
+    expect(
+      buildOpenFeedbackIssueEffect({ serviceType: "google", version: "" })
+    ).toEqual([]);
+    expect(buildOpenFeedbackIssueEffect({ serviceType: "google" })).toEqual([]);
+  });
+
+  it("clamps oversized error text and keeps the URL github.com-rooted (injection guard)", () => {
+    const effects = buildOpenFeedbackIssueEffect({
+      serviceType: "ai",
+      providerId: "openrouter",
+      errorText: "e".repeat(1200),
+      hostname: "x.com",
+      sourceLang: "en",
+      targetLang: "zh-CN",
+      version: "2.1.30",
+      userAgent: "Chrome/123.0.0.0",
+    });
+
+    const url = effects[0].url;
+    expect(url.startsWith("https://github.com/seigwen/DualTran-extension/issues/new?")).toBe(true);
+    const errLine = new URL(url)
+      .searchParams.get("additional")
+      .split("\n")
+      .find((l) => l.startsWith("Error: "));
+    expect(errLine.length).toBeLessThanOrEqual("Error: ".length + 500);
   });
 });
