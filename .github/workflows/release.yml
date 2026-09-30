@@ -31,22 +31,59 @@ jobs:
     - name: Build extension
       run: npm run build
 
-    # Release gate (S5, issue #57): the canary must pass against the real
-    # site before a release artifact is produced. Real-site runs have
-    # environmental noise, so one retry first; a second failure blocks the
-    # release. Emergency bypass: re-run the failed job, or intentionally
-    # edit this workflow — bypassing a hard gate must be a deliberate act.
+    # Release gate (S5, issue #57; typed-skip discipline: plan 34 §三.E):
+    # the canary must pass against the real-site matrix before a release
+    # artifact is produced. Exit-code contract: 0=PASSED, 1=FAILED,
+    # 2=SKIPPED-ENV (Google endpoint throttled).
+    #   - 1 (after one retry on real reds only) blocks the release;
+    #   - 2 lets the release through WITH a prominent warning — Google's
+    #     risk controls must not hold the release cadence, and the full
+    #     E2E suite has already gated this build anyway;
+    #   - 0 passes silently.
+    # Emergency bypass: re-run the failed job, or intentionally edit this
+    # workflow — bypassing a hard gate must be a deliberate act.
     - name: Install Playwright Chromium (canary gate)
       run: npx playwright install --with-deps chromium
 
     - name: Canary gate (attempt 1)
       id: canary-attempt-1
-      continue-on-error: true
-      run: xvfb-run -a node scripts/real-site-verify.mjs
+      run: |
+        set +e
+        set -o pipefail
+        xvfb-run -a node scripts/real-site-verify.mjs 2>&1 | tee /tmp/canary-release-attempt1.log
+        code=${PIPESTATUS[0]:-0}
+        echo "code=$code" >> "$GITHUB_OUTPUT"
+        exit 0
 
     - name: Canary gate (retry)
-      if: steps.canary-attempt-1.outcome == 'failure'
-      run: xvfb-run -a node scripts/real-site-verify.mjs
+      id: canary-attempt-2
+      if: steps.canary-attempt-1.outputs.code == '1'
+      run: |
+        set +e
+        set -o pipefail
+        xvfb-run -a node scripts/real-site-verify.mjs 2>&1 | tee /tmp/canary-release-attempt2.log
+        code=${PIPESTATUS[0]:-0}
+        echo "code=$code" >> "$GITHUB_OUTPUT"
+        exit 0
+
+    - name: Canary gate outcome
+      run: |
+        c1="${{ steps.canary-attempt-1.outputs.code }}"
+        c2="${{ steps.canary-attempt-2.outputs.code }}"
+        effective="${c2:-$c1}"
+        case "$effective" in
+          0) echo "Canary gate PASSED";;
+          2) echo "::warning::Canary gate SKIPPED-ENV (Google endpoint throttled) — releasing without the real-site signal this time";;
+          *) echo "Canary gate FAILED (exit $effective)"; exit 1;;
+        esac
+
+    - name: Upload canary logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: canary-release-logs
+        path: /tmp/canary-release-attempt*.log
+        retention-days: 30
 
     - name: Create ZIP archive
       run: |

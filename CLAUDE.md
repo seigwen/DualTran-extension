@@ -26,21 +26,26 @@ npx vitest run tests/ai/sseClient.test.js  # run a single test file
 
 Tests use vitest + jsdom. Files in `tests/`. Mock `chrome.*` APIs are set up per-test via `vi.stubGlobal()`.
 
-### Real-site canary (S5, issue #57)
+### Real-site canary (S5, issue #57; multi-site expansion: plan 34, issue #114)
 
 ```bash
 npm run build                                        # first — the tool loads dist/chrome/
-node scripts/real-site-verify.mjs --list             # list scenarios
-node scripts/real-site-verify.mjs                    # run the full scenario library (real github.com)
-node scripts/real-site-verify.mjs --scenario=bug8-double-page-roundtrip   # one scenario
+node scripts/real-site-verify.mjs --list             # list scenarios (CI set + local set)
+node scripts/real-site-verify.mjs                    # run the 13-scenario CI matrix (10 sites)
+node scripts/real-site-verify.mjs --include-local    # + local-only scenarios (x.com)
+node scripts/real-site-verify.mjs --scenario=<name>  # one scenario (CI or local name)
 node scripts/real-site-verify.mjs --url=<user URL>   # ad-hoc single-URL journey (PR checklist)
 xvfb-run -a node scripts/real-site-verify.mjs --self-test                 # hermetic (local mock pages)
 ```
 
 - **Scenario library:** `scripts/canary-scenarios.mjs` — declarative data (`source` field traces each scenario to its user report / incident). Adding a scenario = adding one entry; the executor (`scripts/real-site-verify.mjs`) owns the step loop + tri-state assertions (healthy ∧ count===1 per settled step).
+- **CI matrix (10 sites / 13 scenarios):** github.com ×3 (bug8 / bug7 / selfheal), workers.dev ×2 and vercel.com ×2 (translate-reality + #78 seeded-position), nextjs / nuxt / svelte / angular / astro / gitlab ×1 each (front-end-stack representatives). **x.com is local-only** (`LOCAL_SCENARIOS`, `--include-local`) — Cloudflare blocks the Actions runner IP range (plan 34 §二.3; not a Playwright fingerprint issue).
+- **Translation-reality gate (plan 34):** every translate/assert-translated step seeds `targetLanguage=zh-CN` and must pass `tests/shared/translation-quality.mjs` — `nonEmpty ≥ max(10, 20%×count)` ∧ `cjk/nonEmpty ≥ 30%` (scenario-level `quality` overrides). Closes two measured false-green holes: a 429 window (nodes created, text empty) and en→en identity (unseeded profile).
+- **Typed-skip discipline (exit codes):** `0` = PASSED, `1` = FAILED, `2` = SKIPPED-ENV (Google gtx throttled — preflight or failure re-probe; SKIP never opens/closes issues, is never retried; the release gate lets it through with a `::warning::`). Self-test unmapped scenarios report `SKIP-DATA`.
 - **Assertions use the shared tri-state primitives** in `tests/shared/host-state.mjs` (same classifier as the E2E suite).
-- **Cadence:** `.github/workflows/canary.yml` — every Monday 3:00 UTC + manual dispatch; fails open/comment on an issue (`canary:` title prefix, dedup; auto-closed when green again). **Not a PR gate** — real-site runs need human judgment.
-- **Release gate:** `.github/workflows/release.yml` runs the canary before producing the ZIP — a release cannot ship if the real site is broken.
+- **x.com deep check (on demand):** `scripts/xcom-showmore-check.mjs` — issue #98 "Show more" reveal-translation check; typed outcomes incl. SKIP-DATA (no truncated post on this load; hit rate ≈ 2/5, hence not in the library).
+- **Cadence:** `.github/workflows/canary.yml` — every Monday 3:00 UTC + manual dispatch; fails open/comment on an issue (`canary:` title prefix, dedup; auto-closed ONLY on effective=0 — a SKIP must never close a real defect). **Not a PR gate** — real-site runs need human judgment.
+- **Release gate:** `.github/workflows/release.yml` runs the canary before producing the ZIP — a real failure blocks the release; SKIP-ENV (throttled endpoint) releases with a prominent warning (Google risk controls must not hold the release cadence; the full E2E suite has already gated the build).
 - **Platform fact:** GitHub pauses `schedule` triggers after 60 days of repo inactivity — if the canary looks "silent", check workflow activity before assuming health.
 - **CLI form:** always use `=` (`--url=<URL>`, `--scenario=<name>`) — space forms are silently ignored (same trap as PR #30's `--scenario name`).
 
