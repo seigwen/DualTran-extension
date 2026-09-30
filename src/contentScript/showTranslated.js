@@ -1,5 +1,8 @@
 /**
  * Hover to show translated text on pages that were translated then restored to original
+ *
+ * Plan 37: the panel skin + state implementation are shared with the selection
+ * panel (panelShared.js); only the trigger/lifecycle stay hover-specific.
  */
 
 console.log("showTranslated.js is running")
@@ -7,22 +10,26 @@ console.log("showTranslated.js is running")
 import twpLang from "../lib/languages.js"
 import twpConfig from "../lib/config.js"
 import platformInfo from "../lib/platformInfo.js"
-import { getAiImproveTranslationTooltipText } from "./i18n.js"
+import { getFloatingButtonAiTooltipText, getFloatingButtonGoogleTooltipText } from "./i18n.js"
 import { backgroundTranslateSingleText, pageTranslator, aiTranslateText } from "./pageTranslator.js"
+import {
+  PANEL_DARK_MODE_CSS_DARK,
+  PANEL_DARK_MODE_CSS_LIGHT,
+  PANEL_LOADING_CSS,
+  applyPanelButtonPalette,
+  applyPanelTranslatedColor,
+  clearPanelTranslationLoadingState,
+  createPanelAiProxy,
+  setPanelTranslationLoadingState,
+} from "./panelShared.js"
+import { aiTranslateWord } from "./translateSelected.js"
+import wordsCount from "../util/globalWordsCount.js"
+import Toastify from 'toastify-js'
+
+const TRANSLATION_TIMEOUT_MS = 10000; // Timeout duration (milliseconds)
 
 // This object seems unused?????
 var showTranslated = {};
-
-/**
- * @typedef {HTMLElement & { 
- *  tooltip?: HTMLElement,
- *  translationStatus?: string|null,
- *  translatedTextNode?: HTMLElement,
- *  btnAiTxtNode?: HTMLElement,
- *  sourceString?: string,
- *  translationId?: string
- * }} AIBtnElement
- */
 
 /**
  * Get tab hostname
@@ -44,7 +51,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   if (platformInfo.isMobile.any) return;
 
   let styleTextContent = "";
-  fetch(chrome.runtime.getURL("/contentScript/css/showTranslated.css"))
+  fetch(chrome.runtime.getURL("/contentScript/css/translateSelected.css"))
     .then((response) => response.text())
     .then((response) => (styleTextContent = response))
     .catch((e) => console.error(e));
@@ -57,6 +64,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     twpConfig.get("textTranslatorService") === "deepl"
       ? "google"
       : twpConfig.get("textTranslatorService");
+  // Panel intent (plan 31 / #106 model): derived exactly like the selection
+  // panel — anything but "google" reads as AI intent.
+  let activeTextTranslatorService =
+    currentTextTranslatorService === "google" ? "google" : "ai";
   let showTranslatedTextWhenHoveringThisSite =
     twpConfig.get("sitesToTranslateWhenHovering").indexOf(tabHostName) !== -1;
   let showTranslatedTextWhenHoveringThisLang = false;
@@ -71,6 +82,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       case "textTranslatorService":
         currentTextTranslatorService =
           newValue === "deepl" ? "google" : newValue;
+        activeTextTranslatorService =
+          currentTextTranslatorService === "google" ? "google" : "ai";
+        if (typeof updateTranslatorButtonState === "function") {
+          updateTranslatorButtonState(activeTextTranslatorService);
+        }
         break;
       // Target language list setting changed
       case "targetLanguages":
@@ -150,7 +166,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
   let divElement;
   let shadowRoot;
-  let eTextTranslated;
+  let eSelTextTrans;
+  // Panel palette sync hook (plan 31 / #106 model): config changes repaint the
+  // live panel's engine buttons; null while no panel exists.
+  let updateTranslatorButtonState = null;
   let currentNodeOverMouse;
   let timeoutHandler;
   // Last source text used for translation, for AI improvement use
@@ -233,6 +252,73 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
   let prevNode = null;
 
+  /** Position the visible panel at the cursor, clamped into the viewport. */
+  function positionPanel() {
+    if (!shadowRoot) return;
+    const eDivResult = shadowRoot.getElementById("eDivResult");
+    if (!eDivResult) return;
+
+    const height = eDivResult.offsetHeight;
+    let top = mousePos.y + 10;
+    top = Math.max(0, top);
+    top = Math.min(window.innerHeight - height, top);
+
+    const width = eDivResult.offsetWidth;
+    let left = Number(mousePos.x /*- (width / 2) */);
+    left = Math.max(0, left);
+    left = Math.min(window.innerWidth - width, left);
+
+    eDivResult.style.top = top + "px";
+    eDivResult.style.left = left + "px";
+  }
+
+  /** Reveal the panel (shared CSS keeps #eDivResult display:none by default). */
+  function showPanel() {
+    if (!shadowRoot) return;
+    const eDivResult = shadowRoot.getElementById("eDivResult");
+    if (!eDivResult) return;
+    eDivResult.style.display = "block";
+  }
+
+  /**
+   * Retranslate with the currently active engine intent — same routing as the
+   * selection panel's translateNewInput (intent "ai" → AI path, else Google).
+   * Used by the language buttons / "+" dropdown after target-language changes.
+   */
+  function retranslateForIntent() {
+    if (activeTextTranslatorService === "ai") {
+      triggerAiTranslation();
+    } else {
+      translateThisNode(null, true);
+    }
+  }
+
+  /**
+   * Trigger the AI run for the last hovered source text through the shared
+   * panel proxy (decoration writes absorbed, translated face passes through).
+   * Single words route through the dictionary path, same as the selection panel.
+   */
+  function triggerAiTranslation() {
+    const sourceText = lastSourceText || "";
+    if (!sourceText.trim()) return;
+    const eSelTextTransNode = shadowRoot
+      ? shadowRoot.getElementById("eSelTextTrans")
+      : null;
+    if (!eSelTextTransNode) return;
+
+    setPanelTranslationLoadingState(eSelTextTransNode);
+
+    const proxy = createPanelAiProxy({
+      sourceString: sourceText,
+      translatedTextNode: eSelTextTransNode,
+    });
+    if (wordsCount(sourceText) === 1) {
+      aiTranslateWord([proxy], true);
+    } else {
+      aiTranslateText([proxy], true);
+    }
+  }
+
   /**
    * Translate the selected node
    * 
@@ -242,7 +328,6 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    */
   function translateThisNode(node, usePrevNode = false) {
     fooCount++;
-    let currentFooCount = fooCount;
 
     stopAudio();
 
@@ -322,49 +407,109 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     // Record source text for AI improvement use
     lastSourceText = text;
 
-    // Translate
-    backgroundTranslateSingleText(
+    // Show the panel with the shared loading surface the moment translation
+    // starts (plan 37 / Q3) — no longer delayed until the arrival.
+    if (!usePrevNode || !shadowRoot) {
+      init();
+      if (!shadowRoot) return;
+    }
+
+    // Capture AFTER init() — panel (re)creation bumps fooCount via destroy().
+    let currentFooCount = fooCount;
+
+    const eSelTextTransNode = shadowRoot.getElementById("eSelTextTrans");
+    if (!eSelTextTransNode) return;
+
+    setPanelTranslationLoadingState(eSelTextTransNode);
+    showPanel();
+    if (!usePrevNode) {
+      positionPanel();
+    }
+
+    // Translate (with the shared 10s timeout, same as the selection panel)
+    const translationPromise = backgroundTranslateSingleText(
       currentTextTranslatorService,
       currentTargetLanguage,
       text
-    )
+    );
+
+    const timeoutError = new Error("Translation timeout");
+    timeoutError.name = "DualTranTranslationTimeout";
+
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(timeoutError);
+      }, TRANSLATION_TIMEOUT_MS);
+    });
+
+    Promise.race([translationPromise, timeoutPromise])
       .then((result) => {
+        clearTimeout(timeoutId);
         if (!result) return;
         if (currentFooCount !== fooCount) return;
 
-        if (!usePrevNode) {
-          init();
-        }
+        const transNode = shadowRoot
+          ? shadowRoot.getElementById("eSelTextTrans")
+          : null;
+        const eDivResult = shadowRoot
+          ? shadowRoot.getElementById("eDivResult")
+          : null;
+        if (!transNode || !eDivResult) return;
 
-        const eTextTranslated = shadowRoot.getElementById("eTextTranslated");
         if (twpLang.isRtlLanguage(currentTargetLanguage)) {
-          eTextTranslated.setAttribute("dir", "rtl");
+          transNode.setAttribute("dir", "rtl");
         } else {
-          eTextTranslated.setAttribute("dir", "ltr");
+          transNode.setAttribute("dir", "ltr");
         }
+        clearPanelTranslationLoadingState(transNode);
         // Display translation result in the result box
-        eTextTranslated.textContent = result;
-
-        const eDivResult = shadowRoot.getElementById("eDivResult");
-
-        const height = eDivResult.offsetHeight;
-        let top = mousePos.y + 10;
-        top = Math.max(0, top);
-        top = Math.min(window.innerHeight - height, top);
-
-        const width = eDivResult.offsetWidth;
-  let left = Number(mousePos.x /*- (width / 2) */);
-        left = Math.max(0, left);
-        left = Math.min(window.innerWidth - width, left);
+        transNode.textContent = result;
+        applyPanelTranslatedColor(transNode, "google");
 
         if (!usePrevNode) {
-          eDivResult.style.top = top + "px";
-          eDivResult.style.left = left + "px";
+          positionPanel();
         }
       })
-      .catch((e) => {
-        destroy();
+      .catch((err) => {
+        clearTimeout(timeoutId);
+        if (currentFooCount !== fooCount) return;
+
+        const isTimeout = err && (err === timeoutError || err.name === "DualTranTranslationTimeout");
+        const toastMsg = isTimeout
+          ? ((chrome && chrome.i18n && chrome.i18n.getMessage("errorTranslationTimeout")) || "Translation request timed out")
+          : ((chrome && chrome.i18n && chrome.i18n.getMessage("errorTranslationFailed")) || "Translation failed");
+
+        Toastify({
+          text: toastMsg,
+          duration: 5000,
+          newWindow: true,
+          close: true,
+          gravity: "top",
+          position: "left",
+          stopOnFocus: true,
+          style: {
+            background: "linear-gradient(to bottom, red, darkred)",
+            fontSize: "12px"
+          },
+          onClick: function () { }
+        }).showToast();
+
+        // Q3: the failure stays visible INSIDE the box (error color) — the
+        // panel is not destroyed; leaving the hover target retires it.
+        const transNode = shadowRoot
+          ? shadowRoot.getElementById("eSelTextTrans")
+          : null;
+        if (transNode) {
+          clearPanelTranslationLoadingState(transNode);
+          transNode.textContent = toastMsg;
+          applyPanelTranslatedColor(transNode, "error");
+        }
       });
+
+    translationPromise.catch((promiseError) => {
+      console.warn("backgroundTranslateSingleText error:", promiseError);
+    });
   }
 
   /**
@@ -432,79 +577,79 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     shadowRoot = divElement.attachShadow({
       mode: "closed",
     });
+    // Plan 37: same skin as the selection panel — shared CSS file, same id
+    // vocabulary, same title bar / copy / "+" dropdown composition.
     shadowRoot.innerHTML = `
         <link rel="stylesheet" href="${chrome.runtime.getURL(
-      "/contentScript/css/showTranslated.css"
+      "/contentScript/css/translateSelected.css"
     )}">
 
-        <div id="eDivResult">
-                <div id="eTextTranslated" dir="auto"></div>
-                <hr>
-                <div id="drag">
-                    <ul id="setTargetLanguage">
-                        <li value="en" title="English">en</li>
-                        <li value="es" title="Spanish">es</li>
-                        <li value="de" title="German">de</li>
-                    </ul>
-                    <ul>
-                    <li title="openAI" id="sOpenAI" style="color: white;"><span id="btnAiTxtNode">AI</span></li>
-                        <li title="Google" id="sGoogle">google</li>
-                        <!--
-                        <li title="Yandex" id="sYandex">y</li>
-                        <li title="Bing" id="sBing">b</li>
-                        <li title="DeepL" id="sDeepL" hidden>d</li>
-                        -->
-                        <li title="Listen" data-i18n-title="btnListen" id="listen">
-                            <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-                            width="14px" height="12px" viewBox="0 0 93.038 93.038" xml:space="preserve">
-                            <g>
-                                <path d="M46.547,75.521c0,1.639-0.947,3.128-2.429,3.823c-0.573,0.271-1.187,0.402-1.797,0.402c-0.966,0-1.923-0.332-2.696-0.973
-                                    l-23.098-19.14H4.225C1.892,59.635,0,57.742,0,55.409V38.576c0-2.334,1.892-4.226,4.225-4.226h12.303l23.098-19.14
-                                    c1.262-1.046,3.012-1.269,4.493-0.569c1.481,0.695,2.429,2.185,2.429,3.823L46.547,75.521L46.547,75.521z M62.784,68.919
-                                    c-0.103,0.007-0.202,0.011-0.304,0.011c-1.116,0-2.192-0.441-2.987-1.237l-0.565-0.567c-1.482-1.479-1.656-3.822-0.408-5.504
-                                    c3.164-4.266,4.834-9.323,4.834-14.628c0-5.706-1.896-11.058-5.484-15.478c-1.366-1.68-1.24-4.12,0.291-5.65l0.564-0.565
-                                    c0.844-0.844,1.975-1.304,3.199-1.231c1.192,0.06,2.305,0.621,3.061,1.545c4.977,6.09,7.606,13.484,7.606,21.38
-                                    c0,7.354-2.325,14.354-6.725,20.24C65.131,68.216,64.007,68.832,62.784,68.919z M80.252,81.976
-                                    c-0.764,0.903-1.869,1.445-3.052,1.495c-0.058,0.002-0.117,0.004-0.177,0.004c-1.119,0-2.193-0.442-2.988-1.237l-0.555-0.555
-                                    c-1.551-1.55-1.656-4.029-0.246-5.707c6.814-8.104,10.568-18.396,10.568-28.982c0-11.011-4.019-21.611-11.314-29.847
-                                    c-1.479-1.672-1.404-4.203,0.17-5.783l0.554-0.555c0.822-0.826,1.89-1.281,3.115-1.242c1.163,0.033,2.263,0.547,3.036,1.417
-                                    c8.818,9.928,13.675,22.718,13.675,36.01C93.04,59.783,88.499,72.207,80.252,81.976z"/>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            <g>
-                            </g>
-                            </svg>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+        <div id="eDivResult" style="display: none">
+          <div id="drag"
+            style="
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0;
+            ">
+            DualTran
+          </div>
+
+          <div id="transTextContainer">
+            <div id="eSelTextTrans" dir="auto"></div>
+            <ul>
+              <!--"Listen" button-->
+              <li title="Listen" data-i18n-title="btnListen" id="listenTranslated">
+                <svg id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="10px" height="10px" viewBox="0 0 93.038 93.038"
+              style="enable-background:new 0 0 93.038 93.038;" xml:space="preserve">
+              <g>
+                <path d="M46.547,75.521c0,1.639-0.947,3.128-2.429,3.823c-0.573,0.271-1.187,0.402-1.797,0.402c-0.966,0-1.923-0.332-2.696-0.973
+                l-23.098-19.14H4.225C1.892,59.635,0,57.742,0,55.409V38.576c0-2.334,1.892-4.226,4.225-4.226h12.303l23.098-19.14
+                c1.262-1.046,3.012-1.269,4.493-0.569c1.481,0.695,2.429,2.185,2.429,3.823L46.547,75.521L46.547,75.521z M62.784,68.919
+                c-0.103,0.007-0.202,0.011-0.304,0.011c-1.116,0-2.192-0.441-2.987-1.237l-0.565-0.567c-1.482-1.479-1.656-3.822-0.408-5.504
+                c3.164-4.266,4.834-9.323,4.834-14.628c0-5.706-1.896-11.058-5.484-15.478c-1.366-1.68-1.24-4.12,0.291-5.65l0.564-0.565
+                c0.844-0.844,1.975-1.304,3.199-1.231c1.192,0.06,2.305,0.621,3.061,1.545c4.977,6.09,7.606,13.484,7.606,21.38
+                c0,7.354-2.325,14.354-6.725,20.24C65.131,68.216,64.007,68.832,62.784,68.919z M80.252,81.976
+                c-0.764,0.903-1.869,1.445-3.052,1.495c-0.058,0.002-0.117,0.004-0.177,0.004c-1.119,0-2.193-0.442-2.988-1.237l-0.555-0.555
+                c-1.551-1.55-1.656-4.029-0.246-5.707c6.814-8.104,10.568-18.396,10.568-28.982c0-11.011-4.019-21.611-11.314-29.847
+                c-1.479-1.672-1.404-4.203,0.17-5.783l0.554-0.555c0.822-0.826,1.89-1.281,3.115-1.242c1.163,0.033,2.263,0.547,3.036,1.417
+                c8.818,9.928,13.675,22.718,13.675,36.01C93.04,59.783,88.499,72.207,80.252,81.976z"/>
+              </g>
+            </svg>
+              </li>
+              <!--Copy translation button-->
+              <li title="Copy" data-i18n-title="btnCopy" id="copy">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<path d="M13 7H7V5H13V7Z" fill="currentColor" />
+						<path d="M13 11H7V9H13V11Z" fill="currentColor" />
+						<path d="M7 15H13V13H7V15Z" fill="currentColor" />
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M3 19V1H17V5H21V23H7V19H3ZM15 17V3H5V17H15ZM17 7V19H9V21H19V7H17Z" fill="currentColor"/>
+						</svg>
+              </li>
+            </ul>
+          </div>
+          <!--Button bar-->
+          <div style="display: flex; justify-content: space-between; flex-direction: row;">
+            <!--Target language-->
+            <ul id="setTargetLanguage" style="position:relative;">
+              <li value="en" title="English">en</li>
+              <li value="es" title="Spanish">es</li>
+              <li value="de" title="German">de</li>
+              <li id="btnMoreTargetLang" title="More languages">+</li>
+              <select id="selectMoreTargetLang" style="display:none; position:absolute; bottom:100%; left:0; max-width:140px; font-size:12px; padding:2px; background:#1c1b1b; color:#fff; border:1px solid #555; border-radius:3px;"></select>
+            </ul>
+            <!--Translation service-->
+            <ul>
+              <li title="Google" id="sGoogle">Google</li>
+              <li title="OpenAI" id="sOpenAI">
+                <span id="btnAiTxtNode">AI</span>
+              </li>
+            </ul>
+          </div>
+        </div>
         `;
 
     {
@@ -513,201 +658,139 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       shadowRoot.insertBefore(style, shadowRoot.getElementById("eDivResult"));
     }
 
+    {
+      const styleFix = document.createElement("style");
+      styleFix.textContent = PANEL_LOADING_CSS;
+      shadowRoot.appendChild(styleFix);
+    }
+
     dragElement(
       shadowRoot.getElementById("eDivResult"),
       shadowRoot.getElementById("drag")
     );
 
-    function enableDarkMode() {
-      if (!shadowRoot.getElementById("darkModeElement")) {
-        const el = document.createElement("style");
-        el.setAttribute("id", "darkModeElement");
-        el.setAttribute("rel", "stylesheet");
-        el.textContent = `
-                * {
-                    scrollbar-color: #202324 #454a4d;
-                }
-                #eDivResult {
-                    color: rgb(231, 230, 228) !important;
-                    background-color: #181a1b !important;
-                }
-                hr {
-                    border-color: #666;
-                }
-                li:hover {
-                    color: rgb(231, 230, 228) !important;
-                    background-color: #454a4d !important;
-                }
-                .selected {
-                    background-color: #454a4d !important;
-                }
-                `;
-        shadowRoot.appendChild(el);
-        shadowRoot.querySelector("#listen svg").style =
-          "fill: rgb(231, 230, 228)";
+    {
+      // Dark/light scheme: identical contract to the selection panel
+      // (backdropFilterElement + shared constants — plan 37 / D1+D2).
+      const el = document.createElement("style");
+      el.setAttribute("id", "backdropFilterElement");
+      el.setAttribute("rel", "stylesheet");
+      let darkMode = false;
+      switch (twpConfig.get("darkMode")) {
+        case "auto":
+          if (matchMedia("(prefers-color-scheme: dark)").matches)
+            darkMode = true;
+          break;
+        case "yes":
+          darkMode = true;
+          break;
       }
+      el.textContent = darkMode ? PANEL_DARK_MODE_CSS_DARK : PANEL_DARK_MODE_CSS_LIGHT;
+      shadowRoot.appendChild(el);
     }
 
-    function disableDarkMode() {
-      if (shadowRoot.getElementById("#darkModeElement")) {
-        shadowRoot.getElementById("#darkModeElement").remove();
-        shadowRoot.querySelector("#listen svg").style = "fill: black";
+    eSelTextTrans = shadowRoot.getElementById("eSelTextTrans");
+
+    const sGoogle = shadowRoot.getElementById("sGoogle");
+    const sOpenAI = shadowRoot.getElementById("sOpenAI");
+
+    // Engine buttons express intent only (plan 31 / #106): labels are constant
+    // ("Google" / "AI"), all translation state lives in the translated-text
+    // element, and every AI run goes through the panel proxy (createPanelAiProxy).
+    sOpenAI.classList.add("dualtran-ai-selected-btn")
+    try { sOpenAI.setAttribute("title", getFloatingButtonAiTooltipText()) } catch (_) { }
+
+    const setTranslatorButtonState = (active) => {
+      activeTextTranslatorService = active === "ai" ? "ai" : "google";
+      applyPanelButtonPalette(sGoogle, sOpenAI, activeTextTranslatorService);
+    };
+    updateTranslatorButtonState = setTranslatorButtonState;
+
+    sOpenAI.addEventListener("click", () => {
+      if (!(lastSourceText || "").trim().length) {
+        return;
       }
+      setTranslatorButtonState("ai");
+      triggerAiTranslation();
+    });
+
+    if (sGoogle) {
+      try { sGoogle.setAttribute("title", getFloatingButtonGoogleTooltipText()) } catch (_) { }
     }
-
-    switch (twpConfig.get("darkMode")) {
-      case "auto":
-        if (matchMedia("(prefers-color-scheme: dark)").matches) {
-          enableDarkMode();
-        } else {
-          disableDarkMode();
-        }
-        break;
-      case "yes":
-        enableDarkMode();
-        break;
-      case "no":
-        disableDarkMode();
-        break;
-      default:
-        break;
-    }
-
-    eTextTranslated = shadowRoot.getElementById("eTextTranslated");
-
-  const sGoogle = shadowRoot.getElementById("sGoogle");
-  const sOpenAI = /** @type {AIBtnElement} */ (shadowRoot.getElementById("sOpenAI"));
-  const btnAiTxtNode = shadowRoot.getElementById("btnAiTxtNode");
-    // const sYandex = shadowRoot.getElementById("sYandex");
-    // const sBing = shadowRoot.getElementById("sBing");
-    // const sDeepL = shadowRoot.getElementById("sDeepL");
-
     sGoogle.onclick = () => {
       currentTextTranslatorService = "google";
       twpConfig.set("textTranslatorService", "google");
+      setTranslatorButtonState("google");
       translateThisNode(null, true);
-
-      sGoogle.classList.remove("selected");
-      // sYandex.classList.remove("selected");
-      // sBing.classList.remove("selected");
-      // sDeepL.classList.remove("selected");
-
-      sGoogle.classList.add("selected");
     };
 
-    // Configure AI improve button
-    if (sOpenAI) {
-      // Prepare tooltip
-      let tooltip = document.createElement("span");
-      tooltip.textContent = getAiImproveTranslationTooltipText();
-      tooltip.classList.add("dualtran-ai-tooltip");
-      sOpenAI.appendChild(tooltip);
-      // Add minimal styles inside shadowRoot to avoid affecting the page
-      const aiStyle = document.createElement("style");
-      aiStyle.textContent = `
-        .dualtran-ai-tooltip{ display:none; }
-        /* AI button: default light gray, selected dark gray */
-        #sOpenAI{ background-color:#bbb; color:#fff; }
-        #sOpenAI.selected{ background-color:#666; color:#fff; }
-        #sOpenAI:hover{ background-color:#c9c9c9; }
-      `;
-      shadowRoot.appendChild(aiStyle);
+    setTranslatorButtonState(currentTextTranslatorService === "google" ? "google" : "ai");
 
-      // Map required properties, reuse aiTranslateText logic
-      sOpenAI.tooltip = tooltip;
-      sOpenAI.translationStatus = null;
-      sOpenAI.translatedTextNode = eTextTranslated;
-      sOpenAI.btnAiTxtNode = btnAiTxtNode;
-
-      try { sOpenAI.setAttribute("title", tooltip.textContent || ""); } catch (_) {}
-
-      sOpenAI.addEventListener("click", () => {
-        const src = (lastSourceText || "").trim();
-        if (!src) return;
-        // Reset button text on each click
-        if (btnAiTxtNode) btnAiTxtNode.textContent = "AI";
-        sOpenAI.style.color = "white";
-        sOpenAI.classList.add("selected");
-        // Set source text and trigger AI translate
-        sOpenAI.sourceString = src;
-        aiTranslateText([sOpenAI], true);
-      });
-    }
-    // sYandex.onclick = () => {
-    //   currentTextTranslatorService = "yandex";
-    //   twpConfig.set("textTranslatorService", "yandex");
-    //   translateThisNode(null, true);
-
-    //   sGoogle.classList.remove("selected");
-    //   sYandex.classList.remove("selected");
-    //   sBing.classList.remove("selected");
-    //   sDeepL.classList.remove("selected");
-
-    //   sYandex.classList.add("selected");
-    // };
-    // sBing.onclick = () => {
-    //   currentTextTranslatorService = "bing";
-    //   twpConfig.set("textTranslatorService", "bing");
-    //   translateThisNode(null, true);
-
-    //   sGoogle.classList.remove("selected");
-    //   sYandex.classList.remove("selected");
-    //   sBing.classList.remove("selected");
-    //   sDeepL.classList.remove("selected");
-
-    //   sBing.classList.add("selected");
-    // };
-    // sDeepL.onclick = () => {
-    //   currentTextTranslatorService = "deepl";
-    //   twpConfig.set("textTranslatorService", "deepl");
-    //   translateThisNode(null, true);
-
-    //   sGoogle.classList.remove("selected");
-    //   sYandex.classList.remove("selected");
-    //   sBing.classList.remove("selected");
-    //   sDeepL.classList.remove("selected");
-
-    //   sDeepL.classList.add("selected");
-    // };
-
-    const setTargetLanguage = shadowRoot.getElementById("setTargetLanguage");
-    setTargetLanguage.onclick = (e) => {
-      const target = e.target;
-      if (!(target instanceof HTMLElement)) return;
-      const val = target.getAttribute("value");
-      if (val) {
-        const langCode = twpLang.fixTLanguageCode(val);
-        if (langCode) {
-          currentTargetLanguage = langCode;
-          twpConfig.setTargetLanguageTextTranslation(langCode);
-          translateThisNode(null, true);
-        }
-
-        shadowRoot.querySelectorAll("#setTargetLanguage li").forEach((li) => {
-          li.classList.remove("selected");
-        });
-
-        target.classList.add("selected");
+    /**
+     * Copy translated text
+     */
+    const eCopy = shadowRoot.getElementById("copy");
+    eCopy.onclick = () => {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(eSelTextTrans.textContent)
+          .then(() => {
+            const oldBackgroundColor = eCopy.style.backgroundColor;
+            eCopy.style.backgroundColor = "rgba(0, 255, 0, 0.4)";
+            setTimeout(() => {
+              eCopy.style.backgroundColor = oldBackgroundColor;
+            }, 500);
+          })
+          .catch((e) => {
+            Toastify({
+              text: chrome.i18n.getMessage("errorCopyFailed") + " " + e,
+              duration: 3500,
+              newWindow: true,
+              close: true,
+              gravity: "top",
+              position: "left",
+              stopOnFocus: true,
+              style: {
+                background: "linear-gradient(to bottom, red, darkred)",
+                fontSize: "12px"
+              },
+              onClick: function () { }
+            }).showToast();
+          })
+      } else {
+        Toastify({
+          text: chrome.i18n.getMessage("errorCopyFailedInsecure"),
+          duration: 5000,
+          newWindow: true,
+          close: true,
+          gravity: "top",
+          position: "left",
+          stopOnFocus: true,
+          style: {
+            background: "linear-gradient(to bottom, red, darkred)",
+            fontSize: "12px"
+          },
+          onClick: function () { }
+        }).showToast();
       }
     };
 
-    const eListen = shadowRoot.getElementById("listen");
-    eListen.onclick = () => {
+    const eListenTranslated = shadowRoot.getElementById("listenTranslated");
+    eListenTranslated.onclick = () => {
       const msgListen = chrome.i18n.getMessage("btnListen");
       const msgStopListening = chrome.i18n.getMessage("btnStopListening");
 
-      eListen.classList.remove("selected");
-      eListen.setAttribute("title", msgStopListening);
+      eListenTranslated.classList.remove("selected");
+      eListenTranslated.setAttribute("title", msgStopListening);
 
       if (isPlayingAudio) {
         stopAudio();
-        eListen.classList.remove("selected");
+        eListenTranslated.classList.remove("selected");
       } else {
-        playAudio(eTextTranslated.textContent, currentTargetLanguage, () => {
-          eListen.classList.remove("selected");
-          eListen.setAttribute("title", msgListen);
+        playAudio(eSelTextTrans.textContent, currentTargetLanguage, () => {
+          eListenTranslated.classList.remove("selected");
+          eListenTranslated.setAttribute("title", msgListen);
         });
-        eListen.classList.add("selected");
+        eListenTranslated.classList.add("selected");
       }
     };
 
@@ -720,11 +803,12 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       "#setTargetLanguage li"
     );
 
+    // Target language elements (display names, same as the selection panel)
     for (let i = 0; i < 3; i++) {
       if (currentTargetLanguages[i] == currentTargetLanguage) {
         targetLanguageButtons[i].classList.add("selected");
       }
-      targetLanguageButtons[i].textContent = currentTargetLanguages[i];
+      targetLanguageButtons[i].textContent = twpLang.codeToLanguage(currentTargetLanguages[i]);
       targetLanguageButtons[i].setAttribute("value", currentTargetLanguages[i]);
       targetLanguageButtons[i].setAttribute(
         "title",
@@ -732,35 +816,116 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       );
     }
 
-    // if (currentTextTranslatorService === "yandex") {
-    //   sYandex.classList.add("selected");
-    // } else if (currentTextTranslatorService == "deepl") {
-    //   sDeepL.classList.add("selected");
-    // } else if (currentTextTranslatorService == "bing") {
-    //   sBing.classList.add("selected");
-    // } else {
-    //   sGoogle.classList.add("selected");
-    // }
-    if (currentTextTranslatorService === "google"){
-      sGoogle.classList.add("selected");
+    // "More languages" button and dropdown (same behavior as the selection panel)
+    const btnMore = shadowRoot.getElementById("btnMoreTargetLang");
+    const selectMore = shadowRoot.getElementById("selectMoreTargetLang");
+
+    // Populate all languages into the dropdown
+    const allLangs = twpLang.getLanguageList();
+    const sorted = Object.entries(allLangs).sort((a, b) => (a[1] || "").localeCompare(b[1] || ""));
+    selectMore.innerHTML = "";
+    sorted.forEach(([code, name]) => {
+      const opt = document.createElement("option");
+      opt.value = code;
+      opt.textContent = name;
+      if (code === currentTargetLanguage) opt.selected = true;
+      selectMore.appendChild(opt);
+    });
+
+    /** Refresh the display text and highlight state of the three language buttons */
+    function refreshLanguageButtons() {
+      const langs = twpConfig.get("targetLanguages") || [];
+      for (let i = 0; i < 3 && i < targetLanguageButtons.length && i < langs.length; i++) {
+        const code = langs[i];
+        const name = twpLang.codeToLanguage(code);
+        targetLanguageButtons[i].setAttribute("value", code);
+        targetLanguageButtons[i].textContent = name;
+        targetLanguageButtons[i].setAttribute("title", name);
+        targetLanguageButtons[i].classList.remove("selected");
+      }
+      btnMore.classList.remove("selected");
+      // Highlight the matching button
+      const activeIdx = langs.indexOf(currentTargetLanguage);
+      if (activeIdx >= 0 && activeIdx < 3) {
+        targetLanguageButtons[activeIdx].classList.add("selected");
+      } else {
+        btnMore.classList.add("selected");
+      }
     }
 
-    // if (twpConfig.get("enableDeepL") === "yes") {
-    //     sDeepL.removeAttribute("hidden")
-    // } else {
-    //     sDeepL.setAttribute("hidden", "")
-    // }
-    twpConfig.onChanged((name, newvalue) => {
-      switch (name) {
-        case "enableDeepL":
-          // if (newvalue === "yes") {
-          //     sDeepL.removeAttribute("hidden")
-          // } else {
-          //     sDeepL.setAttribute("hidden", "")
-          // }
-          break;
-      }
+    // Click "+" button → expand to multi-line list showing all languages
+    btnMore.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      selectMore.querySelectorAll("option").forEach((opt) => {
+        opt.selected = (opt.value === currentTargetLanguage);
+      });
+
+      // Positioning: use fixed positioning to avoid being clipped by popups
+      const btnRect = btnMore.getBoundingClientRect();
+      selectMore.style.position = "fixed";
+      selectMore.style.top = "auto";
+      selectMore.style.bottom = (window.innerHeight - btnRect.top) + "px";
+      selectMore.style.left = btnRect.left + "px";
+      selectMore.style.zIndex = "2147483647";
+
+      selectMore.size = Math.min(sorted.length, 15); // Expand to visible list (max 15 rows)
+      selectMore.style.display = "inline-block";
+      btnMore.style.display = "none";
+      selectMore.focus();
     });
+
+    // Collapse the dropdown
+    function collapseSelectMore() {
+      selectMore.size = 1;
+      selectMore.style.display = "none";
+      btnMore.style.display = "";
+    }
+
+    // Select language → promote to top favorite, retranslate, refresh buttons
+    selectMore.addEventListener("change", () => {
+      const code = selectMore.value;
+      if (!code) return;
+
+      // Promote this language to the top favorite
+      let langs = twpConfig.get("targetLanguages") || [];
+      langs = langs.filter((l) => l !== code); // Remove duplicates
+      langs.unshift(code);                     // Insert at first position
+      langs = langs.slice(0, 3);               // Keep only first 3
+      twpConfig.set("targetLanguages", langs);
+
+      currentTargetLanguage = code;
+      twpConfig.setTargetLanguageTextTranslation(code);
+      refreshLanguageButtons();
+      retranslateForIntent();
+
+      collapseSelectMore();
+    });
+
+    // Close dropdown on blur (but don't trigger translation)
+    selectMore.addEventListener("blur", () => {
+      setTimeout(() => collapseSelectMore(), 150);
+    });
+
+    const setTargetLanguage = shadowRoot.getElementById("setTargetLanguage");
+    setTargetLanguage.onclick = (e) => {
+      const target = e.target;
+      if (!(target instanceof HTMLElement)) return;
+      const val = target.getAttribute("value");
+      if (val) {
+        const langCode = twpLang.fixTLanguageCode(val);
+        if (langCode) {
+          currentTargetLanguage = langCode;
+          twpConfig.setTargetLanguageTextTranslation(langCode);
+          retranslateForIntent();
+        }
+
+        shadowRoot.querySelectorAll("#setTargetLanguage li").forEach((li) => {
+          li.classList.remove("selected");
+        });
+
+        target.classList.add("selected");
+      }
+    };
   }
 
   /**
@@ -774,7 +939,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
     if (divElement) {
       divElement.remove();
-      divElement = shadowRoot = eTextTranslated = null;
+      divElement = shadowRoot = eSelTextTrans = null;
+      updateTranslatorButtonState = null;
     }
   }
 

@@ -54,6 +54,8 @@ const TRANSLATION_SCENARIOS = [
   // selected-panel.mjs：划词面板为自有布局（原文块 + 译文块，不替换页面文本），
   // 与 whereToDisplayTranslatedText 双模式语义无关——文件头带 mode-symmetry-allow 豁免。
   "selected-panel.mjs",
+  // hover-panel.mjs：悬停浮动框为自有布局，与双模式语义无关——同豁免口径。
+  "hover-panel.mjs",
 ];
 
 // 跳过检查的文件（不是翻译行为测试，不需要模式对称）
