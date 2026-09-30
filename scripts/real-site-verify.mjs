@@ -38,6 +38,9 @@
  * Exit codes (plan 34): 0 = PASSED; 1 = FAILED; 2 = SKIPPED-ENV
  * (Google gtx endpoint throttled — detected by the preflight or by
  * failure attribution; a SKIP is never green and never a red).
+ * Plan 36 adds SKIP-DATA: a scenario whose structural premise is invalid
+ * (a site no longer client-routes) reports [SKIP-DATA] — never FAIL, never
+ * a silent shallow PASS; exit stays 0.
  *
  * Workflows: .github/workflows/canary.yml (weekly + dispatch, auto-issue
  * on failure) and .github/workflows/release.yml (release gate).
@@ -56,6 +59,10 @@ import {
   injectHostStateInPage,
   hostSelectorFor,
 } from "../tests/shared/host-state.mjs";
+import {
+  classifyDocumentIdentity,
+  readDocumentIdentityInPage,
+} from "../tests/shared/document-identity.mjs";
 import {
   DEFAULT_QUALITY,
   collectTranslationQualityInPage,
@@ -76,6 +83,7 @@ const SELF_TEST = args.includes("--self-test");
 const HEADFUL = args.includes("--headful"); // parsed for CLI compatibility; the tool always runs a real window (xvfb on CI)
 const LIST = args.includes("--list");
 const INCLUDE_LOCAL = args.includes("--include-local"); // add local-only scenarios (x.com) to a library run
+const SIMULATE_FULLLOAD = !!process.env.CANARY_SIMULATE_FULLLOAD; // calibration-only escape hatch (workflows never set it): fake every document-identity read as changed so the plan-36 same-document guards fire deterministically
 
 function log(msg) {
   console.log(`[real-site-verify] ${msg}`);
@@ -130,6 +138,14 @@ async function launch() {
     Element.prototype.attachShadow = function (init) {
       return orig.call(this, { ...init, mode: "open" });
     };
+    // Per-document identity token (plan 36): re-minted on EVERY new document.
+    // Roundtrip guards compare it (plus performance.timeOrigin) to detect a
+    // full page load where client-side routing is the tested premise.
+    try {
+      window.__dualtranDocToken = Math.random().toString(36).slice(2) + ":" + Date.now();
+    } catch {
+      /* ignore */
+    }
   });
 
   // Self-test mode: simulate real network latency on the mock page's
@@ -272,14 +288,16 @@ async function waitHealthy(page, component = "floating", timeoutMs = 25_000) {
  * handle the all-zero case. On timeout the LAST sample is returned (no
  * throw): the gate decides pass/fail, attribution decides SKIP vs FAIL.
  */
-async function waitForTranslationQuality(page, timeoutMs = 45_000) {
+async function waitForTranslationQuality(page, timeoutMs = 45_000, qualityOpts = {}) {
   const start = Date.now();
   let last = { count: 0, nonEmpty: 0, cjk: 0 };
   let prevNonEmpty = -1;
   let stable = 0;
   while (Date.now() - start < timeoutMs) {
     try {
-      last = await page.evaluate(collectTranslationQualityInPage);
+      last = await page.evaluate(collectTranslationQualityInPage, {
+        visibleOnly: !!qualityOpts.visibleOnly,
+      });
       if (last.nonEmpty > 0 && last.nonEmpty === prevNonEmpty) {
         stable++;
         if (stable >= 2) return last; // 3 equal samples: baseline + 2
@@ -304,8 +322,13 @@ async function waitForTranslationQuality(page, timeoutMs = 45_000) {
  * throttled-endpoint failure to SKIP-ENV.
  */
 async function assertTranslationReality(page, qualityOverrides) {
-  const metrics = await waitForTranslationQuality(page, 45_000);
-  const gate = evaluateQualityGate(metrics, qualityOverrides);
+  // scenario.quality may carry two kinds of keys: gate thresholds AND the
+  // plan-36 `visibleOnly` scope flag. Split them: only thresholds go to the
+  // gate; visibleOnly selects the collector scope (§三 Q3 — stale hidden
+  // route DOM must not inflate the roundtrip counters).
+  const { visibleOnly, ...thresholds } = qualityOverrides || {};
+  const metrics = await waitForTranslationQuality(page, 45_000, { visibleOnly });
+  const gate = evaluateQualityGate(metrics, thresholds);
   if (!gate.ok) {
     const minCjk = qualityOverrides?.minCjkRatio ?? DEFAULT_QUALITY.minCjkRatio;
     throw new Error(
@@ -325,6 +348,64 @@ async function waitForPath(page, url, timeoutMs = 30_000) {
 
 async function waitForPathChange(page, previousPath, timeoutMs = 15_000) {
   await page.waitForFunction((p) => location.pathname !== p, previousPath, { timeout: timeoutMs });
+}
+
+// ─── Document-identity guards (plan 36) ─────────────────────────────
+// The roundtrip scenarios test a structural premise: the site navigates
+// CLIENT-SIDE (the document survives; the router rebuilds the DOM — the
+// extension must rebuild hosts + restore translation). A full page load or
+// a route drift means the premise no longer holds → typed SKIP-DATA
+// (never FAIL, never a silent shallow PASS).
+
+/** Premise-invalid skip marker: the scenario reports SKIP-DATA. */
+class SkipDataError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "SkipDataError";
+  }
+}
+
+let _simFullLoadReads = 0;
+let _simFullLoadLogged = false;
+
+/**
+ * Read the current document identity. CANARY_SIMULATE_FULLLOAD corrupts the
+ * read toward mismatch (unique timeOrigin per read) so the guards can be
+ * exercised deterministically — workflows never set it.
+ */
+async function readDocIdentity(page) {
+  const id = await page.evaluate(readDocumentIdentityInPage).catch(() => null);
+  if (!SIMULATE_FULLLOAD || !id) return id;
+  if (!_simFullLoadLogged) {
+    log("CANARY_SIMULATE_FULLLOAD: document identities faked as changed (calibration only)");
+    _simFullLoadLogged = true;
+  }
+  _simFullLoadReads++;
+  return {
+    token: `sim-${_simFullLoadReads}`,
+    timeOrigin: (typeof id.timeOrigin === "number" ? id.timeOrigin : 0) + _simFullLoadReads * 1000,
+  };
+}
+
+/**
+ * Roundtrip hop guard: after a back/forward hop the document must still be
+ * the SAME document and must have landed on the expected route.
+ */
+async function guardRoundtripHop(page, refIdentity, expectPaths, expectIndex, round) {
+  const hopName = expectIndex === 0 ? "back" : "forward";
+  const path = await page.evaluate(() => location.pathname).catch(() => null);
+  if (expectPaths && path !== expectPaths[expectIndex]) {
+    throw new SkipDataError(
+      `roundtrip route drift at round ${round} (${hopName}): expected ${expectPaths[expectIndex]}, landed ${path ?? "?"} — the site's routing changed; audit the scenario`
+    );
+  }
+  const after = await readDocIdentity(page);
+  const verdict = classifyDocumentIdentity(refIdentity, after);
+  if (verdict !== "same-document") {
+    throw new SkipDataError(
+      `roundtrip same-document premise failed at round ${round} (${hopName}): ${verdict} — the site navigated as a full page load; audit the scenario`
+    );
+  }
 }
 
 // ─── Step implementations ───────────────────────────────────────────
@@ -400,11 +481,23 @@ async function waitForPageStable(page, quietMs = 1200, timeoutMs = 30_000) {
 }
 
 async function stepGoto(page, step) {
+  const guarded = step.requireSameDocument === true;
+  const beforeIdentity = guarded ? await readDocIdentity(page) : null;
   const via = await navigateTo(page, step.url);
   await waitForPath(page, step.url, 30_000);
   await waitForPageStable(page);
+  if (guarded) {
+    const afterIdentity = await readDocIdentity(page);
+    const verdict = classifyDocumentIdentity(beforeIdentity, afterIdentity);
+    if (verdict !== "same-document") {
+      throw new SkipDataError(
+        `same-document premise failed on goto ${new URL(step.url).pathname} (via ${via}): ${verdict} — ` +
+          `the site navigated as a full page load; audit the scenario (client-route premise)`
+      );
+    }
+  }
   await waitHealthy(page);
-  return `via ${via}`;
+  return `via ${via}${guarded ? " (same-document)" : ""}`;
 }
 
 async function stepTranslate(page, scenario) {
@@ -675,11 +768,26 @@ async function executeStep(page, step, scenario, context) {
       return stepForward(page);
     case "roundtrip": {
       const rounds = step.rounds || 1;
+      const guarded = step.guardSameDocument === true;
+      let expectPaths = null;
+      if (guarded) {
+        // Expected landing routes derive from the scenario's first two goto
+        // steps (back → goto #1 path, forward → goto #2 path); an explicit
+        // step.expectPaths overrides. Deriving keeps self-test rewriting
+        // automatic (rewritten URLs) with zero data duplication.
+        const gotoPaths = (scenario.steps || [])
+          .filter((s) => s.type === "goto" && s.url)
+          .map((s) => new URL(s.url).pathname);
+        expectPaths = step.expectPaths || (gotoPaths.length >= 2 ? [gotoPaths[0], gotoPaths[1]] : null);
+      }
+      const refIdentity = guarded ? await readDocIdentity(page) : null;
       for (let i = 1; i <= rounds; i++) {
         await stepBack(page);
+        if (guarded) await guardRoundtripHop(page, refIdentity, expectPaths, 0, i);
         await stepForward(page);
+        if (guarded) await guardRoundtripHop(page, refIdentity, expectPaths, 1, i);
       }
-      return `${rounds} round(s)`;
+      return `${rounds} round(s)${guarded ? " (same-document guarded)" : ""}`;
     }
     case "assert-translated":
       return stepAssertTranslated(page, scenario);
@@ -722,6 +830,12 @@ async function runScenario(page, scenario, consoleTail, context) {
       // the run log is the audit trail for "clean data" evidence (plan 34 §4.3).
       log(stepLine.trim());
     } catch (e) {
+      if (e instanceof SkipDataError) {
+        // Premise-invalid (plan 36): abort this scenario immediately — the
+        // remaining steps cannot produce interpretable results.
+        timeline.push(`    step ${i + 1} (${step.type}${step.url ? ` ${new URL(step.url).pathname}` : ""}) — SKIP-DATA (${e.message})`);
+        throw e;
+      }
       const state = await page
         .evaluate(classifyHostStateInPage, HOST_SELECTORS.floating)
         .catch(() => null);
@@ -771,6 +885,13 @@ async function runLibrary(page, consoleLogs, selfTestBaseUrl, context, includeLo
       log(`[PASS] ${scenario.name} (${duration}s)`);
       results.push({ name: scenario.name, status: "PASS", duration });
     } catch (e) {
+      // Premise-invalid (plan 36): a rendering-mode change means the
+      // scenario cannot test what it declares — SKIP-DATA, never FAIL/PASS.
+      if (e instanceof SkipDataError) {
+        log(`[SKIP-DATA] ${scenario.name} — ${e.message}`);
+        results.push({ name: scenario.name, status: "SKIP-DATA", error: e.message });
+        continue;
+      }
       // Failure attribution (plan 34 §三.B): re-probe gtx; a throttled
       // endpoint makes the failure unattributable → SKIP-ENV.
       const status = await probeGtx(context);
@@ -1035,6 +1156,13 @@ async function main() {
         log("✅ CANARY PASSED");
         process.exit(0);
       } catch (e) {
+        // Premise-invalid (plan 36): SKIP-DATA is neither a failure nor a
+        // green — report and exit 0 (the log carries the reason).
+        if (e instanceof SkipDataError) {
+          log(`[SKIP-DATA] ${scenario.name} — ${e.message}`);
+          log("⏭️ CANARY SKIPPED-DATA");
+          process.exit(0);
+        }
         // Failure attribution (plan 34 §三.B): a throttled endpoint makes
         // the failure unattributable → SKIP-ENV (exit 2), not FAIL.
         const status = await probeGtx(context);

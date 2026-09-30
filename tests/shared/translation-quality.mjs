@@ -38,14 +38,22 @@ export const DEFAULT_QUALITY = {
 
 /**
  * Browser-context collector: measure translation reality on the page.
- * Pass to page.evaluate (no arguments).
+ * Pass to page.evaluate — `page.evaluate(collectTranslationQualityInPage)`
+ * for the default full scope, or with an options argument for the visible
+ * scope (`page.evaluate(collectTranslationQualityInPage, { visibleOnly: true })`).
  *
+ * @param {{visibleOnly?: boolean}} [opts] — visibleOnly skips elements with
+ *   no client rect (display:none-class). Roundtrip scenarios (plan 36) need
+ *   it: stale hidden DOM from previous routes keeps its translated text and
+ *   inflates the counters (measured ~+5–10 elements per hop on nextjs), which
+ *   could mask a reverted visible translation.
  * @returns {{count: number, nonEmpty: number, cjk: number}}
  *   count    — distinct translation-output elements (union of both selectors)
  *   nonEmpty — elements whose trimmed textContent is non-empty
  *   cjk      — elements whose text contains at least one CJK character
  */
-export function collectTranslationQualityInPage() {
+export function collectTranslationQualityInPage(opts = {}) {
+  const visibleOnly = !!(opts && opts.visibleOnly);
   const els = new Set([
     ...document.querySelectorAll("translated"),
     ...document.querySelectorAll(".dualtran-result-container"),
@@ -54,6 +62,7 @@ export function collectTranslationQualityInPage() {
   let nonEmpty = 0;
   let cjk = 0;
   for (const el of els) {
+    if (visibleOnly && el.getClientRects().length === 0) continue;
     count++;
     const t = (el.textContent || "").trim();
     if (!t) continue;

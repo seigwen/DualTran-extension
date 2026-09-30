@@ -12,12 +12,18 @@
  * land in a permanent, traceable home.
  *
  * Step types (closed set, implemented by the executor):
- *   - goto      : navigate to url (waits for URL + host healthy)
+ *   - goto      : navigate to url (waits for URL + host healthy);
+ *                 `requireSameDocument: true` (plan 36) additionally asserts
+ *                 the document survived the navigation (client-side route) —
+ *                 a full page load reports SKIP-DATA (premise invalid)
  *   - translate : click the floating Google button and wait for
  *                 translation REALITY (quality gate) + host healthy
  *   - back      : history back (waits for URL + host healthy)
  *   - forward   : history forward (waits for URL + host healthy)
- *   - roundtrip : convenience — back/forward repeated `rounds` times
+ *   - roundtrip : convenience — back/forward repeated `rounds` times;
+ *                 `guardSameDocument: true` (plan 36) asserts every hop
+ *                 stays in the same document and lands on the two
+ *                 preceding goto paths — drift/full-load ⇒ SKIP-DATA
  *   - settle    : no-op wait for host healthy (explicit stabilization point)
  *   - seed-position : write {left,top} into floatingBtnPosition storage
  *                 BEFORE the following goto (#78 saved-position lock)
@@ -64,6 +70,14 @@ export const SELF_TEST_PATH_MAP = {
   "angular.dev/": "spa-source.html",
   "astro.build/": "spa-source.html",
   "gitlab.com/explore/projects/active": "spa-source.html",
+  // Roundtrip P2 targets (plan 36) — the mock spa-target carries the Turbo
+  // snapshot semantics; source→target client nav exercises the same
+  // DOM-rebuild path the real routers do.
+  "nextjs.org/docs": "spa-target.html",
+  "nuxt.com/modules": "spa-target.html",
+  "svelte.dev/docs": "spa-target.html",
+  "angular.dev/tutorials": "spa-target.html",
+  "vercel.com/about": "spa-target.html",
 };
 
 const P1 = "https://github.com/obra/superpowers/projects";
@@ -185,6 +199,89 @@ export const SCENARIOS = [
     description:
       "Translate gitlab.com/explore/projects/active (real SPA application representative) — translation-reality gate must hold. The FINAL URL is used deliberately: /explore client-redirects to /explore/projects/active (measured <1.1s in a real browser), so a waitForPath on /explore can never settle (calibration run 36659013595 caught this).",
     steps: [{ type: "goto", url: "https://gitlab.com/explore/projects/active" }, { type: "translate" }],
+  },
+  // ── Client-route roundtrips (plan 36, user request 2026-09-30) ──
+  // Same-document routing measured on all five sites (probe archive
+  // 2026-09-30: token/timeOrigin constant + per-hop popstate + stable
+  // landings). astro / gitlab / workers.dev were excluded with evidence
+  // (full-page navigations / no in-page links). `quality.visibleOnly`
+  // excludes stale hidden route DOM (measured count inflation) from the
+  // gate; `requireSameDocument` / `guardSameDocument` turn a rendering-mode
+  // change into SKIP-DATA instead of a silent shallow test.
+  {
+    name: "roundtrip-nextjs",
+    source: "user request 2026-09-30 (client-route roundtrip; probe route3-a)",
+    description:
+      "Translate the nextjs.org home, client-route to /docs (same-document guarded), translate, then 6× back/forward — the router rebuilds the DOM each hop; host must stay healthy and the VISIBLE translation must stay real.",
+    quality: { visibleOnly: true },
+    steps: [
+      { type: "goto", url: "https://nextjs.org/" },
+      { type: "translate" },
+      { type: "goto", url: "https://nextjs.org/docs", requireSameDocument: true },
+      { type: "translate" },
+      { type: "roundtrip", rounds: 6, guardSameDocument: true },
+      { type: "assert-translated" },
+    ],
+  },
+  {
+    name: "roundtrip-nuxt",
+    source: "user request 2026-09-30 (client-route roundtrip; probe route3-a)",
+    description:
+      "Translate the nuxt.com home, client-route to /modules (same-document guarded; /docs/4.x client-redirects — the stable final URL is used directly), translate, then 6× back/forward.",
+    quality: { visibleOnly: true },
+    steps: [
+      { type: "goto", url: "https://nuxt.com/" },
+      { type: "translate" },
+      { type: "goto", url: "https://nuxt.com/modules", requireSameDocument: true },
+      { type: "translate" },
+      { type: "roundtrip", rounds: 6, guardSameDocument: true },
+      { type: "assert-translated" },
+    ],
+  },
+  {
+    name: "roundtrip-svelte",
+    source: "user request 2026-09-30 (client-route roundtrip; probe route3-a)",
+    description:
+      "Translate the svelte.dev home, client-route to /docs (same-document guarded), translate, then 6× back/forward.",
+    quality: { visibleOnly: true },
+    steps: [
+      { type: "goto", url: "https://svelte.dev/" },
+      { type: "translate" },
+      { type: "goto", url: "https://svelte.dev/docs", requireSameDocument: true },
+      { type: "translate" },
+      { type: "roundtrip", rounds: 6, guardSameDocument: true },
+      { type: "assert-translated" },
+    ],
+  },
+  {
+    name: "roundtrip-angular",
+    source: "user request 2026-09-30 (client-route roundtrip; probe route3-a)",
+    description:
+      "Translate the angular.dev home, client-route to /tutorials (same-document guarded; /docs client-redirects to /overview — /tutorials is the stable target), translate, then 6× back/forward.",
+    quality: { visibleOnly: true },
+    steps: [
+      { type: "goto", url: "https://angular.dev/" },
+      { type: "translate" },
+      { type: "goto", url: "https://angular.dev/tutorials", requireSameDocument: true },
+      { type: "translate" },
+      { type: "roundtrip", rounds: 6, guardSameDocument: true },
+      { type: "assert-translated" },
+    ],
+  },
+  {
+    name: "roundtrip-vercel",
+    source: "user request 2026-09-30 (client-route roundtrip; probe route3-b)",
+    description:
+      "Translate the vercel.com home, client-route to /about (same-document guarded; /docs is a full page load — /about is the client-route target), translate, then 6× back/forward.",
+    quality: { visibleOnly: true },
+    steps: [
+      { type: "goto", url: "https://vercel.com/" },
+      { type: "translate" },
+      { type: "goto", url: "https://vercel.com/about", requireSameDocument: true },
+      { type: "translate" },
+      { type: "roundtrip", rounds: 6, guardSameDocument: true },
+      { type: "assert-translated" },
+    ],
   },
 ];
 
