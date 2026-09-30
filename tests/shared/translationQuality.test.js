@@ -118,3 +118,54 @@ describe("evaluateQualityGate (pure threshold logic)", () => {
     });
   });
 });
+
+describe("collectTranslationQualityInPage — visible scope (plan 36)", () => {
+  beforeEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  /** Visible element: getClientRects() reports a box (jsdom has no layout). */
+  function makeVisibleTranslated(text) {
+    const el = makeTranslated(text);
+    el.getClientRects = () => [{ width: 100, height: 20 }];
+    return el;
+  }
+
+  /** Hidden element: getClientRects() reports no box (display:none-class shape). */
+  function makeHiddenTranslated(text) {
+    const el = makeTranslated(text);
+    el.getClientRects = () => [];
+    return el;
+  }
+
+  it("⑪ visibleOnly: hidden elements are excluded from count AND nonEmpty", () => {
+    makeVisibleTranslated("你好");
+    makeHiddenTranslated("隐藏的译文");
+    const m = collectTranslationQualityInPage({ visibleOnly: true });
+    expect(m.count).toBe(1);
+    expect(m.nonEmpty).toBe(1);
+    expect(m.cjk).toBe(1);
+  });
+
+  it("⑫ default (no opts): hidden elements are still counted — existing consumers unchanged", () => {
+    makeVisibleTranslated("你好");
+    makeHiddenTranslated("隐藏的译文");
+    const m = collectTranslationQualityInPage();
+    expect(m.count).toBe(2);
+    expect(m.nonEmpty).toBe(2);
+    expect(m.cjk).toBe(2);
+  });
+
+  it("⑬ hidden stale CJK text must not mask a reverted visible route (the roundtrip false-green shape)", () => {
+    // Roundtrip shape: the visible route reverted to English (no CJK) while a
+    // hidden stale route still carries CJK. Full-count read → 50% CJK (the
+    // default gate would PASS); visible-scoped read → 0/1 → the gate can
+    // still catch the reverted state.
+    makeVisibleTranslated("back to English");
+    makeHiddenTranslated("旧的隐藏译文");
+    const full = collectTranslationQualityInPage();
+    const vis = collectTranslationQualityInPage({ visibleOnly: true });
+    expect(full).toEqual({ count: 2, nonEmpty: 2, cjk: 1 });
+    expect(vis).toEqual({ count: 1, nonEmpty: 1, cjk: 0 });
+  });
+});

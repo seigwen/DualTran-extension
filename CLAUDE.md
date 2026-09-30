@@ -31,7 +31,7 @@ Tests use vitest + jsdom. Files in `tests/`. Mock `chrome.*` APIs are set up per
 ```bash
 npm run build                                        # first — the tool loads dist/chrome/
 node scripts/real-site-verify.mjs --list             # list scenarios (CI set + local set)
-node scripts/real-site-verify.mjs                    # run the 13-scenario CI matrix (10 sites)
+node scripts/real-site-verify.mjs                    # run the 18-scenario CI matrix (10 sites)
 node scripts/real-site-verify.mjs --include-local    # + local-only scenarios (x.com)
 node scripts/real-site-verify.mjs --scenario=<name>  # one scenario (CI or local name)
 node scripts/real-site-verify.mjs --url=<user URL>   # ad-hoc single-URL journey (PR checklist)
@@ -39,9 +39,10 @@ xvfb-run -a node scripts/real-site-verify.mjs --self-test                 # herm
 ```
 
 - **Scenario library:** `scripts/canary-scenarios.mjs` — declarative data (`source` field traces each scenario to its user report / incident). Adding a scenario = adding one entry; the executor (`scripts/real-site-verify.mjs`) owns the step loop + tri-state assertions (healthy ∧ count===1 per settled step).
-- **CI matrix (10 sites / 13 scenarios):** github.com ×3 (bug8 / bug7 / selfheal), workers.dev ×2 and vercel.com ×2 (translate-reality + #78 seeded-position), nextjs / nuxt / svelte / angular / astro / gitlab ×1 each (front-end-stack representatives). **x.com is local-only** (`LOCAL_SCENARIOS`, `--include-local`) — Cloudflare blocks the Actions runner IP range (plan 34 §二.3; not a Playwright fingerprint issue).
+- **CI matrix (10 sites / 18 scenarios):** github.com ×3 (bug8 / bug7 / selfheal), workers.dev ×2 and vercel.com ×2 (translate-reality + #78 seeded-position), nextjs / nuxt / svelte / angular / astro / gitlab ×1 each (front-end-stack representatives), plus **client-route roundtrips ×5** (plan 36: nextjs `/docs`, nuxt `/modules`, svelte `/docs`, angular `/tutorials`, vercel `/about` — translate home → client-route → translate → 6× back/forward; astro / gitlab / workers.dev excluded with evidence: full-page navigations / no in-page links). **x.com is local-only** (`LOCAL_SCENARIOS`, `--include-local`) — Cloudflare blocks the Actions runner IP range (plan 34 §二.3; not a Playwright fingerprint issue).
 - **Translation-reality gate (plan 34):** every translate/assert-translated step seeds `targetLanguage=zh-CN` and must pass `tests/shared/translation-quality.mjs` — `nonEmpty ≥ max(10, 20%×count)` ∧ `cjk/nonEmpty ≥ 30%` (scenario-level `quality` overrides). Closes two measured false-green holes: a 429 window (nodes created, text empty) and en→en identity (unseeded profile).
-- **Typed-skip discipline (exit codes):** `0` = PASSED, `1` = FAILED, `2` = SKIPPED-ENV (Google gtx throttled — preflight or failure re-probe; SKIP never opens/closes issues, is never retried; the release gate lets it through with a `::warning::`). Self-test unmapped scenarios report `SKIP-DATA`.
+- **Typed-skip discipline (exit codes):** `0` = PASSED, `1` = FAILED, `2` = SKIPPED-ENV (Google gtx throttled — preflight or failure re-probe; SKIP never opens/closes issues, is never retried; the release gate lets it through with a `::warning::`). `SKIP-DATA` (self-test unmapped scenarios; plan 36 premise-invalid runs) never fails the run — exit stays 0.
+- **Premise guards (plan 36):** roundtrip scenarios assert the client-route premise via `tests/shared/document-identity.mjs` (`performance.timeOrigin` + per-document token, compared around navigations) — a full page load or route drift reports SKIP-DATA (audit the scenario), never a silent shallow PASS. Roundtrip quality reads use `quality.visibleOnly` (stale hidden route DOM must not inflate the counters).
 - **Assertions use the shared tri-state primitives** in `tests/shared/host-state.mjs` (same classifier as the E2E suite).
 - **x.com deep check (on demand):** `scripts/xcom-showmore-check.mjs` — issue #98 "Show more" reveal-translation check; typed outcomes incl. SKIP-DATA (no truncated post on this load; hit rate ≈ 2/5, hence not in the library).
 - **Cadence:** `.github/workflows/canary.yml` — every Monday 3:00 UTC + manual dispatch; fails open/comment on an issue (`canary:` title prefix, dedup; auto-closed ONLY on effective=0 — a SKIP must never close a real defect). **Not a PR gate** — real-site runs need human judgment.
