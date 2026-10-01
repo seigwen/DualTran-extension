@@ -297,6 +297,16 @@ Content Script (fetchSSE.js)
 - **实现点清单（规则对称性）：** `setPanelTranslationLoadingState`（loading 渲染单点）、`clearPanelTranslationLoadingState`（loading 清空单点）、`applyPanelTranslatedColor`（译文色单点：先重置再上色）、`applyPanelButtonPalette`（意图色板翻转单点）、`createPanelAiProxy`（装饰吸收 + 译文面直通）、`PANEL_BTN_COLORS`（面板色板 SSOT）、`PANEL_LOADING_CSS`（布局/loading 样式常量）、`PANEL_DARK_MODE_CSS_DARK` / `PANEL_DARK_MODE_CSS_LIGHT`（暗/亮样式常量）、`aiTranslateWord`（Q-H1 单词路由）、`wordsCount`（单词判定谓词）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - **测试：** `showTranslated.test.js`（25 格：模板齐备/loading 起点/译文色/意图色板/标签恒定零装饰/错误进框/跨引擎泄漏/复制/「+」下拉/暗色常量共享/单词路由）+ `translateSelected.test.js`（re-export 契约下 17 格回归——划词行为零变化）+ E2E `hover-panel.mjs` 相位 A–E（loading 先于译文出现 / 色板 computed / 跨引擎色归位 / 单词=词典路径、多词=文本路径请求计数正反两格）。
 
+**RULE: 悬停显示原文气泡门控与皮肤规则（hover original-text bubble rule, plan 38 / #128）—— 气泡只在「用译文替换原文」模式生效，皮肤与悬停框/划词面板单源：**
+
+- **症状/机制：** 「悬停显示原文」气泡（`showOriginal.js`）原在两种显示模式下都注册悬停目标（newLine 注册 `<translated>`、replaceOriginal 注册 encapsulate 的 `<font>`）——newLine 下原文本就可见，气泡冗余且与悬停翻译框竞争。同时气泡自带皮肤（`showOriginal.css`）与 plan 37 后的共享面板皮肤漂移。
+- **门控（单点谓词）：** `showOriginal.isEnabled` = `showOriginalTextWhenHovering === "yes"` ∧ `whereToDisplayTranslatedText === "replaceOriginal"`。全部注册守卫（newLine 块注册 / replaceOriginal 逐节点注册 / AI 路径）共用该谓词——改它即全链路随动，`pageTranslator.js` 零改动。新增注册点必须同样先查 `showOriginal.isEnabled`。
+- **运行时联动：** 任一设置变更（`twpConfig.onChanged`）→ 重算谓词 → `showOriginal.enable(true)` 重建/拆除宿主 → 通知 `enabledObserverSubscribe` 观察者；已译页经 observers 自动重译一次，模式切换即时生效（出现/消失）。
+- **皮肤（单源，零本地样式）：** 气泡共用 `translateSelected.css` + `panelShared.js` 暗/亮常量（`PANEL_DARK_MODE_CSS_DARK` / `PANEL_DARK_MODE_CSS_LIGHT`），id 对齐面板词汇（`#eDivResult` / `#eOrigText`），`showOriginal.css` 已删除。不移植 `#f3f4f8` 内容块——气泡保持「容器底色 + 文字」两层。不加标题栏/复制/「+」下拉：气泡是纯阅读快照。
+- **触发与生命周期（保持原样，禁止改动）：** 1.5s 悬停延迟 / 跟随光标（`mousePos + 10px`，视口钳制）/ 移开换目标 / 点框外（`mousedown`）销毁 / `blur` + `visibilitychange` 隐藏。
+- **实现点清单（规则对称性）：** `showOriginal.isEnabled`（门控谓词单点）、`showOriginal.enable`（宿主建/拆 + 谓词守卫）、`showOriginal.disable`（拆除）、`showOriginal.add`（节点注册）、`showOriginal.removeAll`（注册清理）、`enabledObserverSubscribe`（联动通知）、`backdropFilterElement`（暗色载体单点）、`eDivResult`（气泡容器 id）、`eOrigText`（气泡文本 id）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- **测试：** `tests/contentScript/showOriginal.test.js`（18 格：门控 4 组合真值表 / 联动双向 / 皮肤模板单源 / 暗亮常量格）；E2E `options-behavior.mjs` O-B 三相位（B1 newLine 负向悬停无气泡 / B2 切 replaceOriginal 已译页自动重渲染 + 悬停出现 / B3 options 备注结构）+ `popup-behavior.mjs` P-B（显式 pin replaceOriginal）。
+
 **基础设施假设清单（Infrastructure Assumptions，M1 issue #31）—— 每个假设必须有测试引用（M3 用 check-infra-assumptions.js 强制）：**
 - **假设：** `document.body` 元素可能被框架整体替换（Turbo Drive 回退导航 `replaceWith`，2026-09-10 github.com 实测）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav」2 个
 - **假设：** `document.documentElement`（`<html>`）在 SPA 导航中存活（实测 `htmlReplaced: false`）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav: body element replaced immediately → host must be recreated」
