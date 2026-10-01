@@ -228,6 +228,14 @@ tests/
 - **悬停 AI 零页面级写入**：悬停 AI 成功不得写 `saveAiAppliedFlag`（经 `dualtran-ai-selected-btn` 代理 → `isSelectedPanel` 分支跳过）。
 - **E2E 缓存竞态纪律（本轮实测教训）**：28 场景共享同一 profile，IndexedDB `googleCache` / AI 缓存互热——「框先于译文」「点击必发请求」类断言有两类结构假红：① 探测文本被先前场景译过 → 缓存命中秒回（固定延迟窗无效）；② 点击前面板尚未换靶（读到上一目标的陈旧译文）。纪律：探测文本运行期唯一化 + 读取谓词锚定探测文本特征 + 确定性窗口用「SW fetch 上闸/放闸」（请求物理挂起，与读数速度无关），禁用固定延迟窗。
 
+### 悬停显示原文气泡不变量（Hover Original-Text Bubble Invariants，plan 38 / #128）
+
+**规则：气泡只在「用译文替换原文」（replaceOriginal）模式生效——`showOriginal.isEnabled` = 开关 yes ∧ 模式 replaceOriginal；皮肤与悬停框/划词面板单源。**
+
+- **门控单点**：全部注册守卫（newLine 块注册 / replaceOriginal 逐节点注册 / AI 路径）共用 `showOriginal.isEnabled`；新模式组合测试须覆盖 4 组合真值表 + 联动双向（开→建宿主、关→拆宿主 + observers 被通知）。
+- **E2E 纪律（涉及 showOriginal 气泡的场景）**：必须**显式写** `whereToDisplayTranslatedText`——E2E 默认 `newLine` 下气泡按新语义不出现；悬停目标为封装 `<font>`（`font[data-dualtran-encapsulated]`），不是 `<translated>`；收尾恢复两键初值（读初值→恢复，防泄漏进后续场景）。
+- **E2E 悬停纪律（本轮实测教训）**：气泡跟随光标悬浮在被悬停文字上方——被测功能自身会拦截 Playwright `locator.hover()` 动作前的命中测试（实测报「`<div class="notranslate"></div> intercepts pointer events`」，拦截者即气泡宿主）。涉及气泡的悬停必须用**真实指针移动**（`page.mouse.move`）+ 宿主计数断言（`div.notranslate:not([id])` 增量），禁用 `locator.hover()`；负向格先移动指针落点保证基线干净。同族纪律：模式切换重渲染会使指针下的新节点被 Chrome 自动重发 mouseenter（1.5s 后气泡浮现）——等自动出现或真实指针移动到元素内（非原点，确保真实位移）。
+
 ### 跨层交互矩阵（Cross-Level Interaction Matrix，issue #72）
 
 **规则：覆盖必须按「用户操作序列」组织，不能只按组件组织。** #70 逃逸的根因不是断言弱，而是覆盖空间里没有「页面级操作 → 块级操作」的跨层组合：既有场景要么只操作浮动按钮（页面级），要么只 hover 读调色板（#65）。跨层组合是结构性真空。
