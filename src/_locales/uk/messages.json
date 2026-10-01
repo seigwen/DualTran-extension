@@ -407,6 +407,9 @@
   "lblShowOriginalTextWhenHovering": {
     "message": "Показувати оригінальний текст при наведенні"
   },
+  "lblShowOriginalTextWhenHoveringNote": {
+    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+  },
   "lblShowReleaseNotes": {
     "message": "Показувати нотатки щодо випуску під час оновлення"
   },

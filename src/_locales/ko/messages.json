@@ -407,6 +407,9 @@
   "lblShowOriginalTextWhenHovering": {
     "message": "마우스를 가져다 대면 원본 텍스트 표시"
   },
+  "lblShowOriginalTextWhenHoveringNote": {
+    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+  },
   "lblShowReleaseNotes": {
     "message": "부가 기능 업데이트 시 릴리스 정보 표시"
   },

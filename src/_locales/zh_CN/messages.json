@@ -407,6 +407,9 @@
   "lblShowOriginalTextWhenHovering": {
     "message": "悬停显示原文"
   },
+  "lblShowOriginalTextWhenHoveringNote": {
+    "message": "仅当「译文显示位置」设为「用译文替换原文」时生效。"
+  },
   "lblShowReleaseNotes": {
     "message": "更新后显示发行说明"
   },

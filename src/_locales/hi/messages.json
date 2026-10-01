@@ -407,6 +407,9 @@
   "lblShowOriginalTextWhenHovering": {
     "message": "मँडराते समय मूल पाठ दिखाएँ"
   },
+  "lblShowOriginalTextWhenHoveringNote": {
+    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+  },
   "lblShowReleaseNotes": {
     "message": "अद्यतन करते समय रिलीज़ नोट दिखाएं"
   },

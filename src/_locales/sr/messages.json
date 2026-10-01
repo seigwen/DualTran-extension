@@ -407,6 +407,9 @@
   "lblShowOriginalTextWhenHovering": {
     "message": "Прикажи оригинални текст када лебдите"
   },
+  "lblShowOriginalTextWhenHoveringNote": {
+    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+  },
   "lblShowReleaseNotes": {
     "message": "Прикажи напомене о издању приликом ажурирања"
   },

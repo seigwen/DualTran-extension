@@ -407,6 +407,9 @@
   "lblShowOriginalTextWhenHovering": {
     "message": "マウスオーバー時に原文を表示"
   },
+  "lblShowOriginalTextWhenHoveringNote": {
+    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+  },
   "lblShowReleaseNotes": {
     "message": "拡張機能が更新されたときにリリースノートを表示"
   },

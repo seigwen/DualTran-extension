@@ -407,6 +407,9 @@
   "lblShowOriginalTextWhenHovering": {
     "message": "نمایش متن اصلی هنگام نگه داشتن ماوس"
   },
+  "lblShowOriginalTextWhenHoveringNote": {
+    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+  },
   "lblShowReleaseNotes": {
     "message": "نمایش تغییرات نسخه های منتشر شده ، هنگام به روز رسانی"
   },

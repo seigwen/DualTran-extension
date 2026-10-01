@@ -407,6 +407,9 @@
   "lblShowOriginalTextWhenHovering": {
     "message": "Show original text when hovering"
   },
+  "lblShowOriginalTextWhenHoveringNote": {
+    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+  },
   "lblShowReleaseNotes": {
     "message": "Show release notes when updating"
   },
