@@ -1,5 +1,14 @@
 /**
  * Hover to show original text on translated pages
+ *
+ * Plan 38: the bubble fires only when "Where to display the translated text"
+ * is replaceOriginal — in newLine mode the original text is already visible,
+ * so the hover bubble is redundant. The gate is a single predicate all
+ * registration guards inherit through `showOriginal.isEnabled`.
+ *
+ * The skin is the shared panel skin: translateSelected.css + the
+ * panelShared dark/light constants — the same single source the hover
+ * translation panel and the selection panel consume (plan 37 discipline).
  */
 "use strict";
 
@@ -7,6 +16,10 @@ console.log("showOriginal.js is running")
 
 import twpConfig from "../lib/config.js";
 import platformInfo from "../lib/platformInfo.js";
+import {
+  PANEL_DARK_MODE_CSS_DARK,
+  PANEL_DARK_MODE_CSS_LIGHT,
+} from "./panelShared.js";
 
 /**
  * Hover to show original text on translated pages
@@ -29,24 +42,42 @@ twpConfig.onReady(function () {
   };
 
   let styleTextContent = "";
-  fetch(chrome.runtime.getURL("/contentScript/css/showOriginal.css"))
+  fetch(chrome.runtime.getURL("/contentScript/css/translateSelected.css"))
     .then((response) => response.text())
     .then((response) => (styleTextContent = response))
     .catch((e) => console.error(e));
 
+  // Plan 38 gate: feature is on only when the hover toggle is "yes" AND the
+  // display mode is replaceOriginal. Any change of either setting recomputes
+  // the predicate, rebuilds the host when it turns on, and notifies observers
+  // (already-translated pages re-translate once so the bubble is immediately
+  // available / immediately gone).
   let showOriginalTextWhenHovering = twpConfig.get(
     "showOriginalTextWhenHovering"
   );
-  showOriginal.isEnabled = showOriginalTextWhenHovering === "yes";
+  let whereToDisplayTranslatedText = twpConfig.get(
+    "whereToDisplayTranslatedText"
+  );
+  function computeIsEnabled() {
+    return (
+      showOriginalTextWhenHovering === "yes" &&
+      whereToDisplayTranslatedText === "replaceOriginal"
+    );
+  }
+  showOriginal.isEnabled = computeIsEnabled();
   twpConfig.onChanged(function (name, newValue) {
     if (name === "showOriginalTextWhenHovering") {
       showOriginalTextWhenHovering = newValue;
-      showOriginal.isEnabled = showOriginalTextWhenHovering === "yes";
-      showOriginal.enable(true);
-      enabledObservers.forEach((callback) => {
-        callback();
-      });
+    } else if (name === "whereToDisplayTranslatedText") {
+      whereToDisplayTranslatedText = newValue;
+    } else {
+      return;
     }
+    showOriginal.isEnabled = computeIsEnabled();
+    showOriginal.enable(true);
+    enabledObservers.forEach((callback) => {
+      callback();
+    });
   });
 
   let originalTextIsShowing = false;
@@ -82,23 +113,26 @@ twpConfig.onReady(function () {
       (nodeInf) => nodeInf.node === node
     );
     if (nodeInf) {
-      const eOriginalText = shadowRoot.getElementById("originalText");
-      eOriginalText.textContent = nodeInf.original;
+      const eOrigText = shadowRoot.getElementById("eOrigText");
+      eOrigText.textContent = nodeInf.original;
       document.body.appendChild(divElement);
       originalTextIsShowing = true;
 
-      const height = eOriginalText.offsetHeight;
+      const eDivResult = shadowRoot.getElementById("eDivResult");
+      eDivResult.style.display = "block";
+
+      const height = eDivResult.offsetHeight;
       let top = mousePos.y + 10;
       top = Math.max(0, top);
       top = Math.min(window.innerHeight - height, top);
 
-      const width = eOriginalText.offsetWidth;
+      const width = eDivResult.offsetWidth;
       let left = parseInt(mousePos.x /*- (width / 2) */);
       left = Math.max(0, left);
       left = Math.min(window.innerWidth - width, left);
 
-      eOriginalText.style.top = top + "px";
-      eOriginalText.style.left = left + "px";
+      eDivResult.style.top = top + "px";
+      eDivResult.style.left = left + "px";
     }
   }
 
@@ -167,7 +201,8 @@ twpConfig.onReady(function () {
     showOriginal.disable(dontDeleteNodesToShowOriginal);
 
     if (platformInfo.isMobile.any) return;
-    if (showOriginalTextWhenHovering !== "yes") return;
+    // Plan 38 gate: single predicate — replaceOriginal-only.
+    if (!showOriginal.isEnabled) return;
     if (divElement) return;
 
     // Reset mouse hover node reference to avoid skipping mouseenter on the same node after re-enabling
@@ -180,59 +215,42 @@ twpConfig.onReady(function () {
     shadowRoot = divElement.attachShadow({
       mode: "closed",
     });
+    // Plan 38: same skin as the hover translation box / selection panel —
+    // shared CSS file, same id vocabulary (#eDivResult / #eOrigText), no
+    // title bar and no buttons (the bubble is a pure reading snapshot).
     shadowRoot.innerHTML = `
             <link rel="stylesheet" href="${chrome.runtime.getURL(
-              "/contentScript/css/showOriginal.css"
+              "/contentScript/css/translateSelected.css"
             )}">
-            <div id="originalText" dir="auto"></div>
+            <div id="eDivResult" style="display: none">
+              <div id="eOrigText" dir="auto"></div>
+            </div>
         `;
 
     {
       const style = document.createElement("style");
       style.textContent = styleTextContent;
-      shadowRoot.insertBefore(style, shadowRoot.getElementById("originalText"));
+      shadowRoot.insertBefore(style, shadowRoot.getElementById("eDivResult"));
     }
 
-    function enableDarkMode() {
-      if (!shadowRoot.getElementById("darkModeElement")) {
-        const el = document.createElement("style");
-        el.setAttribute("id", "darkModeElement");
-        el.setAttribute("rel", "stylesheet");
-        el.textContent = `
-                    * {
-                        scrollbar-color: #202324 #454a4d;
-                    }
-                    #originalText {
-                        color: rgb(231, 230, 228) !important;
-                        background-color: #181a1b !important;
-                    }
-                `;
-        shadowRoot.appendChild(el);
+    {
+      // Dark/light scheme: identical contract to the hover panel and the
+      // selection panel (backdropFilterElement + shared constants).
+      const el = document.createElement("style");
+      el.setAttribute("id", "backdropFilterElement");
+      el.setAttribute("rel", "stylesheet");
+      let darkMode = false;
+      switch (twpConfig.get("darkMode")) {
+        case "auto":
+          if (matchMedia("(prefers-color-scheme: dark)").matches)
+            darkMode = true;
+          break;
+        case "yes":
+          darkMode = true;
+          break;
       }
-    }
-
-    function disableDarkMode() {
-      if (shadowRoot.getElementById("#darkModeElement")) {
-        shadowRoot.getElementById("#darkModeElement").remove();
-      }
-    }
-
-    switch (twpConfig.get("darkMode")) {
-      case "auto":
-        if (matchMedia("(prefers-color-scheme: dark)").matches) {
-          enableDarkMode();
-        } else {
-          disableDarkMode();
-        }
-        break;
-      case "yes":
-        enableDarkMode();
-        break;
-      case "no":
-        disableDarkMode();
-        break;
-      default:
-        break;
+      el.textContent = darkMode ? PANEL_DARK_MODE_CSS_DARK : PANEL_DARK_MODE_CSS_LIGHT;
+      shadowRoot.appendChild(el);
     }
 
     divElement.addEventListener("mouseout", onMouseOut);

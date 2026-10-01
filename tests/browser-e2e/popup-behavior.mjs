@@ -3,7 +3,7 @@
  *
  * 测试范围：
  *   - P-A: showTranslateSelectedButton ON → 选中文本 → 按钮出现
- *   - P-B: showOriginalTextWhenHovering ON → hover 译文 → 原文弹出
+ *   - P-B: showOriginalTextWhenHovering ON（plan 38：显式 pin replaceOriginal）→ hover → 原文弹出
  *   - P-C: sitesToTranslateWhenHovering → hover → 翻译弹出
  *   - P-D: langsToTranslateWhenHovering → hover → 翻译弹出
  *
@@ -15,6 +15,7 @@ import {
   waitForPageTranslatorReady,
   sendMessageToTab,
   writeStorage,
+  readStorage,
   waitForHostState,
 } from "./setup.mjs";
 
@@ -88,37 +89,6 @@ async function countClosedShadowHosts(page) {
   return page.evaluate(() => document.querySelectorAll("div.notranslate:not([id])").length);
 }
 
-/**
- * 触发整页翻译（含 Google Translate 重试）。
- * @param {import("playwright").Page} page
- * @param {import("playwright").Worker} serviceWorker
- * @param {string} testPageUrl
- * @returns {Promise<boolean>} 翻译是否成功
- */
-async function triggerPageTranslation(page, serviceWorker, testPageUrl) {
-  let translatedFound = false;
-  for (let attempt = 0; attempt < 2 && !translatedFound; attempt++) {
-    if (attempt > 0) console.log(`  翻译重试 (${attempt + 1}/2)...`);
-    await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
-    await waitForPageReady(serviceWorker, page.url());
-    await sendMessageToTab(serviceWorker, page.url(), {
-      action: "translatePage",
-      targetLanguage: "fr",
-    });
-    try {
-      await page.waitForFunction(
-        () => document.querySelectorAll("translated").length > 0,
-        null,
-        { timeout: 30000 }
-      );
-      translatedFound = true;
-    } catch {
-      // 继续重试
-    }
-  }
-  return translatedFound;
-}
-
 // ─── 测试步骤 ─────────────────────────────────────────────
 
 /**
@@ -147,23 +117,59 @@ async function paShowButtonOnSelect(page, serviceWorker, testPageUrl) {
 
 /**
  * [P-B] 勾选"hover 时显示原文" → hover 译文 → 原文弹出
+ *
+ * Plan 38 gate: the bubble only fires in replaceOriginal mode (newLine already
+ * shows the original text). The scenario must therefore pin the display mode
+ * explicitly — and the hover target in this mode is the encapsulated <font>,
+ * not a <translated> element.
  */
 async function pbShowOriginalOnHover(page, serviceWorker, testPageUrl) {
   console.log("[P-B] showOriginalTextWhenHovering ON 行为测试...");
 
-  // 设置
+  // 设置（plan 38：显式写 replaceOriginal —— 默认 newLine 下气泡按新语义不出现）
+  const initialShowOriginal = await readStorage(serviceWorker, "showOriginalTextWhenHovering");
+  const initialDisplayMode = await readStorage(serviceWorker, "whereToDisplayTranslatedText");
   await writeStorage(serviceWorker, "showOriginalTextWhenHovering", "yes");
   await writeStorage(serviceWorker, "targetLanguage", "fr");
+  await writeStorage(serviceWorker, "whereToDisplayTranslatedText", "replaceOriginal");
 
-  // 触发（含 Google Translate 重试）
-  const translatedFound = await triggerPageTranslation(page, serviceWorker, testPageUrl);
+  // 触发（含 Google Translate 重试）—— replaceOriginal 模式下等待封装 <font> 标记
+  let translatedFound = false;
+  for (let attempt = 0; attempt < 2 && !translatedFound; attempt++) {
+    if (attempt > 0) console.log(`  翻译重试 (${attempt + 1}/2)...`);
+    await page.goto(testPageUrl, { waitUntil: "domcontentloaded" });
+    await waitForPageReady(serviceWorker, page.url());
+    await sendMessageToTab(serviceWorker, page.url(), {
+      action: "translatePage",
+      targetLanguage: "fr",
+    });
+    try {
+      await page.waitForFunction(
+        () => document.querySelectorAll("font[data-dualtran-encapsulated]").length > 0,
+        null,
+        { timeout: 30000 }
+      );
+      translatedFound = true;
+    } catch {
+      // 继续重试
+    }
+  }
   if (!translatedFound) {
     throw new Error("[P-B] Google 翻译未能在 2 次尝试内完成");
   }
 
-  // 触发 hover 到第一个 translated 元素（真实鼠标事件）
-  const translated = page.locator("translated").first();
-  await translated.hover({ timeout: 5000 });
+  // 触发 hover 到第一个封装元素（真实指针事件；replaceOriginal 模式的悬停目标）。
+  // 不用 locator.hover()：气泡跟随光标浮现，命中测试会失败（与 O-B/B2 同病症——「拦路者」
+  // 正是被测气泡自身，实测报「<div class="notranslate"></div> intercepts pointer events」）。
+  // 先移开指针保证基线干净，再真实移动到封装 <font> 内。
+  await page.mouse.move(2, 2);
+  await page.waitForTimeout(250);
+  const baselineHosts = await countClosedShadowHosts(page);
+  const fontLoc = page.locator("font[data-dualtran-encapsulated]").first();
+  await fontLoc.scrollIntoViewIfNeeded();
+  const fontBox = await fontLoc.boundingBox();
+  if (!fontBox) throw new Error("[P-B] 封装 <font> 无可见盒子，无法悬停");
+  await page.mouse.move(fontBox.x + 8, fontBox.y + fontBox.height / 2, { steps: 8 });
 
   // 验证原文弹出：
   // showOriginal.js 的宿主同样是 closed shadow root，无法从页面侧读取内容。
@@ -171,7 +177,6 @@ async function pbShowOriginalOnHover(page, serviceWorker, testPageUrl) {
   //   1) singletonBtnGroup 宿主（#dualtran-singleton-btn-host）出现，说明 hover 生效
   //   2) 无 id 的 div.notranslate 数量 +1（= showOriginal 弹出面板宿主，
   //      延迟 1500ms 后出现；floatingBtn 宿主为基线）
-  const baselineHosts = await countClosedShadowHosts(page);
   let singletonAppeared = false;
   let originalAppeared = false;
   try {
@@ -198,8 +203,13 @@ async function pbShowOriginalOnHover(page, serviceWorker, testPageUrl) {
   }
   console.log("[P-B] 通过 ✓\n");
 
-  // 清理
-  await writeStorage(serviceWorker, "showOriginalTextWhenHovering", "yes");
+  // 清理（恢复初始值；plan 38 场景显式写过的模式键一并还原）
+  await writeStorage(serviceWorker, "showOriginalTextWhenHovering", initialShowOriginal ?? "yes");
+  await writeStorage(
+    serviceWorker,
+    "whereToDisplayTranslatedText",
+    initialDisplayMode ?? "newLine"
+  );
 }
 
 /**

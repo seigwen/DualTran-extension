@@ -407,6 +407,9 @@
   "lblShowOriginalTextWhenHovering": {
     "message": "停留時顯示原文"
   },
+  "lblShowOriginalTextWhenHoveringNote": {
+    "message": "僅當「譯文顯示位置」設為「以譯文取代原文」時生效。"
+  },
   "lblShowReleaseNotes": {
     "message": "更新時顯示更新日誌"
   },

@@ -114,43 +114,125 @@ async function oaShowButtonOnSelect(page, serviceWorker, testPageUrl) {
   console.log("[O-A] 通过 ✓\n");
 }
 
-// ─── O-B: 显示原文当 hover ON → hover → 原文弹出 ────────────
+// ─── O-B: 显示原文当 hover（plan 38 门控）────────────────────
+//   B1: newLine 模式 → 悬停译文 → 气泡不出现（负向格）
+//   B2: 切到 replaceOriginal → observers 自动重渲染 → 悬停 → 气泡出现（正向格）
+//   B3: options 页备注结构格
 
-async function obShowOriginalOnHover(page, serviceWorker, testPageUrl) {
-  console.log("[O-B] showOriginalTextWhenHovering ON 行为测试...");
+async function obShowOriginalOnHover(page, serviceWorker, testPageUrl, extensionId) {
+  console.log("[O-B] showOriginalTextWhenHovering 门控与气泡行为测试（plan 38）...");
+
+  // 读初值（场景收尾恢复，防泄漏进后续步骤——对称 popup-behavior/P-B）
+  const initialShowOriginal = await readStorage(serviceWorker, "showOriginalTextWhenHovering");
+  const initialDisplayMode = await readStorage(serviceWorker, "whereToDisplayTranslatedText");
 
   await writeStorage(serviceWorker, "showOriginalTextWhenHovering", "yes");
   await writeStorage(serviceWorker, "targetLanguage", "fr");
+  await writeStorage(serviceWorker, "whereToDisplayTranslatedText", "newLine");
 
+  // ── B1: newLine 负向 —— 悬停 <translated> 后气泡必须不出现 ──
+  console.log("  [O-B/B1] newLine 模式：悬停后气泡不得出现（负向格）");
   const translatedFound = await triggerPageTranslation(page, serviceWorker, testPageUrl);
   if (!translatedFound) throw new Error("[O-B] Google 翻译未能在 2 次尝试内完成");
 
+  // 基线在悬停前取（气泡宿主在显示时才上树；悬停后观察窗内计数必须不变）
+  const baselineNewLine = await countClosedShadowHosts(page);
   const translated = page.locator("translated").first();
   await translated.hover({ timeout: 5000 });
+  // hover 组（singleton 宿主，带 id）出现 = 悬停确已落到译文块上（负向格非空转的前提）
+  await waitForHostState(page, "singleton", "healthy", { timeoutMs: 5000 });
+  await page.waitForTimeout(2200); // > 1500ms 气泡延迟，负向观察窗
+  const afterNewLine = await countClosedShadowHosts(page);
+  if (afterNewLine !== baselineNewLine) {
+    throw new Error(
+      `[O-B] newLine 模式气泡不得出现，但无 id 宿主计数 ${baselineNewLine} → ${afterNewLine}`
+    );
+  }
+  console.log("  [O-B/B1] newLine 模式悬停无气泡 ✓");
 
-  // showOriginal 宿主为 closed shadow root，用计数增量断言：
-  // hover 生效（singleton 按钮组宿主带 id 出现）+ 无 id 宿主 +1（原文弹出面板）
-  const baselineHosts = await countClosedShadowHosts(page);
-  let singletonAppeared = false;
+  // ── B2: 切到 replaceOriginal —— 已译页应经 observers 自动重渲染 ──
+  console.log("  [O-B/B2] 切换到 replaceOriginal：已译页自动重渲染 + 悬停气泡出现");
+  // 基线取在开关切换之前：newLine 门控关闭时气泡宿主不可能在树上
+  const baselineReplace = await countClosedShadowHosts(page);
+  await writeStorage(serviceWorker, "whereToDisplayTranslatedText", "replaceOriginal");
+  // 新链路实证：encapsulateTextNode 的 <font> 标记出现 = 已译页重渲染完成
+  await page.waitForFunction(
+    () => document.querySelectorAll("font[data-dualtran-encapsulated]").length > 0,
+    null,
+    { timeout: 30000 }
+  );
+  await page.waitForTimeout(500);
+
+  // 注意：此处不得使用 locator.hover() —— 气泡跟随光标悬浮在被悬停文字上方，
+  // Playwright 动作前的命中测试与之相悖：模式切换重渲染后，指针下的新 <font>
+  // 会被 Chrome 自动重发 mouseenter，1.5s 后气泡浮现并挡住字体中心，可操作性
+  // 检查将永远失败（实测报「<div class="notranslate"></div> intercepts pointer
+  // events」，拦截者正是气泡宿主自身）。忠实形态 = 等自动悬停或真实指针移动
+  // （page.mouse），以宿主计数增量断言结果。
   let originalAppeared = false;
   try {
-    await waitForHostState(page, "singleton", "healthy", { timeoutMs: 3000 });
-    singletonAppeared = true;
-  } catch { /* 稍后统一报错 */ }
-  try {
+    // 路径 1：指针仍停在文本区上方 —— 重渲染可能已自动触发 mouseenter
     await page.waitForFunction(
       (before) => document.querySelectorAll("div.notranslate:not([id])").length > before,
-      baselineHosts,
-      { timeout: 4000 }
+      baselineReplace,
+      { timeout: 3500 }
     );
     originalAppeared = true;
-  } catch { /* 稍后统一报错 */ }
-  if (!singletonAppeared || !originalAppeared) {
-    throw new Error(`[O-B] hover 后原文未弹出 (hoverBtnGroup=${singletonAppeared}, originalPopup=${originalAppeared})`);
+  } catch { /* 路径 2 */ }
+  if (!originalAppeared) {
+    // 路径 2：真实指针移到封装 <font> 内（左边缘 +8px，确保与驻留点有真实位移）。
+    // 模式切换经 enable(true) 已重置悬停节点引用（currentNodeOverMouse=null），
+    // 同一节点可正常再次触发。
+    const fontLoc = page.locator("font[data-dualtran-encapsulated]").first();
+    await fontLoc.scrollIntoViewIfNeeded();
+    const fontBox = await fontLoc.boundingBox();
+    if (!fontBox) throw new Error("[O-B] 封装 <font> 无可见盒子，无法悬停");
+    await page.mouse.move(fontBox.x + 8, fontBox.y + fontBox.height / 2, { steps: 8 });
+    try {
+      await page.waitForFunction(
+        (before) => document.querySelectorAll("div.notranslate:not([id])").length > before,
+        baselineReplace,
+        { timeout: 5000 }
+      );
+      originalAppeared = true;
+    } catch { /* 统一报错 */ }
   }
+  if (!originalAppeared) {
+    const after = await countClosedShadowHosts(page);
+    throw new Error(
+      `[O-B] replaceOriginal 模式悬停后原文气泡未出现（基线 ${baselineReplace}，实际 ${after}）`
+    );
+  }
+  console.log("  [O-B/B2] replaceOriginal 模式悬停气泡出现 ✓");
+
+  // ── B3: options 页备注结构格 ──
+  console.log("  [O-B/B3] options 页备注结构格");
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#translations`, {
+    waitUntil: "load",
+  });
+  const noteCheck = await page.evaluate(() => {
+    const select = document.getElementById("showOriginalTextWhenHovering");
+    if (!select) return { ok: false, reason: "select 缺失" };
+    const note = select.parentElement.querySelector(
+      '[data-i18n="lblShowOriginalTextWhenHoveringNote"]'
+    );
+    if (!note) return { ok: false, reason: "备注元素缺失" };
+    return {
+      ok: (note.textContent || "").trim().length > 0,
+      reason: "备注文本为空",
+      text: (note.textContent || "").trim(),
+    };
+  });
+  if (!noteCheck.ok) {
+    throw new Error(`[O-B] 备注结构格失败: ${noteCheck.reason}`);
+  }
+  console.log(`  [O-B/B3] 备注存在且非空 ✓`);
+
   console.log("[O-B] 通过 ✓\n");
 
-  await writeStorage(serviceWorker, "showOriginalTextWhenHovering", "yes");
+  // 收尾恢复两配置到初始值（读初值→恢复，防泄漏进后续步骤）
+  await writeStorage(serviceWorker, "showOriginalTextWhenHovering", initialShowOriginal ?? "no");
+  await writeStorage(serviceWorker, "whereToDisplayTranslatedText", initialDisplayMode ?? "newLine");
 }
 
 // ─── O-C: 自动翻译点击链接 ON → 点击链接 → 自动翻译 ─────────
@@ -440,7 +522,7 @@ export async function run(scope) {
   await collector.collectExtensionErrors(page, extensionId);
 
   await runStep("O-A", () => oaShowButtonOnSelect(page, serviceWorker, testPageUrl));
-  await runStep("O-B", () => obShowOriginalOnHover(page, serviceWorker, testPageUrl));
+  await runStep("O-B", () => obShowOriginalOnHover(page, serviceWorker, testPageUrl, extensionId));
   await runStep("O-C", () => ocAutoTranslateLink(page, serviceWorker, linkSourceUrl));
   await runStep("O-D", () => odTranslateTagPre(page, serviceWorker, testPageUrl));
   await runStep("O-E", () => oeDontShowPageLang(page, serviceWorker, frPageUrl));

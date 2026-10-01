@@ -407,6 +407,9 @@
   "lblShowOriginalTextWhenHovering": {
     "message": "Mostrar el texto original al pasar el cursor"
   },
+  "lblShowOriginalTextWhenHoveringNote": {
+    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+  },
   "lblShowReleaseNotes": {
     "message": "Mostrar las notas de la versión al actualizar"
   },

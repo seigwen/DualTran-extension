@@ -3,6 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const { configValues, configChangeCallbacks, platformState } = vi.hoisted(() => ({
   configValues: {
     showOriginalTextWhenHovering: "yes",
+    // Plan 38 gate: the bubble only exists when the display mode is
+    // replaceOriginal (newLine already shows the original text).
+    whereToDisplayTranslatedText: "replaceOriginal",
     darkMode: "no",
   },
   configChangeCallbacks: [],
@@ -79,6 +82,7 @@ describe("showOriginal", () => {
 
     configChangeCallbacks.length = 0;
     configValues.showOriginalTextWhenHovering = "yes";
+    configValues.whereToDisplayTranslatedText = "replaceOriginal";
     configValues.darkMode = "no";
     platformState.isMobile = false;
 
@@ -111,7 +115,7 @@ describe("showOriginal", () => {
 
     globalThis.fetch = vi.fn(() =>
       Promise.resolve({
-        text: () => Promise.resolve("#originalText { color: black; }"),
+        text: () => Promise.resolve("/* translateSelected.css stub */"),
       })
     );
     globalThis.matchMedia = vi.fn(() => ({
@@ -135,6 +139,11 @@ describe("showOriginal", () => {
 
   function getOverlayHost() {
     return document.body.querySelector("div.notranslate");
+  }
+
+  /** 最后一次 attachShadow 创建的 shadow root（宿主未上树时也能读模板）。 */
+  function lastShadowRoot() {
+    return attachShadowSpy.mock.results.at(-1)?.value ?? null;
   }
 
   async function showTooltip(showOriginal, node, pointer = { x: 24, y: 32 }) {
@@ -239,7 +248,7 @@ describe("showOriginal", () => {
     await flushMicrotasks();
 
     const overlayRoot = getOverlayHost()?.shadowRoot;
-    expect(overlayRoot?.getElementById("originalText")?.textContent).toBe("original text");
+    expect(overlayRoot?.getElementById("eOrigText")?.textContent).toBe("original text");
   });
 
   it("removeAll clears tracked nodes so hovering no longer shows a tooltip", async () => {
@@ -300,7 +309,7 @@ describe("showOriginal", () => {
     expect(overlayHost).not.toBeNull();
 
     const overlayRoot = overlayHost.shadowRoot;
-    expect(overlayRoot.getElementById("originalText").textContent).toBe(
+    expect(overlayRoot.getElementById("eOrigText").textContent).toBe(
       "translated text"
     );
   });
@@ -368,46 +377,162 @@ describe("showOriginal", () => {
     expect(overlayHost2).not.toBeNull();
 
     const overlayRoot = overlayHost2.shadowRoot;
-    expect(overlayRoot.getElementById("originalText").textContent).toBe(
+    expect(overlayRoot.getElementById("eOrigText").textContent).toBe(
       "original"
     );
   });
 
-  it("adds dark mode styles when darkMode is yes", async () => {
-    configValues.darkMode = "yes";
+  // ──────────────────────────────────────────────────────────────────────
+  // Plan 38: replaceOriginal-only gating (the newLine mode already shows the
+  // original text, so the hover bubble is redundant there)
+  // ──────────────────────────────────────────────────────────────────────
+
+  it("is disabled in newLine mode: no host, no bubble (plan 38 gate)", async () => {
+    configValues.whereToDisplayTranslatedText = "newLine";
+    const showOriginal = await loadModule();
+
+    expect(showOriginal.isEnabled).toBe(false);
+
+    const node = document.createElement("span");
+    node.textContent = "hello";
+    document.body.appendChild(node);
+
+    const overlayHost = await showTooltip(showOriginal, node);
+
+    expect(attachShadowSpy).not.toHaveBeenCalled();
+    expect(overlayHost).toBeNull();
+  });
+
+  it("is enabled in replaceOriginal mode: host built and bubble shown (plan 38 gate)", async () => {
+    configValues.whereToDisplayTranslatedText = "replaceOriginal";
+    const showOriginal = await loadModule();
+
+    expect(showOriginal.isEnabled).toBe(true);
+
+    const node = document.createElement("span");
+    node.textContent = "original text";
+    document.body.appendChild(node);
+
+    const overlayHost = await showTooltip(showOriginal, node);
+    expect(overlayHost).not.toBeNull();
+
+    const overlayRoot = overlayHost.shadowRoot;
+    expect(overlayRoot.getElementById("eOrigText").textContent).toBe("original text");
+    expect(overlayRoot.getElementById("eDivResult").style.display).toBe("block");
+  });
+
+  it("couples to whereToDisplayTranslatedText: newLine → replaceOriginal enables the feature", async () => {
+    configValues.whereToDisplayTranslatedText = "newLine";
+    const showOriginal = await loadModule();
+    const enabledObserver = vi.fn();
+
+    expect(showOriginal.isEnabled).toBe(false);
+
+    showOriginal.enabledObserverSubscribe(enabledObserver);
+    emitConfigChange("whereToDisplayTranslatedText", "replaceOriginal");
+    await flushMicrotasks();
+
+    expect(showOriginal.isEnabled).toBe(true);
+    expect(attachShadowSpy).toHaveBeenCalledOnce();
+    expect(enabledObserver).toHaveBeenCalledOnce();
+  });
+
+  it("couples to whereToDisplayTranslatedText: replaceOriginal → newLine stops and hides the bubble", async () => {
+    configValues.whereToDisplayTranslatedText = "replaceOriginal";
+    const showOriginal = await loadModule();
+    const enabledObserver = vi.fn();
+    showOriginal.enabledObserverSubscribe(enabledObserver);
+
+    const node = document.createElement("span");
+    node.textContent = "original";
+    document.body.appendChild(node);
+
+    const overlayHost = await showTooltip(showOriginal, node);
+    expect(overlayHost).not.toBeNull();
+    expect(getOverlayHost()).not.toBeNull();
+
+    emitConfigChange("whereToDisplayTranslatedText", "newLine");
+    await flushMicrotasks();
+
+    expect(showOriginal.isEnabled).toBe(false);
+    expect(getOverlayHost()).toBeNull();
+    expect(enabledObserver).toHaveBeenCalledOnce();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────
+  // Plan 38: skin unification — shared single source (translateSelected.css +
+  // panelShared dark/light constants), no local stylesheet
+  // ──────────────────────────────────────────────────────────────────────
+
+  it("renders the shared panel skin: #eDivResult + #eOrigText over translateSelected.css", async () => {
     const showOriginal = await loadModule();
 
     showOriginal.enable();
 
-    const shadowRoots = attachShadowSpy.mock.results.map((result) => result.value);
-    const tooltipRoot = shadowRoots.at(-1);
-    expect(tooltipRoot.getElementById("darkModeElement")).not.toBeNull();
+    const root = lastShadowRoot();
+    expect(root.getElementById("eDivResult")).not.toBeNull();
+    expect(root.getElementById("eOrigText")).not.toBeNull();
+    // 旧 id 词汇不再存在（改名对齐划词/悬停框）
+    expect(root.getElementById("originalText")).toBeNull();
+
+    // 样式单源：link + fetch 双通道都指向 translateSelected.css
+    const link = root.querySelector('link[rel="stylesheet"]');
+    expect(link.getAttribute("href")).toBe("/contentScript/css/translateSelected.css");
+    expect(globalThis.fetch).toHaveBeenCalledWith("/contentScript/css/translateSelected.css");
+
+    // fetch 文本注入 shadow（与悬停框同机制）
+    const injected = root.querySelector("style");
+    expect(injected.textContent).toContain("translateSelected.css stub");
   });
 
-  it("enables dark mode automatically when system preference is dark", async () => {
+  it("applies the shared dark scheme block when darkMode is yes", async () => {
+    configValues.darkMode = "yes";
+    const { PANEL_DARK_MODE_CSS_DARK } = await import(
+      "../../src/contentScript/panelShared.js"
+    );
+    const showOriginal = await loadModule();
+
+    showOriginal.enable();
+
+    const el = lastShadowRoot().getElementById("backdropFilterElement");
+    expect(el).not.toBeNull();
+    expect(el.textContent).toBe(PANEL_DARK_MODE_CSS_DARK);
+  });
+
+  it("applies the shared light scheme block when darkMode is no", async () => {
+    configValues.darkMode = "no";
+    const { PANEL_DARK_MODE_CSS_DARK, PANEL_DARK_MODE_CSS_LIGHT } = await import(
+      "../../src/contentScript/panelShared.js"
+    );
+    const showOriginal = await loadModule();
+
+    showOriginal.enable();
+
+    const el = lastShadowRoot().getElementById("backdropFilterElement");
+    expect(el).not.toBeNull();
+    expect(el.textContent).toBe(PANEL_DARK_MODE_CSS_LIGHT);
+
+    // 亮/暗两块必须是不同文本（没有第三块可漂移进来）
+    expect(PANEL_DARK_MODE_CSS_LIGHT).not.toBe(PANEL_DARK_MODE_CSS_DARK);
+    expect(PANEL_DARK_MODE_CSS_LIGHT).toContain("rgba(248, 248, 248, 0.98)");
+  });
+
+  it("honors automatic dark mode when the system preference is dark", async () => {
     configValues.darkMode = "auto";
     globalThis.matchMedia = vi.fn(() => ({
       matches: true,
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
     }));
+    const { PANEL_DARK_MODE_CSS_DARK } = await import(
+      "../../src/contentScript/panelShared.js"
+    );
     const showOriginal = await loadModule();
 
     showOriginal.enable();
 
-    const shadowRoots = attachShadowSpy.mock.results.map((result) => result.value);
-    const tooltipRoot = shadowRoots.at(-1);
-    expect(tooltipRoot.getElementById("darkModeElement")).not.toBeNull();
-  });
-
-  it("does not add dark mode styles when darkMode is no", async () => {
-    configValues.darkMode = "no";
-    const showOriginal = await loadModule();
-
-    showOriginal.enable();
-
-    const shadowRoots = attachShadowSpy.mock.results.map((result) => result.value);
-    const tooltipRoot = shadowRoots.at(-1);
-    expect(tooltipRoot.getElementById("darkModeElement")).toBeNull();
+    const el = lastShadowRoot().getElementById("backdropFilterElement");
+    expect(el).not.toBeNull();
+    expect(el.textContent).toBe(PANEL_DARK_MODE_CSS_DARK);
   });
 });

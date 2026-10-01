@@ -407,6 +407,9 @@
   "lblShowOriginalTextWhenHovering": {
     "message": "Visa originalspråket när du håller muspekaren över texten"
   },
+  "lblShowOriginalTextWhenHoveringNote": {
+    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+  },
   "lblShowReleaseNotes": {
     "message": "Visa versionsfakta vid uppdatering"
   },
