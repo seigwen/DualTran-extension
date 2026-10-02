@@ -8,7 +8,7 @@ export function createAiOptionsController({
   config,
   refreshCurrentProvider,
   refreshers = {},
-  onWarn = console.warn,
+  onWarn = (message, error) => console.warn(message, error),
 }) {
   function getCurrentProvider() {
     return config?.get?.("aiProvider") || aiProviderSelect?.value || "openai";

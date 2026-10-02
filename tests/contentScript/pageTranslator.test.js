@@ -788,3 +788,50 @@ describe("译文颜色规则对称性：_applyAiColorToTranslatedElement（issue
     expect(translatedElement.style.color).toBe("rgb(255, 0, 0)");
   });
 });
+
+describe("emitDualTranDebugLog (production console silence, plan 39 / issue #131)", () => {
+  it('routes "error" to console.error exactly once, marker and payload untouched', async () => {
+    const { emitDualTranDebugLog } = await import("../../src/contentScript/pageTranslator.js");
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    emitDualTranDebugLog("error", "[DualTran][TestMarker]", { n: 1 });
+
+    expect(errorSpy).toHaveBeenCalledTimes(1);
+    expect(errorSpy).toHaveBeenCalledWith("[DualTran][TestMarker]", { n: 1 });
+    expect(logSpy).not.toHaveBeenCalled();
+  });
+
+  it('routes "log" to console.log exactly once, marker and payload untouched', async () => {
+    const { emitDualTranDebugLog } = await import("../../src/contentScript/pageTranslator.js");
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    emitDualTranDebugLog("log", "[DualTran][TestMarker]", [1, 2]);
+
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith("[DualTran][TestMarker]", [1, 2]);
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+
+  it("negative: an unknown level falls back to console.log (console[level] || console.log semantics)", async () => {
+    const { emitDualTranDebugLog } = await import("../../src/contentScript/pageTranslator.js");
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    emitDualTranDebugLog("trace", "[DualTran][TestMarker]", "payload");
+
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith("[DualTran][TestMarker]", "payload");
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+});
+
+// ── Implementation-point map (CLAUDE.md rule: 生产产物控制台静默规则, plan 39 / #131) ──
+// emitDualTranDebugLog (pageTranslator.js) — debug output must be two literal
+//   branches so terser's drop_console can prove the body dead; indirection
+//   forms (console[level], log: console.log, default params, typeof guards)
+//   survive minification and ship to users. Pinned by the truth-table cells
+//   above ("error" -> console.error x1 / "log" -> console.log x1 / negative:
+//   unknown level falls back to console.log) and, at the artifact level, by
+//   tests/manifest/buildArtifactGuards.test.js N1.

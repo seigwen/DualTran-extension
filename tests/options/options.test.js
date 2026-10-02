@@ -495,6 +495,11 @@ function firefoxBrowserStub() {
 async function loadOptionsModule(overrides = {}, env = {}) {
   resetConfig(overrides);
   createOptionsDom();
+  // Optional: drop specific elements after the shared DOM is built, so a test
+  // can exercise the missing-element path ($ → debugLog → null proxy, plan 39).
+  for (const id of env.omitElementIds || []) {
+    document.getElementById(id)?.remove();
+  }
   delete globalThis.browser;
   installBrowserGlobals(env);
   vi.resetModules();
@@ -1265,4 +1270,39 @@ describe("options/options — feedback section (plan 35)", () => {
     expect(body).toContain("DualTran: 2.1.30");
     expect(body).toContain("Target language: zh-CN");
   });
+
+  it("missing element: $ routes the miss through the deletable debugLog sink (plan 39 / issue #131)", async () => {
+    const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+
+    // Omitted after the shared DOM is built — the module-eval $() lookups for
+    // this element must then report the miss through the sink and fall through
+    // to the null-safe proxy (the .value/.onchange assignments below would throw
+    // if $ returned undefined instead).
+    await loadOptionsModule({}, { omitElementIds: ["apiKeyAnthropic"] });
+
+    expect(debugSpy).toHaveBeenCalledWith(
+      "[options.js] Element not found for selector:",
+      "#apiKeyAnthropic"
+    );
+  });
+
+  it("negative: a present element never produces a missing-element debug line", async () => {
+    const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+
+    await loadOptionsModule();
+
+    const anthropicMisses = debugSpy.mock.calls.filter(
+      ([label, selector]) =>
+        label === "[options.js] Element not found for selector:" && selector === "#apiKeyAnthropic"
+    );
+    expect(anthropicMisses).toEqual([]);
+  });
 });
+
+// ── Implementation-point map (CLAUDE.md rule: 生产产物控制台静默规则, plan 39 / #131) ──
+// debugLog (options.js) — the module-level fixed-arity sink for $() misses,
+//   declared above every call site so module-eval misses reach it (a later
+//   declaration would be a temporal-dead-zone ReferenceError on the real
+//   options page). Pinned by the missing-element cell above and the
+//   present-element negative; artifact level by
+//   tests/manifest/buildArtifactGuards.test.js N1.

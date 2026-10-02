@@ -1,6 +1,12 @@
   // Helper: Shorthand utility: use $ as alias for document.querySelector (must be defined early before first use of $)
   // Returns the matched DOM element; if not found, returns a null-safe proxy to avoid TypeError on subsequent property access (e.g. .onchange = ...).
   var _rawQS = document.querySelector.bind(document);
+  // Debug-only sink (plan 39, issue #131): a fixed-arity arrow so the production
+  // terser pass (drop_console) can prove the body dead and remove it. A computed
+  // (`console[level]`) or value-position (`log: console.log`) reference form
+  // survives minification instead and could ship console output to users.
+  // Declared before every $() call site: module-eval misses reach it too.
+  const debugLog = (label, value) => console.debug(label, value);
   // Cached null-safe proxy object: absorbs all property reads/writes, method calls, and addEventListener operations without throwing.
   // Uses Proxy instead of a dummy DOM element because the referenced IDs involve different element types like <select>, <input>, etc.,
   // and needs to be compatible with various properties like .options, .selectedIndex, .checked, .value, .style, etc.
@@ -58,10 +64,9 @@
   var $ = function $(selector) {
     var el = _rawQS(selector);
     if (el) return el;
-    // If element not found, print a warning for debugging, then return the null-safe proxy
-    if (typeof console !== "undefined" && console.debug) {
-      console.debug("[options.js] Element not found for selector:", selector);
-    }
+    // If element not found, emit a debug line through the module-level sink
+    // (debugLog — deletable in production), then return the null-safe proxy
+    debugLog("[options.js] Element not found for selector:", selector);
     return _nullProxy;
   };
   // Helper: get i18n text with a default fallback (to avoid empty strings when some locales lack a key)
