@@ -208,6 +208,13 @@ tests/
 - 参考实现：`floatingBtn.behavior.test.js` 意图源完备性 4 格 + `hoverBtnBehavior.integration.test.js` 意图事件套件（E1/E2/E3 + D6 闸门格）。
 - **背离态正面清单**：断言中「高亮 ≠ 可见」的合法形态必须显式声明（AI 在飞 / AI 失败），与新派生规则的单元格成对出现。
 
+### 静默通道完备性（Silent Channel Completeness，#134）
+
+**规则：** 「内部/静默」入口（`restorePage(silent=true)` 类）的抑制必须覆盖**全部通告通道**——测试须用探针遍历每个通道（observer 广播序列 + SW `setPageLanguageState` 消息序列 + 意图事件），断言静默路径零泄漏；同时须有非静默对照组（用户级调用保持广播），防过度静默。
+
+- 参考实现：`pageTranslator.navRestore.integration.test.js` T10（silent 零泄漏：两通道序列均 == `["translated"]`；RED 实证：修复前两通道独立泄漏 `["original","translated"]`）+ T11（非 silent 对照：`restorePage()` → 两通道 == `["original"]`）。
+- 背景/症状（#134）：silent 只 gate 了意图事件通道；observer/SW 通道泄漏的 mid-run "original" 让 floatingBtn 执行用户级 restore 语义（清 `aiModeActive` + bump `aiModeEpoch`），E1 错音——SPA 回退/前进后双按钮组错亮 Google（页面实际为 AI 译文）。E2E `ai-nav-restore.mjs` 场景 1 步骤 9/10 锁回退 + 前进双腿（悬浮 + 悬停双组 + `assertUiStateMatchesEngine`）。
+
 ### 划词面板不变量（Selection Panel Invariants，plan 31 / #106）
 
 **规则：划词面板底栏 G/A 按钮只表意图——任何状态下 label 恒为「Google」/「AI」、无任何装饰（✓/✕/状态文字/tooltip 变异/按钮染色）；翻译状态（loading spinner / 译文 / 错误文案）只在译文元素 `eSelTextTrans` 内呈现。**
