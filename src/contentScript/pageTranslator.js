@@ -1926,14 +1926,17 @@ function removeExtraDelimiter(textContext) {
  * DevTools, but it also triggered CSP violations on strict pages. Keeping the
  * log inside the isolated world preserves diagnostics without breaking sites.
  *
- * @param {"log"|"warn"|"error"} level
+ * @param {"log"|"error"} level — "error" routes to console.error; any other value falls back to console.log
  * @param {string} marker
  * @param {*} payload
  * @returns {void}
  */
 function emitDualTranDebugLog(level, marker, payload) {
-  const logger = console[level] || console.log;
-  logger(marker, payload);
+  if (level === "error") {
+    console.error(marker, payload);
+    return;
+  }
+  console.log(marker, payload);
 }
 
 /**
@@ -4917,4 +4920,4 @@ window.addEventListener("beforeunload", (event) => {
   })
 });
 
-export { backgroundTranslateSingleText, pageTranslator, aiTranslateText, _shouldSkipAiTranslation, getAiAppliedStorageKey, saveAiAppliedFlag, checkAiAppliedFlag, removeAiAppliedFlag, _registerAiForShowOriginal }
+export { backgroundTranslateSingleText, pageTranslator, aiTranslateText, _shouldSkipAiTranslation, getAiAppliedStorageKey, saveAiAppliedFlag, checkAiAppliedFlag, removeAiAppliedFlag, _registerAiForShowOriginal, emitDualTranDebugLog }

@@ -217,7 +217,7 @@ const boundStorageSet = chrome.storage.local.set.bind(chrome.storage.local)
 
 const runStorageEffects = createStorageEffectExecutor({
   setStorage: boundStorageSet,
-  log: console.log,
+  log: (label, value) => console.log(label, value),
 })
 
 const runTabEffects = createTabEffectExecutor({
@@ -234,7 +234,7 @@ chrome.webRequest.onHeadersReceived.addListener(
       executeMimeTypeHeaderWrite({
         details,
         getStorage: boundStorageGet,
-        log: console.log,
+        log: (label, value) => console.log(label, value),
         applyStorageEffects: runStorageEffects,
       });
     }
@@ -258,7 +258,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   executeOpenAiRequestTracking(request, {
     getStorage: boundStorageGet,
-    logError: console.error,
+    logError: (error) => console.error(error),
     applyStorageEffects: runStorageEffects,
   }).catch((error) => {
     console.error("[DualTran][OpenAiRequestTrackingCatch]", error)
