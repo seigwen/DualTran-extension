@@ -633,3 +633,96 @@ describe("restorePage → 清除 AI 标记", () => {
     }
   });
 });
+
+// ═══════════════════════════════════════════════════════════
+// Test 10/11（#134）：静默恢复的通道完备性
+//
+// translatePage() 的第一步是 restorePage(true)（silent）。silent 参数
+// （plan 30）只 gate 了意图事件（E2），pageLanguageState 的 observer 广播
+// 与 SW setPageLanguageState 消息仍然无条件发出——内部恢复泄漏的
+// "original" 让 floatingBtn 的 observer handler 执行用户级 restore 语义
+// （清空 aiModeActive + bump aiModeEpoch），E1 随后播报 "google"，而本次
+// 运行仍在恢复 AI 译文 → SPA 回退/前进后双按钮组高亮错位（issue #134）。
+//
+// T10：静默路径必须零泄漏（修复前 observer/SW 序列均为
+//      ["original","translated"] → RED；修复后 ["translated"]）。
+// T11：非 silent 路径必须保持广播（防过度静默的对照组，两版代码均绿）。
+// ═══════════════════════════════════════════════════════════
+
+describe("静默恢复通道完备性（#134）", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+    Object.keys(mockState.store).forEach(k => delete mockState.store[k]);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  /** 装载模块并挂上双通道探针（observer 广播 + SW setPageLanguageState 消息）。 */
+  async function loadWithChannelProbes(testUrl) {
+    const dom = new JSDOM("<!DOCTYPE html><html><body><p>hello world</p></body></html>", { url: testUrl });
+    globalThis.window = dom.window;
+    globalThis.document = dom.window.document;
+    globalThis.location = dom.window.location;
+    Object.defineProperty(globalThis, "navigator", {
+      configurable: true, writable: true, value: dom.window.navigator,
+    });
+    patchSessionStorage(dom);
+
+    const swStates = [];
+    const sendMessageSpy = vi.fn((payload, callback) => {
+      if (payload?.action === "setPageLanguageState") swStates.push(payload.pageLanguageState);
+      if (typeof callback === "function") {
+        if (payload?.action === "getTabHostName") callback("github.com");
+        else if (payload?.action === "detectTabLanguage") callback("en");
+        else callback();
+      }
+    });
+    createTestGlobals(sendMessageSpy);
+
+    const { pageTranslator } = await import("../../src/contentScript/pageTranslator.js");
+    await vi.waitFor(() => {
+      expect(pageTranslator.translatePage).toBeTypeOf("function");
+    }, { timeout: 5000 });
+
+    const observed = [];
+    pageTranslator.onPageLanguageStateChange((s) => observed.push(s));
+    return { pageTranslator, observed, swStates };
+  }
+
+  it("T10: translatePage 的内部静默 restore 不向 observer / SW 通道泄漏 \"original\"", async () => {
+    const { pageTranslator, observed, swStates } = await loadWithChannelProbes(
+      "https://github.com/obra/superpowers/projects"
+    );
+
+    pageTranslator.translatePage("fr");
+
+    // 修复前：["original","translated"]（内部恢复泄漏 → floatingBtn 高亮错位）→ RED
+    expect(observed).toEqual(["translated"]);
+    // 修复前：["original","translated"]（SW 消息通道同样泄漏）→ RED
+    expect(swStates).toEqual(["translated"]);
+    // 内部恢复不得改变最终状态语义：运行结束后页面是 translated
+    expect(pageTranslator.getPageLanguageState()).toBe("translated");
+
+    pageTranslator.restorePage(true);
+  });
+
+  it("T11: 用户级 restorePage()（非 silent）仍向双通道播报 \"original\"（防过度静默）", async () => {
+    const { pageTranslator, observed, swStates } = await loadWithChannelProbes(
+      "https://github.com/obra/superpowers/releases"
+    );
+
+    pageTranslator.translatePage("fr");
+    observed.length = 0;
+    swStates.length = 0;
+
+    pageTranslator.restorePage();
+
+    expect(observed).toEqual(["original"]);
+    expect(swStates).toEqual(["original"]);
+
+    pageTranslator.restorePage(true);
+  });
+});

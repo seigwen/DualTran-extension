@@ -4535,15 +4535,25 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     disableMutatinObserver();
 
     pageLanguageState = "original";
-    chrome.runtime.sendMessage({
-      action: "setPageLanguageState",
-      pageLanguageState,
-    });
+    // #134: silent=true (translatePage's internal restore) must not announce
+    // "original" on ANY channel. The leaked observer broadcast previously ran
+    // the floating button's full user-level restore semantics mid-run
+    // (cleared aiModeActive + bumped aiModeEpoch), so E1 then announced
+    // "google" while the run restored AI text — both button groups highlighted
+    // Google after SPA back/forward navigation. The same synchronous run
+    // re-declares "translated" below, so consumers still converge; a
+    // user-initiated restore (silent=false) keeps both channels untouched.
+    if (!silent) {
+      chrome.runtime.sendMessage({
+        action: "setPageLanguageState",
+        pageLanguageState,
+      });
 
-     // Call all callbacks listening for "pageLanguageState" change events
-    pageLanguageStateObservers.forEach((callback) =>
-      callback(pageLanguageState)
-    );
+       // Call all callbacks listening for "pageLanguageState" change events
+      pageLanguageStateObservers.forEach((callback) =>
+        callback(pageLanguageState)
+      );
+    }
     currentPageLanguage = originalTabLanguage;
 
     // E2 (plan 30): announce the restore intent AFTER the mirror update and
