@@ -34,6 +34,8 @@ import {
   waitForContentScriptInjected,
   waitForPageTranslatorReady,
   sendMessageToTab,
+  waitForHostState,
+  assertUiStateMatchesEngine,
 } from "./setup.mjs";
 
 export const name = "ai-nav-restore";
@@ -200,6 +202,17 @@ async function verifyAiRestoreAfterSpaBackNav(page, serviceWorker, spaSourceUrl,
     throw new Error("AI translation did not produce any mock response on SPA source page");
   }
 
+  // ── 步骤 3b（#134 前置）：AI 点击后悬浮组必须已是 AI 高亮 ──
+  // 后续回退/前进断言的前置条件：若点击后高亮已错，后面的失败无法归因 #134。
+  const highlightAfterAiClick = await getFloatingBtnHighlight(page);
+  if (highlightAfterAiClick !== "ai") {
+    throw new Error(
+      `Premise failed: after the AI click the floating button should highlight "ai", ` +
+        `got "${String(highlightAfterAiClick)}"`
+    );
+  }
+  console.log("  Step 3b: AI-click highlight premise OK (floating group highlights ai).");
+
   // ── 步骤 4：SPA 导航到目标页面（点击链接，SPA 脚本拦截）──
   console.log("  Step 4: SPA navigate to target page (click link, SPA intercepts)");
   await page.click("#test-link");
@@ -224,6 +237,49 @@ async function verifyAiRestoreAfterSpaBackNav(page, serviceWorker, spaSourceUrl,
   if (stateOnTarget.translatedCount > 0) {
     console.log("  Note: Target page has translated nodes (possibly from auto-translate).");
   }
+
+  // ── 步骤 4b（#134 forward 支线前置）：在 target 页也进行 AI 翻译 ──
+  // 复刻用户原始流程（projects AI → pulse AI → 后退 → 前进）：target 页翻译并
+  // AI 成功后写入其 sessionStorage 标记，前进支线才能走 popstate 恢复路径
+  // （与回退支线同一条链）。
+  console.log("  Step 4b: Translate + AI-translate the target page (user flow: AI on both pages)");
+  await sendMessageToTab(serviceWorker, page.url(), { action: "translatePage", targetLanguage: "fr" });
+  await page.waitForFunction(
+    () => document.querySelectorAll("translated").length > 0,
+    null,
+    { timeout: 15_000 }
+  );
+  await waitForHostState(page, "floating", "healthy", { label: "target page after SPA nav" });
+  await page.evaluate(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    host?.shadowRoot?.getElementById("btnAi")?.click();
+  });
+  await waitForAiTranslation(page, expectedAiSnippet);
+  const highlightAfterTargetAi = await getFloatingBtnHighlight(page);
+  if (highlightAfterTargetAi !== "ai") {
+    throw new Error(
+      `Premise failed: after the AI click on the SPA target page the floating button ` +
+        `should highlight "ai", got "${String(highlightAfterTargetAi)}"`
+    );
+  }
+  // 前进支线前置：target 页的 AI 标记必须已写入（saveAiAppliedFlag 随 AI 到达写入）
+  const targetMarkerPath = new URL(spaTargetUrl).pathname;
+  try {
+    await page.waitForFunction(
+      (p) => {
+        try { return sessionStorage.getItem("dualtran:aiApplied:" + location.origin + p) === "true"; }
+        catch (_) { return false; }
+      },
+      targetMarkerPath,
+      { timeout: 10_000 }
+    );
+  } catch (_) {
+    throw new Error(
+      "Premise failed: AI marker for the SPA target page was not written - " +
+        "the forward leg cannot exercise the popstate restore path"
+    );
+  }
+  console.log("  Step 4b: target page AI translated, highlight ai, sessionStorage marker present.");
 
   // ── 步骤 5：点击浏览器回退按钮 ──
   console.log("  Step 5: Click browser back button (triggers popstate → SPA fetch + body replace)");
@@ -309,6 +365,36 @@ async function verifyAiRestoreAfterSpaBackNav(page, serviceWorker, spaSourceUrl,
   }
 
   console.log("  AI translation successfully restored after SPA back navigation.");
+
+  // ── 步骤 9（#134 回归断言）：回退后双按钮组必须都高亮 AI ──
+  // 用户报告：回退后页面正常显示 AI 译文，但悬浮按钮组和悬停按钮组却高亮 Google。
+  console.log("  Step 9: Assert floating + hover button groups highlight AI after SPA back nav (#134)");
+  await assertFloatingAndHoverHighlightAi(page, serviceWorker, "after SPA back nav");
+  console.log("  Step 9 PASSED: back-leg highlight desync is gone.");
+
+  // ── 步骤 10（#134 forward 支线）：前进到 target 页，同样断言 ──
+  console.log("  Step 10: Click browser forward button -> same assertions on the target page");
+  await page.goForward();
+  await page.waitForFunction(
+    () => location.pathname.includes("spa-target.html"),
+    null,
+    { timeout: 10_000 }
+  );
+  // popstate 恢复链与回退支线同形：arm → ~1500ms → translatePage（先清空快照中的
+  // 旧 <translated> 节点，再重新翻译）。等过运行窗口后再等 AI 译文重新落地。
+  await page.waitForTimeout(2500);
+  try {
+    await waitForAiTranslation(page, expectedAiSnippet, 60_000);
+  } catch (err) {
+    const s = await checkTranslationState(page);
+    throw new Error(
+      `AI translation NOT restored after SPA forward navigation. ` +
+        `translatedCount=${s.translatedCount}, aiProcessed=${s.aiProcessedCount}. ` +
+        `Original error: ${err.message}`
+    );
+  }
+  await assertFloatingAndHoverHighlightAi(page, serviceWorker, "after SPA forward nav");
+  console.log("  Step 10 PASSED: forward-leg highlight desync is gone.");
 }
 
 /**
@@ -389,6 +475,66 @@ async function getFloatingBtnHighlight(page) {
     if (read("btnAi")) return "ai";
     return null;
   });
+}
+
+/**
+ * 读取悬停（singleton）按钮组当前高亮按钮（#134）。
+ *
+ * 悬停组按需出现：先对已注册块派发冒泡 mouseover（悬停委派路径——与
+ * navigation-recovery.mjs 的 #65 调色板读取同一路径），等组显示后读活动按钮。
+ * @param {import("playwright").Page} page
+ * @returns {Promise<"original"|"google"|"ai"|null>}
+ */
+async function getSingletonBtnHighlight(page) {
+  await page.evaluate(() => {
+    const el =
+      document.querySelector("[data-dualtran-block]") || document.querySelector("translated");
+    if (!el) throw new Error("hover group check: no translated block found to hover");
+    el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+  });
+  await page.waitForTimeout(200);
+  return page.evaluate(() => {
+    const host = document.getElementById("dualtran-singleton-btn-host");
+    const root = host?.shadowRoot || null;
+    const read = (selector) => {
+      const el = root?.querySelector(selector) || null;
+      return !!el?.classList.contains("dualtran-btn-active");
+    };
+    if (read(".dualtran-original-btn")) return "original";
+    if (read(".dualtran-google-btn")) return "google";
+    if (read(".dualtran-ai-btn")) return "ai";
+    return null;
+  });
+}
+
+/**
+ * #134 断言：SPA 回退/前进后页面显示 AI 译文时，悬浮按钮组与悬停按钮组
+ * 必须都高亮 AI（用户报告的症状：页面是 AI 译文，两组按钮错亮 Google）。
+ * 末尾用 assertUiStateMatchesEngine 交叉核对 DOM 高亮与意图 SSOT 一致。
+ */
+async function assertFloatingAndHoverHighlightAi(page, serviceWorker, label) {
+  await page.waitForTimeout(1000); // 收敛窗口：意图事件先于译文到达，留余量
+
+  const floating = await getFloatingBtnHighlight(page);
+  if (floating !== "ai") {
+    throw new Error(
+      `BUG (#134): ${label} - the page shows the AI translation but the floating ` +
+        `button group highlights "${String(floating)}" instead of "ai". ` +
+        `This is the reported SPA back/forward highlight desync.`
+    );
+  }
+
+  const singl = await getSingletonBtnHighlight(page);
+  if (singl !== "ai") {
+    throw new Error(
+      `BUG (#134): ${label} - the page shows the AI translation but the hover ` +
+        `button group highlights "${String(singl)}" instead of "ai". ` +
+        `This is the reported SPA back/forward highlight desync.`
+    );
+  }
+
+  await assertUiStateMatchesEngine(page, serviceWorker, { expectTranslated: true });
+  console.log(`  Floating + hover button groups both highlight AI ${label}, SSOT consistent.`);
 }
 
 /**
