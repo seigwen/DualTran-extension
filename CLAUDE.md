@@ -307,6 +307,15 @@ Content Script (fetchSSE.js)
 - **实现点清单（规则对称性）：** `showOriginal.isEnabled`（门控谓词单点）、`showOriginal.enable`（宿主建/拆 + 谓词守卫）、`showOriginal.disable`（拆除）、`showOriginal.add`（节点注册）、`showOriginal.removeAll`（注册清理）、`enabledObserverSubscribe`（联动通知）、`backdropFilterElement`（暗色载体单点）、`eDivResult`（气泡容器 id）、`eOrigText`（气泡文本 id）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - **测试：** `tests/contentScript/showOriginal.test.js`（18 格：门控 4 组合真值表 / 联动双向 / 皮肤模板单源 / 暗亮常量格）；E2E `options-behavior.mjs` O-B 三相位（B1 newLine 负向悬停无气泡 / B2 切 replaceOriginal 已译页自动重渲染 + 悬停出现 / B3 options 备注结构）+ `popup-behavior.mjs` P-B（显式 pin replaceOriginal）。
 
+**RULE: 生产产物控制台静默规则（production console silence rule, plan 39 / #131）—— 调试日志必须经 terser 可识别的字面量调用形态；禁止一切「terser 看不穿」的引用形态（计算属性 / 值位置引用 / 默认参数 / 守卫读）：**
+
+- **症状/机制：** `webpack.production.js` 已设 terser `drop_console: true`，但 terser 只能删除**可证明为死代码的字面量调用**。凡经以下四种形态到达 console 的调用**原样穿透**进发布包：计算属性访问（`console[level]`）、值位置引用（`log: console.log`）、默认参数（`onWarn = console.warn`）、守卫读（`typeof console !== "undefined" && console.debug`）。已发布 2.1.30 实测 6 处幸存（AST 7 个引用），最小复现输出 13 条控制台消息（SW 10 条 + 页面 2 条 + 设置页 1 条）。
+- **裁决（数组形式已被实测否决）：** 保留布尔 `drop_console: true` 全删；**禁止**改为数组形式（`["log","info","debug"]`）——实测会揭开 70 条此前被静默吞掉的潜伏消息（设置页一开刷 42 条 debug + 28 条 warn），与「控制台静默」目标反向。
+- **允许形态：** 固定形参箭头 + 字面量 console 调用（`(label, value) => console.log(label, value)`），terser 可证明 body 死代码并整体删除；生产构建中该函数体被删为空（`(label, value) => {}`），实参形态差异只影响 dev 构建外观。
+- **实现点清单（规则对称性）：** `emitDualTranDebugLog`（pageTranslator.js，字面量两分支——`"error"` → console.error、其余 → console.log；禁止 `console[level]`）、`debugLog`（options.js，模块级固定形参 sink；声明位置必须早于所有 `$()` 调用点——模块求值期未命中也会到达它，晚声明 = TDZ ReferenceError）。
+- **测试：** `tests/manifest/buildArtifactGuards.test.js`（N1 产物级 AST 零 console 引用——对 dist/chrome/**/*.js 逐文件解析，含计算属性与 window/globalThis/self 变体；N2 HTML 本地引用可解析）；`tests/contentScript/pageTranslator.test.js`（emitDualTranDebugLog 真值表：error/log/未知 level 回退，负向格）；`tests/options/options.test.js`（未命中经 debugLog + 存在元素负向格）。
+- **门禁纪律：** 改动 `sw.js` 的 `log`/`logError` 注入点、`pageTranslator` 调试发点或 options 的 `$`/`debugLog` 后，必须跑 `buildArtifactGuards.test.js`（产物级 N1 是唯一能验「terser 是否删得掉」的手段；静态 grep 会误判 provider URL 字符串）。
+
 **基础设施假设清单（Infrastructure Assumptions，M1 issue #31）—— 每个假设必须有测试引用（M3 用 check-infra-assumptions.js 强制）：**
 - **假设：** `document.body` 元素可能被框架整体替换（Turbo Drive 回退导航 `replaceWith`，2026-09-10 github.com 实测）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav」2 个
 - **假设：** `document.documentElement`（`<html>`）在 SPA 导航中存活（实测 `htmlReplaced: false`）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav: body element replaced immediately → host must be recreated」
