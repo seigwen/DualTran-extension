@@ -291,6 +291,16 @@ tests/
   - 引擎 original → {highlight: original, displayMode: original}
 - 背景：PR #23 修复前 pageTranslator 无状态 getter，UI 无法查询、测试无法断言初始化逻辑——"不可测代码"的典型。
 
+### 生产产物控制台静默（Production Console Silence，plan 39 / #131）
+
+**规则：调试日志的代码形态必须经 terser 可识别；改动日志注入点后必须跑产物级守卫。**
+
+- **产物级门禁：** `tests/manifest/buildArtifactGuards.test.js` — N1 对 `dist/chrome/**/*.js` 逐文件 AST 扫描（收集**全部** console 成员引用，含 `console[...]` 计算形态与 `window/globalThis/self.console` 变体，断言逐文件为空）；N2 对 `dist/chrome/**/*.html` 断言每个本地 `<script src>` / `<link href>` 在磁盘存在。**必须 AST 不能正则**——产物内合法包含 8 处 provider URL 字符串（`https://console.anthropic.com/keys` 等），正则无法区分引用与字面量文本（实测纯 grep 47 个 token / 40 个是 URL）。
+- **触发条件：** 修改 `sw.js` 的 `log`/`logError` 注入点、`pageTranslator.js` 调试发点、options 的 `$`/`debugLog` → 跑 `npx vitest run tests/manifest/buildArtifactGuards.test.js`（依赖先 `npm run build`；测试对未构建的 dist 自动 skip——CI 的 build 步骤是它生效的前提）。
+- **形态禁令：** 禁止把 console 放在「计算属性 / 值位置引用 / 默认参数 / `typeof` 守卫读」四种形态——terser `drop_console` 对它们不可见，会原样发布（2.1.30 实测 6 处）。允许形态：固定形参箭头 + 字面量调用（体可被证明死代码）。
+- **dev/prod 语义说明：** 固定 2 形参箭头在 dev（不剥离）下 1 参调用多打一个 `undefined` 尾巴——外观差异，非功能差异；生产下 body 整体删除。
+- **E2E 盲区（本规则的由来）：** 现有 E2E 只把 error 级消息当信号（`ErrorCollector` 收 error 级；`printSummary` 的致命集只含 `chrome://extensions` / `page-error:*` / `sw-console`），log 级泄漏与 `page-console:main` 的 404 全部静默放行——产物级守卫补的是这个洞。
+
 ### 通用规则
 
 1. **jsdom integration tests** — after calling `addTranslatedContent` or `translateResults`, assert element count invariant (#1).
