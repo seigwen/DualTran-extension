@@ -623,6 +623,51 @@ async function stepAssertFloatingVisible(page) {
 }
 
 /**
+ * assert-highlight <mode> (plan 40 part C / #141): read the floating button
+ * group's shadow highlight and assert it equals the expected mode, AND that
+ * the host is healthy (a highlight read on a dead host is meaningless).
+ *
+ * First real-site highlight detection surface for the desync family — the
+ * Google side is asserted on real sites (bug7 back/forward legs); the AI side
+ * stays E2E-covered by design (canary scope: real sites run Google
+ * translation; AI needs keys — see canary scope statement in the docs).
+ *
+ * mode: "google" | "ai" | "original" — exact match required (no "any").
+ */
+async function stepAssertHighlight(page, mode) {
+  const HEALTHY_DEADLINE = Date.now() + 6_000;
+  let state = null;
+  while (Date.now() < HEALTHY_DEADLINE) {
+    state = await page.evaluate((id) => {
+      const host = document.getElementById(id);
+      if (!host) return { host: "absent" };
+      const root = host.shadowRoot || null;
+      const read = (btnId) => !!root?.getElementById(btnId)?.classList.contains("dualtran-floating-btn-active");
+      return {
+        host: "present",
+        hasButtons: !!root?.getElementById("btnGoogle"),
+        original: read("btnOriginal"),
+        google: read("btnGoogle"),
+        ai: read("btnAi"),
+      };
+    }, HOST_SELECTORS.floating);
+    if (state.host === "present" && state.hasButtons) break;
+    await page.waitForTimeout(250);
+  }
+  if (!state || state.host !== "present" || !state.hasButtons) {
+    throw new Error(`floating button group not healthy for the highlight assertion — ${JSON.stringify(state)}`);
+  }
+  const actual = state.original ? "original" : state.google ? "google" : state.ai ? "ai" : "none";
+  if (actual !== mode) {
+    throw new Error(
+      `highlight mismatch: expected "${mode}" but the floating button group highlights "${actual}" ` +
+        `(${JSON.stringify(state)}) — highlight-desync family detection (plan 40)`
+    );
+  }
+  return `highlight=${actual} (host healthy)`;
+}
+
+/**
  * Inject a Turbo snapshot shell on the singleton host and poke the hover
  * route: the hover path is the singleton's only recovery entry point in
  * degraded states and must rebuild a functional host (issue #40).
@@ -795,6 +840,8 @@ async function executeStep(page, step, scenario, context) {
       return stepSeedPosition(step, context);
     case "assert-floating-visible":
       return stepAssertFloatingVisible(page);
+    case "assert-highlight":
+      return stepAssertHighlight(page, step.mode);
     case "inject-shell-hover":
       return stepInjectShellHover(page);
     case "inject-duplicate-hover":

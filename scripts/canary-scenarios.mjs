@@ -29,12 +29,20 @@
  *                 BEFORE the following goto (#78 saved-position lock)
  *   - assert-floating-visible : floating layer must intersect the viewport
  *                 ∧ visiblePct ≥ 50 (user-visible #78 lock)
+ *   - assert-highlight <mode> : floating button group's shadow highlight
+ *                 must equal mode ("google" | "ai" | "original"; exact
+ *                 match, no "any") ∧ host healthy (plan 40 part C / #141:
+ *                 highlight-desync family detection on real sites)
  *
  * Scope notes:
  *   - All scenarios are Google-only. The canary has no API key; AI paths
  *     are covered by the browser E2E suite. Deliberately NOT mocking AI
  *     here: a real-site canary that secretly runs mocks would poison the
  *     signal semantics doc 13 warns about.
+ *   - Highlight assertions (plan 40 part C / #141) follow the same scope:
+ *     the Google side IS asserted on real sites (bug7 back/forward legs);
+ *     the AI side stays E2E-covered (no keys on the canary runner — AI
+ *     highlight modes are never asserted here by design).
  *   - Assertions are tri-state (absent/shell/healthy) — see
  *     tests/shared/host-state.mjs. Translation steps additionally run the
  *     translation-reality gate (nonEmpty floor ∧ CJK ratio — plan 34);
@@ -114,6 +122,11 @@ export const SCENARIOS = [
       { type: "forward" },
       { type: "back" },
       { type: "assert-translated" }, // plan 34: lock "translation still real after back-nav"
+      // plan 40 part C (#141): the first real-site highlight detection surface —
+      // after the back/forward hammering the floating group must still highlight
+      // Google (the page is Google-translated at this point; a desync here is
+      // the user-visible symptom family this canary leg exists to catch).
+      { type: "assert-highlight", mode: "google" },
     ],
   },
   {
