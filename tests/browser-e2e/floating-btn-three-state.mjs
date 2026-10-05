@@ -22,6 +22,7 @@ import {
   waitForPageTranslatorReady,
   sendMessageToTab,
   assertUiStateMatchesEngine,
+  dumpUiStateLog,
 } from "./setup.mjs";
 
 export const name = "floating-btn-three-state";
@@ -214,24 +215,11 @@ async function runThreeStateJourney(page, serviceWorker, testPageUrl, mockServer
     console.log(`  [${mode}] Three-state journey PASSED`);
   } catch (err) {
     collector?.record?.(`three-state-${mode}`, err.message);
-    // Failure diagnostic (plan 30 / D6): dump the floating UI store's change
-    // log so a failure names the writer that moved the highlight (the store
-    // is the SSOT; "which writer" is the first question for state bugs).
-    try {
-      const log = await sendMessageToTab(serviceWorker, page.url(), {
-        action: "getFloatingUiStateLog",
-      });
-      console.log(`  [${mode}] uiStateStore change log (last entries first):`);
-      for (const entry of (log || []).slice(-12).reverse()) {
-        console.log(
-          `    - ${entry.source}: ${JSON.stringify(entry.patch)} ` +
-            `→ before=${JSON.stringify({ highlight: entry.before?.highlight, intervention: entry.before?.intervention, aiModeActive: entry.before?.aiModeActive, aiRenderState: entry.before?.aiRenderState, pageLanguageState: entry.before?.pageLanguageState })} ` +
-            `after=${JSON.stringify({ highlight: entry.after?.highlight, intervention: entry.after?.intervention, aiModeActive: entry.after?.aiModeActive, aiRenderState: entry.after?.aiRenderState, pageLanguageState: entry.after?.pageLanguageState })}`
-        );
-      }
-    } catch (dumpErr) {
-      console.log(`  [${mode}] change-log dump failed: ${dumpErr.message}`);
-    }
+    // Failure diagnostic (plan 30 / D6; shared helper since plan 40 part C /
+    // #141): dump the floating UI store's change log so a failure names the
+    // writer that moved the highlight (the store is the SSOT; "which writer"
+    // is the first question for state bugs).
+    await dumpUiStateLog(serviceWorker, page.url(), `three-state-${mode}`);
     throw err;
   }
 }

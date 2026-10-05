@@ -1792,6 +1792,83 @@ export async function waitForHostState(page, component, expected = "healthy", op
 }
 
 /**
+ * Dump the floating UI store's change log (plan 30 / D6; extracted from
+ * floating-btn-three-state.mjs in plan 40 part C / #141 so EVERY
+ * highlight/SSOT assertion failure names the writer that moved the highlight
+ * — first-responder evidence for state-desync bugs: the store is the SSOT,
+ * and "which writer" is the first question for a state failure).
+ *
+ * Never throws (a dump failure must not mask the original assertion error).
+ */
+export async function dumpUiStateLog(serviceWorker, pageUrl, label) {
+  try {
+    const log = await sendMessageToTab(serviceWorker, pageUrl, {
+      action: "getFloatingUiStateLog",
+    });
+    console.log(`  [${label}] uiStateStore change log (last entries first):`);
+    for (const entry of (log || []).slice(-12).reverse()) {
+      console.log(
+        `    - ${entry.source}: ${JSON.stringify(entry.patch)} ` +
+          `→ before=${JSON.stringify({ highlight: entry.before?.highlight, intervention: entry.before?.intervention, aiModeActive: entry.before?.aiModeActive, aiRenderState: entry.before?.aiRenderState, pageLanguageState: entry.before?.pageLanguageState })} ` +
+          `after=${JSON.stringify({ highlight: entry.after?.highlight, intervention: entry.after?.intervention, aiModeActive: entry.after?.aiModeActive, aiRenderState: entry.after?.aiRenderState, pageLanguageState: entry.after?.pageLanguageState })}`
+      );
+    }
+  } catch (dumpErr) {
+    console.log(`  [${label}] change-log dump failed: ${dumpErr.message}`);
+  }
+}
+
+/**
+ * Page-context visible-truth reader (plan 40 part C / #141, E2E v3).
+ *
+ * Serialized into page.evaluate — keep it dependency-free. Mirrors the
+ * jsdom-side tests/shared/visible-block-truth.mjs classification for the two
+ * block shapes (newLine dual-span / replaceOriginal node-carried) but for ALL
+ * visible blocks at once, because the E2E assertion asks a page-level
+ * question: "what engine's text is the user actually seeing?"
+ *
+ * `none` blocks (no visible translation span and no node text) are excluded
+ * from the verdict by the caller; this reader reports raw modes only.
+ */
+export function readVisibleTruthInPage() {
+  const isVisible = (el) => {
+    if (!el) return false;
+    if (el.style && el.style.display === "none") return false;
+    if (el.style && el.style.visibility === "hidden") return false;
+    let node = el;
+    while (node && node.style) {
+      if (node.style.display === "none") return false;
+      node = node.parentElement;
+    }
+    return true;
+  };
+
+  const blocks = [];
+  const seen = new Set();
+  for (const el of document.querySelectorAll("translated, [data-dualtran-block]")) {
+    if (seen.has(el)) continue;
+    seen.add(el);
+    if (el.isConnected === false) continue;
+
+    const googleSpan = el.querySelector(".dualtran-google");
+    const aiSpan = el.querySelector(".dualtran-ai, .dualtran-aitranslatedtext-replacemode");
+    const googleVisible = !!googleSpan && isVisible(googleSpan) && !!(googleSpan.textContent || "").trim();
+    const aiVisible = !!aiSpan && isVisible(aiSpan) && !!(aiSpan.textContent || "").trim();
+    const containerVisible = isVisible(el);
+
+    let visibleMode;
+    if (!containerVisible) visibleMode = "original";
+    else if (aiVisible) visibleMode = "ai";
+    else if (googleVisible) visibleMode = "google";
+    else if (googleSpan) visibleMode = "original";
+    else visibleMode = "none";
+
+    blocks.push({ visibleMode });
+  }
+  return blocks;
+}
+
+/**
  * Assert UI state matches engine state (A2 — state consistency invariant).
  *
  * Reads pageTranslator's live state (via the content script's exposed
@@ -1879,9 +1956,70 @@ export async function assertUiStateMatchesEngine(page, serviceWorker, opts = {})
 
   const actual = highlight.ai ? "ai" : highlight.google ? "google" : "original";
   if (actual !== expected) {
+    await dumpUiStateLog(serviceWorker, page.url(), "assertUiStateMatchesEngine/highlight");
     throw new Error(
       `[DualTran Test] State consistency violation: engine=${JSON.stringify(engine)}, ` +
       `expected highlight=${expected}, actual=${actual}`
     );
+  }
+
+  // ── v3 (plan 40 part C / #141): visible-truth cross-check ──
+  // "The highlight is right but the page visibly shows the other engine's
+  // text" was the display-side half of #134 that no assertion could see.
+  // Sampling is only legal when the state is SETTLED: plan-30 lists exactly
+  // two legal "highlight ≠ visible" midstates — AI in flight (aiRenderState
+  // "loading": highlight ai, page still shows Google + spinner) and AI failed
+  // (aiRenderState "error": highlight ai + ⚠ while the page keeps Google
+  // text). Everything else must agree, including AI success (highlight ai,
+  // page shows AI text — the #134 case where BOTH were wrong together).
+  // The check demands the settled premise and ≥3 definitive blocks, and
+  // fails loudly (never vacuous-passes) when the premise is not met.
+  if (opts.expectVisible === true) {
+    if (engine.pageLanguageState !== "translated") {
+      throw new Error(
+        `[DualTran Test] expectVisible requires a translated page, engine says ${engine.pageLanguageState}`
+      );
+    }
+    // Bounded settle wait: the AI flow may still be flagged "loading" for a
+    // moment after its text arrived (onFinished races the DOM write). Poll
+    // engine state up to 8s; a flow stuck in loading/error BEYOND the window
+    // fails loudly (legal midstates must not be sampled, and a permanently
+    // loading flow is itself a defect worth flagging here).
+    const settleDeadline = Date.now() + 8_000;
+    let settledEngine = engine;
+    while (
+      (settledEngine.aiRenderState === "loading" || settledEngine.aiRenderState === "error") &&
+      Date.now() < settleDeadline
+    ) {
+      await new Promise((r) => setTimeout(r, 400));
+      settledEngine = await sendMessageToTab(serviceWorker, page.url(), {
+        action: "getCurrentUiState",
+      });
+    }
+    if (settledEngine.aiRenderState === "loading" || settledEngine.aiRenderState === "error") {
+      throw new Error(
+        `[DualTran Test] expectVisible: AI flow still ${settledEngine.aiRenderState} after 8s — ` +
+        `plan-30 legal midstates must be transient; a stuck flow is a defect`
+      );
+    }
+    const blocks = await page.evaluate(readVisibleTruthInPage);
+    const definitive = blocks.filter((b) => b.visibleMode === "google" || b.visibleMode === "ai");
+    if (definitive.length < 3) {
+      throw new Error(
+        `[DualTran Test] expectVisible needs >=3 visible blocks with a definitive mode, found ${definitive.length} ` +
+        `(blocks=${blocks.length}, modes=${JSON.stringify(blocks.map((b) => b.visibleMode))})`
+      );
+    }
+    const sampled = definitive.slice(0, 10);
+    const expectedVisible = expected;
+    const mismatched = sampled.filter((b) => b.visibleMode !== expectedVisible);
+    if (mismatched.length > 0) {
+      await dumpUiStateLog(serviceWorker, page.url(), "assertUiStateMatchesEngine/visible");
+      throw new Error(
+        `[DualTran Test] Visible-truth cross-check FAILED: highlight=${expectedVisible} but ` +
+        `${mismatched.length}/${sampled.length} visible blocks show the other mode ` +
+        `(modes=${JSON.stringify(sampled.map((b) => b.visibleMode))})`
+      );
+    }
   }
 }

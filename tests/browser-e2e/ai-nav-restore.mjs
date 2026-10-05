@@ -533,8 +533,13 @@ async function assertFloatingAndHoverHighlightAi(page, serviceWorker, label) {
     );
   }
 
-  await assertUiStateMatchesEngine(page, serviceWorker, { expectTranslated: true });
-  console.log(`  Floating + hover button groups both highlight AI ${label}, SSOT consistent.`);
+  // Plan 40 part C (#141): v3 visible-truth cross-check — the highlight AND
+  // the visible text must both be AI. On this path the AI flow has SETTLED
+  // (arrival + restoration asserted above), so a page still showing Google
+  // text under an AI highlight is exactly the display-side desync #134's
+  // user-visible symptom carried.
+  await assertUiStateMatchesEngine(page, serviceWorker, { expectTranslated: true, expectVisible: true });
+  console.log(`  Floating + hover button groups both highlight AI ${label}, SSOT + visible truth consistent.`);
 }
 
 /**
