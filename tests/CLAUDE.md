@@ -215,6 +215,17 @@ tests/
 - 参考实现：`pageTranslator.navRestore.integration.test.js` T10（silent 零泄漏：两通道序列均 == `["translated"]`；RED 实证：修复前两通道独立泄漏 `["original","translated"]`）+ T11（非 silent 对照：`restorePage()` → 两通道 == `["original"]`）。
 - 背景/症状（#134）：silent 只 gate 了意图事件通道；observer/SW 通道泄漏的 mid-run "original" 让 floatingBtn 执行用户级 restore 语义（清 `aiModeActive` + bump `aiModeEpoch`），E1 错音——SPA 回退/前进后双按钮组错亮 Google（页面实际为 AI 译文）。E2E `ai-nav-restore.mjs` 场景 1 步骤 9/10 锁回退 + 前进双腿（悬浮 + 悬停双组 + `assertUiStateMatchesEngine`）。
 
+
+### 通道探针纪律（Channel Probe Discipline，plan 40 / #137）
+
+**规则：通告通道探针按 SSOT 遍历，不按手写列表——`tests/shared/announcement-channels.mjs` 是通道枚举 SSOT；探针套件（T10/T11）遍历其 `probeRequired` 通道逐条断言「静默路径零泄漏 + 非静默路径逐通道广播」成对；SSOT 新增 probeRequired 通道而未补序列探针 = 套件直接红（不静默放行）。**
+
+- **SSOT 字段契约：** `id`（小写连字符）/ `kind`（announcement|intent|render|storage）/ `emitter` / `suppress`（抑制机制）/ `consumers` / `consumerRole`（mirror-only|semantic|none）/ `probeRefs` + `probeTokens` / `probeRequired`（true|false 必须显式声明；false 须带书面 `probeExempt` 理由）/ `provenance`（非空——防凭空发明通道）。lint：`scripts/check-announcement-channels.js`（第 15 个 lint，A0–A4）。
+- **探针实现基准（本仓先例）：** `pageTranslator.navRestore.integration.test.js`「通告通道完备性（SSOT 遍历版）」——`CHANNEL_SEQUENCE_PINS` 表把每个通道映射到 `silent`/`userRestore` 期望序列；新增通道入 SSOT 后需在 pins 表补两格。RED 实证基线：修复前 observer/SW 两通道序列均为 `["original","translated"]`。
+- **探针文件必须命名其通道：** A2 要求 probeRefs 任一文件（去注释后）出现该通道 id 字符串——探针与 SSOT 条目互指，防止「文件存在但探的内容不是这个通道」。
+- **导航场景断言完备性（A3）：** 凡含 `goBack(`/`goForward(` 的 E2E 场景必须含 ≥1 高亮读取 + `assertUiStateMatchesEngine(` **调用**（裸 import 不算），或 `// nav-assert-allow: <理由>` 豁免。防「导航场景只测内容恢复不测高亮」的子类复发。
+- **mirror-only 区块（A4）：** floatingBtn observer handler 的 `[mirror-only:begin]…[mirror-only:end]` 区块内禁止 `setAiModeActive` / `setHighlight(` / `propagateIntentToBlocks` / `intervention` / `displayMode` / in-flight token（注释除外）——「mirror-only 消费者不得执行用户级语义」的强制面。
+
 ### 划词面板不变量（Selection Panel Invariants，plan 31 / #106）
 
 **规则：划词面板底栏 G/A 按钮只表意图——任何状态下 label 恒为「Google」/「AI」、无任何装饰（✓/✕/状态文字/tooltip 变异/按钮染色）；翻译状态（loading spinner / 译文 / 错误文案）只在译文元素 `eSelTextTrans` 内呈现。**
