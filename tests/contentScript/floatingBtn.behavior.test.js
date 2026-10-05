@@ -1239,4 +1239,96 @@ describe("floatingBtn — three-state behavior", () => {
     emitAiRenderStateChange("loading");
     expect(isHighlighted(getAiButton())).toBe(true);
   });
+
+  // ──────────────────────────────────────────────
+  // Mirror-only observer channel (plan 40 / #137, issue #137).
+  //
+  // The `onPageLanguageStateChange` channel is a STATE announcement channel —
+  // its subscriber must only MIRROR the announced state into the store and
+  // let the derivation rule decide the highlight. User-level semantics
+  // (setAiModeActive(false), highlight writes, latch/in-flight clears) belong
+  // EXCLUSIVELY to the intent channel (onRequestedModeChange), because a stray
+  // internal announcement must never be able to execute restore semantics
+  // mid-run (the #134 root cause, one layer up: defense in depth).
+  //
+  // RED (pre-fix): the observer handler still executes the full user-level
+  // restore semantics — these cells fail on the current code.
+  // ──────────────────────────────────────────────
+
+  describe("mirror-only observer channel (#137)", () => {
+    it("RED: stray observer announcement 'original' must NOT run user-level restore semantics", async () => {
+      const { getState } = await import("../../src/contentScript/uiStateStore.js");
+      await loadModule();
+      // User clicked AI → intent latch on, highlight AI; page still original
+      // (derivation: original) → the latch legitimately holds the divergence.
+      getAiButton().click();
+      emitPageLanguageStateChange("translated");
+      expect(isHighlighted(getAiButton())).toBe(true);
+
+      pageTranslatorMock.setAiModeActive.mockClear();
+
+      // A stray internal announcement leaks (e.g. an internal restore that
+      // failed to suppress its channels — the #134 class). Mirror-only means:
+      // it may update the mirror, but must NOT call setAiModeActive(false),
+      // must NOT clear the latch, must NOT move the highlight.
+      emitPageLanguageStateChange("original");
+
+      // Pre-fix: observer handler ran the restore branch → setAiModeActive(false)
+      // + latch cleared + highlight moved to Original → all three RED.
+      expect(pageTranslatorMock.setAiModeActive).not.toHaveBeenCalledWith(false);
+      expect(getState().intervention).toBe(true);
+      expect(isHighlighted(getAiButton())).toBe(true);
+      expect(isHighlighted(getOriginalButton())).toBe(false);
+      // Mirror still works (not over-suppressed): the announced state lands.
+      expect(getState().pageLanguageState).toBe("original");
+    });
+
+    it("RED: intent 'original' (E2) owns the restore display semantics — displayMode + in-flight clears", async () => {
+      const { getState, dumpLog } = await import("../../src/contentScript/uiStateStore.js");
+      await loadModule();
+      // Real engine restore sequence (restorePage, silent=false): the observer
+      // announcement lands FIRST, then the intent event (E2).
+      getGoogleButton().click(); // googleInFlight true, latch on
+      emitPageLanguageStateChange("translated");
+      emitPageRenderStateChange("success"); // displayMode → google
+      expect(getState().displayMode).toBe("google");
+
+      emitPageLanguageStateChange("original");
+      emitRequestedModeChange("original");
+
+      // Restore semantics owned by the INTENT handler now (single semantic
+      // writer): highlight + latch + displayMode + in-flight clears.
+      expect(isHighlighted(getOriginalButton())).toBe(true);
+      expect(getState().intervention).toBe(false);
+      expect(getState().displayMode).toBe("original");
+      expect(getState().googleInFlight).toBe(false);
+      expect(pageTranslatorMock.setAiModeActive).toHaveBeenCalledWith(false);
+
+      // Ownership contract: the LAST write of displayMode must come from the
+      // intent handler, not the mirror-only observer channel.
+      // Pre-fix: the observer handler wrote it → source "onPageLanguageStateChange" → RED.
+      const displayWrites = dumpLog().filter((e) => e.patch.displayMode !== undefined);
+      expect(displayWrites.length).toBeGreaterThan(0);
+      expect(displayWrites[displayWrites.length - 1].source).toContain("onRequestedModeChange");
+    });
+
+    it("control: auto-translate announcement (no latch) still lands Google via derivation", async () => {
+      await loadModule();
+      emitPageLanguageStateChange("translated");
+      expect(isHighlighted(getGoogleButton())).toBe(true);
+    });
+
+    it("control: user-level restorePage() sequence (observer + E2) still lands Original", async () => {
+      await loadModule();
+      getGoogleButton().click();
+      emitPageLanguageStateChange("translated");
+      expect(isHighlighted(getGoogleButton())).toBe(true);
+
+      // Real restorePage() order for a user-level restore.
+      emitPageLanguageStateChange("original");
+      emitRequestedModeChange("original");
+      expect(isHighlighted(getOriginalButton())).toBe(true);
+      expect(pageTranslatorMock.setAiModeActive).toHaveBeenCalledWith(false);
+    });
+  });
 });
