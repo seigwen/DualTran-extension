@@ -367,7 +367,11 @@ describe("floatingBtn", () => {
 
   it("clicking the Google button in the translated state is a no-op (Google already shown)", async () => {
     await loadModule();
+    // Faithful engine sequence for auto-translate: the announcement lands,
+    // then the Google translation completes (render success) — displayMode
+    // is owned by the render-state channel since #137 (mirror-only observer).
     emitPageLanguageStateChange("translated");
+    emitPageRenderStateChange("success");
 
     getGoogleButton().click();
 

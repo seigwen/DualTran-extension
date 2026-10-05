@@ -4216,6 +4216,35 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     pageLanguageStateObservers.push(callback);
   };
 
+  /**
+   * Single announcement outlet for `pageLanguageState` (plan 40 / #137).
+   *
+   * ALL emissions of the pageLanguageState announcement — the observer
+   * broadcast AND the SW `setPageLanguageState` message — MUST go through
+   * this function. Rationale: every raw emit site hand-rolled both channels,
+   * so "forgot one channel" was possible by construction (#134: the silent
+   * flag covered only the intent event while the observer + SW channels kept
+   * firing; the leaked mid-run "original" ran user-level restore semantics in
+   * the floating button). With a single outlet:
+   *   - the `silent` flag covers BOTH channels by construction — an internal
+   *     transition announces nothing, and any future channel added here is
+   *     suppressed automatically;
+   *   - `check-announcement-channels.js` (plan 40 / PR-B) can assert that no
+   *     raw emit site exists outside this function body.
+   *
+   * @param {string} nextState - "translated" | "original"
+   * @param {{ silent?: boolean }} [options] - silent=true for internal
+   *   transitions that must not announce (translatePage's internal restore).
+   */
+  function announcePageLanguageState(nextState, { silent = false } = {}) {
+    if (silent) return;
+    chrome.runtime.sendMessage({
+      action: "setPageLanguageState",
+      pageLanguageState: nextState,
+    });
+    pageLanguageStateObservers.forEach((callback) => callback(nextState));
+  }
+
   let pageRenderState = "idle";
   const pageRenderStateObservers = [];
   pageTranslator.onPageRenderStateChange = function (callback) {
@@ -4466,13 +4495,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     attributesToTranslate = getAttributesToTranslate();
 
     pageLanguageState = "translated";
-    chrome.runtime.sendMessage({
-      action: "setPageLanguageState",
-      pageLanguageState,
-    });
-    pageLanguageStateObservers.forEach((callback) =>
-      callback(pageLanguageState)
-    );
+    // Single announcement outlet (plan 40 / #137): observer broadcast + SW
+    // message in one place — see announcePageLanguageState.
+    announcePageLanguageState(pageLanguageState);
     currentPageLanguage = currentTargetLanguage;
 
     // E1 (plan 30): announce the run's intent AFTER the mirror update and
@@ -4543,17 +4568,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     // Google after SPA back/forward navigation. The same synchronous run
     // re-declares "translated" below, so consumers still converge; a
     // user-initiated restore (silent=false) keeps both channels untouched.
-    if (!silent) {
-      chrome.runtime.sendMessage({
-        action: "setPageLanguageState",
-        pageLanguageState,
-      });
-
-       // Call all callbacks listening for "pageLanguageState" change events
-      pageLanguageStateObservers.forEach((callback) =>
-        callback(pageLanguageState)
-      );
-    }
+    // Plan 40 / #137: both channels now live in the single outlet
+    // (announcePageLanguageState), so "suppress on every channel" is the
+    // outlet's contract, not a per-site duty.
+    announcePageLanguageState(pageLanguageState, { silent });
     currentPageLanguage = originalTabLanguage;
 
     // E2 (plan 30): announce the restore intent AFTER the mirror update and

@@ -782,12 +782,6 @@ if (window.self !== window.top) {
 
     // ── Three-state click handling (Q28 behavior table) ──────────────
 
-    function setHighlight(next) {
-      // M3: highlight lives in uiStateStore; watch the change to re-render
-      const patch = setState({ highlight: next }, "setHighlight");
-      if (patch.highlight !== undefined) updateButtons();
-    }
-
     function buildUiState() {
       const s = getState();
       return {
@@ -913,40 +907,29 @@ if (window.self !== window.top) {
 
     updateButtons();
 
-    // Watch page translation state
-    // Guard: translatePage() internally calls restorePage(), which fires
-    // pageLanguageState observers unconditionally — including "original" when
-    // the page was already original. Ignore no-change events, otherwise a
-    // click on AI/Google (which triggers translatePage → restorePage) would
-    // reset the highlight right after the click set it.
-    // Initialize from live state: after SPA rebuild the page may already be
-    // "translated" — starting the guard at "original" would let the next
-    // "original" event through even though nothing changed (same stale-state
-    // bug as the highlight init above).
-    // M3: engine mirrors live in uiStateStore; callbacks feed the store and
-    // the watchdog arbitrates engine-driven UI state automatically.
+    // Watch page translation state — MIRROR ONLY (plan 40 / #137).
+    //
+    // This channel is a STATE announcement: the subscriber mirrors the
+    // announced state into the store and lets the derivation rule decide the
+    // highlight. User-level semantics (setAiModeActive(false), highlight
+    // writes, latch / displayMode / in-flight clears) live EXCLUSIVELY in the
+    // intent handler below (onRequestedModeChange) — a stray internal
+    // announcement must never be able to execute restore semantics mid-run
+    // (#134 root cause; single semantic writer = defense in depth).
+    //
+    // Guard retained: ignore no-change events; initialize from live state
+    // (SPA rebuild case). M3: engine mirrors live in uiStateStore; the
+    // watchdog arbitrates engine-driven UI state automatically.
     let lastPageLanguageState = engineState.pageLanguageState;
     pageTranslator.onPageLanguageStateChange((_pageLanguageState) => {
       if (_pageLanguageState === lastPageLanguageState) return;
       lastPageLanguageState = _pageLanguageState;
+      // [mirror-only:begin] — check-announcement-channels.js (plan 40 / PR-B)
+      // forbids semantic writes (setHighlight / setAiModeActive /
+      // intervention / displayMode / in-flight) inside this marked region.
       setState({ pageLanguageState: _pageLanguageState }, "onPageLanguageStateChange");
-      const s = getState();
-      if (s.pageLanguageState === "original") {
-        // Page restored (button click or external action): reset to Original
-        // highlight + clear intervention (Q12/Q19/Q24). In-flight flags reset
-        // here too — restorePage cancels in-flight requests.
-        setState(
-          { googleInFlight: false, aiInFlight: false, intervention: false, displayMode: "original" },
-          "onPageLanguageStateChange"
-        );
-        pageTranslator.setAiModeActive?.(false);
-        setHighlight("original");
-      } else if (!s.intervention) {
-        // Auto-translate without user intervention → content-driven highlight (Q6/Q16)
-        setState({ displayMode: "google" }, "onPageLanguageStateChange");
-        setHighlight("google");
-      }
       updateButtons();
+      // [mirror-only:end]
     });
 
     // Intent event subscription (plan 30 / PR-B, D1/D2): the engine announces
@@ -961,11 +944,17 @@ if (window.self !== window.top) {
       // Atomic intent write (highlight + latch + aiModeActive mirror in ONE
       // setState): separate writes let the watchdog revert the highlight
       // before the latch lands — the derivation still mirrors the old intent.
+      // Plan 40 / #137: this handler is the SINGLE semantic writer for the
+      // intent channel — restore semantics (displayMode + in-flight clears)
+      // for "original" live here now, not in the mirror-only observer channel.
       setState(
         {
           highlight: mode,
           intervention: mode !== "original", // original → clear (restore semantics)
           aiModeActive: mode === "ai",
+          ...(mode === "original"
+            ? { displayMode: "original", googleInFlight: false, aiInFlight: false }
+            : {}),
         },
         "onRequestedModeChange"
       );
