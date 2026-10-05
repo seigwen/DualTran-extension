@@ -183,3 +183,6 @@ jobs:
 
     - name: Content-update channels (channel ↔ mock page ↔ scenario ↔ unit four-way consistency, #98 recurrence review)
       run: node scripts/check-content-update-channels.js
+
+    - name: Announcement channels (single outlet + probe pins + nav highlight assertions + mirror-only region, plan 40 / #137)
+      run: node scripts/check-announcement-channels.js

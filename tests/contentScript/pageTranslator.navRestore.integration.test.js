@@ -18,6 +18,7 @@
 
 import { beforeEach, describe, expect, it, vi, afterEach } from "vitest";
 import { JSDOM } from "jsdom";
+import { ANNOUNCEMENT_CHANNELS } from "../shared/announcement-channels.mjs";
 
 // ─── 共享 mock 状态（vi.hoisted 确保在 vi.mock 之前创建）─────────
 
@@ -635,21 +636,26 @@ describe("restorePage → 清除 AI 标记", () => {
 });
 
 // ═══════════════════════════════════════════════════════════
-// Test 10/11（#134）：静默恢复的通道完备性
+// Test 10/11（#134 → SSOT 遍历版，#137）：通告通道完备性
 //
-// translatePage() 的第一步是 restorePage(true)（silent）。silent 参数
-// （plan 30）只 gate 了意图事件（E2），pageLanguageState 的 observer 广播
-// 与 SW setPageLanguageState 消息仍然无条件发出——内部恢复泄漏的
-// "original" 让 floatingBtn 的 observer handler 执行用户级 restore 语义
-// （清空 aiModeActive + bump aiModeEpoch），E1 随后播报 "google"，而本次
-// 运行仍在恢复 AI 译文 → SPA 回退/前进后双按钮组高亮错位（issue #134）。
+// translatePage() 的第一步是 restorePage(true)（silent）。修复前 silent 只
+// gate 了意图事件（E2），pageLanguageState 的 observer 广播与 SW
+// setPageLanguageState 消息仍无条件发出——泄漏的 mid-run "original" 让
+// floatingBtn observer handler 执行用户级 restore 语义（清空 aiModeActive +
+// bump aiModeEpoch），E1 随后播报 "google"，而本次运行仍在恢复 AI 译文 →
+// SPA 回退/前进后双按钮组高亮错位（issue #134）。
 //
-// T10：静默路径必须零泄漏（修复前 observer/SW 序列均为
-//      ["original","translated"] → RED；修复后 ["translated"]）。
-// T11：非 silent 路径必须保持广播（防过度静默的对照组，两版代码均绿）。
+// #137 起本套件与 SSOT（tests/shared/announcement-channels.mjs）对齐：遍历
+// ANNOUNCEMENT_CHANNELS 中所有 probeRequired 通道，逐通道断言
+//   ① 静默路径零泄漏（T10：translatePage 内部 restore 不落任何通道）；
+//   ② 非静默路径逐通道广播（T11：用户级 restorePage() 在应播报的通道上
+//      播报 "original"，防过度静默）。
+// SSOT 新增 probeRequired 通道而未在本文件补配序列探针 →
+// CHANNEL_SEQUENCE_PINS 缺项直接红（不静默放行）。修复前 RED 实证：
+// observer / SW 两通道序列均为 ["original","translated"]。
 // ═══════════════════════════════════════════════════════════
 
-describe("静默恢复通道完备性（#134）", () => {
+describe("通告通道完备性（SSOT 遍历版，#134/#137）", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
@@ -660,7 +666,73 @@ describe("静默恢复通道完备性（#134）", () => {
     vi.unstubAllGlobals();
   });
 
-  /** 装载模块并挂上双通道探针（observer 广播 + SW setPageLanguageState 消息）。 */
+  /**
+   * 逐通道期望序列表（SSOT 遍历锚）。
+   * silent = translatePage('fr') 从新载入状态起的完整序列；
+   * userRestore = 随后用户级 restorePage() 的增量序列。
+   * capture(probes) 返回该通道的事件数组（storage 通道取调用时刻末态）。
+   */
+  const CHANNEL_SEQUENCE_PINS = {
+    // 修复前：["original","translated"]（内部恢复泄漏 → floatingBtn 高亮错位）→ RED
+    "page-language-observers": {
+      capture: (p) => p.observed,
+      silent: ["translated"],
+      userRestore: ["original"],
+    },
+    // 修复前：["original","translated"]（SW 消息通道同样泄漏）→ RED
+    "sw-set-page-language-state": {
+      capture: (p) => p.swStates,
+      silent: ["translated"],
+      userRestore: ["original"],
+    },
+    // E1 播报本次运行自身意图（google），非泄漏；静默 restore 不得追加 "original"
+    "intent-requested-mode": {
+      capture: (p) => p.intents,
+      silent: ["google"],
+      userRestore: ["original"],
+    },
+    // 渲染态通道为 change-guard 状态机：新载入 idle → 运行 loading；用户 restore → idle
+    "page-render-state": {
+      capture: (p) => p.pageRenders,
+      silent: ["loading"],
+      userRestore: ["idle"],
+    },
+    // 无 AI 流启动的 Google 运行：两个 idle 均 no-change 抑制
+    "ai-render-state": {
+      capture: (p) => p.aiRenders,
+      silent: [],
+      userRestore: [],
+    },
+    // 存储标记：静默/用户路径都必须清除预置的 armed 标记（防陈旧标记复活）
+    "ai-applied-marker": {
+      capture: (p) => [p.marker()],
+      silent: [null],
+      userRestore: [null],
+    },
+  };
+
+  const PROBE_REQUIRED_CHANNELS = ANNOUNCEMENT_CHANNELS.filter((c) => c.probeRequired);
+
+  function assertChannelPins(probes, field) {
+    const unmapped = PROBE_REQUIRED_CHANNELS
+      .filter((c) => !CHANNEL_SEQUENCE_PINS[c.id])
+      .map((c) => c.id);
+    if (unmapped.length > 0) {
+      throw new Error(
+        `SSOT probeRequired 通道缺序列探针：${unmapped.join(", ")} — 在 CHANNEL_SEQUENCE_PINS 中为该通道补配 silent/userRestore 期望`
+      );
+    }
+    const actual = {};
+    const expected = {};
+    for (const channel of PROBE_REQUIRED_CHANNELS) {
+      const pin = CHANNEL_SEQUENCE_PINS[channel.id];
+      actual[channel.id] = pin.capture(probes);
+      expected[channel.id] = pin[field];
+    }
+    expect(actual).toEqual(expected);
+  }
+
+  /** 装载模块并挂上全通道探针（observer / SW / 意图 / 双渲染态 / 存储标记）。 */
   async function loadWithChannelProbes(testUrl) {
     const dom = new JSDOM("<!DOCTYPE html><html><body><p>hello world</p></body></html>", { url: testUrl });
     globalThis.window = dom.window;
@@ -687,42 +759,66 @@ describe("静默恢复通道完备性（#134）", () => {
       expect(pageTranslator.translatePage).toBeTypeOf("function");
     }, { timeout: 5000 });
 
+    // 预置 armed 标记（模拟「该 URL 曾被 AI 翻译」）；必须在模块载入后设置，
+    // 否则会触发 onTabVisible 的自动翻译路径（T1–T3 已覆盖那条路径）。
+    const markerKey = "dualtran:aiApplied:" + globalThis.location.origin + globalThis.location.pathname;
+    mockState.store[markerKey] = "true";
+
     const observed = [];
+    const intents = [];
+    const pageRenders = [];
+    const aiRenders = [];
     pageTranslator.onPageLanguageStateChange((s) => observed.push(s));
-    return { pageTranslator, observed, swStates };
+    pageTranslator.onRequestedModeChange((m) => intents.push(m));
+    pageTranslator.onPageRenderStateChange((s) => pageRenders.push(s));
+    pageTranslator.onAiRenderStateChange((s) => aiRenders.push(s));
+
+    return {
+      pageTranslator,
+      observed,
+      swStates,
+      intents,
+      pageRenders,
+      aiRenders,
+      marker: () => mockState.store[markerKey] ?? null,
+      resetCaptures() {
+        observed.length = 0;
+        swStates.length = 0;
+        intents.length = 0;
+        pageRenders.length = 0;
+        aiRenders.length = 0;
+      },
+      seedMarker() {
+        mockState.store[markerKey] = "true";
+      },
+    };
   }
 
-  it("T10: translatePage 的内部静默 restore 不向 observer / SW 通道泄漏 \"original\"", async () => {
-    const { pageTranslator, observed, swStates } = await loadWithChannelProbes(
-      "https://github.com/obra/superpowers/projects"
-    );
+  it("T10: 静默路径零泄漏 — 遍历 SSOT，translatePage 的内部 restore 不落任何通告通道的 \"original\"", async () => {
+    const probes = await loadWithChannelProbes("https://github.com/obra/superpowers/projects");
 
-    pageTranslator.translatePage("fr");
+    probes.pageTranslator.translatePage("fr");
 
-    // 修复前：["original","translated"]（内部恢复泄漏 → floatingBtn 高亮错位）→ RED
-    expect(observed).toEqual(["translated"]);
-    // 修复前：["original","translated"]（SW 消息通道同样泄漏）→ RED
-    expect(swStates).toEqual(["translated"]);
+    assertChannelPins(probes, "silent");
     // 内部恢复不得改变最终状态语义：运行结束后页面是 translated
-    expect(pageTranslator.getPageLanguageState()).toBe("translated");
+    expect(probes.pageTranslator.getPageLanguageState()).toBe("translated");
 
-    pageTranslator.restorePage(true);
+    probes.pageTranslator.restorePage(true);
   });
 
-  it("T11: 用户级 restorePage()（非 silent）仍向双通道播报 \"original\"（防过度静默）", async () => {
-    const { pageTranslator, observed, swStates } = await loadWithChannelProbes(
-      "https://github.com/obra/superpowers/releases"
-    );
+  it("T11: 非静默路径逐通道广播 — 遍历 SSOT，用户级 restorePage() 在应播报通道上发出 \"original\"（防过度静默）", async () => {
+    const probes = await loadWithChannelProbes("https://github.com/obra/superpowers/releases");
 
-    pageTranslator.translatePage("fr");
-    observed.length = 0;
-    swStates.length = 0;
+    probes.pageTranslator.translatePage("fr");
+    probes.resetCaptures();
+    probes.seedMarker(); // 复置 armed 标记，使用户级 restore 的清除职责可观测
 
-    pageTranslator.restorePage();
+    probes.pageTranslator.restorePage();
 
-    expect(observed).toEqual(["original"]);
-    expect(swStates).toEqual(["original"]);
+    assertChannelPins(probes, "userRestore");
+    // 用户级 restore 的最终语言态（与通道序列互证：非静默路径收敛于 "original"）
+    expect(probes.pageTranslator.getPageLanguageState()).toBe("original");
 
-    pageTranslator.restorePage(true);
+    probes.pageTranslator.restorePage(true);
   });
 });
