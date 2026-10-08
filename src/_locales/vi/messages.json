@@ -69,10 +69,16 @@
     "message": "Sao lưu vào tệp"
   },
   "btnAlwaysTranslate": {
-    "message": "Luôn dịch trang này"
+    "message": "Luôn dịch trang này (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Luôn dịch trang web này"
+    "message": "Luôn dịch trang web này (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Luôn dịch trang web này (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Luôn dịch trang này (AI)"
   },
   "btnApply": {
     "message": "Áp dụng"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Luôn dịch những trang này"
+    "message": "Luôn dịch những trang này (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Luôn dịch những trang này (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "Khóa API OpenAI"
@@ -747,7 +756,10 @@
     "message": "Thêm vào từ điển tùy chỉnh (Điều này cho phép bạn bỏ qua một số từ nhất định trong khi dịch trang web)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Luôn dịch các ngôn ngữ này"
+    "message": "Luôn dịch các ngôn ngữ này (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Luôn dịch các ngôn ngữ này (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Không bao giờ dịch các trang này"

@@ -69,10 +69,16 @@
     "message": "Sikkerhedskopiér til fil"
   },
   "btnAlwaysTranslate": {
-    "message": "Oversæt altid denne hjemmeside"
+    "message": "Oversæt altid denne hjemmeside (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Oversæt altid dette sprog"
+    "message": "Oversæt altid dette sprog (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Oversæt altid dette sprog (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Oversæt altid denne hjemmeside (AI)"
   },
   "btnApply": {
     "message": "Anvend"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Oversæt altid disse hjemmesider"
+    "message": "Oversæt altid disse hjemmesider (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Oversæt altid disse hjemmesider (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API-nøgle"
@@ -747,7 +756,10 @@
     "message": "Føj til brugerdefineret ordbog (Dette giver dig mulighed for at springe visse ord over under oversættelse af websider)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Oversæt altid disse sprog"
+    "message": "Oversæt altid disse sprog (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Oversæt altid disse sprog (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Oversæt aldrig disse hjemmesider"

@@ -47,10 +47,12 @@ const CHECKBOX_CONFIGS = [
   { id: "cbShowOriginalWhenHovering", storageKey: "showOriginalTextWhenHovering", type: "toggle", toggleOn: "yes", toggleOff: "no" },
   // 站点数组型复选框（真实页面上下文中 hostname = 测试页主机名）
   { id: "cbAlwaysTranslateThisSite", storageKey: "alwaysTranslateSites", type: "array", member: "hostname" },
+  { id: "cbAlwaysTranslateThisSiteAI", storageKey: "alwaysTranslateSitesAI", type: "array", member: "hostname" },
   { id: "cbNeverTranslateThisSite", storageKey: "neverTranslateSites", type: "array", member: "hostname" },
   { id: "cbShowTranslatedWhenHoveringThisSite", storageKey: "sitesToTranslateWhenHovering", type: "array", member: "hostname" },
   // 语言数组型复选框（真实页面上下文中 originalTabLanguage = 页面语言）
   { id: "cbAlwaysTranslateThisLanguage", storageKey: "alwaysTranslateLangs", type: "array", member: "language" },
+  { id: "cbAlwaysTranslateThisLanguageAI", storageKey: "alwaysTranslateLangsAI", type: "array", member: "language" },
   { id: "cbNeverTranslateThisLanguage", storageKey: "neverTranslateLangs", type: "array", member: "language" },
   { id: "cbShowTranslatedWhenHoveringThisLang", storageKey: "langsToTranslateWhenHovering", type: "array", member: "language" },
 ];

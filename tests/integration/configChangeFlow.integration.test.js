@@ -46,6 +46,8 @@ const expectedConfigKeys = [
   "langsToTranslateWhenHovering",
   "alwaysTranslateLangs",
   "neverTranslateLangs",
+  "alwaysTranslateSitesAI",
+  "alwaysTranslateLangsAI",
   "customDictionary",
   "showTranslatePageContextMenu",
   "showTranslateSelectedContextMenu",

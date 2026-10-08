@@ -205,7 +205,7 @@ tests/
 
 **规则：涉及按钮高亮的组件，必须对全部 5 类意图源各至少一格测试（点击 / 外部操作 / 自动翻译 / AI 流启动恢复 / SPA 重建）；新增意图入口必须同步接入并补格。**
 
-- 参考实现：`floatingBtn.behavior.test.js` 意图源完备性 4 格 + `hoverBtnBehavior.integration.test.js` 意图事件套件（E1/E2/E3 + D6 闸门格）。
+- 参考实现：`floatingBtn.behavior.test.js` 意图源完备性 4 格 + `hoverBtnBehavior.integration.test.js` 意图事件套件（E1/E2/E3 + D6 闸门格）。**自动翻译引擎分派（issue #145）：** `pageTranslatorHelpers.test.js` E1–E8（`resolveAutoTranslateEngine` 判决表）+ `pageTranslator.navRestore.integration.test.js` T12–T16（onTabVisible 接线：AI 列表 → ai、Google 列表不启动 AI、无 key 静默）+ E2E `auto-ai-translation.mjs`（零点击 AI 翻译正/负双向 + 自清理）。
 - **背离态正面清单**：断言中「高亮 ≠ 可见」的合法形态必须显式声明（AI 在飞 / AI 失败），与新派生规则的单元格成对出现。
 
 ### 静默通道完备性（Silent Channel Completeness，#134）

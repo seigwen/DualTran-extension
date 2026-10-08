@@ -69,10 +69,16 @@
     "message": "Sikkerhetskopier til fil"
   },
   "btnAlwaysTranslate": {
-    "message": "Oversett alltid denne siden"
+    "message": "Oversett alltid denne siden (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Oversett alltid dette språket"
+    "message": "Oversett alltid dette språket (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Oversett alltid dette språket (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Oversett alltid denne siden (AI)"
   },
   "btnApply": {
     "message": "Søke om"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Oversett alltid disse nettstedene"
+    "message": "Oversett alltid disse nettstedene (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Oversett alltid disse nettstedene (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API-nøkkel"
@@ -747,7 +756,10 @@
     "message": "Legg til i egendefinert ordbok (dette lar deg hoppe over bestemte ord under oversettelse av nettsider)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Oversett alltid disse språkene"
+    "message": "Oversett alltid disse språkene (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Oversett alltid disse språkene (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Oversett aldri disse nettstedene"

@@ -139,3 +139,59 @@ describe("context menu translate labels (Google/AI)", () => {
     expect(identical).toEqual([]);
   });
 });
+
+describe("always-translate lists engine-explicit labels + AI lists (issue #145)", () => {
+  // Guard for the always-translate family across popup and options: each
+  // Google list label/value must now name its engine, and each new AI key
+  // must exist in every locale carrying the AI engine name. A locale that
+  // drops "Google"/"AI" silently re-creates the engine-ambiguity bug the
+  // rename exists to fix.
+  const GOOGLE_PAIRS = [
+    ["btnAlwaysTranslateThisLanguage", "btnAlwaysTranslateThisLanguageWithAi"],
+    ["btnAlwaysTranslate", "btnAlwaysTranslateWithAi"],
+    ["optionsAlwaysTranslate", "optionsAlwaysTranslateWithAi"],
+    ["lblAlwaysTranslateSites", "lblAlwaysTranslateSitesWithAi"],
+  ];
+  const locales = readdirSync(LOCALES_DIR).filter((entry) =>
+    existsSync(join(LOCALES_DIR, entry, "messages.json"))
+  );
+  const enMessages = readMessages("en");
+
+  it("en defines all four AI keys, and the Google-side values name Google or the engine pair", () => {
+    for (const [googleKey, aiKey] of GOOGLE_PAIRS) {
+      expect(enMessages[aiKey]?.message).toContain("AI");
+      // The Google-side label must be distinguishable from its AI twin.
+      expect(enMessages[googleKey]?.message).not.toBe(enMessages[aiKey]?.message);
+      expect(enMessages[googleKey]?.message.toLowerCase()).toContain("google");
+    }
+  });
+
+  it("every locale defines all four AI keys with the engine name (locale ⊇ en)", () => {
+    const broken = [];
+    for (const locale of locales) {
+      const messages = readMessages(locale);
+      for (const [, aiKey] of GOOGLE_PAIRS) {
+        const value = messages[aiKey]?.message;
+        if (typeof value !== "string" || !value.includes("AI")) {
+          broken.push(`${locale}:${aiKey}`);
+        }
+      }
+    }
+    expect(broken).toEqual([]);
+  });
+
+  it("no locale renders a Google label identical to its AI twin", () => {
+    const identical = [];
+    for (const locale of locales) {
+      const messages = readMessages(locale);
+      for (const [googleKey, aiKey] of GOOGLE_PAIRS) {
+        if (
+          messages[googleKey]?.message === messages[aiKey]?.message
+        ) {
+          identical.push(`${locale}:${googleKey}`);
+        }
+      }
+    }
+    expect(identical).toEqual([]);
+  });
+});

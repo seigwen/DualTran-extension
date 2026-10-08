@@ -69,10 +69,16 @@
     "message": "ファイルにバックアップ"
   },
   "btnAlwaysTranslate": {
-    "message": "このサイトを常に翻訳する"
+    "message": "このサイトを常に翻訳する (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "この言語を常に翻訳する"
+    "message": "この言語を常に翻訳する (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "この言語を常に翻訳する (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "このサイトを常に翻訳する (AI)"
   },
   "btnApply": {
     "message": "適用"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "常に翻訳するサイト"
+    "message": "常に翻訳するサイト (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "常に翻訳するサイト (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API キー"
@@ -747,7 +756,10 @@
     "message": "カスタム辞書に追加 (これにより、Web ページの翻訳中に特定の単語をスキップできます)"
   },
   "optionsAlwaysTranslate": {
-    "message": "常に翻訳する言語"
+    "message": "常に翻訳する言語 (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "常に翻訳する言語 (AI)"
   },
   "optionsNeverTranslate": {
     "message": "翻訳しないサイト"

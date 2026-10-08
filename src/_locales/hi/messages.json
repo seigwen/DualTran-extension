@@ -69,10 +69,16 @@
     "message": "फाइल करने के लिए बैकअप"
   },
   "btnAlwaysTranslate": {
-    "message": "हमेशा इस साइट का अनुवाद करें"
+    "message": "हमेशा इस साइट का अनुवाद करें (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "हमेशा इस भाषा का अनुवाद करें"
+    "message": "हमेशा इस भाषा का अनुवाद करें (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "हमेशा इस भाषा का अनुवाद करें (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "हमेशा इस साइट का अनुवाद करें (AI)"
   },
   "btnApply": {
     "message": "लागू"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "हमेशा इस साइट का अनुवाद करें"
+    "message": "हमेशा इस साइट का अनुवाद करें (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "हमेशा इस साइट का अनुवाद करें (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API कुंजी"
@@ -747,7 +756,10 @@
     "message": "कस्टम शब्दकोश में जोड़ें (यह आपको वेब पेज अनुवाद के दौरान कुछ शब्दों को छोड़ने की अनुमति देता है)"
   },
   "optionsAlwaysTranslate": {
-    "message": "हमेशा इन भाषाओं का अनुवाद करें"
+    "message": "हमेशा इन भाषाओं का अनुवाद करें (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "हमेशा इन भाषाओं का अनुवाद करें (AI)"
   },
   "optionsNeverTranslate": {
     "message": "इन साइटों का अनुवाद कभी न करें"

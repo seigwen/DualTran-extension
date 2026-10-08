@@ -69,10 +69,16 @@
     "message": "Rugsteun na lêer"
   },
   "btnAlwaysTranslate": {
-    "message": "Vertaal altyd hierdie webwerf"
+    "message": "Vertaal altyd hierdie webwerf (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Vertaal altyd hierdie taal"
+    "message": "Vertaal altyd hierdie taal (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Vertaal altyd hierdie taal (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Vertaal altyd hierdie webwerf (AI)"
   },
   "btnApply": {
     "message": "Doen aansoek"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Vertaal altyd hierdie webwerwe"
+    "message": "Vertaal altyd hierdie webwerwe (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Vertaal altyd hierdie webwerwe (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API-sleutel"
@@ -747,7 +756,10 @@
     "message": "Voeg by gepasmaakte woordeboek (Dit laat jou toe om sekere woorde oor te slaan tydens webbladvertaling)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Vertaal altyd hierdie tale"
+    "message": "Vertaal altyd hierdie tale (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Vertaal altyd hierdie tale (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Moet nooit hierdie webwerwe vertaal nie"

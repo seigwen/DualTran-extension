@@ -69,10 +69,16 @@
     "message": "Резервне копіювання до файлу"
   },
   "btnAlwaysTranslate": {
-    "message": "Завжди перекладати цей сайт"
+    "message": "Завжди перекладати цей сайт (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Завжди перекладайте цю мову"
+    "message": "Завжди перекладайте цю мову (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Завжди перекладайте цю мову (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Завжди перекладати цей сайт (AI)"
   },
   "btnApply": {
     "message": "Застосувати"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Завжди перекладати ці сайти"
+    "message": "Завжди перекладати ці сайти (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Завжди перекладати ці сайти (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "API-ключ OpenAI"
@@ -747,7 +756,10 @@
     "message": "Додати до спеціального словника (це дозволяє пропускати певні слова під час перекладу веб-сторінки)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Завжди перекладати ці мови"
+    "message": "Завжди перекладати ці мови (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Завжди перекладати ці мови (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Ніколи не перекладати цей сайт"

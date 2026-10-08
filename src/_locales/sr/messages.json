@@ -69,10 +69,16 @@
     "message": "Резервна копија у датотеку"
   },
   "btnAlwaysTranslate": {
-    "message": "Увек преводи овај сајт"
+    "message": "Увек преводи овај сајт (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Увек преводите овај језик"
+    "message": "Увек преводите овај језик (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Увек преводите овај језик (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Увек преводи овај сајт (AI)"
   },
   "btnApply": {
     "message": "Применити"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Увек преводите ове сајтове"
+    "message": "Увек преводите ове сајтове (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Увек преводите ове сајтове (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API кључ"
@@ -747,7 +756,10 @@
     "message": "Додај у прилагођени речник (ово вам омогућава да прескочите одређене речи током превода веб странице)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Увек преводите ове језике"
+    "message": "Увек преводите ове језике (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Увек преводите ове језике (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Никада немојте преводити ове сајтове"

@@ -69,10 +69,16 @@
     "message": "Varnostno kopiranje v datoteko"
   },
   "btnAlwaysTranslate": {
-    "message": "Vedno prevedi to stran"
+    "message": "Vedno prevedi to stran (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Vedno prevedite ta jezik"
+    "message": "Vedno prevedite ta jezik (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Vedno prevedite ta jezik (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Vedno prevedi to stran (AI)"
   },
   "btnApply": {
     "message": "Prijavite se"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Vedno prevedi te strani"
+    "message": "Vedno prevedi te strani (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Vedno prevedi te strani (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API ključ"
@@ -747,7 +756,10 @@
     "message": "Dodaj v slovar po meri (To vam omogoča, da med prevajanjem spletne strani preskočite določene besede)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Vedno prevedite te jezike"
+    "message": "Vedno prevedite te jezike (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Vedno prevedite te jezike (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Nikoli ne prevedi teh strani"

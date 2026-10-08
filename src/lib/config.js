@@ -13,7 +13,7 @@ const twpConfig = (function () {
   const defaultTargetLanguages = ["en", "es", "de"];
   /**
    * all configName available
-  * @typedef {"aiImproveForLongerThan" | "apiKeyOpenAI" | "openAiModel" | "apiKeyAnthropic" | "anthropicModel" | "apiKeyGoogleGemini" | "googleGeminiModel" | "apiKeyAzureOpenAI" | "azureOpenAIModel" | "azureOpenAIEndpoint" | "apiKeyDeepSeek" | "deepSeekModel" | "apiKeyGrok" | "grokModel" | "translatedColor" | "aiTranslatedColor" | "translateLongerThan" | "whereToDisplayTranslatedText" | "pageTranslatorService" | "textTranslatorService" | "ttsSpeed" | "enableDeepL" | "targetLanguage" | "targetLanguageTextTranslation" | "targetLanguages" | "alwaysTranslateSites" | "neverTranslateSites" | "sitesToTranslateWhenHovering" | "langsToTranslateWhenHovering" | "alwaysTranslateLangs" | "neverTranslateLangs" | "customDictionary" | "showTranslatePageContextMenu" | "showTranslateSelectedContextMenu" | "showButtonInTheAddressBar" | "showOriginalTextWhenHovering" | "showTranslateSelectedButton" | "showPopupMobile" | "showFloatingBtn" | "useOldPopup" | "darkMode" | "popupBlueWhenSiteIsTranslated" | "showReleaseNotes" | "dontShowIfPageLangIsTargetLang" | "dontShowIfPageLangIsUnknown" | "dontShowIfSelectedTextIsTargetLang" | "dontShowIfSelectedTextIsUnknown" | "hotkeys" | "expandPanelTranslateSelectedText" | "translateTag_pre" | "dontSortResults" | "translateDynamicallyCreatedContent" | "autoTranslateWhenClickingALink" | "translateSelectedWhenPressTwice" | "translateTextOverMouseWhenPressTwice" | "translateClickingOnce" | "aiProvider" | "apiKeyOpenRouter" | "openRouterModel" | "openRouterApiBase" | "openRouterReferer" | "openRouterTitle" | "floatingBtnPosition" | "floatingBtnWidth"} DefaultConfigNames
+  * @typedef {"aiImproveForLongerThan" | "apiKeyOpenAI" | "openAiModel" | "apiKeyAnthropic" | "anthropicModel" | "apiKeyGoogleGemini" | "googleGeminiModel" | "apiKeyAzureOpenAI" | "azureOpenAIModel" | "azureOpenAIEndpoint" | "apiKeyDeepSeek" | "deepSeekModel" | "apiKeyGrok" | "grokModel" | "translatedColor" | "aiTranslatedColor" | "translateLongerThan" | "whereToDisplayTranslatedText" | "pageTranslatorService" | "textTranslatorService" | "ttsSpeed" | "enableDeepL" | "targetLanguage" | "targetLanguageTextTranslation" | "targetLanguages" | "alwaysTranslateSites" | "neverTranslateSites" | "sitesToTranslateWhenHovering" | "langsToTranslateWhenHovering" | "alwaysTranslateLangs" | "neverTranslateLangs" | "alwaysTranslateSitesAI" | "alwaysTranslateLangsAI" | "customDictionary" | "showTranslatePageContextMenu" | "showTranslateSelectedContextMenu" | "showButtonInTheAddressBar" | "showOriginalTextWhenHovering" | "showTranslateSelectedButton" | "showPopupMobile" | "showFloatingBtn" | "useOldPopup" | "darkMode" | "popupBlueWhenSiteIsTranslated" | "showReleaseNotes" | "dontShowIfPageLangIsTargetLang" | "dontShowIfPageLangIsUnknown" | "dontShowIfSelectedTextIsTargetLang" | "dontShowIfSelectedTextIsUnknown" | "hotkeys" | "expandPanelTranslateSelectedText" | "translateTag_pre" | "dontSortResults" | "translateDynamicallyCreatedContent" | "autoTranslateWhenClickingALink" | "translateSelectedWhenPressTwice" | "translateTextOverMouseWhenPressTwice" | "translateClickingOnce" | "aiProvider" | "apiKeyOpenRouter" | "openRouterModel" | "openRouterApiBase" | "openRouterReferer" | "openRouterTitle" | "floatingBtnPosition" | "floatingBtnWidth"} DefaultConfigNames
    */
   const defaultConfig = {
     openAiUserType: "paid",
@@ -60,6 +60,8 @@ const twpConfig = (function () {
     langsToTranslateWhenHovering: [],
     alwaysTranslateLangs: [],
     neverTranslateLangs: [],
+    alwaysTranslateSitesAI: [],
+    alwaysTranslateLangsAI: [],
     customDictionary: new Map(),
     showTranslatePageContextMenu: "yes",
     showTranslateSelectedContextMenu: "yes",
@@ -350,6 +352,12 @@ const twpConfig = (function () {
       config.alwaysTranslateLangs = config.alwaysTranslateLangs.map((lang) =>
         twpLang.fixTLanguageCode(lang)
       );
+      // fix alwaysTranslateLangsAI (issue #145) — lang codes need the same
+      // normalization as alwaysTranslateLangs; the sites list carries raw
+      // hostnames like alwaysTranslateSites (no normalization).
+      config.alwaysTranslateLangsAI = config.alwaysTranslateLangsAI.map((lang) =>
+        twpLang.fixTLanguageCode(lang)
+      );
       // fix targetLanguage
       config.targetLanguage = twpLang.fixTLanguageCode(config.targetLanguage);
       // fix targetLanguageTextTranslation
@@ -441,6 +449,7 @@ const twpConfig = (function () {
   twpConfig.addSiteToAlwaysTranslate = function (hostname) {
     addInArray("alwaysTranslateSites", hostname);
     removeFromArray("neverTranslateSites", hostname);
+    removeFromArray("alwaysTranslateSitesAI", hostname);
   };
   twpConfig.removeSiteFromAlwaysTranslate = function (hostname) {
     removeFromArray("alwaysTranslateSites", hostname);
@@ -448,7 +457,21 @@ const twpConfig = (function () {
   twpConfig.addSiteToNeverTranslate = function (hostname) {
     addInArray("neverTranslateSites", hostname);
     removeFromArray("alwaysTranslateSites", hostname);
+    removeFromArray("alwaysTranslateSitesAI", hostname);
     removeFromArray("sitesToTranslateWhenHovering", hostname);
+  };
+
+  // AI always-translate lists (issue #145). Three-way mutual exclusion:
+  // a language/site can live in at most one of {Google always, AI always,
+  // never} — every add path evicts the other two (mirrored on the Google /
+  // never add paths above and below).
+  twpConfig.addSiteToAlwaysTranslateAI = function (hostname) {
+    addInArray("alwaysTranslateSitesAI", hostname);
+    removeFromArray("alwaysTranslateSites", hostname);
+    removeFromArray("neverTranslateSites", hostname);
+  };
+  twpConfig.removeSiteFromAlwaysTranslateAI = function (hostname) {
+    removeFromArray("alwaysTranslateSitesAI", hostname);
   };
   twpConfig.addKeyWordTocustomDictionary = function (key, value) {
     addInMap("customDictionary", key, value);
@@ -462,6 +485,7 @@ const twpConfig = (function () {
   twpConfig.addLangToAlwaysTranslate = function (lang, hostname) {
     addInArray("alwaysTranslateLangs", lang);
     removeFromArray("neverTranslateLangs", lang);
+    removeFromArray("alwaysTranslateLangsAI", lang);
 
     if (hostname) {
       removeFromArray("neverTranslateSites", hostname);
@@ -473,6 +497,7 @@ const twpConfig = (function () {
   twpConfig.addLangToNeverTranslate = function (lang, hostname) {
     addInArray("neverTranslateLangs", lang);
     removeFromArray("alwaysTranslateLangs", lang);
+    removeFromArray("alwaysTranslateLangsAI", lang);
     removeFromArray("langsToTranslateWhenHovering", lang);
 
     if (hostname) {
@@ -481,6 +506,18 @@ const twpConfig = (function () {
   };
   twpConfig.removeLangFromNeverTranslate = function (lang) {
     removeFromArray("neverTranslateLangs", lang);
+  };
+  twpConfig.addLangToAlwaysTranslateAI = function (lang, hostname) {
+    addInArray("alwaysTranslateLangsAI", lang);
+    removeFromArray("alwaysTranslateLangs", lang);
+    removeFromArray("neverTranslateLangs", lang);
+
+    if (hostname) {
+      removeFromArray("neverTranslateSites", hostname);
+    }
+  };
+  twpConfig.removeLangFromAlwaysTranslateAI = function (lang) {
+    removeFromArray("alwaysTranslateLangsAI", lang);
   };
 
   /**

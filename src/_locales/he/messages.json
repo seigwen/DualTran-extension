@@ -69,10 +69,16 @@
     "message": "גבה לקובץ"
   },
   "btnAlwaysTranslate": {
-    "message": "תרגם תמיד אתר זה"
+    "message": "תרגם תמיד אתר זה (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "תרגם תמיד את השפה הזו"
+    "message": "תרגם תמיד את השפה הזו (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "תרגם תמיד את השפה הזו (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "תרגם תמיד אתר זה (AI)"
   },
   "btnApply": {
     "message": "להגיש מועמדות"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "תרגם תמיד אתרים אלה"
+    "message": "תרגם תמיד אתרים אלה (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "תרגם תמיד אתרים אלה (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "מפתח API של OpenAI"
@@ -747,7 +756,10 @@
     "message": "הוסף למילון מותאם אישית (זה מאפשר לך לדלג על מילים מסוימות במהלך תרגום דפי אינטרנט)"
   },
   "optionsAlwaysTranslate": {
-    "message": "תרגם תמיד את השפה הזו"
+    "message": "תרגם תמיד את השפה הזו (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "תרגם תמיד את השפה הזו (AI)"
   },
   "optionsNeverTranslate": {
     "message": "לעולם אל תתרגם דפים אלו"

@@ -320,6 +320,7 @@ async function assertSitesTabListsHaveLabels(page) {
     for (const listId of [
       "neverTranslateSites",
       "alwaysTranslateSites",
+      "alwaysTranslateSitesAI",
       "sitesToTranslateWhenHovering",
     ]) {
       const list = document.getElementById(listId);

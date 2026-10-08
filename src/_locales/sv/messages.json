@@ -69,10 +69,16 @@
     "message": "Säkerhetskopiera till fil"
   },
   "btnAlwaysTranslate": {
-    "message": "Översätt alltid denna webbplats"
+    "message": "Översätt alltid denna webbplats (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Översätt alltid detta språk"
+    "message": "Översätt alltid detta språk (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Översätt alltid detta språk (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Översätt alltid denna webbplats (AI)"
   },
   "btnApply": {
     "message": "Tillämpa"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Översätt alltid dessa webbplatser"
+    "message": "Översätt alltid dessa webbplatser (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Översätt alltid dessa webbplatser (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API-nyckel"
@@ -747,7 +756,10 @@
     "message": "Lägg till i anpassad ordbok (Detta låter dig hoppa över vissa ord under översättning av webbsidor)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Översätt alltid dessa språk"
+    "message": "Översätt alltid dessa språk (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Översätt alltid dessa språk (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Översätt aldrig dessa webbplatser"

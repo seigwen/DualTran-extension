@@ -69,10 +69,16 @@
     "message": "Sauvegarder dans un fichier"
   },
   "btnAlwaysTranslate": {
-    "message": "Toujours traduire ce site"
+    "message": "Toujours traduire ce site (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Traduisez toujours cette langue"
+    "message": "Traduisez toujours cette langue (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Traduisez toujours cette langue (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Toujours traduire ce site (AI)"
   },
   "btnApply": {
     "message": "Appliquer"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Toujours traduire ces sites"
+    "message": "Toujours traduire ces sites (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Toujours traduire ces sites (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "Clé API OpenAI"
@@ -747,7 +756,10 @@
     "message": "Ajouter au dictionnaire personnalisé (cela vous permet d'ignorer certains mots lors de la traduction de la page Web)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Toujours traduire depuis ces langues"
+    "message": "Toujours traduire depuis ces langues (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Toujours traduire depuis ces langues (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Ne jamais traduire ces sites"

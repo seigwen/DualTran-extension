@@ -17,6 +17,10 @@ const {
   removeSiteFromTranslateWhenHoveringMock,
   addLangToTranslateWhenHoveringMock,
   removeLangFromTranslateWhenHoveringMock,
+  addLangToAlwaysTranslateAIMock,
+  removeLangFromAlwaysTranslateAIMock,
+  addSiteToAlwaysTranslateAIMock,
+  removeSiteFromAlwaysTranslateAIMock,
 } = vi.hoisted(() => {
   const configValues = {
     targetLanguages: ["fr", "de", "es"],
@@ -24,6 +28,8 @@ const {
     neverTranslateLangs: [],
     alwaysTranslateSites: [],
     neverTranslateSites: [],
+    alwaysTranslateLangsAI: [],
+    alwaysTranslateSitesAI: [],
     showTranslateSelectedButton: "yes",
     showOriginalTextWhenHovering: "no",
     sitesToTranslateWhenHovering: [],
@@ -78,6 +84,18 @@ const {
   const removeLangFromTranslateWhenHoveringMock = vi.fn((lang) => {
     configValues.langsToTranslateWhenHovering = configValues.langsToTranslateWhenHovering.filter((value) => value !== lang);
   });
+  const addLangToAlwaysTranslateAIMock = vi.fn((lang) => {
+    if (!configValues.alwaysTranslateLangsAI.includes(lang)) configValues.alwaysTranslateLangsAI.push(lang);
+  });
+  const removeLangFromAlwaysTranslateAIMock = vi.fn((lang) => {
+    configValues.alwaysTranslateLangsAI = configValues.alwaysTranslateLangsAI.filter((value) => value !== lang);
+  });
+  const addSiteToAlwaysTranslateAIMock = vi.fn((site) => {
+    if (!configValues.alwaysTranslateSitesAI.includes(site)) configValues.alwaysTranslateSitesAI.push(site);
+  });
+  const removeSiteFromAlwaysTranslateAIMock = vi.fn((site) => {
+    configValues.alwaysTranslateSitesAI = configValues.alwaysTranslateSitesAI.filter((value) => value !== site);
+  });
 
   return {
     configValues,
@@ -96,6 +114,10 @@ const {
     removeSiteFromTranslateWhenHoveringMock,
     addLangToTranslateWhenHoveringMock,
     removeLangFromTranslateWhenHoveringMock,
+    addLangToAlwaysTranslateAIMock,
+    removeLangFromAlwaysTranslateAIMock,
+    addSiteToAlwaysTranslateAIMock,
+    removeSiteFromAlwaysTranslateAIMock,
   };
 });
 
@@ -123,6 +145,10 @@ vi.mock("../../src/lib/config.js", () => ({
     removeSiteFromTranslateWhenHovering: removeSiteFromTranslateWhenHoveringMock,
     addLangToTranslateWhenHovering: addLangToTranslateWhenHoveringMock,
     removeLangFromTranslateWhenHovering: removeLangFromTranslateWhenHoveringMock,
+    addLangToAlwaysTranslateAI: addLangToAlwaysTranslateAIMock,
+    removeLangFromAlwaysTranslateAI: removeLangFromAlwaysTranslateAIMock,
+    addSiteToAlwaysTranslateAI: addSiteToAlwaysTranslateAIMock,
+    removeSiteFromAlwaysTranslateAI: removeSiteFromAlwaysTranslateAIMock,
   },
 }));
 
@@ -152,8 +178,10 @@ describe("popup", () => {
         <option value="replaceOriginal">replace</option>
       </select>
       <input type="checkbox" id="cbAlwaysTranslateThisLanguage"/>
+      <input type="checkbox" id="cbAlwaysTranslateThisLanguageAI"/>
       <input type="checkbox" id="cbNeverTranslateThisLanguage"/>
       <input type="checkbox" id="cbAlwaysTranslateThisSite"/>
+      <input type="checkbox" id="cbAlwaysTranslateThisSiteAI"/>
       <input type="checkbox" id="cbNeverTranslateThisSite"/>
       <input type="checkbox" id="cbShowTranslateSelectedButton"/>
       <input type="checkbox" id="cbShowOriginalWhenHovering"/>
@@ -198,6 +226,8 @@ describe("popup", () => {
     configValues.neverTranslateLangs = [];
     configValues.alwaysTranslateSites = [];
     configValues.neverTranslateSites = [];
+    configValues.alwaysTranslateLangsAI = [];
+    configValues.alwaysTranslateSitesAI = [];
     configValues.showTranslateSelectedButton = "yes";
     configValues.showOriginalTextWhenHovering = "no";
     configValues.sitesToTranslateWhenHovering = [];
@@ -369,6 +399,8 @@ describe("popup", () => {
     configValues.neverTranslateLangs = ["en"];
     configValues.alwaysTranslateSites = ["example.com"];
     configValues.neverTranslateSites = ["example.com"];
+    configValues.alwaysTranslateLangsAI = ["en"];
+    configValues.alwaysTranslateSitesAI = ["example.com"];
     configValues.showTranslateSelectedButton = "yes";
     configValues.showOriginalTextWhenHovering = "yes";
     configValues.sitesToTranslateWhenHovering = ["example.com"];
@@ -377,8 +409,10 @@ describe("popup", () => {
     await loadModule();
 
     expect(document.getElementById("cbAlwaysTranslateThisLanguage").checked).toBe(true);
+    expect(document.getElementById("cbAlwaysTranslateThisLanguageAI").checked).toBe(true);
     expect(document.getElementById("cbNeverTranslateThisLanguage").checked).toBe(true);
     expect(document.getElementById("cbAlwaysTranslateThisSite").checked).toBe(true);
+    expect(document.getElementById("cbAlwaysTranslateThisSiteAI").checked).toBe(true);
     expect(document.getElementById("cbNeverTranslateThisSite").checked).toBe(true);
     expect(document.getElementById("cbShowTranslateSelectedButton").checked).toBe(true);
     expect(document.getElementById("cbShowOriginalWhenHovering").checked).toBe(true);
@@ -392,6 +426,7 @@ describe("popup", () => {
     await loadModule();
 
     expect(document.getElementById("cbAlwaysTranslateThisLanguage").disabled).toBe(true);
+    expect(document.getElementById("cbAlwaysTranslateThisLanguageAI").disabled).toBe(true);
     expect(document.getElementById("cbNeverTranslateThisLanguage").disabled).toBe(true);
     expect(document.getElementById("cbShowTranslatedWhenHoveringThisLang").disabled).toBe(true);
   });
@@ -402,6 +437,7 @@ describe("popup", () => {
     await loadModule();
 
     expect(document.getElementById("cbAlwaysTranslateThisSite").disabled).toBe(true);
+    expect(document.getElementById("cbAlwaysTranslateThisSiteAI").disabled).toBe(true);
     expect(document.getElementById("cbNeverTranslateThisSite").disabled).toBe(true);
     expect(document.getElementById("cbShowTranslatedWhenHoveringThisSite").disabled).toBe(true);
   });
@@ -461,6 +497,50 @@ describe("popup", () => {
 
     expect(addSiteToAlwaysTranslateMock).toHaveBeenCalledWith("example.com");
     expect(removeSiteFromNeverTranslateMock).toHaveBeenCalledWith("example.com");
+  });
+
+  // ── AI always-translate checkboxes (issue #145) ──────────────────────
+
+  it("adds the original language to always-translate-AI when checked", async () => {
+    await loadModule();
+
+    setCheckedAndDispatch("#cbAlwaysTranslateThisLanguageAI", true);
+
+    expect(addLangToAlwaysTranslateAIMock).toHaveBeenCalledWith("en", "example.com");
+  });
+
+  it("removes the original language from always-translate-AI when unchecked", async () => {
+    await loadModule();
+
+    setCheckedAndDispatch("#cbAlwaysTranslateThisLanguageAI", false);
+
+    expect(removeLangFromAlwaysTranslateAIMock).toHaveBeenCalledWith("en");
+  });
+
+  it("adds the hostname to always-translate-AI when checked", async () => {
+    await loadModule();
+
+    setCheckedAndDispatch("#cbAlwaysTranslateThisSiteAI", true);
+
+    expect(addSiteToAlwaysTranslateAIMock).toHaveBeenCalledWith("example.com");
+  });
+
+  it("removes the hostname from always-translate-AI when unchecked", async () => {
+    await loadModule();
+
+    setCheckedAndDispatch("#cbAlwaysTranslateThisSiteAI", false);
+
+    expect(removeSiteFromAlwaysTranslateAIMock).toHaveBeenCalledWith("example.com");
+  });
+
+  it("syncs AI checkbox state from config values", async () => {
+    configValues.alwaysTranslateLangsAI = ["en"];
+    configValues.alwaysTranslateSitesAI = ["example.com"];
+
+    await loadModule();
+
+    expect(document.getElementById("cbAlwaysTranslateThisLanguageAI").checked).toBe(true);
+    expect(document.getElementById("cbAlwaysTranslateThisSiteAI").checked).toBe(true);
   });
 
   it("adds the hostname to never-translate when checked", async () => {

@@ -69,10 +69,16 @@
     "message": "Varmuuskopioi tiedostoon"
   },
   "btnAlwaysTranslate": {
-    "message": "Käännä tämä sivusto aina"
+    "message": "Käännä tämä sivusto aina (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Käännä tämä kieli aina"
+    "message": "Käännä tämä kieli aina (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Käännä tämä kieli aina (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Käännä tämä sivusto aina (AI)"
   },
   "btnApply": {
     "message": "Käytä"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Käännä nämä sivustot aina"
+    "message": "Käännä nämä sivustot aina (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Käännä nämä sivustot aina (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API-avain"
@@ -747,7 +756,10 @@
     "message": "Lisää mukautettuun sanakirjaan (Tämän avulla voit ohittaa tietyt sanat verkkosivun kääntämisen aikana)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Käännä aina nämä kielet"
+    "message": "Käännä aina nämä kielet (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Käännä aina nämä kielet (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Älä käännä näitä sivuja"

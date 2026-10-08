@@ -69,10 +69,16 @@
     "message": "Dublēt failā"
   },
   "btnAlwaysTranslate": {
-    "message": "Vienmēr tulkot šo vietni"
+    "message": "Vienmēr tulkot šo vietni (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Vienmēr tulkot šo valodu"
+    "message": "Vienmēr tulkot šo valodu (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Vienmēr tulkot šo valodu (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Vienmēr tulkot šo vietni (AI)"
   },
   "btnApply": {
     "message": "Apstiprināt"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Vienmēr tulkot šīs vietnes"
+    "message": "Vienmēr tulkot šīs vietnes (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Vienmēr tulkot šīs vietnes (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API atslēga"
@@ -747,7 +756,10 @@
     "message": "Pievienot pielāgotajai vārdnīcai (tas ļauj izlaist noteiktus vārdus tīmekļa lapas tulkošanas laikā)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Vienmēr tulkot šīs valodas"
+    "message": "Vienmēr tulkot šīs valodas (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Vienmēr tulkot šīs valodas (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Nekad netulkot šīs vietnes"

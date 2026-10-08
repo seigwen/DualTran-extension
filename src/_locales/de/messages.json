@@ -69,10 +69,16 @@
     "message": "Backup in eine Datei"
   },
   "btnAlwaysTranslate": {
-    "message": "Diese Seite immer übersetzen"
+    "message": "Diese Seite immer übersetzen (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Diese Sprache immer übersetzen"
+    "message": "Diese Sprache immer übersetzen (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Diese Sprache immer übersetzen (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Diese Seite immer übersetzen (AI)"
   },
   "btnApply": {
     "message": "Anwenden"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Diese Seiten immer übersetzen"
+    "message": "Diese Seiten immer übersetzen (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Diese Seiten immer übersetzen (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API-Schlüssel"
@@ -747,7 +756,10 @@
     "message": "Zum benutzerdefinierten Wörterbuch hinzufügen (Damit können Sie bestimmte Wörter während der Webseiten Übersetzung überspringen)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Diese Sprache immer übersetzen"
+    "message": "Diese Sprache immer übersetzen (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Diese Sprache immer übersetzen (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Diese Seiten nie übersetzen"

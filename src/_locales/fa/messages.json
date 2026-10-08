@@ -69,10 +69,16 @@
     "message": "ذخیره‌ی پشتیبان در فایل"
   },
   "btnAlwaysTranslate": {
-    "message": "این سایت را همیشه ترجمه کن"
+    "message": "این سایت را همیشه ترجمه کن (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "همیشه این زبان را ترجمه کن"
+    "message": "همیشه این زبان را ترجمه کن (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "همیشه این زبان را ترجمه کن (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "این سایت را همیشه ترجمه کن (AI)"
   },
   "btnApply": {
     "message": "اعمال"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "این سایت ها را همیشه ترجمه کن"
+    "message": "این سایت ها را همیشه ترجمه کن (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "این سایت ها را همیشه ترجمه کن (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "کلید API OpenAI"
@@ -747,7 +756,10 @@
     "message": "افزودن به فرهنگ لغت سفارشی (این به شما امکان می دهد از کلمات خاصی در حین ترجمه صفحه وب رد شوید)"
   },
   "optionsAlwaysTranslate": {
-    "message": "همیشه این زبان ها ترجمه شود"
+    "message": "همیشه این زبان ها ترجمه شود (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "همیشه این زبان ها ترجمه شود (AI)"
   },
   "optionsNeverTranslate": {
     "message": "هرگز این سایت ها ترجمه نشود"

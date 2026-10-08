@@ -69,10 +69,16 @@
     "message": "Zálohovat do souboru"
   },
   "btnAlwaysTranslate": {
-    "message": "Vždy překládat tuto stránku"
+    "message": "Vždy překládat tuto stránku (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Tento jazyk vždy překládejte"
+    "message": "Tento jazyk vždy překládejte (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Tento jazyk vždy překládejte (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Vždy překládat tuto stránku (AI)"
   },
   "btnApply": {
     "message": "Aplikovat"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Tyto stránky vždy překládejte"
+    "message": "Tyto stránky vždy překládejte (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Tyto stránky vždy překládejte (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API klíč"
@@ -747,7 +756,10 @@
     "message": "Přidat do vlastního slovníku (To vám umožní přeskočit určitá slova během překladu webové stránky)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Vždy překládat tyto jazyky"
+    "message": "Vždy překládat tyto jazyky (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Vždy překládat tyto jazyky (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Nikdy tyto stránky nepřekládat"

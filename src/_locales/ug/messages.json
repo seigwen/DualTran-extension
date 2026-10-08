@@ -69,10 +69,16 @@
     "message": "ھۆججەتكە زاپاسلاش"
   },
   "btnAlwaysTranslate": {
-    "message": "بۇ تور بەتنى ھەمىشە تەرجىمە قىلىڭ"
+    "message": "بۇ تور بەتنى ھەمىشە تەرجىمە قىلىڭ (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "بۇ تىلنى ھەمىشە تەرجىمە قىلىڭ"
+    "message": "بۇ تىلنى ھەمىشە تەرجىمە قىلىڭ (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "بۇ تىلنى ھەمىشە تەرجىمە قىلىڭ (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "بۇ تور بەتنى ھەمىشە تەرجىمە قىلىڭ (AI)"
   },
   "btnApply": {
     "message": "ئىلتىماس قىلىڭ"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "بۇ تور بېكەتلەرنى ھەمىشە تەرجىمە قىلىڭ"
+    "message": "بۇ تور بېكەتلەرنى ھەمىشە تەرجىمە قىلىڭ (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "بۇ تور بېكەتلەرنى ھەمىشە تەرجىمە قىلىڭ (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API ئاچقۇچى"
@@ -747,7 +756,10 @@
     "message": "ئىختىيارى لۇغەتكە قوشۇڭ (بۇ تور بەت تەرجىمە جەريانىدا بەزى سۆزلەرنى ئاتلاپ ئۆتۈپ كېتىدۇ)"
   },
   "optionsAlwaysTranslate": {
-    "message": "بۇ تىللارنى ھەمىشە تەرجىمە قىلىڭ"
+    "message": "بۇ تىللارنى ھەمىشە تەرجىمە قىلىڭ (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "بۇ تىللارنى ھەمىشە تەرجىمە قىلىڭ (AI)"
   },
   "optionsNeverTranslate": {
     "message": "بۇ تور بېكەتلەرنى ھەرگىز تەرجىمە قىلماڭ"

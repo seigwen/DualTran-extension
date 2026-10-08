@@ -107,6 +107,7 @@ describe("pageTranslator helpers", () => {
   let resolveDontSortResults;
   let shouldTriggerAiImprove;
   let resolveNextAiRenderState;
+  let resolveAutoTranslateEngine;
   // T10 (issue #96): the module-load 120ms visibility timer callback,
   // captured during the import below so the containment test can invoke
   // it deterministically (no 120ms wait).
@@ -141,6 +142,7 @@ describe("pageTranslator helpers", () => {
       resolveDontSortResults = mod.resolveDontSortResults;
       shouldTriggerAiImprove = mod.shouldTriggerAiImprove;
       resolveNextAiRenderState = mod.resolveNextAiRenderState;
+      resolveAutoTranslateEngine = mod.resolveAutoTranslateEngine;
     } finally {
       globalThis.setTimeout = originalSetTimeout;
     }
@@ -227,6 +229,73 @@ describe("pageTranslator helpers", () => {
     // 没有任何翻译块，不应改变状态
     expect(resolveNextAiRenderState("success", 0, 0, 0)).toBeNull();
     expect(resolveNextAiRenderState("idle", 0, 0, 0)).toBeNull();
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // resolveAutoTranslateEngine — 页面加载自动翻译的引擎判决（issue #145）
+  // 纯函数：AI 列表（语言/网站）> Google 列表（语言/网站）；
+  // AI 候选在无 API key 时不可用（静默，不降级不弹窗）；
+  // never 列表由调用方处理（此处不接收）。
+  // ═══════════════════════════════════════════════════════════
+
+  it("E1: AI language list hit with a valid key resolves to 'ai'", () => {
+    expect(resolveAutoTranslateEngine({
+      langCode: "fr", siteHost: "example.com",
+      aiLangs: ["fr"], aiSites: [], googleLangs: [], googleSites: [], hasApiKey: true,
+    })).toBe("ai");
+  });
+
+  it("E2: AI site list hit with a valid key resolves to 'ai'", () => {
+    expect(resolveAutoTranslateEngine({
+      langCode: "fr", siteHost: "example.com",
+      aiLangs: [], aiSites: ["example.com"], googleLangs: [], googleSites: [], hasApiKey: true,
+    })).toBe("ai");
+  });
+
+  it("E3: Google-only hits resolve to 'google' (lang and site)", () => {
+    expect(resolveAutoTranslateEngine({
+      langCode: "fr", siteHost: "example.com",
+      aiLangs: [], aiSites: [], googleLangs: ["fr"], googleSites: [], hasApiKey: true,
+    })).toBe("google");
+    expect(resolveAutoTranslateEngine({
+      langCode: "fr", siteHost: "example.com",
+      aiLangs: [], aiSites: [], googleLangs: [], googleSites: ["example.com"], hasApiKey: true,
+    })).toBe("google");
+  });
+
+  it("E4: AI candidate without an API key is unavailable — falls through to Google when Google also hits", () => {
+    expect(resolveAutoTranslateEngine({
+      langCode: "fr", siteHost: "example.com",
+      aiLangs: ["fr"], aiSites: [], googleLangs: ["fr"], googleSites: [], hasApiKey: false,
+    })).toBe("google");
+  });
+
+  it("E5: AI candidate without an API key and no Google hit resolves to null (silent no-translate)", () => {
+    expect(resolveAutoTranslateEngine({
+      langCode: "fr", siteHost: "example.com",
+      aiLangs: ["fr"], aiSites: [], googleLangs: [], googleSites: [], hasApiKey: false,
+    })).toBeNull();
+  });
+
+  it("E6: no list hits resolve to null", () => {
+    expect(resolveAutoTranslateEngine({
+      langCode: "fr", siteHost: "example.com",
+      aiLangs: [], aiSites: [], googleLangs: [], googleSites: [], hasApiKey: true,
+    })).toBeNull();
+  });
+
+  it("E7: AI wins over Google when both hit (priority AI > Google)", () => {
+    expect(resolveAutoTranslateEngine({
+      langCode: "fr", siteHost: "example.com",
+      aiLangs: [], aiSites: ["example.com"], googleLangs: ["fr"], googleSites: ["example.com"], hasApiKey: true,
+    })).toBe("ai");
+  });
+
+  it("E8: defensive with missing/undefined inputs (never throws)", () => {
+    expect(resolveAutoTranslateEngine({ langCode: null, siteHost: null, hasApiKey: true })).toBeNull();
+    expect(resolveAutoTranslateEngine({})).toBeNull();
+    expect(resolveAutoTranslateEngine()).toBeNull();
+    expect(resolveAutoTranslateEngine({ langCode: "fr", siteHost: "example.com", aiLangs: undefined, aiSites: null, hasApiKey: true })).toBeNull();
   });
 
   // ═══════════════════════════════════════════════════════════
