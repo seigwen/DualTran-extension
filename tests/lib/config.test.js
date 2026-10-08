@@ -40,6 +40,8 @@ const expectedExportKeys = [
   "langsToTranslateWhenHovering",
   "alwaysTranslateLangs",
   "neverTranslateLangs",
+  "alwaysTranslateSitesAI",
+  "alwaysTranslateLangsAI",
   "customDictionary",
   "showTranslatePageContextMenu",
   "showTranslateSelectedContextMenu",
@@ -606,6 +608,86 @@ describe("twpConfig", () => {
     twpConfig.removeLangFromNeverTranslate("fr");
 
     expect(twpConfig.get("neverTranslateLangs")).toEqual([]);
+  });
+
+  // ── AI always-translate lists (issue #145) ─────────────────────────────
+
+  it("AI: adds a language to always-translate-AI and clears Google/never conflicts", async () => {
+    mockState.storageData = {
+      alwaysTranslateLangs: ["fr"],
+      neverTranslateLangs: ["fr"],
+      neverTranslateSites: ["example.com"],
+    };
+    const twpConfig = await loadReadyConfig();
+
+    twpConfig.addLangToAlwaysTranslateAI("fr", "example.com");
+
+    expect(twpConfig.get("alwaysTranslateLangsAI")).toEqual(["fr"]);
+    expect(twpConfig.get("alwaysTranslateLangs")).toEqual([]);
+    expect(twpConfig.get("neverTranslateLangs")).toEqual([]);
+    expect(twpConfig.get("neverTranslateSites")).toEqual([]);
+  });
+
+  it("AI: removes a language from always-translate-AI", async () => {
+    mockState.storageData = { alwaysTranslateLangsAI: ["fr"] };
+    const twpConfig = await loadReadyConfig();
+
+    twpConfig.removeLangFromAlwaysTranslateAI("fr");
+
+    expect(twpConfig.get("alwaysTranslateLangsAI")).toEqual([]);
+  });
+
+  it("AI: adds a site to always-translate-AI and clears Google/never conflicts", async () => {
+    mockState.storageData = {
+      alwaysTranslateSites: ["example.com"],
+      neverTranslateSites: ["example.com"],
+    };
+    const twpConfig = await loadReadyConfig();
+
+    twpConfig.addSiteToAlwaysTranslateAI("example.com");
+
+    expect(twpConfig.get("alwaysTranslateSitesAI")).toEqual(["example.com"]);
+    expect(twpConfig.get("alwaysTranslateSites")).toEqual([]);
+    expect(twpConfig.get("neverTranslateSites")).toEqual([]);
+  });
+
+  it("AI: removes a site from always-translate-AI", async () => {
+    mockState.storageData = { alwaysTranslateSitesAI: ["example.com"] };
+    const twpConfig = await loadReadyConfig();
+
+    twpConfig.removeSiteFromAlwaysTranslateAI("example.com");
+
+    expect(twpConfig.get("alwaysTranslateSitesAI")).toEqual([]);
+  });
+
+  it("AI: reverse mutual exclusion — adding to Google always-translate clears the AI list entry", async () => {
+    mockState.storageData = {
+      alwaysTranslateLangsAI: ["fr"],
+      alwaysTranslateSitesAI: ["example.com"],
+    };
+    const twpConfig = await loadReadyConfig();
+
+    twpConfig.addLangToAlwaysTranslate("fr");
+    twpConfig.addSiteToAlwaysTranslate("example.com");
+
+    expect(twpConfig.get("alwaysTranslateLangs")).toEqual(["fr"]);
+    expect(twpConfig.get("alwaysTranslateLangsAI")).toEqual([]);
+    expect(twpConfig.get("alwaysTranslateSites")).toEqual(["example.com"]);
+    expect(twpConfig.get("alwaysTranslateSitesAI")).toEqual([]);
+  });
+
+  it("AI: never-translate also clears the AI list entry (never wins over stale AI)", async () => {
+    mockState.storageData = {
+      alwaysTranslateLangsAI: ["fr"],
+      alwaysTranslateSitesAI: ["example.com"],
+    };
+    const twpConfig = await loadReadyConfig();
+
+    twpConfig.addLangToNeverTranslate("fr");
+    twpConfig.addSiteToNeverTranslate("example.com");
+
+    expect(twpConfig.get("alwaysTranslateLangsAI")).toEqual([]);
+    expect(twpConfig.get("alwaysTranslateSitesAI")).toEqual([]);
   });
 
   it("setTargetLanguage updates page target without reordering existing targetLanguages", async () => {

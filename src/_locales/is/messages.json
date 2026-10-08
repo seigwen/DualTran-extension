@@ -69,10 +69,16 @@
     "message": "Afrita í skrá"
   },
   "btnAlwaysTranslate": {
-    "message": "Alltaf þýða þessa síðu"
+    "message": "Alltaf þýða þessa síðu (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Alltaf þýða þetta tungumál"
+    "message": "Alltaf þýða þetta tungumál (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Alltaf þýða þetta tungumál (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Alltaf þýða þessa síðu (AI)"
   },
   "btnApply": {
     "message": "Nota"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Alltaf þýða þessar síður"
+    "message": "Alltaf þýða þessar síður (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Alltaf þýða þessar síður (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API lykill"
@@ -747,7 +756,10 @@
     "message": "Bæta við sérsniðna orðabók (Þetta gerir þér kleift að sleppa tilteknum orðum við þýðingar á vefsíðu)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Alltaf þýða þessi tungumál"
+    "message": "Alltaf þýða þessi tungumál (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Alltaf þýða þessi tungumál (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Aldrei þýða þessa síðu"

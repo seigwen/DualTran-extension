@@ -69,10 +69,16 @@
     "message": "Dosyaya yedekle"
   },
   "btnAlwaysTranslate": {
-    "message": "Bu siteyi her zaman çevir"
+    "message": "Bu siteyi her zaman çevir (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Bu dili her zaman çevir"
+    "message": "Bu dili her zaman çevir (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Bu dili her zaman çevir (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Bu siteyi her zaman çevir (AI)"
   },
   "btnApply": {
     "message": "Uygula"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Bu siteleri her zaman çevir"
+    "message": "Bu siteleri her zaman çevir (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Bu siteleri her zaman çevir (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API Anahtarı"
@@ -747,7 +756,10 @@
     "message": "Özel sözlüğe ekle (Bu, web sayfası çevirisi sırasında belirli kelimeleri atlamanızı sağlar)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Bu dilleri her zaman çevir"
+    "message": "Bu dilleri her zaman çevir (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Bu dilleri her zaman çevir (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Bu siteleri hiçbir zaman çevirme"

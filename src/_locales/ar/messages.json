@@ -69,10 +69,16 @@
     "message": "النسخ الاحتياطي إلى الملف"
   },
   "btnAlwaysTranslate": {
-    "message": "ترجمة هذا الموقع دائمًا"
+    "message": "ترجمة هذا الموقع دائمًا (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "دائما ترجمة هذه اللغة"
+    "message": "دائما ترجمة هذه اللغة (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "دائما ترجمة هذه اللغة (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "ترجمة هذا الموقع دائمًا (AI)"
   },
   "btnApply": {
     "message": "يتقدم"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "ترجمة هذه المواقع دائمًا"
+    "message": "ترجمة هذه المواقع دائمًا (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "ترجمة هذه المواقع دائمًا (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "مفتاح API الخاص بـ OpenAI"
@@ -747,7 +756,10 @@
     "message": "إضافة إلى القاموس المخصص (يسمح لك هذا بتخطي كلمات معينة أثناء ترجمة صفحة الويب)"
   },
   "optionsAlwaysTranslate": {
-    "message": "دائما ترجمة هذه اللغة"
+    "message": "دائما ترجمة هذه اللغة (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "دائما ترجمة هذه اللغة (AI)"
   },
   "optionsNeverTranslate": {
     "message": "لا تترجم هذه المواقع أبدًا"

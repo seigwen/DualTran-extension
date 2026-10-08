@@ -69,10 +69,16 @@
     "message": "Fă o copie de rezervă"
   },
   "btnAlwaysTranslate": {
-    "message": "Tradu mereu acest sit"
+    "message": "Tradu mereu acest sit (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Tradu mereu această limbă"
+    "message": "Tradu mereu această limbă (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Tradu mereu această limbă (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Tradu mereu acest sit (AI)"
   },
   "btnApply": {
     "message": "Aplică"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Tradu mereu aceste situri"
+    "message": "Tradu mereu aceste situri (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Tradu mereu aceste situri (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "Cheie API OpenAI"
@@ -747,7 +756,10 @@
     "message": "Adaugă la dicționarul personalizat (Acest lucru permite omiterea anumitor cuvinte în timpul traducerii paginii web)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Tradu mereu aceste limbi"
+    "message": "Tradu mereu aceste limbi (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Tradu mereu aceste limbi (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Nu traduce niciodată aceste situri"

@@ -69,10 +69,16 @@
     "message": "Fes una còpia de seguretat"
   },
   "btnAlwaysTranslate": {
-    "message": "Tradueix sempre aquest lloc"
+    "message": "Tradueix sempre aquest lloc (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Tradueix sempre aquest idioma"
+    "message": "Tradueix sempre aquest idioma (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Tradueix sempre aquest idioma (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Tradueix sempre aquest lloc (AI)"
   },
   "btnApply": {
     "message": "Aplica"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Tradueix sempre aquests llocs"
+    "message": "Tradueix sempre aquests llocs (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Tradueix sempre aquests llocs (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "Clau API d'OpenAI"
@@ -747,7 +756,10 @@
     "message": "Afegeix al diccionari personalitzat (això us permet ometre determinades paraules durant la traducció de la pàgina web)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Tradueix sempre aquests idiomes"
+    "message": "Tradueix sempre aquests idiomes (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Tradueix sempre aquests idiomes (AI)"
   },
   "optionsNeverTranslate": {
     "message": "No tradueixis mai aquests llocs"

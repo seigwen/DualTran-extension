@@ -69,10 +69,16 @@
     "message": "Αντίγραφο σε αρχείο"
   },
   "btnAlwaysTranslate": {
-    "message": "Πάντα μετάφραση αυτής της ιστοσελίδας"
+    "message": "Πάντα μετάφραση αυτής της ιστοσελίδας (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Πάντα μετάφραση αυτής της γλώσσας"
+    "message": "Πάντα μετάφραση αυτής της γλώσσας (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Πάντα μετάφραση αυτής της γλώσσας (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Πάντα μετάφραση αυτής της ιστοσελίδας (AI)"
   },
   "btnApply": {
     "message": "Εφαρμογή"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Πάντα μετάφραση αυτών των ιστοσελίδων"
+    "message": "Πάντα μετάφραση αυτών των ιστοσελίδων (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Πάντα μετάφραση αυτών των ιστοσελίδων (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "Κλειδί API OpenAI"
@@ -747,7 +756,10 @@
     "message": "Προσθήκη στο προσαρμοσμένο λεξικό (Αυτό σας επιτρέπει να παραλείψετε ορισμένες λέξεις κατά τη μετάφρασή της)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Πάντα μετάφραση αυτών των γλωσσών"
+    "message": "Πάντα μετάφραση αυτών των γλωσσών (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Πάντα μετάφραση αυτών των γλωσσών (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Ποτέ μετάφραση αυτών των ιστοσελίδων"

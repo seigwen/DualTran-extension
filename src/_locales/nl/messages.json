@@ -69,10 +69,16 @@
     "message": "Back-up naar bestand"
   },
   "btnAlwaysTranslate": {
-    "message": "Vertaal deze site altijd"
+    "message": "Vertaal deze site altijd (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Vertaal deze taal altijd"
+    "message": "Vertaal deze taal altijd (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Vertaal deze taal altijd (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Vertaal deze site altijd (AI)"
   },
   "btnApply": {
     "message": "Van toepassing zijn"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Vertaal deze sites altijd"
+    "message": "Vertaal deze sites altijd (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Vertaal deze sites altijd (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API-sleutel"
@@ -747,7 +756,10 @@
     "message": "Toevoegen aan aangepast woordenboek (hiermee kunt u bepaalde woorden overslaan tijdens de vertaling van webpagina's)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Vertaal deze talen altijd"
+    "message": "Vertaal deze talen altijd (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Vertaal deze talen altijd (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Vertaal deze sites nooit"

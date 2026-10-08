@@ -69,10 +69,16 @@
     "message": "备份至文件"
   },
   "btnAlwaysTranslate": {
-    "message": "总是翻译此网站"
+    "message": "总是使用 Google 翻译此网站"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "总是翻译此语言"
+    "message": "总是使用 Google 翻译此语言"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "总是使用 AI 翻译此语言"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "总是使用 AI 翻译此网站"
   },
   "btnApply": {
     "message": "应用"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "总是翻译这些网站"
+    "message": "总是使用 Google 翻译这些网站"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "总是使用 AI 翻译这些网站"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API 密钥"
@@ -747,7 +756,10 @@
     "message": "添加到我的字典（这允许您在网页翻译时跳过某些单词）"
   },
   "optionsAlwaysTranslate": {
-    "message": "总是翻译这些语言"
+    "message": "总是使用 Google 翻译这些语言"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "总是使用 AI 翻译这些语言"
   },
   "optionsNeverTranslate": {
     "message": "永不翻译这些网站"

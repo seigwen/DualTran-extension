@@ -196,6 +196,18 @@ twpConfig.onReady(function () {
         }
         updateInterface();
       });
+      // Set "Always translate this language with AI" checkbox click handler (issue #145)
+      $("#cbAlwaysTranslateThisLanguageAI").addEventListener("change", (e) => {
+        if([undefined, null, "", "und"].includes(originalTabLanguage)){
+          return
+        }
+        if (e.target.checked) {
+          twpConfig.addLangToAlwaysTranslateAI(originalTabLanguage, hostname);
+        } else {
+          twpConfig.removeLangFromAlwaysTranslateAI(originalTabLanguage);
+        }
+        updateInterface();
+      });
       // Set "Never translate this language" checkbox click handler
       $("#cbNeverTranslateThisLanguage").addEventListener("change", (e) => {
         if([undefined, null, "", "und"].includes(originalTabLanguage)){
@@ -222,6 +234,18 @@ twpConfig.onReady(function () {
           twpConfig.removeSiteFromNeverTranslate(hostname);
         } else {
           twpConfig.removeSiteFromAlwaysTranslate(hostname);
+        }
+        updateInterface();
+      });
+      // Set "Always translate this site with AI" checkbox click handler (issue #145)
+      $("#cbAlwaysTranslateThisSiteAI").addEventListener("change", (e) => {
+        if([undefined, null, "", "und"].includes(hostname)){
+          return
+        }
+        if (e.target.checked) {
+          twpConfig.addSiteToAlwaysTranslateAI(hostname);
+        } else {
+          twpConfig.removeSiteFromAlwaysTranslateAI(hostname);
         }
         updateInterface();
       });
@@ -341,9 +365,11 @@ twpConfig.onReady(function () {
     }
 
     $("#cbAlwaysTranslateThisLanguage").checked = twpConfig.get("alwaysTranslateLangs").indexOf(originalTabLanguage) !== -1;
+    $("#cbAlwaysTranslateThisLanguageAI").checked = (twpConfig.get("alwaysTranslateLangsAI") || []).indexOf(originalTabLanguage) !== -1;
     $("#cbNeverTranslateThisLanguage").checked = twpConfig.get("neverTranslateLangs").indexOf(originalTabLanguage) !== -1;
 
     $("#cbAlwaysTranslateThisSite").checked = twpConfig.get("alwaysTranslateSites").indexOf(hostname) !== -1;
+    $("#cbAlwaysTranslateThisSiteAI").checked = (twpConfig.get("alwaysTranslateSitesAI") || []).indexOf(hostname) !== -1;
     $("#cbNeverTranslateThisSite").checked = twpConfig.get("neverTranslateSites").indexOf(hostname) !== -1;
 
     // Set "Show translate selected text button" checkbox style
@@ -363,12 +389,15 @@ twpConfig.onReady(function () {
     if (![undefined, "und"].includes(originalTabLanguage)) {
       // Set "Always translate this language" checkbox style
       $("#cbAlwaysTranslateThisLanguage").disabled = false
+      // Set "Always translate this language with AI" checkbox style
+      $("#cbAlwaysTranslateThisLanguageAI").disabled = false
       // Set "Always translate this language" checkbox style
       $("#cbNeverTranslateThisLanguage").disabled = false
       // Set "Show translated when hovering this language" checkbox style
       $("#cbShowTranslatedWhenHoveringThisLang").disabled = false
     } else {
       $("#cbAlwaysTranslateThisLanguage").disabled = true
+      $("#cbAlwaysTranslateThisLanguageAI").disabled = true
       $("#cbNeverTranslateThisLanguage").disabled = true
       $("#cbShowTranslatedWhenHoveringThisLang").disabled = true
     }
@@ -376,12 +405,15 @@ twpConfig.onReady(function () {
     if (hostname) {
       // Set "Always translate this site" checkbox style
       $("#cbAlwaysTranslateThisSite").disabled = false
+      // Set "Always translate this site with AI" checkbox style
+      $("#cbAlwaysTranslateThisSiteAI").disabled = false
       // Set "Never translate this site" checkbox style
       $("#cbNeverTranslateThisSite").disabled = false
       // Set "Show translated when hovering this site" checkbox style
       $("#cbShowTranslatedWhenHoveringThisSite").disabled = false
     } else {
       $("#cbAlwaysTranslateThisSite").disabled = true
+      $("#cbAlwaysTranslateThisSiteAI").disabled = true
       $("#cbNeverTranslateThisSite").disabled = true
       $("#cbShowTranslatedWhenHoveringThisSite").disabled = true
     }

@@ -69,10 +69,16 @@
     "message": "สำรองข้อมูลไปยังไฟล์"
   },
   "btnAlwaysTranslate": {
-    "message": "แปลไซต์นี้เสมอ"
+    "message": "แปลไซต์นี้เสมอ (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "แปลภาษานี้เสมอ"
+    "message": "แปลภาษานี้เสมอ (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "แปลภาษานี้เสมอ (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "แปลไซต์นี้เสมอ (AI)"
   },
   "btnApply": {
     "message": "นำมาใช้"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "แปลเว็บไซต์เหล่านี้เสมอ"
+    "message": "แปลเว็บไซต์เหล่านี้เสมอ (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "แปลเว็บไซต์เหล่านี้เสมอ (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "คีย์ API ของ OpenAI"
@@ -747,7 +756,10 @@
     "message": "เพิ่มในพจนานุกรมแบบกำหนดเอง (ทำให้คุณสามารถข้ามคำบางคำระหว่างการแปลหน้าเว็บ)"
   },
   "optionsAlwaysTranslate": {
-    "message": "แปลภาษาเหล่านี้เสมอ"
+    "message": "แปลภาษาเหล่านี้เสมอ (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "แปลภาษาเหล่านี้เสมอ (AI)"
   },
   "optionsNeverTranslate": {
     "message": "อย่าแปลเว็บไซต์เหล่านี้"

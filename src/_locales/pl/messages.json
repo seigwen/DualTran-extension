@@ -69,10 +69,16 @@
     "message": "Zapisz kopię zapasową do pliku"
   },
   "btnAlwaysTranslate": {
-    "message": "Zawsze tłumacz tę witrynę"
+    "message": "Zawsze tłumacz tę witrynę (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Zawsze tłumacz z tego języka"
+    "message": "Zawsze tłumacz z tego języka (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Zawsze tłumacz z tego języka (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Zawsze tłumacz tę witrynę (AI)"
   },
   "btnApply": {
     "message": "Zastosuj"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Zawsze tłumacz te witryny"
+    "message": "Zawsze tłumacz te witryny (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Zawsze tłumacz te witryny (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "Klucz API OpenAI"
@@ -747,7 +756,10 @@
     "message": "Dodaj do własnego słownika (Pomija podane słowa podczas tłumaczenia stron internetowych)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Zawsze tłumacz te języki"
+    "message": "Zawsze tłumacz te języki (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Zawsze tłumacz te języki (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Nigdy nie tłumacz tych witryn"

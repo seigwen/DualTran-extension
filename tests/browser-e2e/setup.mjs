@@ -988,6 +988,8 @@ export async function resetScenarioState(scope) {
           whereToDisplayTranslatedText: "newLine",
           alwaysTranslateSites: [],
           alwaysTranslateLangs: [],
+          alwaysTranslateSitesAI: [],
+          alwaysTranslateLangsAI: [],
           neverTranslateSites: [],
           neverTranslateLangs: [],
         });

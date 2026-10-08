@@ -69,10 +69,16 @@
     "message": "Backup to file"
   },
   "btnAlwaysTranslate": {
-    "message": "Always translate this site"
+    "message": "Always translate this site with Google"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Always translate this language"
+    "message": "Always translate this language with Google"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Always translate this language with AI"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Always translate this site with AI"
   },
   "btnApply": {
     "message": "Apply"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Always translate these sites"
+    "message": "Always translate these sites with Google"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Always translate these sites with AI"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API Key"
@@ -747,7 +756,10 @@
     "message": "Add to custom dictionary (This allows you to skip certain words during web page translation)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Always translate these languages"
+    "message": "Always translate these languages with Google"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Always translate these languages with AI"
   },
   "optionsNeverTranslate": {
     "message": "Never translate these sites"

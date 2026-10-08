@@ -69,10 +69,16 @@
     "message": "Экспортировать в файл"
   },
   "btnAlwaysTranslate": {
-    "message": "Всегда переводить этот сайт"
+    "message": "Всегда переводить этот сайт (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Всегда переводить с этого языка"
+    "message": "Всегда переводить с этого языка (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Всегда переводить с этого языка (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Всегда переводить этот сайт (AI)"
   },
   "btnApply": {
     "message": "Применить"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Всегда переводить эти сайты"
+    "message": "Всегда переводить эти сайты (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Всегда переводить эти сайты (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "API-ключ OpenAI"
@@ -747,7 +756,10 @@
     "message": "Добавить в пользовательский словарь (Это позволяет пропускать определённые слова при переводе веб-страниц)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Всегда переводить эти языки"
+    "message": "Всегда переводить эти языки (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Всегда переводить эти языки (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Никогда не переводить эти сайты"

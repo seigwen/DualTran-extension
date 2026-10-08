@@ -525,6 +525,7 @@ twpConfig.onReady(function () {
 
   fillLanguageList($("#addToNeverTranslateLangs")); // Fill language list for never-translate language dropdown
   fillLanguageList($("#addToAlwaysTranslateLangs")); // Fill language list for always-translate language dropdown
+  fillLanguageList($("#addToAlwaysTranslateLangsAI")); // Fill language list for always-translate-AI language dropdown
   fillLanguageList($("#addLangToTranslateWhenHovering")); // Fill language list for translate-on-hover language dropdown
 
   function updateDarkMode() { // Apply dark mode strategy based on config
@@ -700,6 +701,45 @@ twpConfig.onReady(function () {
     twpConfig.addLangToAlwaysTranslate(langCode); // Save to config
   };
 
+  // Always-translate-AI language list config (issue #145)
+  function createNodeToAlwaysTranslateLangsAIList(langCode, langName) { // Create always-translate-AI language list item
+    const li = document.createElement("li");
+    li.setAttribute("class", "w3-display-container");
+    li.value = langCode;
+    li.textContent = langName;
+
+    const close = document.createElement("span");
+    close.setAttribute("class", "w3-button w3-transparent w3-display-right");
+    close.innerHTML = "&times;";
+
+    close.onclick = (e) => { // Delete event
+      e.preventDefault();
+
+      twpConfig.removeLangFromAlwaysTranslateAI(langCode); // Remove from config
+      li.remove();
+    };
+
+    li.appendChild(close);
+
+    return li;
+  }
+
+  const alwaysTranslateLangsAI = twpConfig.get("alwaysTranslateLangsAI") || []; // Get always-translate-AI languages array
+  alwaysTranslateLangsAI.slice().sort((a, b) => a?.localeCompare?.(b)).forEach((langCode) => { // Render
+    const langName = twpLang.codeToLanguage(langCode);
+    const li = createNodeToAlwaysTranslateLangsAIList(langCode, langName);
+    $("#alwaysTranslateLangsAI").appendChild(li);
+  });
+
+  $("#addToAlwaysTranslateLangsAI").onchange = (e) => { // Add event
+    const langCode = e.target.value;
+    const langName = twpLang.codeToLanguage(langCode);
+    const li = createNodeToAlwaysTranslateLangsAIList(langCode, langName);
+    $("#alwaysTranslateLangsAI").appendChild(li);
+
+    twpConfig.addLangToAlwaysTranslateAI(langCode); // Save to config
+  };
+
   // Translate-on-hover language list config
   function createNodeToLangsToTranslateWhenHoveringList(langCode, langName) { // Create translate-on-hover language list item
     const li = document.createElement("li");
@@ -780,6 +820,45 @@ twpConfig.onReady(function () {
     $("#alwaysTranslateSites").appendChild(li); // Insert
 
     twpConfig.addSiteToAlwaysTranslate(hostname); // Save to config
+  };
+
+  // Always-translate-AI sites list config (issue #145)
+  function createNodeToAlwaysTranslateSitesAIList(hostname) { // Create always-translate-AI site list item
+    const li = document.createElement("li");
+    li.setAttribute("class", "w3-display-container");
+    li.value = hostname;
+    li.textContent = hostname;
+
+    const close = document.createElement("span");
+    close.setAttribute("class", "w3-button w3-transparent w3-display-right");
+    close.innerHTML = "&times;";
+
+    close.onclick = (e) => { // Delete site
+      e.preventDefault();
+
+      twpConfig.removeSiteFromAlwaysTranslateAI(hostname); // Remove from config
+      li.remove();
+    };
+
+    li.appendChild(close);
+
+    return li;
+  }
+
+  const alwaysTranslateSitesAI = twpConfig.get("alwaysTranslateSitesAI") || []; // Get always-translate-AI sites array
+  alwaysTranslateSitesAI.slice().sort((a, b) => a?.localeCompare?.(b)).forEach((hostname) => { // Render
+    const li = createNodeToAlwaysTranslateSitesAIList(hostname);
+    $("#alwaysTranslateSitesAI").appendChild(li);
+  });
+
+  $("#addToAlwaysTranslateSitesAI").onclick = (e) => { // Add site button
+    const hostname = prompt("Enter the site hostname", "www.site.com"); // Prompt for input
+    if (!hostname) return; // Return on cancel
+
+    const li = createNodeToAlwaysTranslateSitesAIList(hostname); // Create node
+    $("#alwaysTranslateSitesAI").appendChild(li); // Insert
+
+    twpConfig.addSiteToAlwaysTranslateAI(hostname); // Save to config
   };
 
   // Never-translate sites list config

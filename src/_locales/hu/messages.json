@@ -69,10 +69,16 @@
     "message": "Biztonsági mentés fájlba"
   },
   "btnAlwaysTranslate": {
-    "message": "Mindig fordítsa le ezt az oldalt"
+    "message": "Mindig fordítsa le ezt az oldalt (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Mindig fordítsa le ezt a nyelvet"
+    "message": "Mindig fordítsa le ezt a nyelvet (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "Mindig fordítsa le ezt a nyelvet (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "Mindig fordítsa le ezt az oldalt (AI)"
   },
   "btnApply": {
     "message": "Alkalmaz"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "Mindig fordítsa le ezeket az oldalakat"
+    "message": "Mindig fordítsa le ezeket az oldalakat (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "Mindig fordítsa le ezeket az oldalakat (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API kulcs"
@@ -747,7 +756,10 @@
     "message": "Hozzáadás egyéni szótárhoz (Ez lehetővé teszi bizonyos szavak kihagyását a weboldal fordítása során)"
   },
   "optionsAlwaysTranslate": {
-    "message": "Mindig fordítsa le ezeket a nyelveket"
+    "message": "Mindig fordítsa le ezeket a nyelveket (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "Mindig fordítsa le ezeket a nyelveket (AI)"
   },
   "optionsNeverTranslate": {
     "message": "Soha ne fordítsa le ezeket az oldalakat"

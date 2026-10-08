@@ -8,8 +8,10 @@ const state = vi.hoisted(() => {
     targetLanguages: ["en", "fr", "de"],
     neverTranslateLangs: ["de"],
     alwaysTranslateLangs: ["fr"],
+    alwaysTranslateLangsAI: [],
     langsToTranslateWhenHovering: ["es"],
     alwaysTranslateSites: ["always.example"],
+    alwaysTranslateSitesAI: [],
     neverTranslateSites: ["never.example"],
     sitesToTranslateWhenHovering: ["hover.example"],
     customDictionary: new Map([
@@ -116,6 +118,20 @@ const state = vi.hoisted(() => {
     removeSiteFromAlwaysTranslate: vi.fn((site) => {
       const index = configValues.alwaysTranslateSites.indexOf(site);
       if (index >= 0) configValues.alwaysTranslateSites.splice(index, 1);
+    }),
+    addLangToAlwaysTranslateAI: vi.fn((lang) => {
+      configValues.alwaysTranslateLangsAI.push(lang);
+    }),
+    removeLangFromAlwaysTranslateAI: vi.fn((lang) => {
+      const index = configValues.alwaysTranslateLangsAI.indexOf(lang);
+      if (index >= 0) configValues.alwaysTranslateLangsAI.splice(index, 1);
+    }),
+    addSiteToAlwaysTranslateAI: vi.fn((site) => {
+      configValues.alwaysTranslateSitesAI.push(site);
+    }),
+    removeSiteFromAlwaysTranslateAI: vi.fn((site) => {
+      const index = configValues.alwaysTranslateSitesAI.indexOf(site);
+      if (index >= 0) configValues.alwaysTranslateSitesAI.splice(index, 1);
     }),
     addSiteToNeverTranslate: vi.fn((site) => {
       configValues.neverTranslateSites.push(site);
@@ -292,15 +308,19 @@ function createOptionsDom() {
     <select id="favoriteLanguage3"></select>
     <select id="addToNeverTranslateLangs"></select>
     <select id="addToAlwaysTranslateLangs"></select>
+    <select id="addToAlwaysTranslateLangsAI"></select>
     <select id="addLangToTranslateWhenHovering"></select>
     <ul id="neverTranslateLangs"></ul>
     <ul id="alwaysTranslateLangs"></ul>
+    <ul id="alwaysTranslateLangsAI"></ul>
     <ul id="langsToTranslateWhenHovering"></ul>
 
     <button id="addToAlwaysTranslateSites"></button>
+    <button id="addToAlwaysTranslateSitesAI"></button>
     <button id="addToNeverTranslateSites"></button>
     <button id="addSiteToTranslateWhenHovering"></button>
     <ul id="alwaysTranslateSites"></ul>
+    <ul id="alwaysTranslateSitesAI"></ul>
     <ul id="neverTranslateSites"></ul>
     <ul id="sitesToTranslateWhenHovering"></ul>
 
@@ -688,6 +708,51 @@ describe("options/options", () => {
 
     expect(state.configMock.addSiteToAlwaysTranslate).toHaveBeenCalledWith("docs.example");
     expect(document.querySelector("#alwaysTranslateSites li")?.textContent).toContain("docs.example");
+  });
+
+  // ── AI always-translate lists (issue #145) ──────────────────────────
+
+  it("adds a language to the always-translate-AI list", async () => {
+    await loadOptionsModule({ alwaysTranslateLangsAI: [] });
+
+    const select = document.querySelector("#addToAlwaysTranslateLangsAI");
+    select.value = "it";
+    select.onchange({ target: select });
+
+    expect(state.configMock.addLangToAlwaysTranslateAI).toHaveBeenCalledWith("it");
+    expect(document.querySelector("#alwaysTranslateLangsAI li")?.textContent).toContain("Italiano");
+  });
+
+  it("renders the always-translate-AI language list from config and removes on click", async () => {
+    await loadOptionsModule({ alwaysTranslateLangsAI: ["en"] });
+
+    expect(document.querySelector("#alwaysTranslateLangsAI li")?.textContent).toContain("English");
+
+    document.querySelector("#alwaysTranslateLangsAI li span").click();
+
+    expect(state.configMock.removeLangFromAlwaysTranslateAI).toHaveBeenCalledWith("en");
+    expect(document.querySelectorAll("#alwaysTranslateLangsAI li")).toHaveLength(0);
+  });
+
+  it("adds a site to the always-translate-AI list", async () => {
+    await loadOptionsModule({ alwaysTranslateSitesAI: [] });
+    globalThis.prompt.mockReturnValueOnce("ai.example");
+
+    document.querySelector("#addToAlwaysTranslateSitesAI").click();
+
+    expect(state.configMock.addSiteToAlwaysTranslateAI).toHaveBeenCalledWith("ai.example");
+    expect(document.querySelector("#alwaysTranslateSitesAI li")?.textContent).toContain("ai.example");
+  });
+
+  it("renders the always-translate-AI site list from config and removes on click", async () => {
+    await loadOptionsModule({ alwaysTranslateSitesAI: ["ai.example"] });
+
+    expect(document.querySelector("#alwaysTranslateSitesAI li")?.textContent).toContain("ai.example");
+
+    document.querySelector("#alwaysTranslateSitesAI li span").click();
+
+    expect(state.configMock.removeSiteFromAlwaysTranslateAI).toHaveBeenCalledWith("ai.example");
+    expect(document.querySelectorAll("#alwaysTranslateSitesAI li")).toHaveLength(0);
   });
 
   it("removes a site from the never-translate list", async () => {

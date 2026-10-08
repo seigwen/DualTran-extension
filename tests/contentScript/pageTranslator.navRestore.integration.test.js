@@ -39,6 +39,9 @@ const mockState = vi.hoisted(() => {
     aiProvider: "openai",
     apiKeyOpenAI: "test-api-key",
     alwaysTranslateSites: [],
+    alwaysTranslateLangs: [],
+    alwaysTranslateSitesAI: [],
+    alwaysTranslateLangsAI: [],
     neverTranslateSites: [],
     neverTranslateLangs: [],
     customDictionary: new Map(),
@@ -820,5 +823,192 @@ describe("通告通道完备性（SSOT 遍历版，#134/#137）", () => {
     expect(probes.pageTranslator.getPageLanguageState()).toBe("original");
 
     probes.pageTranslator.restorePage(true);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// T12–T16（issue #145）：页面加载自动翻译的引擎选择
+//
+// onTabVisible 命中自动翻译列表时按引擎分派：
+//   AI 语言/网站列表（alwaysTranslateLangsAI / alwaysTranslateSitesAI）
+//   → translatePageAi()（AI 意图链自动接入）；
+//   Google 列表 → translatePage()（现状不变）；
+//   AI 候选无 API key → 不可用（静默不翻译、不弹窗、不降级）。
+// 本套件直接捕获 onTabVisible 的 detectTabLanguage 回调做「是否触发」断言，
+// 与 translatePageAi 副作用（无 key 时的 confirm 提示）解耦。
+// ═══════════════════════════════════════════════════════════
+
+describe("页面加载自动翻译引擎选择（issue #145）", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.resetModules();
+    Object.keys(mockState.store).forEach(k => delete mockState.store[k]);
+    // 每格重置自动翻译列表与 key 配置（共享 mockState，防跨格泄漏）
+    mockState.configValues.alwaysTranslateSites = [];
+    mockState.configValues.alwaysTranslateLangs = [];
+    mockState.configValues.alwaysTranslateSitesAI = [];
+    mockState.configValues.alwaysTranslateLangsAI = [];
+    mockState.configValues.neverTranslateSites = [];
+    mockState.configValues.neverTranslateLangs = [];
+    mockState.configValues.apiKeyOpenAI = "test-api-key";
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  /**
+   * 装载模块并捕获 onTabVisible 的 120ms 定时器回调。
+   * detectTabLanguage 的应答由 langAnswer 控制（"und" / "fr" / ...）。
+   *
+   * jsdom 的 document.visibilityState 默认是 "prerender"（hidden）——模块加载期
+   * 定时器会走「挂 visibilitychange 监听」分支且永远不触发 onTabVisible。
+   * 测试在调用定时器前强制 visibilityState = "visible"（jsdom 可配置），
+   * 使每个格的真实触发路径与生产一致（否则负向格会空过）。
+   */
+  async function loadWithVisibilityTimer(testUrl, langAnswer, hostname = "example.com") {
+    const dom = new JSDOM("<!DOCTYPE html><html><body><p>hello world</p></body></html>", { url: testUrl });
+    globalThis.window = dom.window;
+    globalThis.document = dom.window.document;
+    globalThis.location = dom.window.location;
+    Object.defineProperty(globalThis, "navigator", {
+      configurable: true, writable: true, value: dom.window.navigator,
+    });
+    patchSessionStorage(dom);
+
+    const sendMessageSpy = vi.fn((payload, callback) => {
+      if (typeof callback === "function") {
+        if (payload?.action === "getTabHostName") callback(hostname);
+        else if (payload?.action === "detectTabLanguage") callback(langAnswer);
+        else callback();
+      }
+    });
+    createTestGlobals(sendMessageSpy);
+
+    let timerCallback = null;
+    const originalSetTimeout = globalThis.setTimeout;
+    globalThis.setTimeout = function (fn, ms, ...args) {
+      if (ms === 120) timerCallback = fn;
+      return originalSetTimeout(fn, ms, ...args);
+    };
+    let pageTranslator;
+    try {
+      ({ pageTranslator } = await import("../../src/contentScript/pageTranslator.js"));
+    } finally {
+      globalThis.setTimeout = originalSetTimeout;
+    }
+    await vi.waitFor(() => {
+      expect(timerCallback).toBeTypeOf("function");
+    }, { timeout: 5000 });
+
+    // jsdom 默认 visibilityState="prerender"（hidden）：把 document 标记为可见，
+    // 调用方触发定时器时走真实的 onTabVisible 直连路径（见函数头注释）。
+    Object.defineProperty(dom.window.document, "visibilityState", {
+      configurable: true, get: () => "visible",
+    });
+    return { pageTranslator, timerCallback };
+  }
+
+  it("T12: alwaysTranslateLangsAI hit → auto-translate enters translated state (AI path)", async () => {
+    mockState.configValues.alwaysTranslateLangsAI = ["fr"];
+    const { pageTranslator, timerCallback } = await loadWithVisibilityTimer(
+      "https://example.com/ai-lang", "fr"
+    );
+
+    const intents = [];
+    pageTranslator.onRequestedModeChange((m) => intents.push(m));
+
+    // 触发模块加载期可见性定时器（模拟页面可见时的 onTabVisible）
+    timerCallback();
+    await vi.waitFor(() => {
+      expect(pageTranslator.getPageLanguageState()).toBe("translated");
+    }, { timeout: 5000 });
+
+    // AI 意图已接入（translatePageAi 的 E3 发音 → ai），绝不发音 google
+    expect(intents).toContain("ai");
+    expect(intents).not.toContain("google");
+
+    pageTranslator.restorePage(true);
+  });
+
+  it("T13: Google-list-only hit → NOT the AI path (no ai render state)", async () => {
+    mockState.configValues.alwaysTranslateLangs = ["fr"];
+    const { pageTranslator, timerCallback } = await loadWithVisibilityTimer(
+      "https://example.com/google-lang", "fr"
+    );
+
+    const intents = [];
+    pageTranslator.onRequestedModeChange((m) => intents.push(m));
+    const aiRenderStates = [];
+    pageTranslator.onAiRenderStateChange((s) => aiRenderStates.push(s));
+
+    timerCallback();
+    await vi.waitFor(() => {
+      expect(pageTranslator.getPageLanguageState()).toBe("translated");
+    }, { timeout: 5000 });
+
+    // Google 路径：发音 google、不进入 AI 流水线
+    expect(intents).toContain("google");
+    expect(intents).not.toContain("ai");
+    expect(pageTranslator.getState().aiRenderState).toBe("idle");
+    expect(aiRenderStates).toEqual([]);
+
+    pageTranslator.restorePage(true);
+  });
+
+  it("T14: alwaysTranslateSitesAI hit on 'und' language branch → translated state", async () => {
+    mockState.configValues.alwaysTranslateSitesAI = ["example.com"];
+    const { pageTranslator, timerCallback } = await loadWithVisibilityTimer(
+      "https://example.com/ai-site-und", "und"
+    );
+
+    const intents = [];
+    pageTranslator.onRequestedModeChange((m) => intents.push(m));
+
+    timerCallback();
+    await vi.waitFor(() => {
+      expect(pageTranslator.getPageLanguageState()).toBe("translated");
+    }, { timeout: 5000 });
+
+    expect(intents).toContain("ai");
+
+    pageTranslator.restorePage(true);
+  });
+
+  it("T15: AI list hit without an API key → silent no-translate (no prompt, no Google downgrade)", async () => {
+    mockState.configValues.alwaysTranslateLangsAI = ["fr"];
+    mockState.configValues.apiKeyOpenAI = "";
+    const { pageTranslator, timerCallback } = await loadWithVisibilityTimer(
+      "https://example.com/ai-lang-nokey", "fr"
+    );
+
+    let confirmCalled = false;
+    globalThis.window.confirm = () => { confirmCalled = true; return false; };
+    globalThis.confirm = globalThis.window.confirm;
+
+    timerCallback();
+    await new Promise(r => setTimeout(r, 300));
+
+    // 静默：页面保持 original，绝不弹配置提示
+    expect(pageTranslator.getPageLanguageState()).toBe("original");
+    expect(confirmCalled).toBe(false);
+  });
+
+  it("T16: AI site list hit without an API key → silent no-translate", async () => {
+    mockState.configValues.alwaysTranslateSitesAI = ["example.com"];
+    mockState.configValues.apiKeyOpenAI = "";
+    const { pageTranslator, timerCallback } = await loadWithVisibilityTimer(
+      "https://example.com/ai-site-nokey", "fr"
+    );
+
+    let confirmCalled = false;
+    globalThis.window.confirm = () => { confirmCalled = true; return false; };
+    globalThis.confirm = globalThis.window.confirm;
+
+    timerCallback();
+    await new Promise(r => setTimeout(r, 300));
+
+    expect(pageTranslator.getPageLanguageState()).toBe("original");
+    expect(confirmCalled).toBe(false);
   });
 });

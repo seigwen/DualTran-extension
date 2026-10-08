@@ -69,10 +69,16 @@
     "message": "파일로 백업"
   },
   "btnAlwaysTranslate": {
-    "message": "이 사이트 항상 번역"
+    "message": "이 사이트 항상 번역 (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "이 언어 항상 번역"
+    "message": "이 언어 항상 번역 (Google)"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "이 언어 항상 번역 (AI)"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "이 사이트 항상 번역 (AI)"
   },
   "btnApply": {
     "message": "적용"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "항상 자동으로 번역할 사이트 목록"
+    "message": "항상 자동으로 번역할 사이트 목록 (Google)"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "항상 자동으로 번역할 사이트 목록 (AI)"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API 키"
@@ -747,7 +756,10 @@
     "message": "사용자 정의 사전에 추가(웹 페이지 번역 중에 특정 단어를 건너뛸 수 있음)"
   },
   "optionsAlwaysTranslate": {
-    "message": "항상 자동으로 번역할 언어 목록"
+    "message": "항상 자동으로 번역할 언어 목록 (Google)"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "항상 자동으로 번역할 언어 목록 (AI)"
   },
   "optionsNeverTranslate": {
     "message": "번역하지 않을 사이트 목록"

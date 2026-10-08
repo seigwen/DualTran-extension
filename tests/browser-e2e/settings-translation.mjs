@@ -1595,6 +1595,109 @@ async function s12Body(page, extensionId, serviceWorker) {
 // ═════════════════════════════════════════════════════════════════
 
 /**
+ * [S13] options 页 AI 自动翻译列表（语言 + 网站）UI 往返（issue #145）。
+ *
+ * 流程（每列表）：
+ *   1. 导航到 options#languages / #sites
+ *   2. 通过 UI 添加（select onchange / button click + prompt）→ storage 断言
+ *   3. 刷新 → UI 列表行仍在 → 点击行尾 × 删除 → storage 断言
+ *
+ * @param {import("playwright").Page} page - Playwright 页面对象
+ * @param {string} extensionId - 扩展 ID
+ * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
+ * @returns {Promise<void>}
+ */
+async function s13AiAlwaysTranslateLists(page, extensionId, serviceWorker) {
+  console.log("[S13] AI 自动翻译列表 UI 往返测试...");
+
+  const initialLangsAI = (await readStorage(serviceWorker, "alwaysTranslateLangsAI")) || [];
+  const initialSitesAI = (await readStorage(serviceWorker, "alwaysTranslateSitesAI")) || [];
+
+  // ── 语言列表 ──
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#languages`, { waitUntil: "load" });
+  await page.waitForSelector("#addToAlwaysTranslateLangsAI");
+  await page.waitForFunction(() => {
+    const sel = document.getElementById("addToAlwaysTranslateLangsAI");
+    return sel instanceof HTMLSelectElement && sel.options.length >= 4;
+  }, null, { timeout: 15000 });
+
+  await page.selectOption("#addToAlwaysTranslateLangsAI", "it");
+  await page.waitForTimeout(800);
+
+  const langsAfterAdd = (await readStorage(serviceWorker, "alwaysTranslateLangsAI")) || [];
+  if (!langsAfterAdd.includes("it")) {
+    throw new Error(`[S13] 选择 "it" 后 alwaysTranslateLangsAI 未包含 "it": ${JSON.stringify(langsAfterAdd)}`);
+  }
+  console.log(`  [S13] "it" 已添加到 alwaysTranslateLangsAI: ${JSON.stringify(langsAfterAdd)} ✓`);
+
+  await page.reload({ waitUntil: "load" });
+  await page.waitForSelector("#alwaysTranslateLangsAI li", { timeout: 15000 });
+  const langRowText = await page.evaluate(() => {
+    const li = document.querySelector("#alwaysTranslateLangsAI li");
+    return li ? li.textContent : null;
+  });
+  // E2E 扩展运行在英文 UI locale 下（chrome.i18n），语言名以英文显示（"Italian"）；
+  // jsdom 单测的 mock 用 "Italiano"。断言锚定「非空且含语言名，不是裸语言码」。
+  if (!langRowText || !langRowText.includes("Italian")) {
+    throw new Error(`[S13] 刷新后 AI 语言列表行应为 Italian，实际: ${JSON.stringify(langRowText)}`);
+  }
+  console.log(`  [S13] 刷新后 AI 语言列表行: "${langRowText}" ✓`);
+
+  await page.click("#alwaysTranslateLangsAI li span");
+  await page.waitForTimeout(500);
+  const langsAfterRemove = (await readStorage(serviceWorker, "alwaysTranslateLangsAI")) || [];
+  if (langsAfterRemove.includes("it")) {
+    throw new Error(`[S13] 删除行后 "it" 仍在 alwaysTranslateLangsAI: ${JSON.stringify(langsAfterRemove)}`);
+  }
+  console.log("  [S13] 删除行后 \"it\" 已移除 ✓");
+
+  // ── 网站列表 ──
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#sites`, { waitUntil: "load" });
+  await page.waitForSelector("#addToAlwaysTranslateSitesAI");
+
+  const dialogHandler = async (dialog) => { await dialog.accept("ai-s13.example"); };
+  page.on("dialog", dialogHandler);
+  await page.evaluate(() => {
+    const btn = document.getElementById("addToAlwaysTranslateSitesAI");
+    btn?.scrollIntoView({ behavior: "instant" });
+    btn?.click();
+  });
+  await page.waitForTimeout(1000);
+  page.off("dialog", dialogHandler);
+
+  const sitesAfterAdd = (await readStorage(serviceWorker, "alwaysTranslateSitesAI")) || [];
+  if (!sitesAfterAdd.includes("ai-s13.example")) {
+    throw new Error(`[S13] 添加后 alwaysTranslateSitesAI 未包含 "ai-s13.example": ${JSON.stringify(sitesAfterAdd)}`);
+  }
+  console.log(`  [S13] "ai-s13.example" 已添加到 alwaysTranslateSitesAI ✓`);
+
+  await page.reload({ waitUntil: "load" });
+  await page.waitForSelector("#alwaysTranslateSitesAI li", { timeout: 15000 });
+  const siteRowText = await page.evaluate(() => {
+    const li = document.querySelector("#alwaysTranslateSitesAI li");
+    return li ? li.textContent : null;
+  });
+  if (!siteRowText || !siteRowText.includes("ai-s13.example")) {
+    throw new Error(`[S13] 刷新后 AI 网站列表行应为 ai-s13.example，实际: ${JSON.stringify(siteRowText)}`);
+  }
+  console.log(`  [S13] 刷新后 AI 网站列表行: "${siteRowText}" ✓`);
+
+  await page.click("#alwaysTranslateSitesAI li span");
+  await page.waitForTimeout(500);
+  const sitesAfterRemove = (await readStorage(serviceWorker, "alwaysTranslateSitesAI")) || [];
+  if (sitesAfterRemove.includes("ai-s13.example")) {
+    throw new Error(`[S13] 删除行后 "ai-s13.example" 仍在 alwaysTranslateSitesAI`);
+  }
+  console.log("  [S13] 删除行后 \"ai-s13.example\" 已移除 ✓");
+
+  // 恢复初始数组（防泄漏进后续场景）
+  await writeStorage(serviceWorker, "alwaysTranslateLangsAI", initialLangsAI);
+  await writeStorage(serviceWorker, "alwaysTranslateSitesAI", initialSitesAI);
+
+  console.log("[S13] 通过 ✓\n");
+}
+
+/**
  * settings-translation E2E 场景主函数。
  *
  * 按 S1 → S10 顺序执行所有测试步骤。
@@ -1691,6 +1794,10 @@ export async function run(scope) {
 
   await runStep("S12", () =>
     s12ReasoningDepthPersistence(scope)
+  );
+
+  await runStep("S13", () =>
+    s13AiAlwaysTranslateLists(page, extensionId, serviceWorker)
   );
 
   // ── 再次检查扩展错误 ──

@@ -69,10 +69,16 @@
     "message": "備份至檔案"
   },
   "btnAlwaysTranslate": {
-    "message": "始終翻譯此網站"
+    "message": "總是使用 Google 翻譯此網站"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "始終翻譯此語言"
+    "message": "總是使用 Google 翻譯此語言"
+  },
+  "btnAlwaysTranslateThisLanguageWithAi": {
+    "message": "總是使用 AI 翻譯此語言"
+  },
+  "btnAlwaysTranslateWithAi": {
+    "message": "總是使用 AI 翻譯此網站"
   },
   "btnApply": {
     "message": "套用"
@@ -270,7 +276,10 @@
     }
   },
   "lblAlwaysTranslateSites": {
-    "message": "始終翻譯這些網站"
+    "message": "總是使用 Google 翻譯這些網站"
+  },
+  "lblAlwaysTranslateSitesWithAi": {
+    "message": "總是使用 AI 翻譯這些網站"
   },
   "lblApiKeyOpenAI": {
     "message": "OpenAI API 金鑰"
@@ -747,7 +756,10 @@
     "message": "新增至自訂的字典（這能讓您在網頁翻譯期間跳過特定的字詞）"
   },
   "optionsAlwaysTranslate": {
-    "message": "始終翻譯這些語言"
+    "message": "總是使用 Google 翻譯這些語言"
+  },
+  "optionsAlwaysTranslateWithAi": {
+    "message": "總是使用 AI 翻譯這些語言"
   },
   "optionsNeverTranslate": {
     "message": "永不翻譯這些網站"

@@ -99,6 +99,43 @@ export function shouldTriggerAiImprove(wordCount, threshold) {
 }
 
 /**
+ * Resolve which engine a page-load auto-translate trigger uses (pure function,
+ * for unit testing — issue #145).
+ *
+ * Priority: AI lists (lang/site) > Google lists (lang/site); `never` lists are
+ * handled by the caller and always win. When the AI candidate is selected but
+ * no provider API key is configured, the AI candidate is UNAVAILABLE — fall
+ * through to the Google lookup (a no-op in normal configs where the lists are
+ * mutually exclusive) and stay silent: no prompt, no Google downgrade.
+ *
+ * @param {Object} options
+ * @param {string|null} options.langCode — detected page language (already normalized)
+ * @param {string|null} options.siteHost — current tab hostname
+ * @param {string[]} options.aiLangs — alwaysTranslateLangsAI
+ * @param {string[]} options.aiSites — alwaysTranslateSitesAI
+ * @param {string[]} options.googleLangs — alwaysTranslateLangs
+ * @param {string[]} options.googleSites — alwaysTranslateSites
+ * @param {boolean} options.hasApiKey — whether the active provider has a key
+ * @returns {"ai" | "google" | null} engine to use, or null to not translate
+ */
+export function resolveAutoTranslateEngine({
+  langCode,
+  siteHost,
+  aiLangs = [],
+  aiSites = [],
+  googleLangs = [],
+  googleSites = [],
+  hasApiKey = false,
+} = {}) {
+  const hasLang = (list) => !!langCode && Array.isArray(list) && list.indexOf(langCode) !== -1;
+  const hasSite = (list) => !!siteHost && Array.isArray(list) && list.indexOf(siteHost) !== -1;
+
+  if (hasApiKey && (hasLang(aiLangs) || hasSite(aiSites))) return "ai";
+  if (hasLang(googleLangs) || hasSite(googleSites)) return "google";
+  return null;
+}
+
+/**
  * Resolve the next value of the AI render state (pure function, for unit testing).
  *
  * Called when the global AI button state needs to be determined based on currently registered blocks' AI states.
@@ -4782,9 +4819,21 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           result = result || "und";
           if (result === "und") {
             originalTabLanguage = result;
-            if (
-              twpConfig.get("alwaysTranslateSites").indexOf(tabHostName) !== -1
-            ) {
+            // Issue #145: engine-explicit auto-translate — AI site list wins
+            // over the Google site list; AI without a provider key is
+            // unavailable (silent: no prompt, no downgrade).
+            const undEngine = resolveAutoTranslateEngine({
+              langCode: null,
+              siteHost: tabHostName,
+              aiLangs: twpConfig.get("alwaysTranslateLangsAI") || [],
+              aiSites: twpConfig.get("alwaysTranslateSitesAI") || [],
+              googleLangs: [],
+              googleSites: twpConfig.get("alwaysTranslateSites") || [],
+              hasApiKey: hasActiveProviderApiKey(),
+            });
+            if (undEngine === "ai") {
+              pageTranslator.translatePageAi();
+            } else if (undEngine === "google") {
               pageTranslator.translatePage();
             }
           } else {
@@ -4814,19 +4863,25 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                       .get("neverTranslateSites")
                       .indexOf(tabHostName) === -1
                   ) {
-                    if (
-                      langCode &&
-                      langCode !== currentTargetLanguage &&
-                      twpConfig
-                        .get("alwaysTranslateLangs")
-                        .indexOf(langCode) !== -1
-                    ) {
-                      pageTranslator.translatePage();
-                    } else if (
-                      twpConfig
-                        .get("alwaysTranslateSites")
-                        .indexOf(tabHostName) !== -1
-                    ) {
+                    // Issue #145: same engine resolution as the 'und' branch.
+                    // The `langCode !== currentTargetLanguage` gate that
+                    // historically protected the Google language list applies
+                    // equally to the AI language list.
+                    const knownEngine = resolveAutoTranslateEngine({
+                      langCode:
+                        langCode && langCode !== currentTargetLanguage
+                          ? langCode
+                          : null,
+                      siteHost: tabHostName,
+                      aiLangs: twpConfig.get("alwaysTranslateLangsAI") || [],
+                      aiSites: twpConfig.get("alwaysTranslateSitesAI") || [],
+                      googleLangs: twpConfig.get("alwaysTranslateLangs") || [],
+                      googleSites: twpConfig.get("alwaysTranslateSites") || [],
+                      hasApiKey: hasActiveProviderApiKey(),
+                    });
+                    if (knownEngine === "ai") {
+                      pageTranslator.translatePageAi();
+                    } else if (knownEngine === "google") {
                       pageTranslator.translatePage();
                     }
                   }
