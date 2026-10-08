@@ -1621,6 +1621,37 @@ async function s13AiAlwaysTranslateLists(page, extensionId, serviceWorker) {
     return sel instanceof HTMLSelectElement && sel.options.length >= 4;
   }, null, { timeout: 15000 });
 
+  // ── issue #147：Add 覆盖层 computed 样式 parity（AI select 必须与 Google 同款隐形覆盖层）──
+  // 用户报告：AI 语言 select 以原生下拉可见渲染（「不用点击就显示语言列表」）。
+  // jsdom 层已由 tests/static/optionsAddOverlay.test.js 锁定 id 枚举；此处锁用户可见行为。
+  {
+    const overlay = await page.evaluate(() => {
+      const read = (id) => {
+        const el = document.getElementById(id);
+        if (!el) return null;
+        const cs = getComputedStyle(el);
+        return {
+          opacity: cs.opacity,
+          position: cs.position,
+          appearance: cs.appearance || cs.webkitAppearance || "",
+        };
+      };
+      return { ai: read("addToAlwaysTranslateLangsAI"), google: read("addToAlwaysTranslateLangs") };
+    });
+    if (!overlay.ai || !overlay.google) {
+      throw new Error(`[S13] 覆盖层样式读取失败: ${JSON.stringify(overlay)}`);
+    }
+    if (overlay.google.opacity !== "0" || overlay.google.position !== "absolute") {
+      throw new Error(`[S13] 对照组异常——Google select 应为隐形覆盖层: ${JSON.stringify(overlay.google)}`);
+    }
+    if (overlay.ai.opacity !== "0" || overlay.ai.position !== "absolute") {
+      throw new Error(
+        `[S13] AI select 未套用隐形覆盖层（issue #147 复现）: ${JSON.stringify(overlay.ai)}`
+      );
+    }
+    console.log(`  [S13] Add 覆盖层 parity: AI ${JSON.stringify(overlay.ai)} === Google ✓`);
+  }
+
   await page.selectOption("#addToAlwaysTranslateLangsAI", "it");
   await page.waitForTimeout(800);
 
