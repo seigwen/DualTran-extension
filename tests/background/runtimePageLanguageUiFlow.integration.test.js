@@ -38,7 +38,8 @@ describe("runtime page-language ui flow integration", () => {
       pageLanguageState: request.pageLanguageState,
       restoreLabel: "Restore original",
       targetLanguageName: "French",
-      buildTranslateForLabel: (languageName) => `Translate to ${languageName}`,
+      buildGoogleLabel: (languageName) => `Translate with Google to ${languageName}`,
+      buildAiLabel: (languageName) => `Translate with AI to ${languageName}`,
     });
 
     expect(contextMenuEffects).toEqual([
@@ -136,7 +137,8 @@ describe("runtime page-language ui flow integration", () => {
       pageLanguageState: request.pageLanguageState,
       restoreLabel: "Restore original",
       targetLanguageName: "French",
-      buildTranslateForLabel: (languageName) => `Translate to ${languageName}`,
+      buildGoogleLabel: (languageName) => `Translate with Google to ${languageName}`,
+      buildAiLabel: (languageName) => `Translate with AI to ${languageName}`,
     })).toEqual([
       { type: "remove-context-menu", menuId: "restore-original" },
       { type: "remove-context-menu", menuId: "translate-page-google" },
@@ -144,7 +146,7 @@ describe("runtime page-language ui flow integration", () => {
         type: "create-context-menu",
         config: {
           id: "translate-page-google",
-          title: "Translate to French",
+          title: "Translate with Google to French",
           contexts: ["page", "frame"],
         },
       },
@@ -153,7 +155,7 @@ describe("runtime page-language ui flow integration", () => {
         type: "create-context-menu",
         config: {
           id: "translate-page-ai",
-          title: "🤖 Translate to French",
+          title: "Translate with AI to French",
           contexts: ["page", "frame"],
         },
       },

@@ -269,4 +269,21 @@ describe("sw.js 平台形态矩阵（P1, issue #88）", () => {
     expect(listeners["contextMenus.onClicked"]).toBeUndefined();
     expect(listeners["runtime.onMessage"]?.length).toBeGreaterThan(0);
   });
+
+  it("Chrome shape: page context menu labels resolve through the dedicated Google/AI i18n keys", async () => {
+    const { chromeStub } = buildPlatformHarness();
+    globalThis.browser = { commands: { getAll: vi.fn() } };
+
+    await importSwAndSettle(chromeStub);
+
+    const configs = chromeStub.contextMenus.create.mock.calls.map(([cfg]) => cfg);
+    const googleConfig = configs.find((cfg) => cfg?.id === "translate-page-google");
+    const aiConfig = configs.find((cfg) => cfg?.id === "translate-page-ai");
+
+    // The mock i18n.getMessage returns the key name — the title therefore pins
+    // which i18n key sw.js asks for (the wire between SW and _locales). The AI
+    // item has its own key; it is not the Google label plus a prefix.
+    expect(googleConfig?.title).toBe("msgTranslateWithGoogle");
+    expect(aiConfig?.title).toBe("msgTranslateWithAi");
+  });
 });

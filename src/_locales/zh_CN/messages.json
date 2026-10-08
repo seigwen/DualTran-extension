@@ -695,6 +695,24 @@
   "msgTranslateSelectedText": {
     "message": "翻译选中文本"
   },
+  "msgTranslateWithAi": {
+    "message": "使用 AI 翻译为 $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateWithGoogle": {
+    "message": "使用 Google 翻译为 $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
   "msgTranslations": {
     "message": "翻译"
   },

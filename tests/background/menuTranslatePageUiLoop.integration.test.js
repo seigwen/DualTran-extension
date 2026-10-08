@@ -41,7 +41,8 @@ describe("menu translate-page ui loop integration", () => {
       pageLanguageState: request.pageLanguageState,
       restoreLabel: "Restore original",
       targetLanguageName: "French",
-      buildTranslateForLabel: (languageName) => `Translate to ${languageName}`,
+      buildGoogleLabel: (languageName) => `Translate with Google to ${languageName}`,
+      buildAiLabel: (languageName) => `Translate with AI to ${languageName}`,
     });
 
     executeContextMenuEffects(contextMenuEffects, {
@@ -128,7 +129,8 @@ describe("menu translate-page ui loop integration", () => {
       pageLanguageState: request.pageLanguageState,
       restoreLabel: "Restore original",
       targetLanguageName: "French",
-      buildTranslateForLabel: (languageName) => `Translate to ${languageName}`,
+      buildGoogleLabel: (languageName) => `Translate with Google to ${languageName}`,
+      buildAiLabel: (languageName) => `Translate with AI to ${languageName}`,
     });
 
     executeContextMenuEffects(contextMenuEffects, {
@@ -141,12 +143,12 @@ describe("menu translate-page ui loop integration", () => {
     expect(removeContextMenu).toHaveBeenCalledWith("translate-page-ai", undefined);
     expect(createContextMenu).toHaveBeenCalledWith({
       id: "translate-page-google",
-      title: "Translate to French",
+      title: "Translate with Google to French",
       contexts: ["page", "frame"],
     }, undefined);
     expect(createContextMenu).toHaveBeenCalledWith({
       id: "translate-page-ai",
-      title: "🤖 Translate to French",
+      title: "Translate with AI to French",
       contexts: ["page", "frame"],
     }, undefined);
 
