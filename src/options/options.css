@@ -10,6 +10,7 @@ body {
 
 #addToNeverTranslateLangs,
 #addToAlwaysTranslateLangs,
+#addToAlwaysTranslateLangsAI,
 #addLangToTranslateWhenHovering {
   appearance: none;
   position: absolute;
