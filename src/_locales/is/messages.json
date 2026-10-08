@@ -695,6 +695,24 @@
   "msgTranslateSelectedText": {
     "message": "Þýða valinn texta"
   },
+  "msgTranslateWithAi": {
+    "message": "Translate with AI to $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
+  "msgTranslateWithGoogle": {
+    "message": "Translate with Google to $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
+  },
   "msgTranslations": {
     "message": "Þýðingar"
   },

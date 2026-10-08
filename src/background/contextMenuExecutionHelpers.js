@@ -86,7 +86,8 @@ export function buildTranslatePageContextMenuRefreshPlan({
   pageLanguageState = "original",
   restoreLabel,
   targetLanguageName,
-  buildTranslateForLabel,
+  buildGoogleLabel,
+  buildAiLabel,
 }) {
   if (pageLanguageState === "translated") {
     // Page is translated → show "Restore original" only
@@ -99,15 +100,17 @@ export function buildTranslatePageContextMenuRefreshPlan({
     ];
   }
 
-  // Page is original → show "Translate with Google" and "Translate with AI"
-  const googleTitle = buildTranslateForLabel(targetLanguageName);
+  // Page is original → show "Translate with Google" and "Translate with AI".
+  // Each engine label comes from its own dedicated i18n label builder — the AI
+  // item must never be derived from the Google label (prefix concatenation
+  // prevented per-engine wording and forced the two labels to share one string).
   return [
     ...buildRestoreOriginalContextMenuEffects(null),  // remove restore item
     ...buildTranslatePageGoogleContextMenuEffects(
-      isEnabled ? { id: "translate-page-google", title: googleTitle, contexts: ["page", "frame"] } : null
+      isEnabled ? { id: "translate-page-google", title: buildGoogleLabel(targetLanguageName), contexts: ["page", "frame"] } : null
     ),
     ...buildTranslatePageAiContextMenuEffects(
-      isEnabled ? { id: "translate-page-ai", title: "🤖 " + googleTitle, contexts: ["page", "frame"] } : null
+      isEnabled ? { id: "translate-page-ai", title: buildAiLabel(targetLanguageName), contexts: ["page", "frame"] } : null
     ),
   ];
 }

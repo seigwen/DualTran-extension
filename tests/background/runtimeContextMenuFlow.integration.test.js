@@ -20,7 +20,8 @@ describe("runtime context menu flow integration", () => {
       pageLanguageState: request.pageLanguageState,
       restoreLabel: "Restore original",
       targetLanguageName: "French",
-      buildTranslateForLabel: (languageName) => `Translate to ${languageName}`,
+      buildGoogleLabel: (languageName) => `Translate with Google to ${languageName}`,
+      buildAiLabel: (languageName) => `Translate with AI to ${languageName}`,
     });
 
     expect(effects).toEqual([
@@ -69,7 +70,8 @@ describe("runtime context menu flow integration", () => {
       pageLanguageState: request.pageLanguageState,
       restoreLabel: "Restore original",
       targetLanguageName: "French",
-      buildTranslateForLabel: (languageName) => `Translate to ${languageName}`,
+      buildGoogleLabel: (languageName) => `Translate with Google to ${languageName}`,
+      buildAiLabel: (languageName) => `Translate with AI to ${languageName}`,
     });
 
     expect(effects).toEqual([
@@ -79,7 +81,7 @@ describe("runtime context menu flow integration", () => {
         type: "create-context-menu",
         config: {
           id: "translate-page-google",
-          title: "Translate to French",
+          title: "Translate with Google to French",
           contexts: ["page", "frame"],
         },
       },
@@ -88,7 +90,7 @@ describe("runtime context menu flow integration", () => {
         type: "create-context-menu",
         config: {
           id: "translate-page-ai",
-          title: "🤖 Translate to French",
+          title: "Translate with AI to French",
           contexts: ["page", "frame"],
         },
       },
@@ -106,12 +108,12 @@ describe("runtime context menu flow integration", () => {
     expect(removeContextMenu).toHaveBeenCalledWith("translate-page-ai", removeCallback);
     expect(createContextMenu).toHaveBeenCalledWith({
       id: "translate-page-google",
-      title: "Translate to French",
+      title: "Translate with Google to French",
       contexts: ["page", "frame"],
     }, createCallback);
     expect(createContextMenu).toHaveBeenCalledWith({
       id: "translate-page-ai",
-      title: "🤖 Translate to French",
+      title: "Translate with AI to French",
       contexts: ["page", "frame"],
     }, createCallback);
   });

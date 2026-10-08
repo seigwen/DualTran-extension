@@ -91,7 +91,8 @@ describe("contextMenuExecutionHelpers", () => {
       pageLanguageState: "original",
       restoreLabel: "Restore",
       targetLanguageName: "French",
-      buildTranslateForLabel: (languageName) => `Translate to ${languageName}`,
+      buildGoogleLabel: (languageName) => `Translate with Google to ${languageName}`,
+      buildAiLabel: (languageName) => `Translate with AI to ${languageName}`,
     })).toEqual([
       { type: "remove-context-menu", menuId: "restore-original" },
       { type: "remove-context-menu", menuId: "translate-page-google" },
@@ -99,7 +100,7 @@ describe("contextMenuExecutionHelpers", () => {
         type: "create-context-menu",
         config: {
           id: "translate-page-google",
-          title: "Translate to French",
+          title: "Translate with Google to French",
           contexts: ["page", "frame"],
         },
       },
@@ -108,7 +109,7 @@ describe("contextMenuExecutionHelpers", () => {
         type: "create-context-menu",
         config: {
           id: "translate-page-ai",
-          title: "🤖 Translate to French",
+          title: "Translate with AI to French",
           contexts: ["page", "frame"],
         },
       },
@@ -119,7 +120,8 @@ describe("contextMenuExecutionHelpers", () => {
       pageLanguageState: "translated",
       restoreLabel: "Restore",
       targetLanguageName: "French",
-      buildTranslateForLabel: (languageName) => `Translate to ${languageName}`,
+      buildGoogleLabel: (languageName) => `Translate with Google to ${languageName}`,
+      buildAiLabel: (languageName) => `Translate with AI to ${languageName}`,
     })).toEqual([
       { type: "remove-context-menu", menuId: "translate-page-google" },
       { type: "remove-context-menu", menuId: "translate-page-ai" },
@@ -133,6 +135,29 @@ describe("contextMenuExecutionHelpers", () => {
         },
       },
     ]);
+  });
+
+  it("resolves the Google and AI menu titles through independent label builders (no prefix concatenation)", () => {
+    const buildGoogleLabel = vi.fn((languageName) => `with-google:${languageName}`);
+    const buildAiLabel = vi.fn((languageName) => `with-ai:${languageName}`);
+
+    const effects = buildTranslatePageContextMenuRefreshPlan({
+      isEnabled: true,
+      pageLanguageState: "original",
+      restoreLabel: "Restore",
+      targetLanguageName: "French",
+      buildGoogleLabel,
+      buildAiLabel,
+    });
+
+    // Each engine label comes from its own builder, called with the resolved
+    // language name — the AI item must not reuse the Google label + a prefix.
+    expect(buildGoogleLabel).toHaveBeenCalledWith("French");
+    expect(buildAiLabel).toHaveBeenCalledWith("French");
+    expect(effects.find((effect) => effect.config?.id === "translate-page-google")?.config.title)
+      .toBe("with-google:French");
+    expect(effects.find((effect) => effect.config?.id === "translate-page-ai")?.config.title)
+      .toBe("with-ai:French");
   });
 
   it("executes remove/create context menu effects in order", () => {

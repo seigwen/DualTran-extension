@@ -30,7 +30,8 @@ describe("tab activated ui flow integration", () => {
       pageLanguageState: "original",
       restoreLabel: "Restore original",
       targetLanguageName: "French",
-      buildTranslateForLabel: (languageName) => `Translate to ${languageName}`,
+      buildGoogleLabel: (languageName) => `Translate with Google to ${languageName}`,
+      buildAiLabel: (languageName) => `Translate with AI to ${languageName}`,
     })).toEqual([
       { type: "remove-context-menu", menuId: "restore-original" },
       { type: "remove-context-menu", menuId: "translate-page-google" },
@@ -38,7 +39,7 @@ describe("tab activated ui flow integration", () => {
         type: "create-context-menu",
         config: {
           id: "translate-page-google",
-          title: "Translate to French",
+          title: "Translate with Google to French",
           contexts: ["page", "frame"],
         },
       },
@@ -47,7 +48,7 @@ describe("tab activated ui flow integration", () => {
         type: "create-context-menu",
         config: {
           id: "translate-page-ai",
-          title: "🤖 Translate to French",
+          title: "Translate with AI to French",
           contexts: ["page", "frame"],
         },
       },
@@ -112,7 +113,8 @@ describe("tab activated ui flow integration", () => {
       pageLanguageState: applyContextMenuRefresh.mock.calls.at(-1)[0],
       restoreLabel: "Restore original",
       targetLanguageName: "French",
-      buildTranslateForLabel: (languageName) => `Translate to ${languageName}`,
+      buildGoogleLabel: (languageName) => `Translate with Google to ${languageName}`,
+      buildAiLabel: (languageName) => `Translate with AI to ${languageName}`,
     })).toEqual([
       { type: "remove-context-menu", menuId: "translate-page-google" },
       { type: "remove-context-menu", menuId: "translate-page-ai" },

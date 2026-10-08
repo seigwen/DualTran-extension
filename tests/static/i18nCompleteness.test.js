@@ -88,3 +88,54 @@ describe("i18n completeness", () => {
     });
   }
 });
+
+describe("context menu translate labels (Google/AI)", () => {
+  // Guard for the page context menu's two items, which now label themselves
+  // through dedicated keys (msgTranslateWithGoogle / msgTranslateWithAi), each
+  // carrying the $LANGUAGE_NAME$ placeholder. A translation must never drop
+  // the placeholder (the label silently loses the language name), drop or
+  // break the $1 placeholder mapping (chrome.i18n stops substituting), or
+  // render the two labels identically (users cannot tell Google from AI).
+  const MENU_LABEL_KEYS = ["msgTranslateWithGoogle", "msgTranslateWithAi"];
+  const locales = readdirSync(LOCALES_DIR).filter((entry) =>
+    existsSync(join(LOCALES_DIR, entry, "messages.json"))
+  );
+  const enMessages = readMessages("en");
+
+  it("en defines both keys with the language-name placeholder and the engine name", () => {
+    expect(Object.keys(enMessages)).toEqual(expect.arrayContaining(MENU_LABEL_KEYS));
+    expect(enMessages.msgTranslateWithGoogle.message).toContain("$LANGUAGE_NAME$");
+    expect(enMessages.msgTranslateWithGoogle.message).toContain("Google");
+    expect(enMessages.msgTranslateWithAi.message).toContain("$LANGUAGE_NAME$");
+    expect(enMessages.msgTranslateWithAi.message).toContain("AI");
+  });
+
+  it("every locale keeps the $LANGUAGE_NAME$ placeholder and its $1 mapping in both keys", () => {
+    const broken = [];
+    for (const locale of locales) {
+      const messages = readMessages(locale);
+      for (const key of MENU_LABEL_KEYS) {
+        const entry = messages[key];
+        const keepsPlaceholder =
+          typeof entry?.message === "string" &&
+          entry.message.includes("$LANGUAGE_NAME$") &&
+          entry.placeholders?.LANGUAGE_NAME?.content === "$1";
+        if (!keepsPlaceholder) {
+          broken.push(`${locale}:${key}`);
+        }
+      }
+    }
+    expect(broken).toEqual([]);
+  });
+
+  it("no locale renders the Google and AI labels identically", () => {
+    const identical = locales.filter((locale) => {
+      const messages = readMessages(locale);
+      return (
+        messages.msgTranslateWithGoogle?.message ===
+        messages.msgTranslateWithAi?.message
+      );
+    });
+    expect(identical).toEqual([]);
+  });
+});

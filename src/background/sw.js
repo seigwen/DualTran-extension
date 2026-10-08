@@ -404,7 +404,8 @@ function updateContextMenu(pageLanguageState = "original") {
       pageLanguageState,
       restoreLabel: chrome.i18n.getMessage("btnRestore"),
       targetLanguageName: twpLang.codeToLanguage(targetLanguage),
-      buildTranslateForLabel: (languageName) => chrome.i18n.getMessage("msgTranslateFor", languageName),
+      buildGoogleLabel: (languageName) => chrome.i18n.getMessage("msgTranslateWithGoogle", languageName),
+      buildAiLabel: (languageName) => chrome.i18n.getMessage("msgTranslateWithAi", languageName),
     }), {
       removeContextMenu: chrome.contextMenus.remove,
       createContextMenu: chrome.contextMenus.create,
