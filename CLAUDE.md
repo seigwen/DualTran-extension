@@ -262,6 +262,14 @@ Content Script (fetchSSE.js)
 - **实现点清单（规则对称性）**：`aiTranslateWord`（单词路径：无缓存读 + 无缓存写）、`aiCache`（共享池：单词运行前后逐字节不变）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - **测试：** `translateSelected.test.js`「translateSelected aiTranslateWord」套件（"marks success without writing the aiCache" + "ignores a matching aiCache entry — a single word always issues a live request" 两格，均 RED-first 实证）；E2E `selected-panel.mjs` 相位 E/F（单词连点两次 = 两次真实请求——旧代码第二次命中缓存实测红；句子二次点击 = 缓存命中 0 请求负向对照）。
 
+**RULE: 单词路径源语言闸门规则（word-path source-language gate rule, plan 43 / #151）—— 不可信的 CLD 读数不得写进词典提示词，也不得驱动同语言分支：**
+
+- **症状/机制：** 划词面板 + 悬停面板的单词路径把 `chrome.i18n.detectLanguage`（Chrome 内置 CLD）的读数直接写死进词典角色句（`professional <source>-<target> dictionary`）。孤立单词的 CLD 读数常年不可信**且错误**（实测 "Undertow"/"hello"/"undertow" → `sr`，isReliable=false，Chromium 145/151 两引擎一致；完整句子才 reliable=true 且正确），模型随即按角色要求伪造一整层该语言——用户实测：查 "Undertow" 输出在英文/中文正确层之上叠加整层塞尔维亚语（西里尔 + 拉丁混排）。
+- **规则：** 只有 `isReliable === true` 且语言码 ≠ `und` 的读数才允许进入提示词（命名源语言的词典角色）并驱动 `isSameLanguage`；否则走**语言中立句**（`professional bilingual dictionary translating the word into <target>; identify the word's own language yourself`——`[<language>]` 字段本就要求模型自报词语言）。已删 `und → "English"` 硬编码回退（并入中立路径）。
+- **边界：** 仅单词路径（`isSingleWord=true`）；文本路径提示词不含源语言（实测复核），不受影响。
+- **实现点清单（规则对称性）**：`buildWordPromptRole`（角色句措辞单点，fetchSSE.js `@internal` 导出）、fetchSSE 信任闸门（`sourceLanguageTrusted` 判定单点，含 `isSameLanguage` 同闸门）、`detectTextLanguage`（isReliable 供给）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- **测试：** `fetchSSE.integration.test.js`「word-path source-language gate (#151)」W1–W5（不可信读数不进提示词 / und 不再回退 English / 可信对照 / 不可信不驱动同语言分支 / 真值表——W1/W2/W4/W5 RED-first 实证）；E2E `selected-panel.mjs` + `hover-panel.mjs` [E1b]（对 mock `/request-log` 实捕请求体 `messages[0]` 做前提条件化断言——与同一浏览器的 CLD 实测读数双支自校准，不 skip 不空转；修复前构建两场景均实测红，报错即用户原症状 `Serbian-French dictionary`）。
+
 **RULE: 内容更新通道一致性规则（content-update channel conformance rule, #98 复发复盘）—— 翻译后站点更新必须按「机制通道」枚举覆盖，禁止按站点/功能名枚举：**
 
 - **症状/机制：** 同一用户可见症状（「翻译后出现的站点更新内容不被翻译」）已复发 ≥3 次（#7 append、#98 characterData+容器过滤）。根因是它是一个**多通道维度**：站点更新 DOM 的机制有 8 类，历次修复只封住事发的那一条通道。

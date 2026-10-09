@@ -37,6 +37,8 @@
 import {
   waitForContentScriptInjected,
   waitForPageTranslatorReady,
+  readChromeLanguageDetection,
+  assertWordPromptSourceGate,
 } from "./setup.mjs";
 
 export const name = "hover-panel";
@@ -473,6 +475,20 @@ export async function run(scope) {
         throw new Error(`[E1] 单词悬停点击 AI 不得发出文本路径请求，实为 ${textWhileWord}`);
       }
       console.log("  [E1] 单词悬停 → AI = 单词路径请求（词典），零文本路径请求 ✓");
+
+      // [E1b] 源语言闸门（issue #151 / plan 43）——与 selected-panel 同断言：
+      // 悬停单词的词典提示词必须与同一浏览器的 CLD 实测前提一致，不可信读数
+      // 不得把误判语言写死进提示词（两调用面共享同一 aiTranslateWord 路径）。
+      const wordBodies = chatBodies(logAfterWord).filter((b) => b.messages?.[1]?.content === WORD_PATH_NEEDLE);
+      const cldHello = await readChromeLanguageDetection(serviceWorker, "hello");
+      assertWordPromptSourceGate(
+        wordBodies[0]?.messages?.[0]?.content,
+        cldHello,
+        "[E1b] 悬停单词路径源语言闸门（hello）"
+      );
+      console.log(
+        `  [E1b] 悬停提示词源语言闸门 ✓（实测 CLD: language=${cldHello?.language}, isReliable=${cldHello?.isReliable}）`
+      );
 
       // E2: hover 多词段落 → AI 点击走文本路径（负向对照）。
       // 段落文本改写为运行期唯一串（防共享 profile 的 AI 缓存竞态）：

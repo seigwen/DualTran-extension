@@ -223,6 +223,30 @@ export function isDeliverableRawStreamChunk(payload) {
   }
 }
 
+/**
+ * Role clause of the single-word dictionary prompt (issue #151).
+ *
+ * The source language only enters the prompt when Chrome's CLD reading is
+ * reliable: for lone words CLD is routinely unreliable AND wrong (measured:
+ * "Undertow" / "hello" / "undertow" -> "sr"), and pinning that bogus language
+ * into the role made the model answer with a whole Serbian layer on top of
+ * the English word and the target text. When the reading is not trusted, the
+ * role stays language-neutral — the model identifies the word's own language
+ * itself, and the [<language>] format field already asks it to report one.
+ *
+ * @internal — exported for testing
+ */
+export function buildWordPromptRole({ sourceLanguageTrusted, sourceLanguageName, targetLanguageName }) {
+  return sourceLanguageTrusted
+    ? oneLine`
+      please act as a professional
+      ${sourceLanguageName}-${targetLanguageName} dictionary,`
+    : oneLine`
+      please act as a professional bilingual dictionary
+      translating the word into ${targetLanguageName};
+      identify the word's own language yourself,`
+}
+
 export async function translateWithAI(content, onMessage, onError, onFinished, signal, isSingleWord = false, overrideTargetLanguageCode = undefined) {
   const requestBody = JSON.parse(JSON.stringify(baseRequestBody))
 
@@ -283,18 +307,28 @@ export async function translateWithAI(content, onMessage, onError, onFinished, s
   let targetLanguageName = twpLang.codeToLanguageNameInEnglish(targetLanguageCode)
   console.log("targetLanguageName:", targetLanguageName)
 
-  let sourceLanguageCode = (await detectTextLanguage(content)).lang;
-  let sourceLanguageName = sourceLanguageCode==='und' ? "English" : twpLang.codeToLanguageNameInEnglish(sourceLanguageCode) 
+  const { lang: detectedSourceLang, isReliable: sourceLangIsReliable } = await detectTextLanguage(content);
+  // Word-path source-language gate (issue #151): only a reliable CLD reading
+  // (and a real language code) may drive the dictionary role and the
+  // same-language branch. For lone words CLD is routinely unreliable AND wrong
+  // (measured: "Undertow"/"hello"/"undertow" -> "sr"), and pinning that bogus
+  // language into the role made the model fabricate a whole layer of it. The
+  // previous "und -> English" hardcoded fallback is deliberately gone — an
+  // unknown reading now travels through the language-neutral role instead.
+  const sourceLanguageTrusted = sourceLangIsReliable === true && detectedSourceLang !== 'und';
+  let sourceLanguageCode = detectedSourceLang;
+  let sourceLanguageName = sourceLanguageTrusted
+    ? twpLang.codeToLanguageNameInEnglish(sourceLanguageCode)
+    : '';
 
-  const isSameLanguage = sourceLanguageCode === targetLanguageCode
+  const isSameLanguage = sourceLanguageTrusted && sourceLanguageCode === targetLanguageCode
 
   let targetLangConfig = twpLang.otherConfigs[targetLanguageCode] 
 
   // ② Build translation prompt
   let sysPromptTranslation = isSingleWord
     ? `${oneLine`
-      please act as a professional
-      ${sourceLanguageName}-${targetLanguageName} dictionary,
+      ${buildWordPromptRole({ sourceLanguageTrusted, sourceLanguageName, targetLanguageName })}
       and list the original form of the word (if any),
       the language of the word,
       ${targetLangConfig?.phoneticNotation ? 'the corresponding phonetic notation or transcription, ' : ''}

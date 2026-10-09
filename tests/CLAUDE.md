@@ -236,6 +236,7 @@ tests/
 - **吸收边界**：装饰面（`btnAiTxtNode`/tooltip/`classList`/`style`）吸收、译文面（`translatedTextNode`）按身份直通——`showOriginal` 用元素恒等匹配注册悬停（包 facade 会断）；`classList.contains("dualtran-ai-selected-btn")` 必须恒 true（`isSelectedPanel` 目标语言路由依赖）。
 - **单词路径缓存解耦（plan 33 / #111）**：单词路径（`aiTranslateWord`）不读、不写共享内存缓存 `aiCache`——单词每次点击直发真实请求；词典式结果永不进入共享池（页面/悬停的文本路径按 (原文, 目标语言) 命中的条目池因此只含普通译文）。反向污染（词典长文被当段落译文复用）同源切断。仅单词路径；`aiTranslateText` 的缓存复用**保持不变**。
 - **请求计数断言（单词路径判别通道）**：单词路径 / 文本路径在 mock `/request-log` 上以**请求体第二条消息**（assistant 引导语）区分——单词 = `"I understand. Please give me the word."`，文本 = `"…the text."`（`fetchSSE.js` 固定文案）。断言用**真实请求计数**（含"第二次点击必须再发请求"格），不以文本到达推断；缓存命中格用"零请求观察窗"（≥2s）锁定。
+- **单词路径源语言闸门（plan 43 / #151）**：词典提示词的角色句只有在 CLD 读数可信（`isReliable === true` 且语言码 ≠ `und`）时才允许写死源语言名，否则走语言中立句（模型自识词语言）；`isSameLanguage` 同闸门（低置信不得驱动同语言分支）。实现 = `fetchSSE.js` `buildWordPromptRole` + `sourceLanguageTrusted`。测试：`fetchSSE.integration.test.js`「word-path source-language gate (#151)」W1–W5；E2E 断言通道 = mock `/request-log` 实捕请求体 `messages[0]` + `readChromeLanguageDetection`（SW 内实测同一引擎读数）+ `assertWordPromptSourceGate`（setup.mjs 导出，前提条件化双支断言，两分支均可失败），`selected-panel.mjs` / `hover-panel.mjs` [E1b] 两处接线。
 
 ### 悬停面板不变量（Hover Panel Invariants，plan 37 / #125）
 
