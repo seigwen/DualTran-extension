@@ -857,6 +857,29 @@ describe("Intent events — engine emit points (plan 30 / §3.2)", () => {
     expect(emitLog).toEqual(["google"]);
   });
 
+  it("E1 (D6/#152): an armed run whose effective intent is google must DISARM the AI auto-loop", () => {
+    // #152: the announcement gate (D6) alone left the loop armed — the batch
+    // dispatched AI anyway, its arrivals passed the #70 epoch gate (no switch
+    // DURING the request) and stole the display: button google, page AI.
+    // The flag restore must read the same source as the announcement.
+    pageTranslator._setForceAiTranslation(true);
+    pageTranslator.setAiModeActive(false);
+    pageTranslator.translatePage("fr");
+    expect(emitLog).toEqual(["google"]);
+    expect(pageTranslator._getForceAiTranslation()).toBe(false); // disarmed
+  });
+
+  it("E1 (D6/#152 control): an armed run whose effective intent is ai keeps the loop armed", () => {
+    // Symmetric control: no over-tightening. The #134 restore flow (armed +
+    // aiModeActive=true) must keep the AI loop running so dynamic content and
+    // back-nav restores keep working.
+    pageTranslator._setForceAiTranslation(true);
+    pageTranslator.setAiModeActive(true);
+    pageTranslator.translatePage("fr");
+    expect(emitLog).toEqual(["ai"]);
+    expect(pageTranslator._getForceAiTranslation()).toBe(true); // still armed
+  });
+
   it("E2: restorePage announces original", () => {
     pageTranslator.translatePage("fr");
     emitLog.length = 0;

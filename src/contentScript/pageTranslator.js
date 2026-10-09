@@ -4506,7 +4506,15 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
      // must not announce an "original" intent — the run's own intent is
      // announced below (E1), and a spurious original would race it.
     pageTranslator.restorePage(true);
-    shouldForceAiAfterPageTranslation = shouldForceAiForThisRun
+    // #152 (D6 follow-up): the flag restore reads the SAME source as the E1
+    // announcement below (`&& aiModeActive`). An armed run whose effective
+    // intent is google (the user explicitly switched away before this run)
+    // must NOT keep the AI auto-loop armed: the batch would dispatch AI
+    // anyway, and its arrivals pass the #70 epoch gate (no switch DURING the
+    // request) to steal the display — button google, page AI (cross-page
+    // back-nav + same-page armed cells). Disarming here is the loop-side
+    // twin of the announcement gate; the user's one AI click re-arms it.
+    shouldForceAiAfterPageTranslation = shouldForceAiForThisRun && aiModeActive
     hadGoogleTranslationError = false
     pendingGoogleBatches = 0
     setPageRenderState("loading")
@@ -4690,6 +4698,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   pageTranslator._aiTranslateDynamically = aiTranslateDynamically;
    /** @internal — for testing: set shouldForceAiAfterPageTranslation internal state */
   pageTranslator._setForceAiTranslation = (v) => { shouldForceAiAfterPageTranslation = v; };
+   /** @internal — for testing the #152 disarm contract: read shouldForceAiAfterPageTranslation */
+  pageTranslator._getForceAiTranslation = () => shouldForceAiAfterPageTranslation;
    /** @internal — for testing the #70 arrival gate: read the page-level mode epoch */
   pageTranslator._getAiModeEpoch = () => aiModeEpoch;
    /** @internal — for testing the #70 arrival gate: evaluate an arrival against a captured epoch */
