@@ -72,10 +72,22 @@
     "message": "Uvijek prevodi ovu stranicu (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Uvijek prevedi ovaj jezik (Google)"
+    "message": "Uvijek prevedi ovaj jezik (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Uvijek prevedi ovaj jezik (AI)"
+    "message": "Uvijek prevedi ovaj jezik (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Uvijek prevodi ovu stranicu (AI)"

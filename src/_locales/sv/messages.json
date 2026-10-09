@@ -72,10 +72,22 @@
     "message": "Översätt alltid denna webbplats (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Översätt alltid detta språk (Google)"
+    "message": "Översätt alltid detta språk (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Översätt alltid detta språk (AI)"
+    "message": "Översätt alltid detta språk (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Översätt alltid denna webbplats (AI)"

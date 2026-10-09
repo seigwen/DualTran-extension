@@ -72,10 +72,22 @@
     "message": "תרגם תמיד אתר זה (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "תרגם תמיד את השפה הזו (Google)"
+    "message": "תרגם תמיד את השפה הזו (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "תרגם תמיד את השפה הזו (AI)"
+    "message": "תרגם תמיד את השפה הזו (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "תרגם תמיד אתר זה (AI)"

@@ -72,10 +72,22 @@
     "message": "این سایت را همیشه ترجمه کن (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "همیشه این زبان را ترجمه کن (Google)"
+    "message": "همیشه این زبان را ترجمه کن (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "همیشه این زبان را ترجمه کن (AI)"
+    "message": "همیشه این زبان را ترجمه کن (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "این سایت را همیشه ترجمه کن (AI)"

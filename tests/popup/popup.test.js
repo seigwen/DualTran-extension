@@ -178,7 +178,9 @@ describe("popup", () => {
         <option value="replaceOriginal">replace</option>
       </select>
       <input type="checkbox" id="cbAlwaysTranslateThisLanguage"/>
+      <label id="lblAlwaysTranslateThisLanguage"></label>
       <input type="checkbox" id="cbAlwaysTranslateThisLanguageAI"/>
+      <label id="lblAlwaysTranslateThisLanguageWithAi"></label>
       <input type="checkbox" id="cbNeverTranslateThisLanguage"/>
       <input type="checkbox" id="cbAlwaysTranslateThisSite"/>
       <input type="checkbox" id="cbAlwaysTranslateThisSiteAI"/>
@@ -249,7 +251,19 @@ describe("popup", () => {
     window.close = vi.fn();
     globalThis.chrome = {
       i18n: {
-        getMessage: vi.fn((key) => key === "btnMobileOriginal" ? "Original" : (key === "lblTranslatePageInto" ? "Translate into" : "")),
+        getMessage: vi.fn((key, substitutions) => {
+          if (key === "btnMobileOriginal") return "Original";
+          if (key === "lblTranslatePageInto") return "Translate into";
+          // Issue #149: the two always-translate language labels carry the
+          // detected language name through the $LANGUAGE_NAME$ placeholder.
+          if (key === "btnAlwaysTranslateThisLanguage") {
+            return `Always translate this language with Google - ${substitutions?.[0] ?? ""}`;
+          }
+          if (key === "btnAlwaysTranslateThisLanguageWithAi") {
+            return `Always translate this language with AI - ${substitutions?.[0] ?? ""}`;
+          }
+          return "";
+        }),
         getUILanguage: vi.fn(() => "en"),
       },
       runtime: {
@@ -619,6 +633,33 @@ describe("popup", () => {
     expect(lbl.textContent).toBeTruthy();
     // select 元素应仍然存在且可用
     expect(document.getElementById("selectTargetLanguage")).not.toBeNull();
+  });
+
+  // ── issue #149：两个 always-translate 语言行的 label 必须带语言名 ──
+
+  it("names the detected language in both always-translate language rows", async () => {
+    pageState.originalTabLanguage = "fr";
+
+    await loadModule();
+
+    const google = document.getElementById("lblAlwaysTranslateThisLanguage");
+    const ai = document.getElementById("lblAlwaysTranslateThisLanguageWithAi");
+    expect(google.textContent).toContain("French");
+    expect(ai.textContent).toContain("French");
+  });
+
+  it("refreshes both language-row labels when polling detects a language change (SPA)", async () => {
+    pageState.originalTabLanguage = "fr";
+    await loadModule();
+
+    expect(document.getElementById("lblAlwaysTranslateThisLanguage").textContent).toContain("French");
+
+    pageState.originalTabLanguage = "de";
+    vi.advanceTimersByTime(1500);
+    await flushMicrotasks();
+
+    expect(document.getElementById("lblAlwaysTranslateThisLanguage").textContent).toContain("German");
+    expect(document.getElementById("lblAlwaysTranslateThisLanguageWithAi").textContent).toContain("German");
   });
 
   it("adds dark mode styles when dark mode is enabled", async () => {

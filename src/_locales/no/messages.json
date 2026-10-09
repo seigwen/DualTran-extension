@@ -72,10 +72,22 @@
     "message": "Oversett alltid denne siden (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Oversett alltid dette språket (Google)"
+    "message": "Oversett alltid dette språket (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Oversett alltid dette språket (AI)"
+    "message": "Oversett alltid dette språket (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Oversett alltid denne siden (AI)"

@@ -72,10 +72,22 @@
     "message": "Vedno prevedi to stran (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Vedno prevedite ta jezik (Google)"
+    "message": "Vedno prevedite ta jezik (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Vedno prevedite ta jezik (AI)"
+    "message": "Vedno prevedite ta jezik (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Vedno prevedi to stran (AI)"

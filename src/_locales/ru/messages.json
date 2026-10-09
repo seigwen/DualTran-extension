@@ -72,10 +72,22 @@
     "message": "Всегда переводить этот сайт (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Всегда переводить с этого языка (Google)"
+    "message": "Всегда переводить с этого языка (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Всегда переводить с этого языка (AI)"
+    "message": "Всегда переводить с этого языка (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Всегда переводить этот сайт (AI)"

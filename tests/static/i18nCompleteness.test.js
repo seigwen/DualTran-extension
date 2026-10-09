@@ -195,3 +195,65 @@ describe("always-translate lists engine-explicit labels + AI lists (issue #145)"
     expect(identical).toEqual([]);
   });
 });
+
+describe("popup always-translate language rows carry the language-name placeholder (issue #149)", () => {
+  // The popup's two always-translate language rows must show WHICH language
+  // (e.g. "Always translate this language with Google - English"). They reach
+  // the name through the $LANGUAGE_NAME$ placeholder at runtime, exactly like
+  // the hover row. A locale that drops the placeholder (or its $1 mapping)
+  // silently loses the language name — the very defect this guard exists for.
+  const LANGUAGE_ROW_KEYS = [
+    "btnAlwaysTranslateThisLanguage",
+    "btnAlwaysTranslateThisLanguageWithAi",
+  ];
+  const locales = readdirSync(LOCALES_DIR).filter((entry) =>
+    existsSync(join(LOCALES_DIR, entry, "messages.json"))
+  );
+  const enMessages = readMessages("en");
+
+  it("en defines both keys with the placeholder and keeps the engine-explicit wording", () => {
+    for (const key of LANGUAGE_ROW_KEYS) {
+      const value = enMessages[key]?.message;
+      expect(typeof value).toBe("string");
+      expect(value).toContain("$LANGUAGE_NAME$");
+      expect(value.toLowerCase()).toContain("always translate");
+    }
+    expect(enMessages.btnAlwaysTranslateThisLanguage.message).toContain("Google");
+    expect(enMessages.btnAlwaysTranslateThisLanguageWithAi.message).toContain("AI");
+  });
+
+  it("every locale keeps the $LANGUAGE_NAME$ placeholder and its $1 mapping in both keys", () => {
+    const broken = [];
+    for (const locale of locales) {
+      const messages = readMessages(locale);
+      for (const key of LANGUAGE_ROW_KEYS) {
+        const entry = messages[key];
+        const keepsPlaceholder =
+          typeof entry?.message === "string" &&
+          entry.message.includes("$LANGUAGE_NAME$") &&
+          entry.placeholders?.LANGUAGE_NAME?.content === "$1";
+        if (!keepsPlaceholder) {
+          broken.push(`${locale}:${key}`);
+        }
+      }
+    }
+    expect(broken).toEqual([]);
+  });
+
+  it("no locale has a language row that omits the language-name segment entirely", () => {
+    // Sanity on shape: the value must END with the placeholder (the dash + name
+    // is appended there) — a translation that moved or merged the placeholder
+    // into unrelated text would render the name in the wrong place.
+    const wrongShape = [];
+    for (const locale of locales) {
+      const messages = readMessages(locale);
+      for (const key of LANGUAGE_ROW_KEYS) {
+        const value = messages[key]?.message ?? "";
+        if (!/\$LANGUAGE_NAME\$\s*$/.test(value.trimEnd()) && !value.trim().endsWith("$LANGUAGE_NAME$")) {
+          wrongShape.push(`${locale}:${key}=${value.slice(-40)}`);
+        }
+      }
+    }
+    expect(wrongShape).toEqual([]);
+  });
+});

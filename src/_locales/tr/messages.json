@@ -72,10 +72,22 @@
     "message": "Bu siteyi her zaman çevir (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Bu dili her zaman çevir (Google)"
+    "message": "Bu dili her zaman çevir (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Bu dili her zaman çevir (AI)"
+    "message": "Bu dili her zaman çevir (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Bu siteyi her zaman çevir (AI)"

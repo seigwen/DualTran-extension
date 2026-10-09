@@ -72,10 +72,22 @@
     "message": "Vždy překládat tuto stránku (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Tento jazyk vždy překládejte (Google)"
+    "message": "Tento jazyk vždy překládejte (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Tento jazyk vždy překládejte (AI)"
+    "message": "Tento jazyk vždy překládejte (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Vždy překládat tuto stránku (AI)"

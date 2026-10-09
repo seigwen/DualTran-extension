@@ -72,10 +72,22 @@
     "message": "بۇ تور بەتنى ھەمىشە تەرجىمە قىلىڭ (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "بۇ تىلنى ھەمىشە تەرجىمە قىلىڭ (Google)"
+    "message": "بۇ تىلنى ھەمىشە تەرجىمە قىلىڭ (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "بۇ تىلنى ھەمىشە تەرجىمە قىلىڭ (AI)"
+    "message": "بۇ تىلنى ھەمىشە تەرجىمە قىلىڭ (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "بۇ تور بەتنى ھەمىشە تەرجىمە قىلىڭ (AI)"

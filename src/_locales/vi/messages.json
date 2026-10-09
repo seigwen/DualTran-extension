@@ -72,10 +72,22 @@
     "message": "Luôn dịch trang này (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Luôn dịch trang web này (Google)"
+    "message": "Luôn dịch trang web này (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Luôn dịch trang web này (AI)"
+    "message": "Luôn dịch trang web này (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Luôn dịch trang này (AI)"

@@ -72,10 +72,22 @@
     "message": "このサイトを常に翻訳する (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "この言語を常に翻訳する (Google)"
+    "message": "この言語を常に翻訳する (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "この言語を常に翻訳する (AI)"
+    "message": "この言語を常に翻訳する (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "このサイトを常に翻訳する (AI)"

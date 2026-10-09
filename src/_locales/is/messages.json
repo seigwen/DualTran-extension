@@ -72,10 +72,22 @@
     "message": "Alltaf þýða þessa síðu (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Alltaf þýða þetta tungumál (Google)"
+    "message": "Alltaf þýða þetta tungumál (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Alltaf þýða þetta tungumál (AI)"
+    "message": "Alltaf þýða þetta tungumál (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Alltaf þýða þessa síðu (AI)"

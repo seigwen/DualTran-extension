@@ -72,10 +72,22 @@
     "message": "Vienmēr tulkot šo vietni (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Vienmēr tulkot šo valodu (Google)"
+    "message": "Vienmēr tulkot šo valodu (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Vienmēr tulkot šo valodu (AI)"
+    "message": "Vienmēr tulkot šo valodu (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Vienmēr tulkot šo vietni (AI)"

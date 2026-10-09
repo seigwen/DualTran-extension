@@ -72,10 +72,22 @@
     "message": "Увек преводи овај сајт (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Увек преводите овај језик (Google)"
+    "message": "Увек преводите овај језик (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Увек преводите овај језик (AI)"
+    "message": "Увек преводите овај језик (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Увек преводи овај сајт (AI)"

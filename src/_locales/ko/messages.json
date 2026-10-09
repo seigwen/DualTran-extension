@@ -72,10 +72,22 @@
     "message": "이 사이트 항상 번역 (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "이 언어 항상 번역 (Google)"
+    "message": "이 언어 항상 번역 (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "이 언어 항상 번역 (AI)"
+    "message": "이 언어 항상 번역 (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "이 사이트 항상 번역 (AI)"

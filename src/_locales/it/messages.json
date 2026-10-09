@@ -72,10 +72,22 @@
     "message": "Traduci sempre questo sito (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Traduci sempre questa lingua (Google)"
+    "message": "Traduci sempre questa lingua (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Traduci sempre questa lingua (AI)"
+    "message": "Traduci sempre questa lingua (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Traduci sempre questo sito (AI)"
