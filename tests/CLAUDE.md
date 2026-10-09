@@ -226,6 +226,13 @@ tests/
 - **导航场景断言完备性（A3）：** 凡含 `goBack(`/`goForward(` 的 E2E 场景必须含 ≥1 高亮读取 + `assertUiStateMatchesEngine(` **调用**（裸 import 不算），或 `// nav-assert-allow: <理由>` 豁免。防「导航场景只测内容恢复不测高亮」的子类复发。
 - **mirror-only 区块（A4）：** floatingBtn observer handler 的 `[mirror-only:begin]…[mirror-only:end]` 区块内禁止 `setAiModeActive` / `setHighlight(` / `propagateIntentToBlocks` / `intervention` / `displayMode` / in-flight token（注释除外）——「mirror-only 消费者不得执行用户级语义」的强制面。
 
+### 有效意图读取源一致性（Effective-Intent Source Consistency，#152）
+
+- 背景/症状（#152）：同一个「运行的有效意图」被两个闸门读了两源——E1 发音读 `shouldForceAiForThisRun && aiModeActive`（D6 已修），`translatePage` 的 flag 恢复却照抄旧武装标记（`= shouldForceAiForThisRun`）→ AI 循环保持武装 → 批次 AI 到达过 #70 epoch 闸门抢显示（高亮 google / 页面 AI）。
+- 纪律：**凡以「运行的有效意图」为条件的决定（发音/显示/循环/抑制）必须读同一源、同一处收口**；新增任一闸门时必须同步核对其余闸门。与 plan 40「出口唯一化」（发什么）互为镜像——本条收口**认什么**。
+- 测试锁定点：`hoverBtnBehavior.integration.test.js` #152 disarm 格 + armed+ai 对照格（`_getForceAiTranslation` getter）；E2E `ai-nav-restore.mjs` Scene 4（跨页流）；E2E `floating-btn-three-state.mjs` Step 8（确定性同页格：显式切走 + 合成 popstate；newLine 走 `expectVisible` 交叉核对，replaceOriginal 用直读 ai-span 锁）。
+- 竞态禁令：显式切走后的同页格**不得**依赖「尽早点 G」的竞态时序（多数落 `showGoogleOnly` 分支 = 无 RED 能力）——必须用确定性三输入（marker 硬校验 / `aiModeActive=false` / 合成 `popstate`）。
+
 ### 划词面板不变量（Selection Panel Invariants，plan 31 / #106）
 
 **规则：划词面板底栏 G/A 按钮只表意图——任何状态下 label 恒为「Google」/「AI」、无任何装饰（✓/✕/状态文字/tooltip 变异/按钮染色）；翻译状态（loading spinner / 译文 / 错误文案）只在译文元素 `eSelTextTrans` 内呈现。**
