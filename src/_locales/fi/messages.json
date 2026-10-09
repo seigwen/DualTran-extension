@@ -72,10 +72,22 @@
     "message": "Käännä tämä sivusto aina (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Käännä tämä kieli aina (Google)"
+    "message": "Käännä tämä kieli aina (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Käännä tämä kieli aina (AI)"
+    "message": "Käännä tämä kieli aina (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Käännä tämä sivusto aina (AI)"

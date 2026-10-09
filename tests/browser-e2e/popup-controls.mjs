@@ -6,7 +6,7 @@
  *   - 8 个复选框：语言/站点翻译开关、悬停显示（issue #88 起在真实页面上下文中测试点击路径）
  *   - 1 个链接：更多选项 (#cbMoreOptions)
  *
- * 共有 7 个测试步骤 (P1–P7；P3 现仅含 P3.1)。
+ * 共有 8 个测试步骤 (P1–P8；P3 现仅含 P3.1)。
  *
  * @module popup-controls
  */
@@ -673,6 +673,64 @@ async function p6MoreOptionsLink(page, extensionId, serviceWorker, context) {
 }
 
 // ═════════════════════════════════════════════════════════════════
+// P8: 两个 always-translate 语言行的 label 必须带语言名（issue #149）
+// ═════════════════════════════════════════════════════════════════
+
+/**
+ * [P8] 在真实页面上下文中打开 popup，断言两个 always-translate 语言行的
+ * label 文本包含检测到的语言名（英语环境下为 "English"）。
+ *
+ * 用户报告（issue #149）：两行只写 "this language"，不写是哪种语言，用户
+ * 无法判断将要「总是翻译」的是哪种语言。修复后两行以 "- <语言名>" 结尾，
+ * 与 popup 内既有的「悬停显示译文」行同款。
+ *
+ * 断言口径与格式无关——只要求 label 含语言名（不锁死分隔符），格式由
+ * jsdom/i18n 层锁定。
+ *
+ * @param {import("playwright").Page} page - Playwright 页面对象
+ * @param {string} extensionId - 扩展 ID
+ * @param {import("playwright").Worker} serviceWorker - 扩展 Service Worker
+ * @param {string} testPageUrl - 真实测试页 URL
+ * @param {import("playwright").BrowserContext} context - 浏览器上下文
+ * @param {{ pageContext: import("playwright").Page | null }} state - 真实页面标签页持久状态
+ * @returns {Promise<void>}
+ */
+async function p8LanguageRowLabelsNameTheLanguage(page, extensionId, serviceWorker, testPageUrl, context, state) {
+  console.log("[P8] always-translate 语言行 label 语言名测试 (issue #149)...");
+
+  await openPopupInPageContext(context, page, extensionId, testPageUrl, serviceWorker, state);
+
+  // 语言名必须已解析（真实页面上下文：originalTabLanguage = 测试页语言）
+  const labels = await page.evaluate(() => {
+    const read = (id) => document.getElementById(id)?.textContent ?? null;
+    return {
+      google: read("lblAlwaysTranslateThisLanguage"),
+      ai: read("lblAlwaysTranslateThisLanguageWithAi"),
+    };
+  });
+
+  for (const [row, text] of Object.entries(labels)) {
+    const label = row === "google" ? "lblAlwaysTranslateThisLanguage" : "lblAlwaysTranslateThisLanguageWithAi";
+    if (!text || text.trim() === "") {
+      throw new Error(`[P8] #${label} 为空（i18n 或语言名注入未执行）`);
+    }
+    // 语言名解析后必须出现（英语环境为 "English"；断言不锁分隔符格式）
+    if (!/English/.test(text)) {
+      throw new Error(
+        `[P8] #${label} 未包含语言名 "English"（issue #149 复现）: ${JSON.stringify(text)}`
+      );
+    }
+    // 占位符必须已被替换（不得残留 $LANGUAGE_NAME$）
+    if (text.includes("$LANGUAGE_NAME$")) {
+      throw new Error(`[P8] #${label} 残留未替换的占位符: ${JSON.stringify(text)}`);
+    }
+    console.log(`  [P8] #${label} = "${text}" ✓`);
+  }
+
+  console.log("[P8] 通过 ✓\n");
+}
+
+// ═════════════════════════════════════════════════════════════════
 // 主入口
 // ═════════════════════════════════════════════════════════════════
 
@@ -838,6 +896,10 @@ export async function run(scope) {
     await runStep("P7", () =>
       p7DisplayModeSelect(page, extensionId, serviceWorker)
     );
+
+    await runStep("P8", () =>
+      p8LanguageRowLabelsNameTheLanguage(page, extensionId, serviceWorker, testPageUrl, context, popupContextState)
+    );
   } finally {
     // 关闭真实页面上下文标签页（避免泄漏到后续场景）
     if (popupContextState.pageContext && !popupContextState.pageContext.isClosed()) {
@@ -847,7 +909,7 @@ export async function run(scope) {
 
   // ── 汇总结果 ──
   console.log(`\n=== 场景 "${name}" 执行完毕 ===`);
-  console.log(`总步骤数: 7, 失败: ${stepErrors.length}`);
+  console.log(`总步骤数: 8, 失败: ${stepErrors.length}`);
 
   if (stepErrors.length > 0) {
     for (const { step, error } of stepErrors) {

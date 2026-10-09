@@ -72,10 +72,22 @@
     "message": "Zawsze tłumacz tę witrynę (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Zawsze tłumacz z tego języka (Google)"
+    "message": "Zawsze tłumacz z tego języka (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Zawsze tłumacz z tego języka (AI)"
+    "message": "Zawsze tłumacz z tego języka (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Zawsze tłumacz tę witrynę (AI)"

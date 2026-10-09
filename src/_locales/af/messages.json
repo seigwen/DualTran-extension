@@ -72,10 +72,22 @@
     "message": "Vertaal altyd hierdie webwerf (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Vertaal altyd hierdie taal (Google)"
+    "message": "Vertaal altyd hierdie taal (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Vertaal altyd hierdie taal (AI)"
+    "message": "Vertaal altyd hierdie taal (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Vertaal altyd hierdie webwerf (AI)"

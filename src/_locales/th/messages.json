@@ -72,10 +72,22 @@
     "message": "แปลไซต์นี้เสมอ (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "แปลภาษานี้เสมอ (Google)"
+    "message": "แปลภาษานี้เสมอ (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "แปลภาษานี้เสมอ (AI)"
+    "message": "แปลภาษานี้เสมอ (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "แปลไซต์นี้เสมอ (AI)"

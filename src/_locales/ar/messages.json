@@ -72,10 +72,22 @@
     "message": "ترجمة هذا الموقع دائمًا (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "دائما ترجمة هذه اللغة (Google)"
+    "message": "دائما ترجمة هذه اللغة (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "دائما ترجمة هذه اللغة (AI)"
+    "message": "دائما ترجمة هذه اللغة (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "ترجمة هذا الموقع دائمًا (AI)"

@@ -72,10 +72,22 @@
     "message": "总是使用 Google 翻译此网站"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "总是使用 Google 翻译此语言"
+    "message": "总是使用 Google 翻译此语言 - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "总是使用 AI 翻译此语言"
+    "message": "总是使用 AI 翻译此语言 - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "总是使用 AI 翻译此网站"

@@ -142,6 +142,7 @@ twpConfig.onReady(function () {
                 if (msg) hoverLangLbl.textContent = msg;
               }
             }
+            updateAlwaysTranslateLanguageRowLabels(originalTabLanguage);
             updateInterface()
           }
         }
@@ -344,6 +345,36 @@ twpConfig.onReady(function () {
   );
 
   /**
+   * Update the two always-translate language-row labels with the detected
+   * language name (issue #149). Both rows reach the name through the
+   * $LANGUAGE_NAME$ placeholder ($1); data-i18n processing cannot pass
+   * substitution args, so the textContent is written explicitly here — the
+   * same pattern as the hover row (lblShowTranslatedWhenHoveringThisLang).
+   *
+   * Called on initial language detection AND on every 1500ms polling refresh
+   * so an SPA that swaps the page language inside the same tab keeps these
+   * rows truthful.
+   *
+   * @param {string} langCode - detected page language code (e.g. "en", "und")
+   */
+  function updateAlwaysTranslateLanguageRowLabels(langCode) {
+    const langName = twpLang.codeToLanguage(langCode);
+    // "und" resolves to a localized "Unknown language" label; an empty string
+    // means the code is unresolvable — both still render (the row must never
+    // go blank); the i18n fallback keeps the static template in that case.
+    const rows = [
+      ["lblAlwaysTranslateThisLanguage", "btnAlwaysTranslateThisLanguage"],
+      ["lblAlwaysTranslateThisLanguageWithAi", "btnAlwaysTranslateThisLanguageWithAi"],
+    ];
+    for (const [labelId, key] of rows) {
+      const el = document.getElementById(labelId);
+      if (!el) continue;
+      const msg = chrome.i18n.getMessage(key, [langName || ""]);
+      if (msg) el.textContent = msg;
+    }
+  }
+
+  /**
    * Update interface styles
    */
   function updateInterface() {
@@ -452,6 +483,9 @@ twpConfig.onReady(function () {
           originalTabLanguage = tabLanguage || "und";
           const lbl = document.getElementById("lblOriginalLanguage");
           if (lbl) lbl.textContent = twpLang.codeToLanguage(originalTabLanguage);
+          // Issue #149: keep the two always-translate language rows truthful
+          // when an SPA swaps the page language inside the same tab.
+          updateAlwaysTranslateLanguageRowLabels(originalTabLanguage);
           updateInterface()
         }
       }

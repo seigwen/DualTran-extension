@@ -72,10 +72,22 @@
     "message": "Tradu mereu acest sit (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Tradu mereu această limbă (Google)"
+    "message": "Tradu mereu această limbă (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Tradu mereu această limbă (AI)"
+    "message": "Tradu mereu această limbă (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Tradu mereu acest sit (AI)"

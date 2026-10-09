@@ -72,10 +72,22 @@
     "message": "Завжди перекладати цей сайт (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Завжди перекладайте цю мову (Google)"
+    "message": "Завжди перекладайте цю мову (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Завжди перекладайте цю мову (AI)"
+    "message": "Завжди перекладайте цю мову (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Завжди перекладати цей сайт (AI)"

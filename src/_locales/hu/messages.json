@@ -72,10 +72,22 @@
     "message": "Mindig fordítsa le ezt az oldalt (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Mindig fordítsa le ezt a nyelvet (Google)"
+    "message": "Mindig fordítsa le ezt a nyelvet (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Mindig fordítsa le ezt a nyelvet (AI)"
+    "message": "Mindig fordítsa le ezt a nyelvet (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Mindig fordítsa le ezt az oldalt (AI)"

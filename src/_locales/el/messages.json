@@ -72,10 +72,22 @@
     "message": "Πάντα μετάφραση αυτής της ιστοσελίδας (Google)"
   },
   "btnAlwaysTranslateThisLanguage": {
-    "message": "Πάντα μετάφραση αυτής της γλώσσας (Google)"
+    "message": "Πάντα μετάφραση αυτής της γλώσσας (Google) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateThisLanguageWithAi": {
-    "message": "Πάντα μετάφραση αυτής της γλώσσας (AI)"
+    "message": "Πάντα μετάφραση αυτής της γλώσσας (AI) - $LANGUAGE_NAME$",
+    "placeholders": {
+      "LANGUAGE_NAME": {
+        "content": "$1",
+        "example": "English"
+      }
+    }
   },
   "btnAlwaysTranslateWithAi": {
     "message": "Πάντα μετάφραση αυτής της ιστοσελίδας (AI)"
