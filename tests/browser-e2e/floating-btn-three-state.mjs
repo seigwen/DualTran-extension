@@ -23,6 +23,7 @@ import {
   sendMessageToTab,
   assertUiStateMatchesEngine,
   dumpUiStateLog,
+  readVisibleTruthInPage,
 } from "./setup.mjs";
 
 export const name = "floating-btn-three-state";
@@ -211,6 +212,62 @@ async function runThreeStateJourney(page, serviceWorker, testPageUrl, mockServer
     // SSOT (with the derivation fallback), latched or not.
     await assertUiStateMatchesEngine(page, serviceWorker);
     console.log(`  [${mode}] AI highlighted after external op ✓`);
+
+    // ── 步骤 8（#152）: 确定性同页格 —— 显式切 Google 后，武装恢复运行
+    // 的输出必须与播报一致（显示侧不得被批次 AI 到达抢走）。
+    //
+    // 为什么用合成 popstate：伤口需要「武装运行」被触发（popstate → 1500ms
+    // → translatePage），而真实导航时序是竞态（点击可能落在 showGoogleOnly
+    // 分支、碰不到伤口——首版锁无 RED 能力即因此）。这里把三个输入全部确定
+    // 化：① 标记已武装（步骤 7 的 AI 落地写入，前置硬校验）；② aiModeActive
+    // =false（本步骤的显式 Google 点击）；③ 触发本身（合成 popstate 事件，
+    // navigation-recovery Scene 1 Step 5 同款先例）。未修复构建必红：武装
+    // 恢复运行照常发 AI 批次，到达抢显示 → 页面 AI / 按钮 google。
+    console.log(`  [${mode}] Step 8: armed-restore after explicit Google switch must stay consistent (#152)`);
+    await clickButton(page, "btnGoogle");
+    await page.waitForTimeout(800);
+    state = await getButtonState(page);
+    assertHighlighted(state, "google", `[${mode}] #152 after switch-to-Google`);
+
+    const markerArmed = await page.evaluate(() => {
+      try {
+        return sessionStorage.getItem("dualtran:aiApplied:" + location.origin + location.pathname) === "true";
+      } catch (_) {
+        return false;
+      }
+    });
+    if (!markerArmed) {
+      throw new Error(`[${mode}] #152 premise failed: the AI marker is not armed before the restore trigger.`);
+    }
+
+    await page.evaluate(() => window.dispatchEvent(new Event("popstate")));
+    // 还原窗口：1500ms 延迟 + Google 批次 + （未修复时）AI 批次与到达
+    await page.waitForTimeout(12000);
+
+    const visible = await page.evaluate(readVisibleTruthInPage);
+    const aiVisible = visible.filter((b) => b.visibleMode === "ai");
+    state = await getButtonState(page);
+    assertHighlighted(state, "google", `[${mode}] #152 after armed restore`);
+    if (aiVisible.length > 0) {
+      throw new Error(
+        `[${mode}] #152: the armed restore shows AI translation (${aiVisible.length} block(s)) while the ` +
+        `button highlights Google — the run whose effective intent is google must not let batch AI ` +
+        `arrivals steal the display.`
+      );
+    }
+    // Cross-module consistency (repo rule: navigation/recovery tests carry the
+    // SSOT assertion): highlight == intent SSOT. The visible-truth cross-check
+    // (expectVisible) is meaningful in newLine mode (dual-span reader); in
+    // replaceOriginal the shared reader cannot express google-displayed state
+    // (no .dualtran-google span exists in that mode) — there the display-side
+    // lock is the explicit aiVisible check above, which reads the
+    // .dualtran-aitranslatedtext-replacemode span directly.
+    await assertUiStateMatchesEngine(
+      page,
+      serviceWorker,
+      mode === "newLine" ? { expectTranslated: true, expectVisible: true } : { expectTranslated: true }
+    );
+    console.log(`  [${mode}] Step 8 PASSED: armed restore stays display-consistent after an explicit Google switch ✓`);
 
     console.log(`  [${mode}] Three-state journey PASSED`);
   } catch (err) {

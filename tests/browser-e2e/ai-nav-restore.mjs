@@ -36,6 +36,7 @@ import {
   sendMessageToTab,
   waitForHostState,
   assertUiStateMatchesEngine,
+  readVisibleTruthInPage,
 } from "./setup.mjs";
 
 export const name = "ai-nav-restore";
@@ -618,6 +619,111 @@ async function verifyAiHighlightAfterReload(page, serviceWorker, spaSourceUrl, m
 }
 
 /**
+ * 场景 4（#152 回归）：跨页改选 Google 后回退——播报与显示必须一致。
+ *
+ * 用户报告流：source 页 AI 翻译 → SPA 链接到 target（同文档意图续存 → 自动
+ * AI + AI 高亮）→ 在 target 显式点 Google（页面切 Google）→ 回退到 source：
+ * 修复前 = 按钮 Google 但页面被武装批次 AI 抢回显示（分裂）；修复后 =
+ * 高亮 Google ∧ 可见真相 Google（AI 自动循环不因旧武装标记重启）。
+ *
+ * RED 能力：对未修复构建，本场景在「回退后可见真相」断言上必红（AI 落在
+ * 页面上）——本机复现已实证（/tmp/repro-151.log）。
+ */
+async function verifyCrossPageGoogleSwitchBackNav(page, serviceWorker, spaSourceUrl, spaTargetUrl, mockServerConfig) {
+  console.log("[ai-nav-restore] Scene 4: cross-page Google switch → back → highlight & visible truth must agree");
+
+  const expectedAiSnippet = mockServerConfig.expectedAiSnippet;
+
+  // 干净起点（Scene 2/3 可能残留标记）
+  await page.goto(spaSourceUrl, { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => sessionStorage.clear());
+  await waitForContentScriptInjected(serviceWorker, page.url());
+  await waitForPageTranslatorReady(serviceWorker, page.url());
+
+  // ── 步骤 1：source 页 Google + AI 翻译（武装 source 自己的标记）──
+  console.log("  Step 1: source page — translate + click AI (arms the source marker)");
+  await sendMessageToTab(serviceWorker, page.url(), { action: "translatePage", targetLanguage: "fr" });
+  await page.waitForFunction(() => document.querySelectorAll("translated").length > 0, null, { timeout: 15_000 });
+  await page.evaluate(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    host?.shadowRoot?.getElementById("btnAi")?.click();
+  });
+  await waitForAiTranslation(page, expectedAiSnippet);
+  const sourceMarker = await page.evaluate(() => {
+    try { return sessionStorage.getItem("dualtran:aiApplied:" + location.origin + location.pathname); }
+    catch (_) { return null; }
+  });
+  if (sourceMarker !== "true") {
+    throw new Error("Premise failed: source page AI marker was not armed after the AI translation.");
+  }
+  console.log("  Step 1 done: source AI translated, marker armed.");
+
+  // ── 步骤 2：SPA 导航到 target → 同文档意图续存应自动 AI 翻译 ──
+  console.log("  Step 2: SPA navigate to target — auto AI translation (same-document intent)");
+  await page.click("#test-link");
+  await page.waitForFunction(() => location.pathname.includes("spa-target.html"), null, { timeout: 10_000 });
+  await page.waitForTimeout(800);
+  await waitForAiTranslation(page, expectedAiSnippet);
+  const hlOnTarget = await getFloatingBtnHighlight(page);
+  if (hlOnTarget !== "ai") {
+    throw new Error(`Premise failed: target page should auto-highlight "ai", got "${String(hlOnTarget)}".`);
+  }
+  console.log("  Step 2 done: target auto-AI translated, AI highlighted.");
+
+  // ── 步骤 3：在 target 显式点 Google ──
+  console.log("  Step 3: click Google on the target page");
+  await page.evaluate(() => {
+    const host = document.getElementById("dualtran-floating-btn-host");
+    host?.shadowRoot?.getElementById("btnGoogle")?.click();
+  });
+  await page.waitForTimeout(1000);
+  const hlAfterGoogle = await getFloatingBtnHighlight(page);
+  if (hlAfterGoogle !== "google") {
+    throw new Error(`Premise failed: after the Google click the highlight should be "google", got "${String(hlAfterGoogle)}".`);
+  }
+  console.log("  Step 3 done: Google highlighted on the target page.");
+
+  // ── 步骤 4：回退到 source —— 关键断言 ──
+  console.log("  Step 4: browser BACK to source — highlight and visible truth must BOTH be google");
+  await page.goBack();
+  await page.waitForFunction(() => location.pathname.includes("spa-source.html"), null, { timeout: 10_000 });
+  // 等 body 替换 + 恢复批次完成（Google 译文落地）
+  await page.waitForFunction(() => document.querySelectorAll("translated").length > 0, null, { timeout: 30_000 });
+  // 分裂窗口：若 AI 自动循环仍被旧标记武装（未修复），AI 译文会在数秒内落地
+  // 并抢走显示——留足窗口，让「未修复必红」的信号稳定出现。
+  await page.waitForTimeout(12_000);
+
+  const visible = await page.evaluate(readVisibleTruthInPage);
+  const definitive = visible.filter((b) => b.visibleMode === "google" || b.visibleMode === "ai");
+  const aiVisible = definitive.filter((b) => b.visibleMode === "ai");
+  const hlFinal = await getFloatingBtnHighlight(page);
+  console.log(`  After back: highlight=${hlFinal}, definitive blocks=${definitive.length}, ai-visible=${aiVisible.length}`);
+
+  if (definitive.length < 3) {
+    throw new Error(
+      `After back-nav expected >=3 definitive blocks, got ${definitive.length} (modes=${JSON.stringify(visible.map((b) => b.visibleMode))}).`
+    );
+  }
+  if (hlFinal !== "google") {
+    throw new Error(`After back-nav the highlight should stay "google", got "${String(hlFinal)}".`);
+  }
+  if (aiVisible.length > 0) {
+    throw new Error(
+      `#152: the page shows AI translation (${aiVisible.length}/${definitive.length} blocks) while the ` +
+      `floating button highlights "google" — an armed run whose effective intent is google must not ` +
+      `let its batch AI arrivals steal the display.`
+    );
+  }
+
+  // SSOT 交叉核对（意图 + 可见真相双面）
+  await assertUiStateMatchesEngine(page, serviceWorker, { expectTranslated: true, expectVisible: true });
+  console.log("  Step 4 PASSED: highlight and visible truth both google after cross-page switch + back-nav.");
+
+  // 收尾自清理（#108 纪律）
+  await page.evaluate(() => sessionStorage.clear());
+}
+
+/**
  * 主运行入口
  * @param {Object} scope — setup 框架传入的作用域对象
  */
@@ -644,6 +750,9 @@ export async function run(scope) {
 
     // 场景 3: 刷新（full reload）后 AI 翻译自动恢复 → 按钮应 AI 高亮
     await verifyAiHighlightAfterReload(page, serviceWorker, spaSourceUrl, mockServerConfig);
+
+    // 场景 4（#152）: 跨页改选 Google 后回退 → 高亮与可见真相必须一致
+    await verifyCrossPageGoogleSwitchBackNav(page, serviceWorker, spaSourceUrl, spaTargetUrl, mockServerConfig);
 
     console.log("\n  All AI navigation restore tests passed.\n");
   } catch (err) {
