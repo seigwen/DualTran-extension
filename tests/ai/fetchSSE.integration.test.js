@@ -11,7 +11,10 @@ const mocks = vi.hoisted(() => {
     detectTextLanguage: vi.fn(async () => ({ lang: "en" })),
     fetchSSE: vi.fn(),
     codeToLanguageNameInEnglish: vi.fn((code) => {
-      const names = { en: "English", fr: "French" };
+      // Mock mirrors the real twpLang mapping (including the codes that matter
+      // to the #151 word-path gate cells: sr must map to "Serbian" — the exact
+      // name the user saw in the leaked dictionary role).
+      const names = { en: "English", fr: "French", sr: "Serbian", "zh-CN": "Chinese (Simplified)" };
       return names[code] || code;
     }),
   };
@@ -465,5 +468,110 @@ describe("translateWithAI", () => {
       expect.objectContaining({ action: "openOptionsPage", hash: "#ai" })
     );
     expect(mocks.fetchSSE).not.toHaveBeenCalled();
+  });
+});
+
+// ── P1 #151: 单词路径源语言闸门（plan 43） ──────────────────────────
+//
+// 用户症状：选中 "Undertow" 走 AI 单词路径，输出在英文/中文之上叠加一整层
+// 塞尔维亚语（西里尔 + 拉丁混排）。根因：单词词典提示词把
+// chrome.i18n.detectLanguage 的读数直接写死为
+// "professional <source>-<target> dictionary"——孤立单词的 CLD 读数常年
+// 不可信且错误（实测 Undertow / hello -> "sr"），模型随即按角色要求补出该语言。
+// 规则：只有 isReliable === true 且语言码 ≠ "und" 的读数才允许进入提示词；
+// 否则走语言中立句（模型自识词语言，[<language>] 字段本就要求自报）。
+
+describe("word-path source-language gate (#151)", () => {
+  const NEUTRAL_MARKER = "professional bilingual dictionary translating the word";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    globalThis.window = { confirm: vi.fn(() => false) };
+    globalThis.prompt = vi.fn(() => "");
+    globalThis.alert = vi.fn();
+    globalThis.location = { hostname: "dualtran.example" };
+    globalThis.fetch = vi.fn();
+    globalThis.chrome = {
+      i18n: { getMessage: vi.fn(() => "") },
+      runtime: {
+        getManifest: vi.fn(() => ({ homepage_url: "https://dualtran.example", name: "DualTran" })),
+        sendMessage: vi.fn(),
+      },
+    };
+  });
+
+  /** 走单词路径发一次请求，返回实际发给传输层的 system prompt（messages[0]）。 */
+  async function captureWordPrompt(content, targetLanguage = "zh-CN") {
+    setConfig({
+      aiProvider: "openai",
+      apiKeyOpenAI: "openai-key",
+      openAiModel: "gpt-4o-mini",
+      targetLanguage,
+    });
+    mockSSESuccess();
+    await translateWithAI(content, vi.fn(), vi.fn(), vi.fn(), undefined, true);
+    expect(mocks.fetchSSE).toHaveBeenCalledTimes(1);
+    return mocks.fetchSSE.mock.calls[0][0].messages[0].content;
+  }
+
+  it("W1: an unreliable CLD reading must not pin the bogus language into the prompt", async () => {
+    // 用户实测：CLD("Undertow") -> { language: "sr", isReliable: false }
+    mocks.detectTextLanguage.mockResolvedValue({ lang: "sr", isReliable: false });
+
+    const system = await captureWordPrompt("Undertow");
+
+    expect(system).not.toContain("Serbian");
+    expect(system).toContain(NEUTRAL_MARKER);
+  });
+
+  it("W2: an 'und' reading no longer falls back to a hardcoded English source", async () => {
+    mocks.detectTextLanguage.mockResolvedValue({ lang: "und", isReliable: false });
+
+    const system = await captureWordPrompt("Undertow");
+
+    expect(system).not.toContain("English-");
+    expect(system).toContain(NEUTRAL_MARKER);
+  });
+
+  it("W3: a reliable reading still names the source language (control)", async () => {
+    mocks.detectTextLanguage.mockResolvedValue({ lang: "en", isReliable: true });
+
+    const system = await captureWordPrompt("Undertow");
+
+    expect(system).toContain("English-Chinese (Simplified) dictionary");
+    expect(system).not.toContain(NEUTRAL_MARKER);
+  });
+
+  it("W4: an unreliable reading must not drive the isSameLanguage formatting branch", async () => {
+    // 目标语言恰为被误判的语言码（sr）时，低置信读数不得让提示词误走「同语言」
+    // 分支（isSameLanguage）——否则双语分隔符被丢、格式破（同源缺陷）。
+    mocks.detectTextLanguage.mockResolvedValue({ lang: "sr", isReliable: false });
+
+    const system = await captureWordPrompt("Undertow", "sr");
+
+    expect(system).toContain("<translated meaning> / ");
+    expect(system).toContain(NEUTRAL_MARKER);
+  });
+
+  it("W5: buildWordPromptRole truth table", async () => {
+    const mod = await import("../../src/contentScript/fetchSSE.js");
+    const buildWordPromptRole = mod.buildWordPromptRole;
+    expect(typeof buildWordPromptRole).toBe("function");
+
+    const trusted = buildWordPromptRole({
+      sourceLanguageTrusted: true,
+      sourceLanguageName: "English",
+      targetLanguageName: "French",
+    });
+    expect(trusted).toContain("English-French dictionary");
+
+    const neutral = buildWordPromptRole({
+      sourceLanguageTrusted: false,
+      sourceLanguageName: "",
+      targetLanguageName: "French",
+    });
+    expect(neutral).toContain(`${NEUTRAL_MARKER} into French`);
+    expect(neutral).not.toContain("English");
   });
 });

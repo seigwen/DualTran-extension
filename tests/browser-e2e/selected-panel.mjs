@@ -39,6 +39,8 @@
 import {
   waitForContentScriptInjected,
   waitForPageTranslatorReady,
+  readChromeLanguageDetection,
+  assertWordPromptSourceGate,
 } from "./setup.mjs";
 
 export const name = "selected-panel";
@@ -444,6 +446,20 @@ export async function run(scope) {
       throw new Error(`[E1] 单词首次点击应恰发出 1 个单词路径请求，实为 ${firstCount}`);
     }
     console.log("  [E1] 单词首次点击 = 1 个真实请求 ✓");
+
+    // [E1b] 源语言闸门（issue #151 / plan 43）：实际请求体的角色句必须与同一
+    // 浏览器对 "hello" 的 CLD 实测前提一致——不可信读数不得把误判语言写死进
+    // 提示词（修复前实测：CLD hello -> sr → "professional Serbian-Chinese…"）。
+    const wordBodies = chatBodies(log).filter((b) => b.messages?.[1]?.content === WORD_PATH_NEEDLE);
+    const cldHello = await readChromeLanguageDetection(serviceWorker, "hello");
+    assertWordPromptSourceGate(
+      wordBodies[0]?.messages?.[0]?.content,
+      cldHello,
+      "[E1b] 单词路径源语言闸门（hello）"
+    );
+    console.log(
+      `  [E1b] 提示词源语言闸门 ✓（实测 CLD: language=${cldHello?.language}, isReliable=${cldHello?.isReliable}）`
+    );
 
     // 第二次点击 AI → 必须再发请求（旧代码此处命中缓存 = 0 请求 → RED 判别点）
     await freshClick(cdp, "sOpenAI");

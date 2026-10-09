@@ -897,6 +897,72 @@ export async function writeStorage(serviceWorker, key, value) {
   }, { k: key, v: value });
 }
 
+// ═══════════════════════════════════════════════════════════════
+// Chrome 内置语言检测前提读取 + 单词路径源语言闸门断言（issue #151）
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * 在扩展 Service Worker 内调用 chrome.i18n.detectLanguage —— 与内容脚本
+ * fetchSSE.js 的单词路径检测走的是同一浏览器引擎的同一 API。用于把
+ * 「单词路径提示词」断言条件化在真实检测读数上（premise-conditioned），
+ * 而不是把某台机器上的环境事实写死成假定。
+ *
+ * @param {import("playwright").Worker} serviceWorker
+ * @param {string} text 与场景中实际翻译的单词语料同串
+ * @returns {Promise<{isReliable: boolean, language: string|null, percentage: number|null}|null>}
+ */
+export async function readChromeLanguageDetection(serviceWorker, text) {
+  return serviceWorker.evaluate(async (t) => {
+    if (!chrome.i18n || typeof chrome.i18n.detectLanguage !== "function") return null;
+    const result = await new Promise((resolve) => chrome.i18n.detectLanguage(t, resolve));
+    if (!result) return null;
+    const top = Array.isArray(result.languages) ? result.languages[0] : null;
+    return {
+      isReliable: result.isReliable === true,
+      language: top?.language ?? null,
+      percentage: top?.percentage ?? null,
+    };
+  }, text);
+}
+
+/**
+ * 单词路径源语言闸门断言（issue #151 / plan 43）：词典提示词的角色句只有在
+ * CLD 读数可信（isReliable === true 且语言码 ≠ "und"）时才允许写死源语言名；
+ * 不可信读数必须走语言中立句（由模型自识词语言）。
+ *
+ * 两个分支都有可失败断言（不 skip、不空转）：CLD 引擎行为变化时自动切换分支，
+ * 既不产生假红也不产生假绿。当前两大本地引擎对孤立单词恒 isReliable=false，
+ * 可信分支由单测 W3 钉死；引擎升级后本断言无需改动即可接管。
+ *
+ * @param {string} systemPrompt 实际发往 mock 服务器的请求体 messages[0].content
+ * @param {{isReliable: boolean, language: string|null}|null} cld 同一浏览器对同串的检测前提
+ * @param {string} label 断言上下文标签
+ */
+export function assertWordPromptSourceGate(systemPrompt, cld, label) {
+  if (!cld) {
+    throw new Error(`${label}: chrome.i18n.detectLanguage 前提不可读——拒绝在前提未知时下结论`);
+  }
+  if (typeof systemPrompt !== "string" || systemPrompt.length === 0) {
+    throw new Error(`${label}: 未捕获到单词路径提示词（请求体 messages[0] 缺失）`);
+  }
+  const NEUTRAL_MARKER = "professional bilingual dictionary translating the word";
+  const neutral = systemPrompt.includes(NEUTRAL_MARKER);
+  if (cld.isReliable === true) {
+    // 对称契约：可信读数必须命名源语言（不可信分支才是中立句）。
+    if (neutral) {
+      throw new Error(
+        `${label}: CLD 读数可信（language=${cld.language}）时提示词必须命名源语言，实际走了中立句`
+      );
+    }
+  } else {
+    if (!neutral) {
+      throw new Error(
+        `${label}: 不可信 CLD 读数（language=${cld.language}, isReliable=false）不得把源语言写死进词典提示词。提示词开头: ${systemPrompt.slice(0, 200)}`
+      );
+    }
+  }
+}
+
 /**
  * 读取 chrome.storage.local 中的多个键（通过 Service Worker 上下文）。
  * @param {import("playwright").Worker} serviceWorker
