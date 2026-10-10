@@ -111,15 +111,6 @@ twpConfig.onReady(function () {
     isPlayingAudio = false;
   }
 
-  function stopAudio() {
-    if (isPlayingAudio) {
-      chrome.runtime.sendMessage({
-        action: "stopAudio",
-      });
-    }
-    isPlayingAudio = false;
-  }
-
   const eOrigText = document.getElementById("eOrigText");
   const eOrigTextDiv = document.getElementById("eOrigTextDiv");
   const eTextTranslated = document.getElementById("eTextTranslated");

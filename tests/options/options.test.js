@@ -1547,6 +1547,90 @@ describe("options/options — feedback section (plan 35)", () => {
   });
 });
 
+// ── Google Gemini 模型下拉框：管线收敛（#161，方案 C）──
+// 背景：populateGoogleGeminiModels 曾有同作用域重复声明——后声明的 legacy 直连实现
+// 静默覆盖 refreshAiModelSelect 管线实现（AST 守卫见 tests/static/duplicateFunctionDeclarations.test.js）。
+// 收敛后唯一实现走 refreshAiModelSelect 管线；数据源仍是 loadAiProviderModelOptions
+//（对 google-gemini 拼的就是 generativelanguage.googleapis.com 同一端点，行为等价）。
+describe("options/options — Google Gemini model dropdown pipeline (#161)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    delete globalThis.browser;
+  });
+
+  const geminiRefreshCalls = () =>
+    state.refreshAiModelSelect.mock.calls
+      .map(([config]) => config)
+      .filter((config) => config && config.smartDefaultProvider === "google-gemini");
+
+  it("with API key: routes through refreshAiModelSelect with the provider model-list loader", async () => {
+    await loadOptionsModule({ apiKeyGoogleGemini: "k-gemini", googleGeminiModel: "" });
+
+    const calls = geminiRefreshCalls();
+    expect(calls).toHaveLength(1);
+    const config = calls[0];
+    expect(config.missingConfigNotice).toBe("");
+    expect(Array.isArray(config.fallbackOptions)).toBe(true);
+    expect(typeof config.loadOptions).toBe("function");
+    expect(typeof config.errorToNotice).toBe("function");
+    expect(typeof config.onLoadedOptions).toBe("function");
+
+    const options = await config.loadOptions();
+    expect(Array.isArray(options)).toBe(true);
+    expect(state.loadAiProviderModelOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: "google-gemini",
+        apiKey: "k-gemini",
+        translate: expect.any(Function),
+      })
+    );
+  });
+
+  it("without API key: preview-models branch preserved (no provider API call)", async () => {
+    await loadOptionsModule({ apiKeyGoogleGemini: "", googleGeminiModel: "" });
+
+    const calls = geminiRefreshCalls();
+    expect(calls).toHaveLength(1);
+    await calls[0].loadOptions();
+
+    expect(state.loadAiProviderModelOptions).not.toHaveBeenCalledWith(
+      expect.objectContaining({ provider: "google-gemini" })
+    );
+  });
+
+  it("errorToNotice: passes error messages through, localizes non-errors", async () => {
+    await loadOptionsModule(
+      { apiKeyGoogleGemini: "k-gemini" },
+      { messageOverrides: { msgCannotLoadGoogleGeminiModels: "localized-gemini-load-failure" } }
+    );
+
+    const config = geminiRefreshCalls()[0];
+    expect(config).toBeTruthy();
+    expect(config.errorToNotice(new Error("boom"))).toBe("boom");
+    expect(config.errorToNotice("not-an-error")).toBe("localized-gemini-load-failure");
+  });
+
+  it("re-populates with the new key when the API key input changes", async () => {
+    await loadOptionsModule({ apiKeyGoogleGemini: "", googleGeminiModel: "" });
+    expect(geminiRefreshCalls()).toHaveLength(1); // import-time population
+
+    const input = document.getElementById("apiKeyGoogleGemini");
+    input.value = "new-gemini-key";
+    input.onchange({ target: input });
+
+    const calls = geminiRefreshCalls();
+    expect(calls).toHaveLength(2);
+    await calls[1].loadOptions();
+    expect(state.loadAiProviderModelOptions).toHaveBeenCalledWith(
+      expect.objectContaining({ provider: "google-gemini", apiKey: "new-gemini-key" })
+    );
+  });
+});
+
 // ── Implementation-point map (CLAUDE.md rule: 生产产物控制台静默规则, plan 39 / #131) ──
 // debugLog (options.js) — the module-level fixed-arity sink for $() misses,
 //   declared above every call site so module-eval misses reach it (a later
