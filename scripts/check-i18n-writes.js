@@ -47,6 +47,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { pathToFileURL } = require("url");
 
 const ROOT = path.resolve(__dirname, "..");
 const args = process.argv.slice(2);
@@ -431,7 +432,25 @@ function classifyLiteral(lit, rhs, lines, rawLines, lineIdx, blockRanges) {
 }
 
 // ---------------------------------------------------------------------------
-function main() {
+async function main() {
+  // SSOT self-consistency read (spec 47 §2.4): this guard's channel entry in
+  // tests/shared/i18n-channels.mjs must still name this script (the channels
+  // meta-lint owns the full three-way check; this is the guard's own cheap
+  // read so a silent re-pointing is visible here too).
+  try {
+    const channelsMod = await import(
+      pathToFileURL(path.join(ROOT, "tests", "shared", "i18n-channels.mjs")).href
+    );
+    const self = (channelsMod.I18N_CHANNELS || []).find((c) => c.id === "l1-write-sites");
+    if (!self || self.guard?.script !== "scripts/check-i18n-writes.js") {
+      console.warn(
+        "⚠️  tests/shared/i18n-channels.mjs: this guard's channel entry is missing or points elsewhere (spec 47 §2.4)."
+      );
+    }
+  } catch (err) {
+    console.warn(`⚠️  cannot load tests/shared/i18n-channels.mjs: ${err.message}`);
+  }
+
   const files = [];
   collectFiles(SOURCE_DIR, files);
 

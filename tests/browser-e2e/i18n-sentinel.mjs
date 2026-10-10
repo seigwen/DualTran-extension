@@ -37,6 +37,18 @@ import {
 } from "./setup.mjs";
 import { buildRegisterMap, classifyItems, DATA_SELECT_IDS, LANGUAGE_CODE_RE, SENTINEL_MARK, SENTINEL_MARK_CLOSE } from "../shared/i18n-sentinel-rules.mjs";
 import { REGISTER } from "../shared/i18n-sentinel-register.mjs";
+import { I18N_CHANNELS } from "../shared/i18n-channels.mjs";
+
+// SSOT self-consistency read (spec 47 §2.4): this scenario's channel entry in
+// tests/shared/i18n-channels.mjs must still name this file (the channels
+// meta-lint owns the full three-way check; this is the scenario's own cheap
+// read so a silent re-pointing is visible here too).
+{
+  const selfChannel = I18N_CHANNELS.find((c) => c.id === "l3-sentinel");
+  if (!selfChannel || selfChannel.guard?.script !== "tests/browser-e2e/i18n-sentinel.mjs") {
+    console.warn("⚠️  i18n-channels.mjs: the sentinel channel entry is missing or misdirected (spec 47 §2.4).");
+  }
+}
 
 export const name = "i18n-sentinel";
 export const needsMock = false;

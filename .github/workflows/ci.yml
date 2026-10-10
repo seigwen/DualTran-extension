@@ -138,6 +138,9 @@ jobs:
     - name: Check for accidental Chinese in source (hard failure)
       run: node scripts/check-no-chinese.js
 
+    - name: Locale sync check (missing/extra keys, JSON shape, spec 47 L2)
+      run: npm run i18n:check
+
   test-architecture-check:
     name: Test Architecture Checks (hard failure)
     runs-on: ubuntu-latest
@@ -156,6 +159,9 @@ jobs:
 
     - name: i18n write sites (hardcoded user-visible literals at JS write sites, spec 47 L1)
       run: node scripts/check-i18n-writes.js
+
+    - name: i18n channels meta (SSOT three-way check, spec 47)
+      run: node scripts/check-i18n-channels.js
 
     - name: UI state init (no hardcoded closure state — SPA rebuild bug)
       run: node scripts/check-ui-state-init.js
