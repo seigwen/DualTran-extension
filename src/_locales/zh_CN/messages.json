@@ -103,6 +103,9 @@
   "btnApply": {
     "message": "应用"
   },
+  "btnChangeLanguages": {
+    "message": "更改语言"
+  },
   "btnFeedbackCopyDiagnostics": {
     "message": "复制诊断信息"
   },
@@ -156,6 +159,9 @@
   },
   "btnTranslate": {
     "message": "翻译"
+  },
+  "btnTryAgain": {
+    "message": "重试"
   },
   "btncopy": {
     "message": "复制"
@@ -216,6 +222,12 @@
   },
   "errorCopyFailedInsecure": {
     "message": "复制文本失败。可能是因为页面 URL 协议不安全（HTTP 而非 HTTPS）。"
+  },
+  "errorTranslationFailed": {
+    "message": "翻译失败"
+  },
+  "errorTranslationTimeout": {
+    "message": "翻译请求超时"
   },
   "errorTranslationUnknown": {
     "message": "翻译错误：未知错误。"
@@ -849,6 +861,12 @@
         "example": "English"
       }
     }
+  },
+  "msgTranslationError": {
+    "message": "翻译错误"
+  },
+  "msgTranslationInProgress": {
+    "message": "翻译进行中"
   },
   "msgTranslations": {
     "message": "翻译"

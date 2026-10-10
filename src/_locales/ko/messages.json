@@ -103,6 +103,10 @@
   "btnApply": {
     "message": "적용"
   },
+  "btnChangeLanguages": {
+    "message": "Change languages",
+    "description": "Popup/mobile menu row: open the change-languages view"
+  },
   "btnFeedbackCopyDiagnostics": {
     "message": "Copy diagnostic info"
   },
@@ -156,6 +160,10 @@
   },
   "btnTranslate": {
     "message": "번역"
+  },
+  "btnTryAgain": {
+    "message": "Try Again",
+    "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
     "message": "복사"
@@ -216,6 +224,14 @@
   },
   "errorCopyFailedInsecure": {
     "message": "텍스트 복사에 실패했습니다. 페이지 URL 프로토콜이 안전하지 않은 HTTP이고 HTTPS가 아니기 때문일 수 있습니다."
+  },
+  "errorTranslationFailed": {
+    "message": "Translation failed",
+    "description": "Toast + in-box error text when a text translation request fails"
+  },
+  "errorTranslationTimeout": {
+    "message": "Translation request timed out",
+    "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
     "message": "번역 오류: 알 수 없는 오류입니다."
@@ -849,6 +865,14 @@
         "example": "English"
       }
     }
+  },
+  "msgTranslationError": {
+    "message": "translation error",
+    "description": "aria-label suffix on the error icon of the block translation indicator"
+  },
+  "msgTranslationInProgress": {
+    "message": "translation in progress",
+    "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
     "message": "번역"

@@ -416,3 +416,73 @@ describe("error icon — feedback click contract", () => {
     expect(icon.title).toBe("429 quota exceeded");
   });
 });
+
+// ─── #157 batch ①：指示器文案本地化（RED-first）──────────────────────
+// The indicator's aria/title strings were hardcoded English ("google translation
+// in progress" / "ai translation error" / "Translation error"). They must come
+// from the locales via chrome.i18n.getMessage, with the English defaults kept
+// ONLY as last-resort fallbacks for a missing i18n runtime.
+describe("localized indicator text (#157 batch ①)", () => {
+  const ORIGINAL_CHROME = globalThis.chrome;
+
+  beforeEach(() => {
+    document.body.innerHTML = "";
+    globalThis.chrome = {
+      i18n: {
+        getMessage: vi.fn(
+          (key) =>
+            ({
+              msgTranslationInProgress: "翻译进行中",
+              msgTranslationError: "翻译错误",
+            })[key] || ""
+        ),
+      },
+    };
+  });
+
+  afterEach(() => {
+    if (ORIGINAL_CHROME === undefined) delete globalThis.chrome;
+    else globalThis.chrome = ORIGINAL_CHROME;
+  });
+
+  it("spinner aria-label carries the localized 'translation in progress' phrase", () => {
+    const p = createParagraph("Hello world");
+    setBlockTranslationIndicator(p, "google", "loading");
+
+    const indicator = getIndicatorAfter(p, "google");
+    expect(indicator.getAttribute("aria-label")).toBe("google 翻译进行中");
+  });
+
+  it("error icon aria-label carries the localized 'translation error' phrase", () => {
+    const p = createParagraph("Hello world");
+    setBlockTranslationIndicator(p, "ai", "error", "boom");
+
+    const indicator = getIndicatorAfter(p, "ai");
+    expect(indicator.getAttribute("aria-label")).toBe("ai 翻译错误");
+  });
+
+  it("error title falls back to the localized error text when no message is carried", () => {
+    const p = createParagraph("Hello world");
+    setBlockTranslationIndicator(p, "google", "error");
+
+    const indicator = getIndicatorAfter(p, "google");
+    expect(indicator.title).toBe("翻译错误");
+  });
+
+  it("carried error message still wins over the localized fallback (control)", () => {
+    const p = createParagraph("Hello world");
+    setBlockTranslationIndicator(p, "google", "error", "429 quota exceeded");
+
+    const indicator = getIndicatorAfter(p, "google");
+    expect(indicator.title).toBe("429 quota exceeded");
+  });
+
+  it("keeps the English defaults when no i18n runtime is present (content-script safety)", () => {
+    delete globalThis.chrome;
+    const p = createParagraph("Hello world");
+    setBlockTranslationIndicator(p, "google", "loading");
+
+    const indicator = getIndicatorAfter(p, "google");
+    expect(indicator.getAttribute("aria-label")).toBe("google translation in progress");
+  });
+});

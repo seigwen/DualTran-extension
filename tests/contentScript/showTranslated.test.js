@@ -536,6 +536,11 @@ describe("showTranslated", () => {
     expect(trans.classList.contains("dualtran-loading")).toBe(true);
     expect(trans.querySelector(".dualtran-loading-spinner")).not.toBeNull();
     expect(trans.querySelector(".dualtran-loading-label")).not.toBeNull();
+    // #157 batch ①: the label must come from msgLoadingModels — the call site
+    // said getMessage("loading"), a key that exists in NO locale, so every
+    // locale fell back to the English default.
+    expect(trans.querySelector(".dualtran-loading-label").textContent).toBe("msgLoadingModels");
+    expect(globalThis.chrome.i18n.getMessage).toHaveBeenCalledWith("msgLoadingModels");
 
     // Structural single-source: the panel's loading markup is byte-identical to
     // what the shared renderer produces on a scratch node (same classes, same

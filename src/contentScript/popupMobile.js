@@ -29,7 +29,6 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   // Not a mobile platform, exit this script
   if (!platformInfo.isMobile.any) return;
 
-  // i18n-exempt: legacy:start — btnChangeLanguages key missing; add key in #157 batch ①
   const htmlMobile = `
     <link rel="stylesheet" href="${chrome.runtime.getURL(
     "/contentScript/css/popupMobile.css"
@@ -65,7 +64,6 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     </div>
     </div>
     `;
-    // i18n-exempt:end
 
   let originalTabLanguage = "und";
   let currentTargetLanguage = twpConfig.get("targetLanguage");

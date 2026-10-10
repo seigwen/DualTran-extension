@@ -98,7 +98,15 @@ vi.mock("../../src/contentScript/aiUiState.js", async () => {
     renderAiErrorIndicator: vi.fn(),
   };
 });
-vi.mock("../../src/contentScript/i18n.js", () => ({}));
+// #157 batch ①: blockTranslationIndicator consumes getMessageWithFallback from
+// this module (indicator aria/title localization) — the mock must mirror the
+// consumed surface, not an empty shape.
+vi.mock("../../src/contentScript/i18n.js", () => ({
+  getMessageWithFallback: (_k, fallback) => fallback,
+  getFloatingButtonOriginalTooltipText: () => "Show original text",
+  getFloatingButtonGoogleTooltipText: () => "Show Google translation",
+  getFloatingButtonAiTooltipText: () => "Show AI translation",
+}));
 vi.mock("toastify-js", () => ({ default: vi.fn(() => ({ showToast: vi.fn() })) }));
 vi.mock("gpt-tokenizer", () => ({ encode: vi.fn(() => []) }));
 vi.mock("../../src/util/globalWordsCount.js", () => ({ wordsCount: (t) => t.split(/\s+/).filter(Boolean).length }));
