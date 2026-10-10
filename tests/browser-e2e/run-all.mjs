@@ -91,6 +91,7 @@ const SCENARIO_MODULE_PATHS = [
   "./reasoning-depth.mjs",
   "./feedback-entry.mjs",
   "./i18n-sentinel.mjs",
+  "./journey-explorer.mjs",
   "./visual-audit.mjs",
 ];
 
