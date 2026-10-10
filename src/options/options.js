@@ -1170,37 +1170,6 @@ twpConfig.onReady(function () {
     });
   }
 
-
-  // Google Gemini model dropdown auto-fill (declared early to avoid undefined)
-  async function populateGoogleGeminiModels(select, apiKey, storedValue, fallbackOptions) {
-    if (!select || select._isMissingElement) return;
-    const fallback = Array.isArray(fallbackOptions) ? fallbackOptions : [];
-    const sanitizedKey = (apiKey || "").trim();
-    try {
-      await refreshAiModelSelect({
-        select,
-        storedValue,
-        fallbackOptions: fallback,
-        missingConfigNotice: !sanitizedKey
-          ? i18nOrDefault("msgEnterApiKeyForModels", "Please enter API key to get available models for this provider")
-          : "",
-        loadOptions: () => loadAiProviderModelOptions({
-          provider: "google-gemini",
-          apiKey: sanitizedKey,
-          translate: i18nOrDefault,
-        }),
-        onLoadedOptions: (normalizedOptions) => {
-          fallback.splice(0, fallback.length, ...normalizedOptions);
-        },
-        errorToNotice: (error) =>
-          error instanceof Error && error.message
-            ? error.message
-            : i18nOrDefault("msgCannotLoadGoogleGeminiModels", "Unable to load Google Gemini models"),
-      });
-    } catch (error) {
-      console.warn("Unable to load Google Gemini models from API:", error);
-    }
-  }
   const openAiModelSelect = $("#openAiModel");
   const fallbackOpenAiOptions = openAiModelSelect
     ? Array.from(openAiModelSelect.options || []).map((option) => ({
@@ -1296,87 +1265,31 @@ twpConfig.onReady(function () {
   async function populateGoogleGeminiModels(select, apiKey, storedValue, fallbackOptions) {
     if (!select || select._isMissingElement) return;
     const fallback = Array.isArray(fallbackOptions) ? fallbackOptions : [];
-    select.disabled = true;
-    select.innerHTML = "";
-    const loadingOption = document.createElement("option");
-    loadingOption.value = "";
-    loadingOption.textContent = "Loading..."; // i18n-exempt: legacy — live legacy populate path (last duplicate declaration wins); resolution pending #161
-    loadingOption.disabled = true;
-    loadingOption.selected = true;
-    select.appendChild(loadingOption);
     const sanitizedKey = (apiKey || "").trim();
-    if (!sanitizedKey) {
-      // No API Key: use preview (OpenRouter → static list fallback)
-      try {
-        const previewModels = await loadPreviewModels({ provider: "google-gemini" });
-        select.innerHTML = "";
-        previewModels.forEach((model) => {
-          const option = document.createElement("option");
-          option.value = model.value;
-          option.textContent = model.text;
-          select.appendChild(option);
-        });
-        fallback.splice(0, fallback.length, ...previewModels);
-      } catch (_) {
-        select.innerHTML = "";
-        fallback.forEach((item) => {
-          const option = document.createElement("option");
-          option.value = item.value;
-          option.textContent = item.text;
-          select.appendChild(option);
-        });
-      }
-      select.disabled = false;
-      if (storedValue) select.value = storedValue;
-      if (!select.value) {
-        const firstEnabled = Array.from(select.options).find((opt) => !opt.disabled);
-        if (firstEnabled) select.value = firstEnabled.value;
-      }
-      return;
-    }
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${sanitizedKey}`);
-      if (!response.ok) {
-        let message = i18nOrDefault("msgCannotLoadGoogleGeminiModelsHttp", `Unable to load Google Gemini models (HTTP ${response.status})`); // i18n-exempt: legacy — live path; key name resolution pending the duplicate-function decision (#161)
-        try {
-          const errorPayload = await response.json();
-          if (errorPayload?.error?.message) {
-            message = errorPayload.error.message;
-          }
-        } catch (jsonError) {}
-        throw new Error(message);
-      }
-      const payload = await response.json();
-      const models = Array.isArray(payload?.models) ? payload.models : [];
-      if (!models.length) throw new Error("Google Gemini models list is empty");
-      models.sort((a, b) => String(a?.name || "").localeCompare(String(b?.name || "")));
-      select.innerHTML = "";
-      models.forEach((model) => {
-        if (!model || !model.name) return;
-        const option = document.createElement("option");
-        option.value = model.name;
-        option.textContent = model.displayName || model.name;
-        select.appendChild(option);
+      await refreshAiModelSelect({
+        select,
+        storedValue,
+        fallbackOptions: fallback,
+        smartDefaultProvider: "google-gemini",
+        missingConfigNotice: "",
+        loadOptions: sanitizedKey
+          ? () => loadAiProviderModelOptions({
+              provider: "google-gemini",
+              apiKey: sanitizedKey,
+              translate: i18nOrDefault,
+            })
+          : () => loadPreviewModels({ provider: "google-gemini" }),
+        onLoadedOptions: (normalizedOptions) => {
+          fallback.splice(0, fallback.length, ...normalizedOptions);
+        },
+        errorToNotice: (error) =>
+          error instanceof Error && error.message
+            ? error.message
+            : i18nOrDefault("msgCannotLoadGoogleGeminiModels", "Unable to load Google Gemini models"),
       });
-      if (storedValue && !models.some((model) => model?.name === storedValue)) {
-        const preservedOption = document.createElement("option");
-        preservedOption.value = storedValue;
-        preservedOption.textContent = storedValue;
-        select.appendChild(preservedOption);
-      }
     } catch (error) {
       console.warn("Unable to load Google Gemini models from API:", error);
-      select.innerHTML = "";
-      fallback.forEach((item) => {
-        const option = document.createElement("option");
-        option.value = item.value;
-        option.textContent = item.text;
-        select.appendChild(option);
-      });
-    } finally {
-      select.disabled = false;
-      if (storedValue) select.value = storedValue;
-      if (!select.value && select.options.length > 0) select.selectedIndex = 0;
     }
   }
   async function populateOpenAiModels(select, apiKey, storedValue, fallbackOptions) {
