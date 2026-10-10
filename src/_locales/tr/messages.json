@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Dinle"
   },
-  "btnMobileDonate": {
-    "message": "Bağış yap"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Bu siteyi hiçbir zaman çevirme"
-  },
   "btnMobileOriginal": {
     "message": "Orijinal"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Dinlemeyi durdur"
   },
-  "btnSubmit": {
-    "message": "Gönder"
-  },
   "btnTranslate": {
     "message": "Çevir"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Hesapla"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Dualtran'ın gelecekte AI ile otomatik olarak çeviri yapmasını istiyor musunuz?"
   },
   "confirmSetApiKeyNow": {
     "message": "API anahtarı ayarlanmamış. Şimdi ayarlamak ister misiniz?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Çeviri önbelleğini silmek istiyor musunuz?"
-  },
-  "donatewithpaypal": {
-    "message": "PayPal ile Bağış Yap"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Sayfa dili hedef dil ise gösterme"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Orijinal metni gizle"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Ekle"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Yalnızca kelime sayısı şundan fazla olan çevirileri Yapay Zeka ile iyileştir",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Bu siteleri her zaman çevir (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API Anahtarı"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API anahtarı"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Çevirileri yapay zeka ile otomatik iyileştir"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Mevcut siteden aynı siteye götüren bir bağlantıya tıkladığınızda otomatik olarak çevir"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Özel klavye kısayolları"
   },
-  "lblMakeDonation": {
-    "message": "Bağış yap"
-  },
   "lblNeverTranslateLangs": {
     "message": "Bu dilleri hiçbir zaman çevirme"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI Modeli"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API temeli (isteğe bağlı)"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter modeli"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer başlığı (isteğe bağlı)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title başlığı (isteğe bağlı)"
   },
   "lblOthers": {
     "message": "Diğerleri"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Sayfa çeviri hizmeti"
-  },
   "lblPersonalSettings": {
     "message": "Kişisel ayarlar"
-  },
-  "lblPlsDonate": {
-    "message": "Geliştiriciye bağış yaparak yardımcı ol"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Sürüm Notları"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Seçili metni $SHORTCUT_KEY$ tuşuna iki kez basıldığında çevrilmiş metinle değiştir",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Bir sorun bildir"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Güncelleme yaparken sürüm notlarını göster"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Seçili metni çevirmek için düğmeyi göster"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Bu sitelerin üzerine gelindiğinde çevrilmiş metni göster"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Üzerine gelindiğinde çevrilmiş metni göster"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "$LANGUAGE_NAME$ dilindeki sitelerinin üzerine gelindiğinde çeviriyi göster",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Hedef dil"
   },
-  "lblTextTranslationService": {
-    "message": "Metin Çeviri Hizmeti"
-  },
   "lblTranslate": {
     "message": "Bu sayfa çevrilsin mi?"
-  },
-  "lblTranslateInterface": {
-    "message": "Arayüzü çevir"
   },
   "lblTranslateLongerThan": {
     "message": "Yalnızca kelime sayısı bu değerden fazla olan metni çevir",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Çeviri önbelleği"
   },
-  "lblTranslationService": {
-    "message": "Çeviri hizmeti"
-  },
   "lblTtsSpeed": {
     "message": "Metin okuma ses hızı"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Yeni çeviri algoritması kullanılsın mı?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Çevrilmiş metnin nerede görüntüleneceği"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Otomatik"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Lütfen Azure OpenAI için mevcut modelleri almak üzere Azure uç noktasını ve API anahtarını girin"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "DeepSeek modelleri yüklenemedi (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "PayPal ile bağış yap"
-  },
-  "msgDownloadingDocument": {
-    "message": "Belge indiriliyor..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Bu listeye herhangi bir dil eklemediniz."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Bu listeye herhangi bir site eklemediniz."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Lütfen bu sağlayıcı için mevcut modelleri almak üzere API anahtarını girin"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Kısayol Tuşları"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "OpenAI API anahtarı nasıl alınır?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "OpenRouter API anahtarı nasıl alınır?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Bağış yapabilirseniz minnettar olacağım."
-  },
   "msgInterfaceComplex": {
     "message": "Gelişmiş"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Seçili metni çevirme"
-  },
-  "msgNoUseWidgets": {
-    "message": "Hayır (widgetleri kullan)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Yandex Çeviri'de aç"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Seçili metni bu hedef dile çevir"
   },
-  "msgSendDocument": {
-    "message": "Belge gönder"
-  },
   "msgSites": {
     "message": "Siteler"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Görünüm"
   },
-  "msgThanksForUseExtension": {
-    "message": "Bu uzantıyı kullandığınız için teşekkür ederiz."
-  },
-  "msgToTranslateSites": {
-    "message": "Siteyi çevirmek için"
-  },
   "msgToTranslateThisDocument": {
     "message": "Bu belgeyi $DOC_TYPE$ türüne çevirmek için HTML'e dönüştürmek gerekiyor",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "$LANGUAGE_NAME$ diline çevir",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Evet"
   },
-  "msgYesRecommended": {
-    "message": "Evet (önerilen)"
-  },
   "openNativeShortcutManager": {
     "message": "Yerel kısayol tuş yöneticisini aç"
   },
   "optionFloatingConfig": {
     "message": "kayan düğmeyi göster"
   },
-  "optionPopupAuto": {
-    "message": "Otomatikman"
-  },
   "optionPopupConfig": {
     "message": "Mobil açılır pencereyi göster"
   },
   "optionPopupThreeFingers": {
     "message": "Ekrana üç parmağımla dokunduğumda"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Sadece \"Bu siteyi çevir\" butonuna tıkladığımda"
   },
   "optionsAddToCustomDictionary": {
     "message": "Özel sözlüğe ekle (Bu, web sayfası çevirisi sırasında belirli kelimeleri atlamanızı sağlar)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Bu siteleri hiçbir zaman çevirme"
   },
-  "optionsPageTitle": {
-    "message": "Web Sayfalarını Çevir - Seçenekler"
-  },
   "pageActionTitle": {
     "message": "Bu sayfayı çevir"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Site çevrildiğinde açılır pencere simgesini mavi yap"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Dosyadan geri yükle"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Orijinal metni göster"

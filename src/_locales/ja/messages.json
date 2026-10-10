@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "聴く"
   },
-  "btnMobileDonate": {
-    "message": "寄付する"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "このサイトを翻訳しない"
-  },
   "btnMobileOriginal": {
     "message": "原文を表示"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "停止"
   },
-  "btnSubmit": {
-    "message": "送信"
-  },
   "btnTranslate": {
     "message": "翻訳"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "計算"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Dualtran で今後自動的に AI 翻訳を使用しますか？"
   },
   "confirmSetApiKeyNow": {
     "message": "APIキーが設定されていません。今すぐ設定しますか？"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "翻訳キャッシュを削除しますか？"
-  },
-  "donatewithpaypal": {
-    "message": "PayPalで寄付"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "ページの言語が翻訳先言語と同じ場合は表示しない"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "原文を非表示"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "追加"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "単語数が次を超える場合のみ、AIで翻訳を改良する",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "常に翻訳するサイト (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API キー"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API キー"
-  },
-  "lblAutoImproveByAi": {
-    "message": "AIで翻訳を自動改善する"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "同じドメイン内でページを移動したとき、移動先のページも自動的に翻訳"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "特別なキーボードショートカット"
   },
-  "lblMakeDonation": {
-    "message": "寄付する"
-  },
   "lblNeverTranslateLangs": {
     "message": "翻訳しない言語"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI モデル"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API ベース（任意）"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter モデル"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer ヘッダー（任意）"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title ヘッダー（任意）"
   },
   "lblOthers": {
     "message": "その他"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "ページの翻訳に使用する翻訳サービス"
-  },
   "lblPersonalSettings": {
     "message": "個人設定"
-  },
-  "lblPlsDonate": {
-    "message": "寄付をして開発者を支援する"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "リリースノート"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "$SHORTCUT_KEY$を2回押して選択したテキストを翻訳したテキストに置き換え",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "問題の報告"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "拡張機能が更新されたときにリリースノートを表示"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "選択したテキストを翻訳するボタンを表示"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "マウスオーバーしたテキストを翻訳するサイト"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "マウスオーバーしたテキストを翻訳する"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "$LANGUAGE_NAME$のサイトでマウスオーバーしたテキストを翻訳する",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "対象言語"
   },
-  "lblTextTranslationService": {
-    "message": "テキストの翻訳に使用する翻訳サービス"
-  },
   "lblTranslate": {
     "message": "このページを翻訳しますか？"
-  },
-  "lblTranslateInterface": {
-    "message": "インターフェースを翻訳"
   },
   "lblTranslateLongerThan": {
     "message": "この値より単語数が多いテキストのみを翻訳する",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "翻訳キャッシュ"
   },
-  "lblTranslationService": {
-    "message": "翻訳サービス"
-  },
   "lblTtsSpeed": {
     "message": "音声読み上げの速度"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "新しい翻訳アルゴリズムを使用しますか？"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "翻訳文の表示場所"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "自動"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Azure OpenAI の利用可能なモデルを取得するには、Azure のエンドポイントと API キーを入力してください"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "DeepSeekのモデルを読み込めませんでした (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "PayPalで寄付"
-  },
-  "msgDownloadingDocument": {
-    "message": "ドキュメントのダウンロード中…"
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "まだ言語が追加されていません"
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "まだサイトが1つも追加されていません"
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "このプロバイダの利用可能なモデルを取得するには、APIキーを入力してください"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "ショートカット"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "OpenAI API キーの取得方法は？"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "OpenRouter API キーの取得方法"
-  },
-  "msgIWillBeGrateful": {
-    "message": "もしご寄付いただければ、本当に感謝いたします。"
-  },
   "msgInterfaceComplex": {
     "message": "詳細"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "選択したテキストを翻訳しない"
-  },
-  "msgNoUseWidgets": {
-    "message": "いいえ（ウィジェットを使用）"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Yandex翻訳で開く"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "選択したテキストをこのターゲット言語に翻訳します"
   },
-  "msgSendDocument": {
-    "message": "ドキュメントを送信"
-  },
   "msgSites": {
     "message": "サイト"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "外観"
   },
-  "msgThanksForUseExtension": {
-    "message": "この拡張機能をご利用いただきありがとうございます。"
-  },
-  "msgToTranslateSites": {
-    "message": "でサイトを翻訳"
-  },
   "msgToTranslateThisDocument": {
     "message": "このドキュメント $DOC_TYPE$ を翻訳するには、まずHTMLに変換する必要があります。",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "$LANGUAGE_NAME$に翻訳",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "有効"
   },
-  "msgYesRecommended": {
-    "message": "はい（推奨）"
-  },
   "openNativeShortcutManager": {
     "message": "ブラウザのショートカット設定を開く"
   },
   "optionFloatingConfig": {
     "message": "フローティングボタンを表示する"
   },
-  "optionPopupAuto": {
-    "message": "自動"
-  },
   "optionPopupConfig": {
     "message": "モバイルで翻訳ポップアップを表示"
   },
   "optionPopupThreeFingers": {
     "message": "画面を3本指でタップしたとき"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "「このサイトを翻訳」をクリックした時のみ"
   },
   "optionsAddToCustomDictionary": {
     "message": "カスタム辞書に追加 (これにより、Web ページの翻訳中に特定の単語をスキップできます)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "翻訳しないサイト"
   },
-  "optionsPageTitle": {
-    "message": "ウェブページを翻訳 - 設定"
-  },
   "pageActionTitle": {
     "message": "このページを翻訳"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "サイトを翻訳した時にポップアップアイコンを青くする"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "ファイルから復元"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "原文を表示"

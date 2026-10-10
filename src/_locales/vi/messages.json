@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Nghe"
   },
-  "btnMobileDonate": {
-    "message": "Ủng hộ"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Không bao giờ dịch trang này"
-  },
   "btnMobileOriginal": {
     "message": "Gốc"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Dừng nghe"
   },
-  "btnSubmit": {
-    "message": "Gửi"
-  },
   "btnTranslate": {
     "message": "Dịch "
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Tính toán"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Bạn có muốn Dualtran tự động dịch bằng AI trong tương lai không?"
   },
   "confirmSetApiKeyNow": {
     "message": "Khóa API chưa được thiết lập. Bạn có muốn thiết lập ngay bây giờ không?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Bạn có muốn xóa bộ nhớ đệm dịch không?"
-  },
-  "donatewithpaypal": {
-    "message": "Ủng hộ qua PayPal"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Không hiển thị nếu ngôn ngữ trang là ngôn ngữ đích"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Ẩn văn bản gốc"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Thêm"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Chỉ cải thiện bằng AI các bản dịch có số từ lớn hơn",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Luôn dịch những trang này (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "Khóa API OpenAI"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "Khóa API OpenRouter"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Tự động cải thiện bản dịch bằng AI"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Tự động dịch khi nhấp vào liên kết đến cùng một tên miền với trang web hiện tại"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Các phím tắt đặc biệt"
   },
-  "lblMakeDonation": {
-    "message": "Ủng hộ"
-  },
   "lblNeverTranslateLangs": {
     "message": "Không bao giờ dịch các ngôn ngữ này"
-  },
-  "lblOpenAiModel": {
-    "message": "Mô hình OpenAI"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "Cơ sở API OpenRouter (tùy chọn)"
-  },
-  "lblOpenRouterModel": {
-    "message": "Mô hình OpenRouter"
-  },
-  "lblOpenRouterReferer": {
-    "message": "Header HTTP Referer (tùy chọn)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "Header X-Title (tùy chọn)"
   },
   "lblOthers": {
     "message": "Khác"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Dịch vụ dịch trang"
-  },
   "lblPersonalSettings": {
     "message": "Thiết lập cá nhân"
-  },
-  "lblPlsDonate": {
-    "message": "Giúp đỡ nhà phát triển bằng cách ủng hộ"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Ghi chú phát hành"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Thay thế văn bản đã chọn thành văn bản đã dịch khi nhấn phím $SHORTCUT_KEY$ hai lần",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Báo cáo sự cố"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Hiển thị ghi chú phát hành khi cập nhật"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Hiển thị nút để dịch văn bản được chọn"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Hiển thị văn bản đã dịch khi di chuột qua các trang web này"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Hiển thị văn bản đã dịch khi di chuột đến nó"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Hiển thị bản dịch khi di chuột qua các trang web bằng $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Ngôn ngữ đích"
   },
-  "lblTextTranslationService": {
-    "message": "Dịch vụ dịch văn bản"
-  },
   "lblTranslate": {
     "message": "Dịch trang này? "
-  },
-  "lblTranslateInterface": {
-    "message": "Dịch giao diện"
   },
   "lblTranslateLongerThan": {
     "message": "Chỉ dịch đoạn văn bản có số từ lớn hơn giá trị này",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Bộ nhớ đệm dịch"
   },
-  "lblTranslationService": {
-    "message": "Dịch vụ dịch thuật"
-  },
   "lblTtsSpeed": {
     "message": "Tốc độ âm thanh chuyển văn bản thành giọng nói"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Sử dụng thuật toán dịch mới?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Nơi hiển thị văn bản đã dịch"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Tự động"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Vui lòng nhập endpoint Azure và API key để nhận các mô hình có sẵn cho Azure OpenAI"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "Không thể tải các mô hình DeepSeek (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Ủng hộ qua PayPal"
-  },
-  "msgDownloadingDocument": {
-    "message": "Đang tải về tài liệu..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Bạn chưa thêm bất kỳ ngôn ngữ nào vào danh sách này."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Bạn chưa thêm bất kỳ trang web nào vào danh sách này. "
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Vui lòng nhập API key để nhận các mô hình có sẵn cho nhà cung cấp này"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Phím tắt"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "Làm thế nào để lấy khóa API OpenAI?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "Cách lấy khóa API OpenRouter?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Tôi sẽ biết ơn nếu bạn có thể đóng góp."
-  },
   "msgInterfaceComplex": {
     "message": "Nâng cao"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Không dịch văn bản đã chọn"
-  },
-  "msgNoUseWidgets": {
-    "message": "Không (sử dụng widget) "
   },
   "msgOpenOnYandexTranslator": {
     "message": "Mở trong Yandex Translate"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Dịch văn bản đã chọn sang ngôn ngữ đích này"
   },
-  "msgSendDocument": {
-    "message": "Gửi tài liệu"
-  },
   "msgSites": {
     "message": "Trang web"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Hiển thị"
   },
-  "msgThanksForUseExtension": {
-    "message": "Cảm ơn bạn đã sử dụng tiện ích này."
-  },
-  "msgToTranslateSites": {
-    "message": "Để dịch trang web"
-  },
   "msgToTranslateThisDocument": {
     "message": "Để dịch tài liệu $DOC_TYPE$, cần phải chuyển đổi nó sang HTML",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Dịch từ $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Đồng ý"
   },
-  "msgYesRecommended": {
-    "message": "Đồng ý (khuyến nghị)"
-  },
   "openNativeShortcutManager": {
     "message": "Mở trình quản lý phím tắt riêng"
   },
   "optionFloatingConfig": {
     "message": "hiển thị nút nổi"
   },
-  "optionPopupAuto": {
-    "message": "Tự động"
-  },
   "optionPopupConfig": {
     "message": "Hiển thị cửa sổ bật lên trên di động"
   },
   "optionPopupThreeFingers": {
     "message": "Khi tôi chạm 3 ngón tay trên màn hình"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Chỉ khi tôi nhấn \"Dịch trang này\" "
   },
   "optionsAddToCustomDictionary": {
     "message": "Thêm vào từ điển tùy chỉnh (Điều này cho phép bạn bỏ qua một số từ nhất định trong khi dịch trang web)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Không bao giờ dịch các trang này"
   },
-  "optionsPageTitle": {
-    "message": "Dịch trang Web - Tùy chọn "
-  },
   "pageActionTitle": {
     "message": "Dịch trang này "
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Chuyển biểu tượng sang màu xanh lam khi trang web được dịch"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Khôi phục từ tệp"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Hiện văn bản gốc"

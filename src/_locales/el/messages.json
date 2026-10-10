@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Ακρόαση"
   },
-  "btnMobileDonate": {
-    "message": "Δωρεά"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Ποτέ μετάφραση αυτή την ιστοσελίδα"
-  },
   "btnMobileOriginal": {
     "message": "Αρχική"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Διακοπή ακρόασης"
   },
-  "btnSubmit": {
-    "message": "Υποβολή"
-  },
   "btnTranslate": {
     "message": "Μετάφραση"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Υπολογισμός"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
   },
   "confirmSetApiKeyNow": {
     "message": "Το κλειδί API δεν έχει οριστεί. Θέλετε να το ορίσετε τώρα;"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Θέλετε να διαγράψετε την cache μετάφρασης;"
-  },
-  "donatewithpaypal": {
-    "message": "Δωρεά μέσω PayPal"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Να μην εμφανίζεται αν η γλώσσα σελίδας είναι η γλώσσα προορισμού"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Απόκρυψη αρχικού κειμένου"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Προσθήκη"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Βελτίωση μεταφράσεων με ΤΝ μόνο για κείμενα με περισσότερες από",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Πάντα μετάφραση αυτών των ιστοσελίδων (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "Κλειδί API OpenAI"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "Κλειδί OpenRouter API"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Αυτόματη βελτίωση μεταφράσεων με ΤΝ"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Αυτόματη μετάφραση όταν κάνετε κλικ σε έναν σύνδεσμο που σας μεταφέρει στον ίδιο τομέα με τον τρέχοντα ιστότοπο"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Ειδικές συντομεύσεις πληκτρολογίου"
   },
-  "lblMakeDonation": {
-    "message": "Κάντε μια δωρεά"
-  },
   "lblNeverTranslateLangs": {
     "message": "Ποτέ μετάφραση αυτών των γλωσσών"
-  },
-  "lblOpenAiModel": {
-    "message": "Μοντέλο OpenAI"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "Βάση OpenRouter API (προαιρετικό)"
-  },
-  "lblOpenRouterModel": {
-    "message": "Μοντέλο OpenRouter"
-  },
-  "lblOpenRouterReferer": {
-    "message": "Κεφαλίδα HTTP Referer (προαιρετικό)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "Κεφαλίδα X-Title (προαιρετικό)"
   },
   "lblOthers": {
     "message": "Άλλα"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Υπηρεσία μετάφρασης σελίδας"
-  },
   "lblPersonalSettings": {
     "message": "Προσωπικές ρυθμίσεις"
-  },
-  "lblPlsDonate": {
-    "message": "Βοηθήστε τον προγραμματιστή με μια δωρεά"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Σημειώσεις έκδοσης"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Αντικατάσταση του επιλεγμένου κειμένου με μεταφρασμένο κείμενο όταν πατήσετε $SHORTCUT_KEY$ δύο φορές",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Αναφορά προβλήματος"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Εμφάνιση σημειώσεων έκδοσης όταν ενημερώνεται"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Εμφάνιση κουμπιού μετάφρασης επιλεγμένου κειμένου"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Εμφάνιση μεταφρασμένου κειμένου όταν αιωρείται σε αυτούς τους ιστότοπους"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Εμφάνιση αρχικού κειμένου όταν αιωρείται το ποντίκι"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Εμφάνιση μετάφρασης όταν τοποθετείτε το δείκτη σε ιστότοπους σε $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Γλώσσα-στόχος"
   },
-  "lblTextTranslationService": {
-    "message": "Υπηρεσία Μετάφρασης Κειμένου"
-  },
   "lblTranslate": {
     "message": "Μετάφραση αυτής της σελίδας;"
-  },
-  "lblTranslateInterface": {
-    "message": "Μετάφραση περιβάλλοντος"
   },
   "lblTranslateLongerThan": {
     "message": "Μετάφραση μόνο κειμένου με αριθμό λέξεων μεγαλύτερο από αυτήν την τιμή",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Cache μετάφρασης"
   },
-  "lblTranslationService": {
-    "message": "Υπηρεσία Μετάφρασης"
-  },
   "lblTtsSpeed": {
     "message": "Ταχύτητα ήχου κειμένου σε ομιλία"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Χρήση του νέου αλγόριθμου μετάφρασης;"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Πού να εμφανίζεται το μεταφρασμένο κείμενο"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Αυτόματα"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Παρακαλώ εισάγετε το Azure endpoint και το API key για να λάβετε τα διαθέσιμα μοντέλα για το Azure OpenAI"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "Αποτυχία φόρτωσης μοντέλων DeepSeek (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Δωρεά μέσω PayPal"
-  },
-  "msgDownloadingDocument": {
-    "message": "Λήψη του εγγράφου..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Δεν έχετε προσθέσει γλώσσες σε αυτήν τη λίστα."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Δεν έχετε προσθέσει ιστότοπους σε αυτήν τη λίστα."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Παρακαλώ εισάγετε το API key για να λάβετε τα διαθέσιμα μοντέλα για αυτόν τον πάροχο"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Πλήκτρα συντόμευσης"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "Πώς να αποκτήσω κλειδί API του OpenAI;"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "Πώς μπορώ να λάβω κλειδί OpenRouter API;"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Θα είμαι ευγνώμον αν μπορείτε να κάνετε μια δωρεά."
-  },
   "msgInterfaceComplex": {
     "message": "Σύνθετο"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Χωρίς μετάφραση επιλεγμένου κειμένου"
-  },
-  "msgNoUseWidgets": {
-    "message": "Όχι (χρήση γραφικού)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Άνοιγμα μεταφραστή Yandex"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Μεταφράστε επιλεγμένο κείμενο σε αυτήν τη γλώσσα-στόχο"
   },
-  "msgSendDocument": {
-    "message": "Αποστολή εγγράφου"
-  },
   "msgSites": {
     "message": "Ιστοσελίδες"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Τύπος"
   },
-  "msgThanksForUseExtension": {
-    "message": "Σας ευχαριστούμε για τη χρήση αυτής της επέκτασης."
-  },
-  "msgToTranslateSites": {
-    "message": "Για μετάφραση ιστοσελίδας"
-  },
   "msgToTranslateThisDocument": {
     "message": "Για να μεταφράσετε αυτό το έγγραφο $DOC_TYPE$ είναι απαραίτητο να το μετατρέψετε σε HTML",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Μετάφραση σε $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Ναι"
   },
-  "msgYesRecommended": {
-    "message": "Ναι (προτείνεται)"
-  },
   "openNativeShortcutManager": {
     "message": "Άνοιγμα τοπικού διαχειριστή πλήκτρων συντόμευσης"
   },
   "optionFloatingConfig": {
     "message": "εμφανίστε το αιωρούμενο κουμπί"
   },
-  "optionPopupAuto": {
-    "message": "Αυτόματα"
-  },
   "optionPopupConfig": {
     "message": "Εμφάνιση αναδυόμενου κινητού παραθύρου"
   },
   "optionPopupThreeFingers": {
     "message": "Όταν αγγίζω τρία δάχτυλα στην οθόνη"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Μόνο όταν κάνω κλικ στο \"Μετάφραση αυτού του ιστότοπου\""
   },
   "optionsAddToCustomDictionary": {
     "message": "Προσθήκη στο προσαρμοσμένο λεξικό (Αυτό σας επιτρέπει να παραλείψετε ορισμένες λέξεις κατά τη μετάφρασή της)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Ποτέ μετάφραση αυτών των ιστοσελίδων"
   },
-  "optionsPageTitle": {
-    "message": "Μετάφραση Ιστοσελίδων - Επιλογές"
-  },
   "pageActionTitle": {
     "message": "Μετάφραση αυτής της σελίδας"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Κάντε το αναδυόμενο εικονίδιο μπλε όταν μεταφράζεται η ιστοσελίδα"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Επαναφορά από αρχείο"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Εμφάνιση αρχικού κειμένου"

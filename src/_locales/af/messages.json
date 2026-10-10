@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Luister"
   },
-  "btnMobileDonate": {
-    "message": "skenk"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Moet nooit hierdie webwerf vertaal nie"
-  },
   "btnMobileOriginal": {
     "message": "Oorspronklik"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Hou op luister"
   },
-  "btnSubmit": {
-    "message": "Indien"
-  },
   "btnTranslate": {
     "message": "Vertaal"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Bereken"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
   },
   "confirmSetApiKeyNow": {
     "message": "API-sleutel is nie ingestel nie. Wil jy dit nou instel?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Wil jy die vertaalkas uitvee?"
-  },
-  "donatewithpaypal": {
-    "message": "Skenk met PayPal"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Moenie wys of die bladsytaal die doeltaal is nie"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Versteek oorspronklike teks"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Voeg by"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Verbeter vertalings met KI slegs as dit meer woorde het as",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Vertaal altyd hierdie webwerwe (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API-sleutel"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API-sleutel"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Verbeter vertalings outomaties met KI"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Vertaal outomaties wanneer u op 'n skakel klik wat u na dieselfde domein as die huidige webwerf neem"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Spesiale sleutelbordkortpaaie"
   },
-  "lblMakeDonation": {
-    "message": "Maak 'n skenking"
-  },
   "lblNeverTranslateLangs": {
     "message": "Moet nooit hierdie tale vertaal nie"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI Model"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API-basis (opsioneel)"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter-model"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer-kop (opsioneel)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title-kop (opsioneel)"
   },
   "lblOthers": {
     "message": "Ander"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Bladsyvertaaldiens"
-  },
   "lblPersonalSettings": {
     "message": "Persoonlike instellings"
-  },
-  "lblPlsDonate": {
-    "message": "Help die ontwikkelaar met 'n skenking"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Vrystellings notas"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Vervang geselekteerde teks met vertaalde teks wanneer $SHORTCUT_KEY$ twee keer gedruk word",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Rapporteer 'n probleem"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Wys vrystellingnotas wanneer jy opdateer"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Wys die knoppie om die geselekteerde teks te vertaal"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Wys vertaalde teks wanneer jy op hierdie werwe beweeg"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Wys vertaalde teks wanneer jy beweeg"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Wys vertaling wanneer jy oor webwerwe in $LANGUAGE_NAME$beweeg",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Teikentaal"
   },
-  "lblTextTranslationService": {
-    "message": "Teksvertaaldiens"
-  },
   "lblTranslate": {
     "message": "Vertaal hierdie bladsy?"
-  },
-  "lblTranslateInterface": {
-    "message": "Vertaal die koppelvlak"
   },
   "lblTranslateLongerThan": {
     "message": "Vertaal slegs teks met meer woorde as hierdie waarde",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Vertaling kas"
   },
-  "lblTranslationService": {
-    "message": "Vertaaldiens"
-  },
   "lblTtsSpeed": {
     "message": "Teks-na-spraak klank spoed"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Gebruik die nuwe vertaalalgoritme?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Waar om die vertaalde teks te vertoon"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Outomatiese"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Voer asseblief Azure OpenAI API-sleutel en Endpoint in om die modellys te laai"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "Kan nie DeepSeek-modelle laai nie (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Skenk met PayPal"
-  },
-  "msgDownloadingDocument": {
-    "message": "Laai tans die dokument af..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Jy het geen tale by hierdie lys gevoeg nie."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Jy het geen werwe by hierdie lys gevoeg nie."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Voer asseblief 'n API-sleutel in om die beskikbare modelle vir hierdie verskaffer te kry"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Sneltoetse"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "Hoe kry ek 'n OpenAI API-sleutel?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "hoe kry ek 'n OpenRouter API-sleutel?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Ek sal dankbaar wees as jy 'n skenking kan maak."
-  },
   "msgInterfaceComplex": {
     "message": "Gevorderd"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Moenie geselekteerde teks vertaal nie"
-  },
-  "msgNoUseWidgets": {
-    "message": "Nee (gebruik legstukke)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Maak oop in yandex translate"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Translate selected text into this target language"
   },
-  "msgSendDocument": {
-    "message": "Stuur dokument"
-  },
   "msgSites": {
     "message": "Werwe"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Styl"
   },
-  "msgThanksForUseExtension": {
-    "message": "Dankie dat jy hierdie uitbreiding gebruik."
-  },
-  "msgToTranslateSites": {
-    "message": "Om die webwerf te vertaal"
-  },
   "msgToTranslateThisDocument": {
     "message": "Om hierdie dokument $DOC_TYPE$ te vertaal is dit nodig om dit na HTML om te skakel",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Vertaal na $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Ja"
   },
-  "msgYesRecommended": {
-    "message": "Ja (aanbeveel)"
-  },
   "openNativeShortcutManager": {
     "message": "Maak inheemse kortpadsleutelbestuurder oop"
   },
   "optionFloatingConfig": {
     "message": "show the floating button"
   },
-  "optionPopupAuto": {
-    "message": "Outomaties"
-  },
   "optionPopupConfig": {
     "message": "Wys die mobiele pop-up"
   },
   "optionPopupThreeFingers": {
     "message": "Wanneer ek drie vingers op die skerm raak"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Slegs wanneer ek \"Vertaal hierdie webwerf\" klik"
   },
   "optionsAddToCustomDictionary": {
     "message": "Voeg by gepasmaakte woordeboek (Dit laat jou toe om sekere woorde oor te slaan tydens webbladvertaling)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Moet nooit hierdie webwerwe vertaal nie"
   },
-  "optionsPageTitle": {
-    "message": "Vertaal webblaaie - Opsies"
-  },
   "pageActionTitle": {
     "message": "Vertaal hierdie bladsy"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Maak die opspringikoon blou wanneer die webwerf vertaal word"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Herstel vanaf lêer"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Wys oorspronklike teks"

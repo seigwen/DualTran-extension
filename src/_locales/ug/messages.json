@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "ئاڭلاڭ"
   },
-  "btnMobileDonate": {
-    "message": "ئىئانە قىلىڭ"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "بۇ تور بەتنى ھەرگىز تەرجىمە قىلماڭ"
-  },
   "btnMobileOriginal": {
     "message": "ئەسلى"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "ئاڭلاشنى توختىتىڭ"
   },
-  "btnSubmit": {
-    "message": "تاپشۇرۇش"
-  },
   "btnTranslate": {
     "message": "تەرجىمە"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "ھېسابلاپ بېقىڭ"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
   },
   "confirmSetApiKeyNow": {
     "message": "API ئاچقۇچى تەڭشەلمىگەن. ھازىر تەڭشەمەكچىمۇ؟"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "تەرجىمە ساقلىغۇچنى ئۆچۈرمەكچىمۇ؟"
-  },
-  "donatewithpaypal": {
-    "message": "PayPal بىلەن ئىئانە قىلىڭ"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "بەت تىلى نىشان تىل ئىكەنلىكىنى كۆرسەتمەڭ"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "ئەسلى تېكىستنى يوشۇرۇش"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "قوش"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "سۆزلەر سانى ... دىن ئەشەك چوڭ بولغاندا AI ئارقىلىق ياخشىلاش",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "بۇ تور بېكەتلەرنى ھەمىشە تەرجىمە قىلىڭ (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API ئاچقۇچى"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API ئاچقۇچىسى"
-  },
-  "lblAutoImproveByAi": {
-    "message": "AI ئارقىلىق تەرجىمىنى ئاپتوماتىك ياخشىلاش"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "سىزنى نۆۋەتتىكى تور بېكەت بىلەن ئوخشاش تورغا ئېلىپ بارىدىغان ئۇلانمىنى چەككەندە ئاپتوماتىك تەرجىمە قىلىڭ"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "ئالاھىدە كۇنۇپكا تاختىسى"
   },
-  "lblMakeDonation": {
-    "message": "ئىئانە قىلىڭ"
-  },
   "lblNeverTranslateLangs": {
     "message": "بۇ تىللارنى ھەرگىز تەرجىمە قىلماڭ"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI مودېلى"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API ئاساسى (تاللاشچان)"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter مودېلى"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer قاشلىقى (تاللاشچان)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title قاشلىقى (تاللاشچان)"
   },
   "lblOthers": {
     "message": "باشقىلار"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "بەت تەرجىمە مۇلازىمىتى"
-  },
   "lblPersonalSettings": {
     "message": "شەخسىي تەڭشەكلەر"
-  },
-  "lblPlsDonate": {
-    "message": "ئىئانە قىلغۇچىغا ئىئانە بىلەن ياردەم قىلىڭ"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "ئىزاھات"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "$SHORTCUT_KEY$ نى ئىككى قېتىم باسقاندا تاللانغان تېكىستنى تەرجىمە تېكىست بىلەن ئالماشتۇرۇڭ",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "بىر مەسىلىنى دوكلات قىلىڭ"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "يېڭىلىغاندا قويۇپ بېرىش خاتىرىسىنى كۆرسەت"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "تاللانغان تېكىستنى تەرجىمە قىلىش ئۈچۈن كۇنۇپكىنى كۆرسىتىڭ"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "بۇ تور بەتلەردە يۈرگەندە تەرجىمە قىلىنغان تېكىستنى كۆرسەت"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "يۆتكەلگەندە تەرجىمە قىلىنغان تېكىستنى كۆرسەت"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "$LANGUAGE_NAME$دىكى تور بېكەتلەرنى بېسىپ ئۆتكەندە تەرجىمىنى كۆرسىتىڭ",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "نىشان تىل"
   },
-  "lblTextTranslationService": {
-    "message": "تېكىست تەرجىمە مۇلازىمىتى"
-  },
   "lblTranslate": {
     "message": "بۇ بەتنى تەرجىمە قىلامسىز؟"
-  },
-  "lblTranslateInterface": {
-    "message": "كۆرۈنمە يۈزىنى تەرجىمە قىلىڭ"
   },
   "lblTranslateLongerThan": {
     "message": "مەزكۇر قىممەتتىن كۆپ سۆزدىن تۈزүлгән تېكىستنىلا تەرجىمە qil",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "تەرجىمە ساقلىغۇچ"
   },
-  "lblTranslationService": {
-    "message": "تەرجىمە مۇلازىمىتى"
-  },
   "lblTtsSpeed": {
     "message": "تېكىستتىن سۆزلەش ئاۋازى"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "يېڭى تەرجىمە ھېسابلاش ئۇسۇلىنى ئىشلىتىڭ؟"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "تەرجىمە قىلىنغان تېكىستنى قەيەردە كۆرسىتىش"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "ئاپتوماتىك"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "ئىلتىماس، Azure نىڭ endpoint ۋە API ئاچقۇچىنى كىرگۈزۈپ، Azure OpenAI ئۈچۈن مۇمكىن بولغان مودېللارنى ئېلىڭ"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "DeepSeek مودېللەرنى يۈكلەپ بولمىدى (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "PayPal بىلەن ئىئانە قىلىڭ"
-  },
-  "msgDownloadingDocument": {
-    "message": "ھۆججەتنى چۈشۈرۈش ..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "سىز بۇ تىزىملىككە ھېچقانداق تىل قوشمىدىڭىز."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "سىز بۇ تىزىملىككە ھېچقانداق تور بېكەت قوشمىدىڭىز."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "ئىلتىماس، بۇ تەمىنلىگۈچى ئۈچۈن مۇمكىن بولغان مودېللارنى ئېلىش ئۈچۈن API ئاچقۇچىنى كىرگۈزۈڭ"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Hotkeys"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "OpenAI API ئاچقۇچىنى قانداق ئېلىش؟"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "OpenRouter API ئاچقۇچىسىنى قانداق تاپسىمەن؟"
-  },
-  "msgIWillBeGrateful": {
-    "message": "ئىئانە قىلسىڭىز مەن مىننەتدار بولىمەن."
-  },
   "msgInterfaceComplex": {
     "message": "ئالىي"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "تاللانغان تېكىستنى تەرجىمە قىلماڭ"
-  },
-  "msgNoUseWidgets": {
-    "message": "ياق (كىچىك قوراللارنى ئىشلىتىڭ)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Yandex تەرجىمىسىدە ئېچىڭ"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "تاللانغان تېكىستنى بۇ نىشان تىلغا تەرجىمە قىلىڭ"
   },
-  "msgSendDocument": {
-    "message": "ھۆججەت ئەۋەتىڭ"
-  },
   "msgSites": {
     "message": "بېكەتلەر"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "ئۇسلۇب"
   },
-  "msgThanksForUseExtension": {
-    "message": "بۇ كېڭەيتىلمىنى ئىشلەتكەنلىكىڭىزگە رەھمەت."
-  },
-  "msgToTranslateSites": {
-    "message": "بېكەتنى تەرجىمە قىلىش"
-  },
   "msgToTranslateThisDocument": {
     "message": "بۇ ھۆججەتنى $DOC_TYPE$ قىلىش ئۈچۈن ئۇنى HTML غا ئايلاندۇرۇش كېرەك",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "$LANGUAGE_NAME$تەرجىمە قىلىڭ",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "ھەئە"
   },
-  "msgYesRecommended": {
-    "message": "ھەئە (تەۋسىيە)"
-  },
   "openNativeShortcutManager": {
     "message": "يەرلىك تېزلەتمە ئاچقۇچ باشقۇرغۇچىنى ئېچىڭ"
   },
   "optionFloatingConfig": {
     "message": "لەيلىمە كۇنۇپكىنى كۆرسەت"
   },
-  "optionPopupAuto": {
-    "message": "ئاپتوماتىك"
-  },
   "optionPopupConfig": {
     "message": "كۆچمە كۆزنەكنى كۆرسەت"
   },
   "optionPopupThreeFingers": {
     "message": "ئېكرانغا ئۈچ بارماق تەگسەم"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "«بۇ تور بەتنى تەرجىمە قىلىش» نى باسساملا بولىدۇ."
   },
   "optionsAddToCustomDictionary": {
     "message": "ئىختىيارى لۇغەتكە قوشۇڭ (بۇ تور بەت تەرجىمە جەريانىدا بەزى سۆزلەرنى ئاتلاپ ئۆتۈپ كېتىدۇ)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "بۇ تور بېكەتلەرنى ھەرگىز تەرجىمە قىلماڭ"
   },
-  "optionsPageTitle": {
-    "message": "تور بەتلەرنى تەرجىمە قىلىش - تاللانما"
-  },
   "pageActionTitle": {
     "message": "بۇ بەتنى تەرجىمە قىلىڭ"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "تور بېكەت تەرجىمە قىلىنغاندا سەكرىمە سىنبەلگىنى كۆك قىلىڭ"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "ھۆججەتتىن ئەسلىگە كەلتۈرۈڭ"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "ئەسلى تېكىستنى كۆرسىتىش"

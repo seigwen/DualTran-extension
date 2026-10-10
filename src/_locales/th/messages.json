@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "ฟัง"
   },
-  "btnMobileDonate": {
-    "message": "บริจาค"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "ไม่เคยแปลไซต์นี้"
-  },
   "btnMobileOriginal": {
     "message": "ต้นฉบับ"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "หยุดฟัง"
   },
-  "btnSubmit": {
-    "message": "ส่ง"
-  },
   "btnTranslate": {
     "message": "แปลภาษา"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "คำนวณ"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "คุณต้องการให้ Dualtran แปลด้วย AI โดยอัตโนมัติในอนาคตหรือไม่?"
   },
   "confirmSetApiKeyNow": {
     "message": "ยังไม่ได้ตั้งค่า API key คุณต้องการตั้งค่าตอนนี้หรือไม่?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "คุณต้องการลบแคชการแปลหรือไม่?"
-  },
-  "donatewithpaypal": {
-    "message": "บริจาคด้วย PayPal"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "ไม่แสดงหากภาษาของเพจเป็นภาษาเป้าหมาย"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "ซ่อนข้อความต้นฉบับ"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "เพิ่ม"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "ปรับปรุงคำแปลด้วย AI เฉพาะเมื่อมีจำนวนคำมากกว่า",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "แปลเว็บไซต์เหล่านี้เสมอ (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "คีย์ API ของ OpenAI"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "คีย์ API ของ OpenRouter"
-  },
-  "lblAutoImproveByAi": {
-    "message": "ปรับปรุงคำแปลอัตโนมัติด้วย AI"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "แปลโดยอัตโนมัติเมื่อคลิกลิงก์ที่นำคุณไปยังโดเมนเดียวกันกับไซต์ปัจจุบัน"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "แป้นพิมพ์ลัดพิเศษ"
   },
-  "lblMakeDonation": {
-    "message": "บริจาค"
-  },
   "lblNeverTranslateLangs": {
     "message": "อย่าแปลภาษาเหล่านี้"
-  },
-  "lblOpenAiModel": {
-    "message": "โมเดล OpenAI"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "ฐาน API ของ OpenRouter (ไม่บังคับ)"
-  },
-  "lblOpenRouterModel": {
-    "message": "โมเดล OpenRouter"
-  },
-  "lblOpenRouterReferer": {
-    "message": "ส่วนหัว HTTP Referer (ไม่บังคับ)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "ส่วนหัว X-Title (ไม่บังคับ)"
   },
   "lblOthers": {
     "message": "คนอื่น"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "บริการแปลเพจ"
-  },
   "lblPersonalSettings": {
     "message": "การตั้งค่าส่วนบุคคล"
-  },
-  "lblPlsDonate": {
-    "message": "ช่วยนักพัฒนาด้วยการบริจาค"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "บันทึกประจำรุ่น"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "แทนที่ข้อความที่เลือกด้วยข้อความที่แปลเมื่อกด $SHORTCUT_KEY$ สองครั้ง",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "รายงานปัญหา"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "แสดงบันทึกประจำรุ่นเมื่ออัปเดต"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "แสดงปุ่มเพื่อแปลข้อความที่เลือก"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "แสดงข้อความที่แปลแล้วเมื่อวางเมาส์เหนือไซต์เหล่านี้"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "แสดงข้อความที่แปลเมื่อวางเมาส์เหนือ"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "แสดงคำแปลเมื่อวางเมาส์เหนือเว็บไซต์ใน $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "ภาษาปลายทาง"
   },
-  "lblTextTranslationService": {
-    "message": "บริการแปลข้อความ"
-  },
   "lblTranslate": {
     "message": "แปลหน้านี้ไหม?"
-  },
-  "lblTranslateInterface": {
-    "message": "แปลอินเทอร์เฟซ"
   },
   "lblTranslateLongerThan": {
     "message": "แปลเฉพาะข้อความที่มีจำนวนคำมากกว่าค่านี้",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "แคชการแปล"
   },
-  "lblTranslationService": {
-    "message": "บริการแปลภาษา"
-  },
   "lblTtsSpeed": {
     "message": "ความเร็วเสียงอ่านออกเสียงข้อความ"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "ใช้อัลกอริธึมการแปลใหม่หรือไม่"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "ตำแหน่งที่จะแสดงข้อความที่แปลแล้ว"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "อัตโนมัติ"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "โปรดป้อน Azure endpoint และ API key เพื่อรับรายการโมเดลที่ใช้ได้สำหรับ Azure OpenAI"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "ไม่สามารถโหลดโมเดล DeepSeek ได้ (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "บริจาคด้วย PayPal"
-  },
-  "msgDownloadingDocument": {
-    "message": "กำลังดาวน์โหลดเอกสาร..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "คุณยังไม่ได้เพิ่มภาษาใด ๆ ในรายการนี้"
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "คุณยังไม่ได้เพิ่มไซต์ใด ๆ ในรายการนี้"
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "โปรดป้อนคีย์ API เพื่อรับรายการโมเดลที่ใช้ได้สำหรับผู้ให้บริการนี้"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "ปุ่มลัด"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "จะขอคีย์ API ของ OpenAI ได้อย่างไร?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "จะขอรับคีย์ API ของ OpenRouter ได้อย่างไร?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "ฉันจะขอบคุณถ้าคุณสามารถบริจาคได้"
-  },
   "msgInterfaceComplex": {
     "message": "ขั้นสูง"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "อย่าแปลข้อความที่เลือก"
-  },
-  "msgNoUseWidgets": {
-    "message": "ไม่ (ใช้วิดเจ็ต)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "เปิดในยานเดกซ์แปล"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "แปลข้อความที่เลือกเป็นภาษาเป้าหมายนี้"
   },
-  "msgSendDocument": {
-    "message": "ส่งเอกสาร"
-  },
   "msgSites": {
     "message": "เว็บไซต์"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "สไตล์"
   },
-  "msgThanksForUseExtension": {
-    "message": "ขอขอบคุณที่ใช้ส่วนขยายนี้"
-  },
-  "msgToTranslateSites": {
-    "message": "เพื่อแปลเว็บไซต์"
-  },
   "msgToTranslateThisDocument": {
     "message": "ในการแปลเอกสารนี้ $DOC_TYPE$ จำเป็นต้องแปลงเป็น HTML",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "แปลเป็น $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "ใช่"
   },
-  "msgYesRecommended": {
-    "message": "ใช่ (แนะนำ)"
-  },
   "openNativeShortcutManager": {
     "message": "เปิดตัวจัดการคีย์ลัดเนทีฟ"
   },
   "optionFloatingConfig": {
     "message": "แสดงปุ่มลอย"
   },
-  "optionPopupAuto": {
-    "message": "โดยอัตโนมัติ"
-  },
   "optionPopupConfig": {
     "message": "แสดงป๊อปอัปมือถือ"
   },
   "optionPopupThreeFingers": {
     "message": "เมื่อฉันแตะสามนิ้วบนหน้าจอ"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "เมื่อฉันคลิก \"แปลไซต์นี้\" เท่านั้น"
   },
   "optionsAddToCustomDictionary": {
     "message": "เพิ่มในพจนานุกรมแบบกำหนดเอง (ทำให้คุณสามารถข้ามคำบางคำระหว่างการแปลหน้าเว็บ)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "อย่าแปลเว็บไซต์เหล่านี้"
   },
-  "optionsPageTitle": {
-    "message": "แปลหน้าเว็บ - ตัวเลือก"
-  },
   "pageActionTitle": {
     "message": "แปลหน้านี้ไหม"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "ทำให้ไอคอนป๊อปอัปเป็นสีน้ำเงินเมื่อแปลไซต์แล้ว"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "กู้คืนจากไฟล์"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "แสดงข้อความต้นฉบับ"

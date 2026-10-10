@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Слушај"
   },
-  "btnMobileDonate": {
-    "message": "Донирајте"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Никада не преводи овај сајт"
-  },
   "btnMobileOriginal": {
     "message": "Оригинал"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Престани да слушаш"
   },
-  "btnSubmit": {
-    "message": "Пошаљи"
-  },
   "btnTranslate": {
     "message": "превести"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Израчунај"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
   },
   "confirmSetApiKeyNow": {
     "message": "API ključ nije podešen. Da li želite da ga sada podesite?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Да ли желите да избришете кеш превода?"
-  },
-  "donatewithpaypal": {
-    "message": "Донирајте помоћу ПаиПал-а"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Не приказуј да ли је језик странице циљни језик"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Сакриј оригинални текст"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Додати"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Побољшавај преводе помоћу ВИ само за текстове са више од",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Увек преводите ове сајтове (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API кључ"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API ključ"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Аутоматски побољшавај преводе помоћу ВИ"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Аутоматски преводи када кликнете на везу која вас води на исти домен као тренутни сајт"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Посебне пречице на тастатури"
   },
-  "lblMakeDonation": {
-    "message": "Донирати"
-  },
   "lblNeverTranslateLangs": {
     "message": "Никада немојте преводити ове језике"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI Модел"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "Baza OpenRouter API-ja (opciono)"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter model"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer zaglavlje (opciono)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title zaglavlje (opciono)"
   },
   "lblOthers": {
     "message": "Други"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Услуга превођења страница"
-  },
   "lblPersonalSettings": {
     "message": "Лична подешавања"
-  },
-  "lblPlsDonate": {
-    "message": "Помозите програмеру донацијом"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Белешке о издању"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Замените изабрани текст преведеним када двапут притиснете $SHORTCUT_KEY$",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Пријавите проблем"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Прикажи напомене о издању приликом ажурирања"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Прикажи дугме за превод изабраног текста"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Прикажи преведени текст када лебдите мишем на овим сајтовима"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Прикажи преведени текст када се лебди"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Прикажи превод када пређете курсором преко веб локација у $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Циљни језик"
   },
-  "lblTextTranslationService": {
-    "message": "Служба за превођење текста"
-  },
   "lblTranslate": {
     "message": "Превести ову страницу?"
-  },
-  "lblTranslateInterface": {
-    "message": "Преведите интерфејс"
   },
   "lblTranslateLongerThan": {
     "message": "Prevodi samo tekst koji ima više reči od ove vrednosti",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Кеш за превођење"
   },
-  "lblTranslationService": {
-    "message": "Преводилачка служба"
-  },
   "lblTtsSpeed": {
     "message": "Брзина звука претварања текста у говор"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Користите нови алгоритам за превођење?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Где приказати преведени текст"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Аутоматски"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Molimo unesite Azure endpoint i API ključ da biste dobili dostupne modele za Azure OpenAI"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "Nije bilo moguće učitati DeepSeek modele (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Донирајте преко ПаиПал-а"
-  },
-  "msgDownloadingDocument": {
-    "message": "Преузимање документа..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Нисте додали ниједан језик на ову листу."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Нисте додали ниједну локацију на ову листу."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Molimo unesite API ključ da biste dobili dostupne modele za ovog provajdera"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Хоткеис"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "Како добити OpenAI API кључ?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "Kako da dobijem OpenRouter API ključ?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Бићу вам захвалан ако можете да дате донацију."
-  },
   "msgInterfaceComplex": {
     "message": "Напредно"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Немојте преводити изабрани текст"
-  },
-  "msgNoUseWidgets": {
-    "message": "Не (користите виџете)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Отворите у Иандек преводу"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Преведите изабрани текст на овај циљни језик"
   },
-  "msgSendDocument": {
-    "message": "Пошаљите документ"
-  },
   "msgSites": {
     "message": "Сајтови"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Стиле"
   },
-  "msgThanksForUseExtension": {
-    "message": "Хвала вам што користите ово проширење."
-  },
-  "msgToTranslateSites": {
-    "message": "Да преведем сајт"
-  },
   "msgToTranslateThisDocument": {
     "message": "Да бисте превели овај документ $DOC_TYPE$ потребно је да га конвертујете у ХТМЛ",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Преведи на $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "да"
   },
-  "msgYesRecommended": {
-    "message": "Да (препоручено)"
-  },
   "openNativeShortcutManager": {
     "message": "Отворите изворни менаџер тастерских пречица"
   },
   "optionFloatingConfig": {
     "message": "прикажи плутајуће дугме"
   },
-  "optionPopupAuto": {
-    "message": "Аутоматски"
-  },
   "optionPopupConfig": {
     "message": "Прикажи искачући прозор за мобилни"
   },
   "optionPopupThreeFingers": {
     "message": "Када додирнем три прста на екрану"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Само када кликнем на „Преведи овај сајт“"
   },
   "optionsAddToCustomDictionary": {
     "message": "Додај у прилагођени речник (ово вам омогућава да прескочите одређене речи током превода веб странице)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Никада немојте преводити ове сајтове"
   },
-  "optionsPageTitle": {
-    "message": "Преведи веб странице - Опције"
-  },
   "pageActionTitle": {
     "message": "Преведи ову страницу"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Нека искачућа икона буде плава када се сајт преведе"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Врати из датотеке"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Прикажи оригинални текст"

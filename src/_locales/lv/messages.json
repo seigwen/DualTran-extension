@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Klausīties"
   },
-  "btnMobileDonate": {
-    "message": "Ziedot"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Nekad netulkot šo vietni"
-  },
   "btnMobileOriginal": {
     "message": "Oriģināls"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Beigt klausīties"
   },
-  "btnSubmit": {
-    "message": "Iesniegt"
-  },
   "btnTranslate": {
     "message": "Tulkot"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Aprēķināt"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
   },
   "confirmSetApiKeyNow": {
     "message": "API atslēga nav iestatīta. Vai vēlaties to iestatīt tagad?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Vai tiešām vēlaties dzēst tulkojuma kešatmiņu?"
-  },
-  "donatewithpaypal": {
-    "message": "Ziedot izmantojot PayPal"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Nerādīt, ja lapas valoda ir mērķvaloda"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Slēpt oriģinālo tekstu"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Pievienot"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Uzlabot tulkojumus ar MI tikai tekstiem, kuros ir vairāk nekā",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Vienmēr tulkot šīs vietnes (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API atslēga"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API atslēga"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Automātiski uzlabot tulkojumus ar MI"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Automātiski tulkot, noklikšķinot uz saiti, kas novirza uz to pašu domēnu, kurā atrodas pašreizējā vietne"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Īpašie īsinājumtaustiņi"
   },
-  "lblMakeDonation": {
-    "message": "Ziedot"
-  },
   "lblNeverTranslateLangs": {
     "message": "Nekad netulko šīs valodas"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI Modelis"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API bāze (neobligāti)"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter modelis"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer galvene (neobligāti)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title galvene (neobligāti)"
   },
   "lblOthers": {
     "message": "Citi"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Lapu tulkošanas pakalpojums"
-  },
   "lblPersonalSettings": {
     "message": "Personiskie iestatījumi"
-  },
-  "lblPlsDonate": {
-    "message": "Atbalstīt izstrādātāju ar ziedojumu"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Izmaiņu žurnāls"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Aizstāt atlasīto tekstu ar tulkotu tekstu, divreiz nospiežot $SHORTCUT_KEY$",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Ziņot par problēmu"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Parādīt izmaiņu žurnālu, kad atjaunina"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Rādīt pogu, lai tulkotu atlasīto tekstu"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Rādīt tulkoto tekstu, virzot peles kursoru šādām vietnēm"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Rādīt tulkoto tekstu, virzot peles kursoru"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Rādīt tulkojumu, virzot peles kursoru vietnēm $LANGUAGE_NAME$ valodā",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Mērķvaloda"
   },
-  "lblTextTranslationService": {
-    "message": "Teksta tulkošanas pakalpojums"
-  },
   "lblTranslate": {
     "message": "Tulkot šo lapu?"
-  },
-  "lblTranslateInterface": {
-    "message": "Palīdziet šī paplašinājuma tulkošanā"
   },
   "lblTranslateLongerThan": {
     "message": "Tulkot tikai tekstu ar vārdu skaitu, kas lielāks par šo vērtību",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Tulkojuma kešatmiņa"
   },
-  "lblTranslationService": {
-    "message": "Tulkošanas pakalpojums"
-  },
   "lblTtsSpeed": {
     "message": "Teksta pārvēršana runā ātrums"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Vai lietot jauno tulkošanas algoritmu?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Kur parādīt tulkoto tekstu"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Automātiski"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Lūdzu ievadiet Azure galapunktu un API atslēgu, lai iegūtu pieejamos modeļus Azure OpenAI"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "Neizdevās ielādēt DeepSeek modeļus (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Ziedot izmantojot PayPal"
-  },
-  "msgDownloadingDocument": {
-    "message": "Dokuments tiek lejupielādēts..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Jūs neesat pievienojis šim sarakstam nevienu valodu."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Jūs neesat pievienojis šim sarakstam nevienu vietni."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Lūdzu ievadiet API atslēgu, lai iegūtu pieejamos modeļus šim pakalpojumu sniedzējam"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Īsinājumtaustiņi"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "Kā iegūt OpenAI API atslēgu?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "Kā iegūt OpenRouter API atslēgu?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Būšu pateicīgs, ja ziedosiet."
-  },
   "msgInterfaceComplex": {
     "message": "Paplašināts"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Netulkot atlasīto tekstu"
-  },
-  "msgNoUseWidgets": {
-    "message": "Nē (izmanto logrīkus)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Atvērt Yandex tulkot"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Tulkot atlasīto tekstu šajā mērķa valodā"
   },
-  "msgSendDocument": {
-    "message": "Nosūtīt dokumentu"
-  },
   "msgSites": {
     "message": "Vietnes"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Stils"
   },
-  "msgThanksForUseExtension": {
-    "message": "Paldies, ka izmantojāt šo paplašinājumu."
-  },
-  "msgToTranslateSites": {
-    "message": "Tulkot vietni"
-  },
   "msgToTranslateThisDocument": {
     "message": "Lai tulkotu $DOC_TYPE$ dokumentu, tas ir jāpārvērš HTML formātā",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Tulkot uz $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Jā"
   },
-  "msgYesRecommended": {
-    "message": "Jā (ieteicams)"
-  },
   "openNativeShortcutManager": {
     "message": "Atvērt iebūvēto īsinājumtaustiņu pārvaldnieku"
   },
   "optionFloatingConfig": {
     "message": "parādīt peldošo pogu"
   },
-  "optionPopupAuto": {
-    "message": "Automātiski"
-  },
   "optionPopupConfig": {
     "message": "Rādīt mobilo uznirstošo logu"
   },
   "optionPopupThreeFingers": {
     "message": "Kad es pieskaros ekrānam ar trim pirkstiem"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Tikai kad noklikšķinu uz \"Tulkot šo vietni\""
   },
   "optionsAddToCustomDictionary": {
     "message": "Pievienot pielāgotajai vārdnīcai (tas ļauj izlaist noteiktus vārdus tīmekļa lapas tulkošanas laikā)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Nekad netulkot šīs vietnes"
   },
-  "optionsPageTitle": {
-    "message": "Tīmekļa lapu tulkotāja - Iespējas"
-  },
   "pageActionTitle": {
     "message": "Tulkot šo lapu"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Kad vietne ir iztulkota, iekrāsojiet uznirstošā loga ikonu zilā krāsā"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Atjaunot no faila"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Rādīt oriģinālo tekstu"

@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Listen"
   },
-  "btnMobileDonate": {
-    "message": "Donate"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Never translate this site"
-  },
   "btnMobileOriginal": {
     "message": "Original"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Stop listening"
   },
-  "btnSubmit": {
-    "message": "Submit"
-  },
   "btnTranslate": {
     "message": "Translate"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Calculate"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
   },
   "confirmSetApiKeyNow": {
     "message": "API key is not set. Do you want to set it now?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Do you want to delete the translation cache?"
-  },
-  "donatewithpaypal": {
-    "message": "Donate With PayPal"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Do not show if the page language is the target language"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Hide original text"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Add"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Only improve translations by AI that have words more than",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Always translate these sites with AI"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API Key"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API Key"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Automatically improve translations by AI"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Automatically translate when clicking on a link that takes you to the same domain as the current site"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Special keyboard shortcuts"
   },
-  "lblMakeDonation": {
-    "message": "Make a donation"
-  },
   "lblNeverTranslateLangs": {
     "message": "Never translate these languages"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI Model"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API base (optional)"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter model"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer header (optional)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title header (optional)"
   },
   "lblOthers": {
     "message": "Others"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Page translation service"
-  },
   "lblPersonalSettings": {
     "message": "Personal settings"
-  },
-  "lblPlsDonate": {
-    "message": "Help the developer with a donation"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Release Notes"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Replace selected text with translated text when pressing $SHORTCUT_KEY$ twice",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Report a problem"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Show release notes when updating"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Show the button to translate the selected text"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Show translated text when hovering on these sites"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Show translated text when hovering"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Show translation when hovering over websites in $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Target language"
   },
-  "lblTextTranslationService": {
-    "message": "Text Translation Service"
-  },
   "lblTranslate": {
     "message": "Translate this page?"
-  },
-  "lblTranslateInterface": {
-    "message": "Translate the interface"
   },
   "lblTranslateLongerThan": {
     "message": "Only translate the text that has words more than",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Translation cache"
   },
-  "lblTranslationService": {
-    "message": "Translation service"
-  },
   "lblTtsSpeed": {
     "message": "Text-to-speech audio speed"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Use the new translation algorithm?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Where to display translated text"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Automatic"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Please enter Azure OpenAI API Key and Endpoint to load model list"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "Unable to load DeepSeek models (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Donate with PayPal"
-  },
-  "msgDownloadingDocument": {
-    "message": "Downloading the document..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "You have not added any languages to this list yet."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "You have not added any sites to this list yet."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Please enter an API key to get the available models for this provider"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Hotkeys"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "how to get openAI api key?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "how to get OpenRouter api key?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "I will be grateful if you can make a donation."
-  },
   "msgInterfaceComplex": {
     "message": "Complex"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Do not translate selected text"
-  },
-  "msgNoUseWidgets": {
-    "message": "No (use widgets)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Open in OpenAI translate"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Translate selected text into this target language"
   },
-  "msgSendDocument": {
-    "message": "Send document"
-  },
   "msgSites": {
     "message": "Sites"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Style"
   },
-  "msgThanksForUseExtension": {
-    "message": "Thank you for using this extension."
-  },
-  "msgToTranslateSites": {
-    "message": "Translate this site"
-  },
   "msgToTranslateThisDocument": {
     "message": "To translate this document $DOC_TYPE$ it is necessary to convert it to HTML",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Translate to $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Yes"
   },
-  "msgYesRecommended": {
-    "message": "Yes (recommended)"
-  },
   "openNativeShortcutManager": {
     "message": "Open native shortcut key manager"
   },
   "optionFloatingConfig": {
     "message": "show the floating button"
   },
-  "optionPopupAuto": {
-    "message": "Automatic"
-  },
   "optionPopupConfig": {
     "message": "Show the mobile popup"
   },
   "optionPopupThreeFingers": {
     "message": "When I touch three fingers on the screen"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "When I click \"Translate this site\""
   },
   "optionsAddToCustomDictionary": {
     "message": "Add to custom dictionary (This allows you to skip certain words during web page translation)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Never translate these sites"
   },
-  "optionsPageTitle": {
-    "message": "DualTran - Options"
-  },
   "pageActionTitle": {
     "message": "Translate this page"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Make the pop-up icon blue when the site is translated"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Restore from file"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Show original text"
