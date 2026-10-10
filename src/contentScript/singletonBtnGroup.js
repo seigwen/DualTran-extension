@@ -27,6 +27,11 @@ import {
   getFloatingButtonGoogleTooltipText,
   getFloatingButtonAiTooltipText,
 } from "./i18n.js";
+import {
+  AI_ENGINE_LABEL,
+  GOOGLE_ENGINE_LABEL,
+  getOriginalButtonLabel,
+} from "./engineLabels.js";
 
 // ── Shared dummy objects (absorb writes when proxy is not current target) ──
 
@@ -341,7 +346,6 @@ function createSingletonHost() {
   host.classList.add("notranslate");
 
   const shadow = host.attachShadow({ mode: "open" });
-  // i18n-exempt: legacy — button labels Original/Google/AI; localize-vs-token decided in #157 batch ③
   shadow.innerHTML = `
     <style>
       :host { all: initial; }
@@ -381,10 +385,10 @@ function createSingletonHost() {
       .dualtran-ai-btn:hover .dualtran-ai-tooltip { display: block; }
     </style>
     <div class="dualtran-btn-group">
-      <button class="dualtran-original-btn">Original</button>
-      <button class="dualtran-google-btn">Google</button>
+      <button class="dualtran-original-btn"></button>
+      <button class="dualtran-google-btn"></button>
       <button class="dualtran-ai-btn">
-        <span>AI</span>
+        <span></span>
         <span class="dualtran-ai-tooltip"></span>
       </button>
     </div>
@@ -403,6 +407,12 @@ function createSingletonHost() {
   originalBtn.title = getFloatingButtonOriginalTooltipText();
   googleBtn.title = getFloatingButtonGoogleTooltipText();
   aiBtn.title = getFloatingButtonAiTooltipText();
+
+  // Engine labels (#157 batch ③): "Original" is localized; Google/AI are
+  // brand/initialism tokens — all three from the engineLabels single source.
+  originalBtn.textContent = getOriginalButtonLabel();
+  googleBtn.textContent = GOOGLE_ENGINE_LABEL;
+  aiTextNode.textContent = AI_ENGINE_LABEL;
 
   _singleton = {
     ..._singleton,

@@ -127,6 +127,9 @@
   "btnMobileTranslated": {
     "message": "已翻譯"
   },
+  "btnMoreLanguages": {
+    "message": "更多語言"
+  },
   "btnMoreOptions": {
     "message": "更多選項"
   },
@@ -138,6 +141,9 @@
   },
   "btnOptions": {
     "message": "Options"
+  },
+  "btnOriginal": {
+    "message": "原文"
   },
   "btnReplace": {
     "message": "取代"
@@ -660,6 +666,9 @@
     "message": "無法載入 DeepSeek 模型 (HTTP $1)",
     "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
   },
+  "msgCannotLoadGoogleGeminiModels": {
+    "message": "無法載入Google Gemini模型"
+  },
   "msgDefault": {
     "message": "預設",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
@@ -679,6 +688,12 @@
   "msgEnterApiKeyForModels": {
     "message": "請先輸入API key以取得該提供者的可用模型列表"
   },
+  "msgEnterDictionaryKeyword": {
+    "message": "輸入關鍵詞，至少兩個字母"
+  },
+  "msgEnterDictionaryValue": {
+    "message": "（可選）\n可輸入用於替換的值，或留空不填。"
+  },
   "msgEnterModelName": {
     "message": "請輸入模型名稱/ID：",
     "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
@@ -690,6 +705,9 @@
   "msgEnterProviderName": {
     "message": "請輸入提供者名稱：",
     "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
+  },
+  "msgEnterSiteHostname": {
+    "message": "輸入網站主機名"
   },
   "msgErrorDownloadingDocument": {
     "message": "下載文件時發生錯誤"

@@ -309,7 +309,10 @@ describe("floatingBtn", () => {
     await loadModule();
 
     // Initial state: Original highlighted
-    expect(getOriginalButton().textContent).toBe("Original");
+    // #157 batch ③: the label flows through chrome.i18n via engineLabels.js —
+    // this suite stubs getMessage as a key echo, so the rendered label is the
+    // key itself (proving the localized path, not the old hardcoded literal).
+    expect(getOriginalButton().textContent).toBe("btnOriginal");
     expect(getIcon().textContent).toBe("Google");
     expect(getAiButton().textContent).toBe("AI");
     expect(getOriginalButton().classList.contains("dualtran-floating-btn-active")).toBe(true);

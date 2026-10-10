@@ -16,6 +16,11 @@ import {
   getFloatingButtonMoreOptionsText,
   getFloatingButtonOriginalTooltipText,
 } from "./i18n.js"
+import {
+  AI_ENGINE_LABEL,
+  GOOGLE_ENGINE_LABEL,
+  getOriginalButtonLabel,
+} from "./engineLabels.js"
 
 var floatingBtn = {};
 
@@ -94,9 +99,9 @@ if (window.self !== window.top) {
           <div id="dragHandle" style="height: 12px; cursor: grab; background: #f3f4f6; border-radius: 999px; display: flex; justify-content: center; align-items: center;">
           <div style="width: 22px; height: 2px; background: #9ca3af; border-radius: 999px;"></div>
           </div>
-          <button id="btnOriginal" type="button" style="cursor: pointer; border: 1px solid #d1d5db; background: #f3f4f6; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; color: #6b7280; transition: all 0.2s ease; width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Original</button>
-          <button id="btnGoogle" type="button" style="cursor: pointer; border: 1px solid #bfdbfe; background: #eff6ff; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; color: #1d4ed8; transition: all 0.2s ease; width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Google</button>
-          <button id="btnAi" type="button" style="cursor: pointer; border: 1px solid #ddd6fe; background: #f5f3ff; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; color: #7c3aed; transition: all 0.2s ease; width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">AI</button>
+          <button id="btnOriginal" type="button" style="cursor: pointer; border: 1px solid #d1d5db; background: #f3f4f6; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; color: #6b7280; transition: all 0.2s ease; width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></button>
+          <button id="btnGoogle" type="button" style="cursor: pointer; border: 1px solid #bfdbfe; background: #eff6ff; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; color: #1d4ed8; transition: all 0.2s ease; width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></button>
+          <button id="btnAi" type="button" style="cursor: pointer; border: 1px solid #ddd6fe; background: #f5f3ff; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; color: #7c3aed; transition: all 0.2s ease; width: 100%; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></button>
         </div>
       </div>
     </div>
@@ -531,19 +536,19 @@ if (window.self !== window.top) {
       original: {
         active: { color: "#ffffff", background: "#374151", borderColor: "#374151" },
         inactive: { color: "#6b7280", background: "#f3f4f6", borderColor: "#d1d5db" },
-        label: "Original",
+        label: getOriginalButtonLabel(),
         compactLabel: "O",
       },
       google: {
         active: { color: "#ffffff", background: "#1d4ed8", borderColor: "#1d4ed8" },
         inactive: { color: "#1d4ed8", background: "#eff6ff", borderColor: "#bfdbfe" },
-        label: "Google",
+        label: GOOGLE_ENGINE_LABEL,
         compactLabel: "G",
       },
       ai: {
         active: { color: "#ffffff", background: "#7c3aed", borderColor: "#7c3aed" },
         inactive: { color: "#7c3aed", background: "#f5f3ff", borderColor: "#ddd6fe" },
-        label: "AI",
+        label: AI_ENGINE_LABEL,
         compactLabel: "A",
       },
     };

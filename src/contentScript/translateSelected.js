@@ -74,7 +74,6 @@ let aiTranslateWord = async (toBeTranslated, showToastForError = true) => {
 
   // If already translating, exit
   btnAi.translationStatus = "queuing"
-  btnAi.btnAiTxtNode.textContent = "queuing" // i18n-exempt: legacy — dead AI-pending write (absorbed by proxy); cleanup in #157 batch ④
 
   // Use the “text translation” target language as the target language
   const targetLanguageCodeForAI = twpConfig.get("targetLanguageTextTranslation") || twpConfig.get("targetLanguage")
@@ -549,7 +548,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           <li value="en" title="English">en</li>
           <li value="es" title="Spanish">es</li>
           <li value="de" title="German">de</li>
-          <li id="btnMoreTargetLang" title="More languages">+</li>
+          <li id="btnMoreTargetLang" title="More languages" data-i18n-title="btnMoreLanguages">+</li>
           <select id="selectMoreTargetLang" style="display:none; position:absolute; bottom:100%; left:0; max-width:140px; font-size:12px; padding:2px; background:#1c1b1b; color:#fff; border:1px solid #555; border-radius:3px;"></select>
         </ul>
         <!--Whether to show original text-->

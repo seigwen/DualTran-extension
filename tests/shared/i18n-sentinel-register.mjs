@@ -18,25 +18,16 @@
 
 /** @type {Array<{ text: string, category: string, reason: string }>} */
 export const REGISTER = [
-  // ── P1-b RED 审计收录（2026-10-10，run 2）— legacy：待 P2 批次修复后摘除 ──
-  {
-    text: "Original",
-    category: "legacy",
-    reason: "floating-group button label (hardcoded); localize-vs-token decision in #157 batch ③",
-  },
+  // ── #157 batch ③ decision: engine brand tokens stay untranslated BY DESIGN
+  //    (identical across locales, single source: engineLabels.js). Not debt.
   {
     text: "Google",
-    category: "legacy",
-    reason: "engine brand label (hardcoded in floating group); decision in #157 batch ③",
+    category: "platform",
+    reason: "engine brand label — trademark, rendered identically across locales by design (#157 batch ③; single source engineLabels.js)",
   },
   {
     text: "AI",
-    category: "legacy",
-    reason: "engine label token (hardcoded in floating group); decision in #157 batch ③",
-  },
-  {
-    text: "More languages",
-    category: "legacy",
-    reason: "panels' + button tooltip (hardcoded title, no key exists); add key + data-i18n-title in #157 batch ③",
+    category: "platform",
+    reason: "engine label initialism — identical across locales by design (#157 batch ③; single source engineLabels.js)",
   },
 ];

@@ -1,6 +1,7 @@
 "use strict";
 
 import { markTextWrite } from "./extensionTextWrites.js";
+import { AI_ENGINE_LABEL } from "./engineLabels.js";
 
 export const SUCCESS_CHECK_COLOR = "#16a34a";
 export const ERROR_CROSS_COLOR = "#dc2626";
@@ -70,13 +71,13 @@ function updateInlineBtnStateClass(btnAi, state) {
  */
 export function renderAiSuccessIndicator(btnAi) {
   if (!btnAi || !btnAi.btnAiTxtNode) return;
-  btnAi.btnAiTxtNode.textContent = "AI"; // i18n-exempt: legacy — engine label token "AI"; localize-vs-token decided in #157 batch ③
+  btnAi.btnAiTxtNode.textContent = AI_ENGINE_LABEL;
   updateInlineBtnStateClass(btnAi, "success");
 }
 
 export function renderAiErrorIndicator(btnAi) {
   if (!btnAi || !btnAi.btnAiTxtNode) return;
-  btnAi.btnAiTxtNode.textContent = "AI"; // i18n-exempt: legacy — engine label token "AI"; localize-vs-token decided in #157 batch ③
+  btnAi.btnAiTxtNode.textContent = AI_ENGINE_LABEL;
   updateInlineBtnStateClass(btnAi, "error");
   const crossSpan = btnAi.ownerDocument.createElement("span");
   crossSpan.textContent = "\u2715";
