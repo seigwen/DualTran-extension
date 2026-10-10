@@ -73,6 +73,7 @@ export function createProviderUI(opts = {}) {
 
     const isActive = provider.id === _activeId;
 
+    // i18n-exempt: legacy — dead module providerUI.js; deleted in #157 batch ④
     card.innerHTML = `
       <div class="provider-card-header">
         <span class="provider-card-name">${_escapeHtml(provider.name)}</span>
@@ -99,7 +100,7 @@ export function createProviderUI(opts = {}) {
       _showEditForm(provider);
     });
     card.querySelector("[data-action='delete']")?.addEventListener("click", () => {
-      if (confirm(`Delete provider "${provider.name}"?`)) {
+      if (confirm(`Delete provider "${provider.name}"?`)) { // i18n-exempt: legacy — dead module providerUI.js; deleted in #157 batch ④
         onDeleteCustom?.(provider.id);
       }
     });
@@ -109,6 +110,7 @@ export function createProviderUI(opts = {}) {
 
   function _showEditForm(provider) {
     if (!container) return;
+    // i18n-exempt: legacy — dead module providerUI.js; deleted in #157 batch ④
     container.innerHTML = `
       <div class="provider-edit-form">
         <h3>Edit ${_escapeHtml(provider.name)}</h3>

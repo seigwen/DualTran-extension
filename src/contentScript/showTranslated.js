@@ -477,8 +477,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
         const isTimeout = err && (err === timeoutError || err.name === "DualTranTranslationTimeout");
         const toastMsg = isTimeout
-          ? ((chrome && chrome.i18n && chrome.i18n.getMessage("errorTranslationTimeout")) || "Translation request timed out")
-          : ((chrome && chrome.i18n && chrome.i18n.getMessage("errorTranslationFailed")) || "Translation failed");
+          ? ((chrome && chrome.i18n && chrome.i18n.getMessage("errorTranslationTimeout")) || "Translation request timed out") // i18n-exempt: legacy — toast keys missing in all locales; add keys in #157 batch ①
+          : ((chrome && chrome.i18n && chrome.i18n.getMessage("errorTranslationFailed")) || "Translation failed"); // i18n-exempt: legacy — toast keys missing in all locales; add keys in #157 batch ①
 
         Toastify({
           text: toastMsg,

@@ -341,6 +341,7 @@ function createSingletonHost() {
   host.classList.add("notranslate");
 
   const shadow = host.attachShadow({ mode: "open" });
+  // i18n-exempt: legacy — button labels Original/Google/AI; localize-vs-token decided in #157 batch ③
   shadow.innerHTML = `
     <style>
       :host { all: initial; }

@@ -597,7 +597,7 @@ function resetAiButtonToIdle(btnAi) {
   btnAi.classList?.remove?.("dualtran-ai-loading", "dualtran-ai-success", "dualtran-ai-error")
 
   if (btnAi.btnAiTxtNode) {
-    btnAi.btnAiTxtNode.textContent = "AI"
+    btnAi.btnAiTxtNode.textContent = "AI" // i18n-exempt: legacy — engine label token "AI"; localize-vs-token decided in #157 batch ③
   }
   if (btnAi.tooltip) {
     btnAi.tooltip.textContent = getFloatingButtonAiTooltipText()
@@ -1242,8 +1242,8 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true, onBlockSe
     btnAi.translationStatus = "queuing"
     // Clear previous error message (if any) to prevent stale errors after successful retry
     try { const st = btnAi._st(); if (st) st.errorMessage = undefined; } catch (e) { console.warn("[DualTran] aiTranslateText failed", e); }
-    btnAi.btnAiTxtNode.textContent = "queuing"
-    btnAi.tooltip.textContent = "This text will be translated by AI soon"
+    btnAi.btnAiTxtNode.textContent = "queuing" // i18n-exempt: legacy — dead AI-pending write (absorbed by proxy); cleanup in #157 batch ④
+    btnAi.tooltip.textContent = "This text will be translated by AI soon" // i18n-exempt: legacy — AI-pending tooltip, visibility TBD; #157 batch ④
     contentSequence = contentSequence + `<译泽 id="${btnAi.translationId}">${btnAi.sourceString}</译泽>`
   }
   console.log("contentSequence:", contentSequence)

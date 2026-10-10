@@ -116,7 +116,7 @@ function createSpinner(type) {
   span.style.cssText =
     "display:inline-block; width:12px; height:12px; border:2px solid currentColor; border-right-color:transparent; border-radius:999px; animation:dualtranBlockSpinnerRotate 0.7s linear infinite; opacity:0.5; vertical-align:middle; margin-left:4px; box-sizing:border-box;";
   span.style.color = TYPE_COLORS[type];
-  span.setAttribute("aria-label", type + " translation in progress");
+  span.setAttribute("aria-label", type + " translation in progress"); // i18n-exempt: legacy — indicator aria text is English-only; i18n in #157 batch ①
   return span;
 }
 
@@ -137,7 +137,7 @@ function createErrorIcon(type, errorMessage) {
   span.style.color = TYPE_COLORS[type];
   span.textContent = "⚠";
   span.title = errorMessage || "Translation error";
-  span.setAttribute("aria-label", type + " translation error");
+  span.setAttribute("aria-label", type + " translation error"); // i18n-exempt: legacy — indicator aria text is English-only; i18n in #157 batch ①
   return span;
 }
 
