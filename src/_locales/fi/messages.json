@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Kuuntele"
   },
-  "btnMobileDonate": {
-    "message": "Lahjoita"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Älä käännä tätä sivua"
-  },
   "btnMobileOriginal": {
     "message": "Alkuperäinen"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Lopeta kuuntelu"
   },
-  "btnSubmit": {
-    "message": "Lähetä"
-  },
   "btnTranslate": {
     "message": "Käännä"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Laskea"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Haluatko Dualtranin kääntävän automaattisesti AI:lla tulevaisuudessa?"
   },
   "confirmSetApiKeyNow": {
     "message": "API-avainta ei ole asetettu. Haluatko määrittää sen nyt?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Haluatko poistaa käännösvälimuistin?"
-  },
-  "donatewithpaypal": {
-    "message": "Lahjoita PayPalin kautta"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Älä näytä, jos sivuston kieli on kohdekieli"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Piilota alkuperäinen teksti"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Lisää"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Paranna käännöksiä tekoälyllä vain, jos sanoja on enemmän kuin",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Käännä nämä sivustot aina (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API-avain"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API -avain"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Paranna käännöksiä automaattisesti tekoälyllä"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Käännä automaattisesti, kun napsautat linkkiä, joka vie sinut samaan verkkotunnukseen kuin nykyinen sivusto"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Erityiset pikanäppäimet"
   },
-  "lblMakeDonation": {
-    "message": "Tee lahjoitus"
-  },
   "lblNeverTranslateLangs": {
     "message": "Älä koskaan käännä näitä sivustoja"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI Malli"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API -pohja (valinnainen)"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter-malli"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer -otsake (valinnainen)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title-otsake (valinnainen)"
   },
   "lblOthers": {
     "message": "Muut"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Sivujen käännöspalvelu"
-  },
   "lblPersonalSettings": {
     "message": "Omat asetukset"
-  },
-  "lblPlsDonate": {
-    "message": "Auta kehittäjää tekemällä lahjoitus"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Julkaisutiedot"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Korvaa valittu teksti käännetyllä tekstillä painamalla $SHORTCUT_KEY$ kahdesti",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Ilmoita ongelmasta"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Näytä julkaisutiedot päivitettäessä"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Näytä painike, jolla voit kääntää valitun tekstin"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Näytä käännetty teksti, kun käytät osoitinaktivointia näillä sivustoilla"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Näytä käännetty teksti osoitinaktivoinnilla"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Näytä käännös, kun vie hiiri verkkosivustojen päälle $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Kohdekieli"
   },
-  "lblTextTranslationService": {
-    "message": "Tekstin käännöspalvelu"
-  },
   "lblTranslate": {
     "message": "Käännetäänkö sivu?"
-  },
-  "lblTranslateInterface": {
-    "message": "Auta käyttöliittymän kääntämisessä"
   },
   "lblTranslateLongerThan": {
     "message": "Käännä vain teksti, jossa on enemmän sanoja kuin tämä arvo",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Käännösvälimuisti"
   },
-  "lblTranslationService": {
-    "message": "Käännöspalvelu"
-  },
   "lblTtsSpeed": {
     "message": "Tekstistä puheeksi äänen nopeus"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Käytä uutta käännösalgorytmiä?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Missä käännetty teksti näytetään"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Automaattinen"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Syötä Azure-päätepiste ja API-avain saadaksesi Azure OpenAI:n saatavilla olevat mallit"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "DeepSeek-malleja ei voitu ladata (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Lahjoita PayPalin kautta"
-  },
-  "msgDownloadingDocument": {
-    "message": "Ladataan asiakirjaa..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Et ole lisännyt yhtään kieltä tähän luetteloon."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Et ole lisännyt yhtään kieltä tähän luetteloon."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Syötä API-avain saadaksesi tämän toimittajan saatavilla olevat mallit"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Pikanäppäimet"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "Miten saan OpenAI API -avaimen?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "Miten saan OpenRouter API -avaimen?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Olen kiitollinen, jos voit tehdä lahjoituksen."
-  },
   "msgInterfaceComplex": {
     "message": "Edistynyt"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Älä käännä valittua tekstiä"
-  },
-  "msgNoUseWidgets": {
-    "message": "Ei (käytä pienoisohjelmaa)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Avaa Yandex translatessa"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Käännä valittu teksti tälle kohdekielelle"
   },
-  "msgSendDocument": {
-    "message": "Lähetä asiakirja"
-  },
   "msgSites": {
     "message": "Sivustot"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Tyyli"
   },
-  "msgThanksForUseExtension": {
-    "message": "Kiitos, että käytät tätä laajennusta."
-  },
-  "msgToTranslateSites": {
-    "message": "Sivuston kääntäminen"
-  },
   "msgToTranslateThisDocument": {
     "message": "Tämän asiakirjan $DOC_TYPE$ kääntämiseksi se on muutettava HTML-muotoon",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Käännä kielelle $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Kyllä"
   },
-  "msgYesRecommended": {
-    "message": "Kyllä (Suositellaan)"
-  },
   "openNativeShortcutManager": {
     "message": "Avaa natiivi pikanäppäinhallinta"
   },
   "optionFloatingConfig": {
     "message": "näytä kelluva painike"
   },
-  "optionPopupAuto": {
-    "message": "Automaattisesti"
-  },
   "optionPopupConfig": {
     "message": "Näytä työkalupalkki mobiiliversiossa"
   },
   "optionPopupThreeFingers": {
     "message": "Kolmen sormen kosketuksella"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Vain, jos klikkaan \"Käännä tämä sivusto\""
   },
   "optionsAddToCustomDictionary": {
     "message": "Lisää mukautettuun sanakirjaan (Tämän avulla voit ohittaa tietyt sanat verkkosivun kääntämisen aikana)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Älä käännä näitä sivuja"
   },
-  "optionsPageTitle": {
-    "message": "Käännä verkkosivut - Asetukset"
-  },
   "pageActionTitle": {
     "message": "Käännä tämä sivu"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Muuta työkalupalkin ikoni siniseksi, kun sivusto on käännetty"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Palauta tiedostosta"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Näytä alkuperäinen teksti"

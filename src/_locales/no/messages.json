@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Lytte"
   },
-  "btnMobileDonate": {
-    "message": "Donere"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Oversett aldri dette nettstedet"
-  },
   "btnMobileOriginal": {
     "message": "Opprinnelig"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Slutt å lytte"
   },
-  "btnSubmit": {
-    "message": "Send"
-  },
   "btnTranslate": {
     "message": "Oversette"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Regne ut"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Vil du at Dualtran automatisk skal oversette med AI i fremtiden?"
   },
   "confirmSetApiKeyNow": {
     "message": "API-nøkkelen er ikke satt. Vil du sette den opp nå?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Vil du slette oversettelsesbufferen?"
-  },
-  "donatewithpaypal": {
-    "message": "Doner med PayPal"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Ikke vis om sidespråket er målspråket"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Skjul originaltekst"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Legge til"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Forbedre oversettelser med KI kun når antall ord er flere enn",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Oversett alltid disse nettstedene (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API-nøkkel"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API-nøkkel"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Forbedre oversettelser automatisk med KI"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Oversett automatisk når du klikker på en lenke som tar deg til samme domene som det gjeldende nettstedet"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Spesielle hurtigtaster"
   },
-  "lblMakeDonation": {
-    "message": "Gi en donasjon"
-  },
   "lblNeverTranslateLangs": {
     "message": "Oversett aldri disse språkene"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI Modell"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API-base (valgfritt)"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter-modell"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer-header (valgfritt)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title-header (valgfritt)"
   },
   "lblOthers": {
     "message": "Andre"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Sideoversettelsestjeneste"
-  },
   "lblPersonalSettings": {
     "message": "Personlige innstillinger"
-  },
-  "lblPlsDonate": {
-    "message": "Hjelp utvikleren med en donasjon"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Utgivelsesnotater"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Erstatt valgt tekst med oversatt tekst når du trykker $SHORTCUT_KEY$ to ganger",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Rapporter et problem"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Vis versjonsnotater ved oppdatering"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Vis knappen for å oversette den valgte teksten"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Vis oversatt tekst når du holder musepekeren på disse nettstedene"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Vis oversatt tekst når du holder markøren"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Vis oversettelse når du holder musepekeren over nettsteder i $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Målspråk"
   },
-  "lblTextTranslationService": {
-    "message": "Tekstoversettelsestjeneste"
-  },
   "lblTranslate": {
     "message": "Oversette denne siden?"
-  },
-  "lblTranslateInterface": {
-    "message": "Oversett grensesnittet"
   },
   "lblTranslateLongerThan": {
     "message": "Oversett bare tekst med flere ord enn denne verdien",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Oversettelsesbuffer"
   },
-  "lblTranslationService": {
-    "message": "Oversettelsestjeneste"
-  },
   "lblTtsSpeed": {
     "message": "Tekst-til-tale lydhastighet"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Vil du bruke den nye oversettelsesalgoritmen?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Hvor oversatt tekst skal vises"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Automatisk"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Vennligst oppgi Azure-endepunkt og API-nøkkel for å hente tilgjengelige modeller for Azure OpenAI"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "Fikk ikke lastet DeepSeek-modeller (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Doner med PayPal"
-  },
-  "msgDownloadingDocument": {
-    "message": "Laster ned dokumentet..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Du har ikke lagt til noen språk i denne listen."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Du har ikke lagt til noen nettsteder i denne listen."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Vennligst oppgi API-nøkkel for å hente tilgjengelige modeller for denne leverandøren"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Hurtigtaster"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "Hvordan får jeg en OpenAI API-nøkkel?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "Hvordan får jeg en OpenRouter API-nøkkel?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Jeg vil være takknemlig hvis du kan gi en donasjon."
-  },
   "msgInterfaceComplex": {
     "message": "Avansert"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Ikke oversett valgt tekst"
-  },
-  "msgNoUseWidgets": {
-    "message": "Nei (bruk widgets)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Åpne i yandex translate"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Translate seleOversett valgt tekst til dette målspråketcted text into this target language"
   },
-  "msgSendDocument": {
-    "message": "Send dokument"
-  },
   "msgSites": {
     "message": "Nettsteder"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Stil"
   },
-  "msgThanksForUseExtension": {
-    "message": "Takk for at du bruker denne utvidelsen."
-  },
-  "msgToTranslateSites": {
-    "message": "For å oversette nettstedet"
-  },
   "msgToTranslateThisDocument": {
     "message": "For å oversette dette dokumentet $DOC_TYPE$ er det nødvendig å konvertere det til HTML",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Oversett til $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Ja"
   },
-  "msgYesRecommended": {
-    "message": "Ja (anbefalt)"
-  },
   "openNativeShortcutManager": {
     "message": "Åpne administrator for innebygd snarvei"
   },
   "optionFloatingConfig": {
     "message": "vis den flytende knappen"
   },
-  "optionPopupAuto": {
-    "message": "Automatisk"
-  },
   "optionPopupConfig": {
     "message": "Vis popup-vinduet for mobil"
   },
   "optionPopupThreeFingers": {
     "message": "Når jeg berører tre fingre på skjermen"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Bare når jeg klikker \"Oversett denne siden\""
   },
   "optionsAddToCustomDictionary": {
     "message": "Legg til i egendefinert ordbok (dette lar deg hoppe over bestemte ord under oversettelse av nettsider)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Oversett aldri disse nettstedene"
   },
-  "optionsPageTitle": {
-    "message": "Oversett nettsider - Alternativer"
-  },
   "pageActionTitle": {
     "message": "Oversett denne siden"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Gjør popup-ikonet blått når nettstedet er oversatt"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Gjenopprett fra fil"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Vis originaltekst"

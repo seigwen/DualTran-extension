@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Słuchaj"
   },
-  "btnMobileDonate": {
-    "message": "Wesprzyj"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Nigdy nie tłumacz tej witryny"
-  },
   "btnMobileOriginal": {
     "message": "Oryginalny"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Zatrzymaj"
   },
-  "btnSubmit": {
-    "message": "Wyślij"
-  },
   "btnTranslate": {
     "message": "Tłumacz"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Oblicz"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Czy chcesz, aby Dualtran automatycznie tłumaczył z AI w przyszłości?"
   },
   "confirmSetApiKeyNow": {
     "message": "Klucz API nie jest ustawiony. Czy chcesz ustawić go teraz?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Czy na pewno chcesz usunąć pamięć podręczną tłumaczeń?"
-  },
-  "donatewithpaypal": {
-    "message": "Wspomóż przy pomocy PayPal"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Nie pokazuj, jeśli język strony jest językiem docelowym"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Ukryj oryginalny tekst"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Dodaj"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Ulepszaj tłumaczenia przez AI tylko dla tekstów dłuższych niż",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Zawsze tłumacz te witryny (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "Klucz API OpenAI"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "Klucz OpenRouter API"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Automatycznie ulepszaj tłumaczenia za pomocą AI"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Tłumacz automatycznie po kliknięciu na link, który prowadzi do tej samej domeny co bieżąca strona"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Specjalne skróty klawiszowe"
   },
-  "lblMakeDonation": {
-    "message": "Wesprzyj nas"
-  },
   "lblNeverTranslateLangs": {
     "message": "Nigdy nie tłumacz tych języków"
-  },
-  "lblOpenAiModel": {
-    "message": "Model OpenAI"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "Baza OpenRouter API (opcjonalnie)"
-  },
-  "lblOpenRouterModel": {
-    "message": "Model OpenRouter"
-  },
-  "lblOpenRouterReferer": {
-    "message": "Nagłówek HTTP Referer (opcjonalnie)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "Nagłówek X-Title (opcjonalnie)"
   },
   "lblOthers": {
     "message": "Inne"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Usługa tłumaczenia stron internetowych"
-  },
   "lblPersonalSettings": {
     "message": "Ustawienia osobiste"
-  },
-  "lblPlsDonate": {
-    "message": "Pomóż deweloperowi przekazując darowiznę"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Informacje o wydaniu"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Zastąp zaznaczony tekst przetłumaczonym tekstem po dwukrotnym naciśnięciu $SHORTCUT_KEY$",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Zgłoś problem"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Pokaż informacje o wydaniu, kiedy aktualizuje rozszerzenie"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Pokaż przycisk, aby przetłumaczyć zaznaczony tekst"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Pokaż przetłumaczony tekst po najechaniu wskaźnikiem na te witryny"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Pokaż przetłumaczony tekst po najechaniu wskaźnikiem"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Pokaż tłumaczenie po najechaniu wskaźnikiem na witryny w języku: $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Język docelowy"
   },
-  "lblTextTranslationService": {
-    "message": "Usługa tłumaczenia tekstu"
-  },
   "lblTranslate": {
     "message": "Przetłumaczyć tę stronę?"
-  },
-  "lblTranslateInterface": {
-    "message": "Pomóż w tłumaczeniu interfejsu"
   },
   "lblTranslateLongerThan": {
     "message": "Tłumacz tylko tekst, który ma więcej słów niż ta wartość",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Pamięć podręczna tłumaczeń"
   },
-  "lblTranslationService": {
-    "message": "Usługa tłumaczenia"
-  },
   "lblTtsSpeed": {
     "message": "Prędkość dźwięku tekstu na mowę"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Użyć nowego algorytmu tłumaczenia?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Gdzie wyświetlać przetłumaczony tekst"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Automatycznie"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Wprowadź punkt końcowy Azure i klucz API, aby pobrać dostępne modele dla Azure OpenAI"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "Nie udało się wczytać modeli DeepSeek (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Wspomóż przy pomocy PayPal"
-  },
-  "msgDownloadingDocument": {
-    "message": "Trwa pobieranie dokumentu..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Nie dodano żadnych języków do tej listy."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Nie dodano żadnych stron do tej listy."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Wprowadź klucz API, aby pobrać dostępne modele dla tego dostawcy"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Skróty klawiszowe"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "Jak uzyskać klucz API OpenAI?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "Jak uzyskać klucz OpenRouter API?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Będę wdzięczny, jeśli możesz przekazać darowiznę."
-  },
   "msgInterfaceComplex": {
     "message": "Zaawansowany"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Nie tłumacz zaznaczonego tekstu"
-  },
-  "msgNoUseWidgets": {
-    "message": "Nie (użyj widżetów)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Otwórz w translatorze Yandex"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Przetłumacz wybrany tekst na ten język docelowy"
   },
-  "msgSendDocument": {
-    "message": "Wyślij dokument"
-  },
   "msgSites": {
     "message": "Witryny"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Styl"
   },
-  "msgThanksForUseExtension": {
-    "message": "Dziękujemy że korzystasz z tego rozszerzenia."
-  },
-  "msgToTranslateSites": {
-    "message": "Aby przetłumaczyć witrynę"
-  },
   "msgToTranslateThisDocument": {
     "message": "Aby przetłumaczyć ten dokument $DOC_TYPE$ konieczne jest przekonwertowanie go do HTML",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Przetłumacz na język $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Tak"
   },
-  "msgYesRecommended": {
-    "message": "Tak (zalecane)"
-  },
   "openNativeShortcutManager": {
     "message": "Otwórz natywny menedżer skrótów"
   },
   "optionFloatingConfig": {
     "message": "pokaż pływający przycisk"
   },
-  "optionPopupAuto": {
-    "message": "Automatycznie"
-  },
   "optionPopupConfig": {
     "message": "Pokaż wyskakujące okienko komórkowe"
   },
   "optionPopupThreeFingers": {
     "message": "Kiedy dotykam ekranu trzema palcami"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Tylko gdy kliknę \"Przetłumacz tę witrynę\""
   },
   "optionsAddToCustomDictionary": {
     "message": "Dodaj do własnego słownika (Pomija podane słowa podczas tłumaczenia stron internetowych)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Nigdy nie tłumacz tych witryn"
   },
-  "optionsPageTitle": {
-    "message": "Przetłumacz strony internetowe - Opcje"
-  },
   "pageActionTitle": {
     "message": "Tłumacz tę stronę"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Ustaw niebieską ikonę wyskakującego okienka po przetłumaczeniu witryny"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Przywróć kopię zapasową z pliku"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Pokaż oryginalny tekst"

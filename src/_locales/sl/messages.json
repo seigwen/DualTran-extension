@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Poslušaj"
   },
-  "btnMobileDonate": {
-    "message": "Doniraj"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Nikoli ne prevedi te strani"
-  },
   "btnMobileOriginal": {
     "message": "Izvirnik"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Nehajte poslušati"
   },
-  "btnSubmit": {
-    "message": "Pošlji"
-  },
   "btnTranslate": {
     "message": "Prevedi"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Izračunaj"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
   },
   "confirmSetApiKeyNow": {
     "message": "Ključ API ni nastavljen. Ali ga želite nastaviti zdaj?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Ali želite izbrisati predpomnilnik prevodov?"
-  },
-  "donatewithpaypal": {
-    "message": "Donirajte s PayPalom"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Ne prikazuj, ali je jezik strani ciljni jezik"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Skrij izvirno besedilo"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Dodaj"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Izboljšaj prevode z UI samo za besedila z več kot",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Vedno prevedi te strani (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API ključ"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "Ključ OpenRouter API"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Samodejno izboljšaj prevode z UI"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Samodejno prevedi, ko klikneš povezavo, ki te popelje na isto domeno kot trenutno spletno mesto"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Posebne bližnjice na tipkovnici"
   },
-  "lblMakeDonation": {
-    "message": "Naredite donacijo"
-  },
   "lblNeverTranslateLangs": {
     "message": "Nikoli ne prevajaj teh jezikov"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI Model"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "Osnova OpenRouter API (neobvezno)"
-  },
-  "lblOpenRouterModel": {
-    "message": "Model OpenRouter"
-  },
-  "lblOpenRouterReferer": {
-    "message": "Glava HTTP Referer (neobvezno)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "Glava X-Title (neobvezno)"
   },
   "lblOthers": {
     "message": "Ostali"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Storitev prevajanja strani"
-  },
   "lblPersonalSettings": {
     "message": "Osebne nastavitve"
-  },
-  "lblPlsDonate": {
-    "message": "Pomagaj razvijalcu z donacijo"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Opombe ob izdaji"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Zamenjajte izbrano besedilo s prevedenim besedilom, ko dvakrat pritisnete $SHORTCUT_KEY$",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Prijavite težavo"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Pokaži opombe ob izdaji med posodobitvijo"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Pokaži gumb za prevod izbranega besedila"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Pokažite prevedeno besedilo, ko lebdite na teh straneh"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Pokažite prevedeno besedilo med lebdenjem"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Prikaži prevod, ko miškin kazalec premaknete nad spletna mesta v $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Ciljni jezik"
   },
-  "lblTextTranslationService": {
-    "message": "Storitev prevajanja besedil"
-  },
   "lblTranslate": {
     "message": "Prevedem to stran?"
-  },
-  "lblTranslateInterface": {
-    "message": "Prevedite uporabniški vmesnik"
   },
   "lblTranslateLongerThan": {
     "message": "Prevajaj samo besedilo z več besedami kot ta vrednost",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Predpomnilnik prevodov"
   },
-  "lblTranslationService": {
-    "message": "Prevajalska služba"
-  },
   "lblTtsSpeed": {
     "message": "Hitrost zvoka besedila v govor"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Uporabimo nov algoritem za prevajanje?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Kje prikazati prevedeno besedilo"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Samodejno"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Prosimo, vnesite Azure endpoint in API ključ, da pridobite razpoložljive modele za Azure OpenAI"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "Ni bilo mogoče naložiti modelov DeepSeek (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Donacija preko Paypala"
-  },
-  "msgDownloadingDocument": {
-    "message": "Prenos dokumenta ..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Niste dodali nobenega jezika na ta seznam."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Niste dodali nobene strani na ta seznam."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Prosimo, vnesite API ključ, da pridobite razpoložljive modele za tega ponudnika"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Bližnjice"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "Kako pridobiti ključ API OpenAI?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "Kako pridobiti ključ OpenRouter API?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Hvaležen vam bom, če lahko prispevate."
-  },
   "msgInterfaceComplex": {
     "message": "Napredno"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Ne prevajajte izbranega besedila"
-  },
-  "msgNoUseWidgets": {
-    "message": "Ne (uporabi gradnike)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Odpri v Yandex prevajalniku"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Prevedite izbrano besedilo v ta ciljni jezik"
   },
-  "msgSendDocument": {
-    "message": "Pošlji dokument"
-  },
   "msgSites": {
     "message": "Spletna mesta"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Slog"
   },
-  "msgThanksForUseExtension": {
-    "message": "Zahvaljujemo se vam za uporabo te razširitve."
-  },
-  "msgToTranslateSites": {
-    "message": "Če želite prevesti spletno mesto"
-  },
   "msgToTranslateThisDocument": {
     "message": "Za prevod tega dokumenta $DOC_TYPE$ ga je potrebno pretvoriti v HTML",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Prevedi v $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Da"
   },
-  "msgYesRecommended": {
-    "message": "Da (priporočeno)"
-  },
   "openNativeShortcutManager": {
     "message": "Odprite izvirnega upravitelja tipk za bližnjice"
   },
   "optionFloatingConfig": {
     "message": "pokaži plavajoči gumb"
   },
-  "optionPopupAuto": {
-    "message": "Samodejno"
-  },
   "optionPopupConfig": {
     "message": "Pokaži mobilno pojavno okno"
   },
   "optionPopupThreeFingers": {
     "message": "Ko se s tremi prsti dotaknem zaslona"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Le ko kliknem \"prevedi to stran\""
   },
   "optionsAddToCustomDictionary": {
     "message": "Dodaj v slovar po meri (To vam omogoča, da med prevajanjem spletne strani preskočite določene besede)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Nikoli ne prevedi teh strani"
   },
-  "optionsPageTitle": {
-    "message": "Prevedi spletne strani - možnosti"
-  },
   "pageActionTitle": {
     "message": "Prevedi to stran"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Ko je spletno mesto prevedeno, naj bo pojavna ikona modra"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Obnovi iz datoteke"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Pokaži izvirno besedilo"

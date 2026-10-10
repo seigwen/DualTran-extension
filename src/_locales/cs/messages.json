@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Poslouchat"
   },
-  "btnMobileDonate": {
-    "message": "Přispět"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Nikdy nepřekládat tento web"
-  },
   "btnMobileOriginal": {
     "message": "Originál"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Přestaň poslouchat"
   },
-  "btnSubmit": {
-    "message": "Odeslat"
-  },
   "btnTranslate": {
     "message": "Přeložit"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Spočítat"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Chcete, aby Dualtran v budoucnu automaticky překládal pomocí AI?"
   },
   "confirmSetApiKeyNow": {
     "message": "Klíč API není nastaven. Chcete jej nastavit nyní?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Chcete vymazat vyrovnávací paměť překladače?"
-  },
-  "donatewithpaypal": {
-    "message": "Podpořit přes PayPal"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Nezobrazovat, pokud je jazyk stránky cílovým jazykem"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Skrýt původní text"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Přidat"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Zlepšovat překlady pomocí AI pouze pro texty s více než",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Tyto stránky vždy překládejte (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API klíč"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "Klíč OpenRouter API"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Automaticky vylepšovat překlady pomocí AI"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Automaticky přeložit při kliknutí na odkaz, který vás přesune na stejnou doménu jako aktuální web"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Speciální klávesové zkratky"
   },
-  "lblMakeDonation": {
-    "message": "Přispět"
-  },
   "lblNeverTranslateLangs": {
     "message": "Tento jazyk nikdy nepřekládat"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI Model"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "Základna rozhraní OpenRouter API (volitelné)"
-  },
-  "lblOpenRouterModel": {
-    "message": "Model OpenRouter"
-  },
-  "lblOpenRouterReferer": {
-    "message": "Záhlaví HTTP Referer (volitelné)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "Záhlaví X-Title (volitelné)"
   },
   "lblOthers": {
     "message": "Ostatní"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Služba na překlad stránek"
-  },
   "lblPersonalSettings": {
     "message": "Osobní nastavení"
-  },
-  "lblPlsDonate": {
-    "message": "Pomozte vývojáři darem"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Poznámky k vydání"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Nahraďte vybraný text přeloženým textem při dvojím stisknutí $SHORTCUT_KEY$",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Nahlásit problém"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Zobrazit poznámky k vydání při aktualizaci"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Zobrazit tlačítko pro překlad vybraného textu"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Když na těchto webech najedete myší, zobrazí se přeložený text"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Při umístění kurzoru zobrazit přeložený text"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Zobrazit překlad při přejetí myší přes webové stránky v $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Cílový jazyk"
   },
-  "lblTextTranslationService": {
-    "message": "Služba na překlad textu"
-  },
   "lblTranslate": {
     "message": "Přeložit tuto stránku?"
-  },
-  "lblTranslateInterface": {
-    "message": "Přeložte rozhraní"
   },
   "lblTranslateLongerThan": {
     "message": "Překládat pouze text s počtem slov větším než tato hodnota",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Vyrovnávací paměť překladače"
   },
-  "lblTranslationService": {
-    "message": "Překladatelská služba"
-  },
   "lblTtsSpeed": {
     "message": "Rychlost audia textu na řeč"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Použít nový překladový algoritmus?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Kde zobrazit přeložený text"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Automatický"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Zadejte prosím Azure endpoint a API klíč pro získání dostupných modelů pro Azure OpenAI"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "Nepodařilo se načíst modely DeepSeek (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Podpořit přes PayPal"
-  },
-  "msgDownloadingDocument": {
-    "message": "Stahuji dokument..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Do tohoto seznamu jste nepřidali žádný úkol."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Do tohoto seznamu jste nepřidali žádný úkol."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Zadejte prosím API klíč pro získání dostupných modelů pro tohoto poskytovatele"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Klávesové zkratky"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "Jak získat klíč OpenAI API?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "Jak získat klíč OpenRouter API?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Budu vděčný, pokud můžete poskytnout dar."
-  },
   "msgInterfaceComplex": {
     "message": "Pokročilé"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Nepřeložit vybraný text"
-  },
-  "msgNoUseWidgets": {
-    "message": "Ne (používat widgety)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Otevřeno v yandexovém překladu"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Přeložte vybraný text do tohoto cílového jazyka"
   },
-  "msgSendDocument": {
-    "message": "Odeslat dokument"
-  },
   "msgSites": {
     "message": "Weby"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Styl"
   },
-  "msgThanksForUseExtension": {
-    "message": "Děkujeme, že používáte toto rozšíření."
-  },
-  "msgToTranslateSites": {
-    "message": "Přeložit web"
-  },
   "msgToTranslateThisDocument": {
     "message": "Chcete-li přeložit tento dokument $DOC_TYPE$, je nutné jej převést na HTML",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Přeložit do $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Ano"
   },
-  "msgYesRecommended": {
-    "message": "Ano (doporučeno)"
-  },
   "openNativeShortcutManager": {
     "message": "Otevřít nativního správce zkratek"
   },
   "optionFloatingConfig": {
     "message": "zobrazit plovoucí tlačítko"
   },
-  "optionPopupAuto": {
-    "message": "Automaticky"
-  },
   "optionPopupConfig": {
     "message": "Zobrazit mobilní vyskakovací okno"
   },
   "optionPopupThreeFingers": {
     "message": "Když se dotknu tří prstů na obrazovce"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Pouze po kliknutí na tlačítko \"Přeložit tuto stránku\""
   },
   "optionsAddToCustomDictionary": {
     "message": "Přidat do vlastního slovníku (To vám umožní přeskočit určitá slova během překladu webové stránky)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Nikdy tyto stránky nepřekládat"
   },
-  "optionsPageTitle": {
-    "message": "Přeložit webové stránky - Možnosti"
-  },
   "pageActionTitle": {
     "message": "Přeložit tuto stránku"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Když je web přeložen, udělejte vyskakovací ikonu modrou"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Obnovit ze souboru"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Zobrazit původní text"

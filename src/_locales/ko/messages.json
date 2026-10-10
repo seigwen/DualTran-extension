@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "듣기"
   },
-  "btnMobileDonate": {
-    "message": "기부"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "이 사이트 번역 안 함"
-  },
   "btnMobileOriginal": {
     "message": "원본"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "듣기 중지"
   },
-  "btnSubmit": {
-    "message": "제출"
-  },
   "btnTranslate": {
     "message": "번역"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "계산"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "앞으로 Dualtran이 자동으로 AI 번역을 사용하도록 하시겠습니까?"
   },
   "confirmSetApiKeyNow": {
     "message": "API 키가 설정되지 않았습니다. 지금 설정하시겠습니까?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "번역 캐시를 삭제하시겠습니까?"
-  },
-  "donatewithpaypal": {
-    "message": "PayPal로 기부"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "페이지의 언어가 대상 언어와 같으면 표시 안 함"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "원문 숨기기"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "추가"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "단어 수가 다음보다 많은 경우에만 AI로 번역을 개선",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "항상 자동으로 번역할 사이트 목록 (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API 키"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API 키"
-  },
-  "lblAutoImproveByAi": {
-    "message": "AI로 번역 자동 개선"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "현재 사이트와 동일한 도메인으로 연결되는 링크를 클릭하면 자동으로 번역"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "특수 키보드 단축키"
   },
-  "lblMakeDonation": {
-    "message": "기부하기"
-  },
   "lblNeverTranslateLangs": {
     "message": "번역하지 않을 언어 목록"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI 모델"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API 기본 URL(선택 사항)"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter 모델"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer 헤더(선택 사항)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title 헤더(선택 사항)"
   },
   "lblOthers": {
     "message": "기타"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "페이지 번역 서비스"
-  },
   "lblPersonalSettings": {
     "message": "개인 설정"
-  },
-  "lblPlsDonate": {
-    "message": "기부하여 개발자 돕기"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "릴리스 정보"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "$SHORTCUT_KEY$ 단축키를 두 번 누르면 선택한 텍스트를 번역된 텍스트로 즉시 교체",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "문제 보고하기"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "부가 기능 업데이트 시 릴리스 정보 표시"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "선택한 텍스트에 번역 버튼 표시"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "마우스를 가져다 대면 번역된 텍스트를 표시할 사이트 목록"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "마우스를 가져다 대면 번역된 텍스트 표시"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "$LANGUAGE_NAME$ 사이트에 마우스를 가져다 대면 번역 표시",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "대상 언어"
   },
-  "lblTextTranslationService": {
-    "message": "텍스트 번역 서비스"
-  },
   "lblTranslate": {
     "message": "이 페이지를 번역하시겠습니까?"
-  },
-  "lblTranslateInterface": {
-    "message": "인터페이스 번역"
   },
   "lblTranslateLongerThan": {
     "message": "이 값보다 단어 수가 많은 텍스트만 번역",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "번역 캐시"
   },
-  "lblTranslationService": {
-    "message": "번역 서비스"
-  },
   "lblTtsSpeed": {
     "message": "텍스트 음성 변환 오디오 속도"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "새 번역 알고리즘을 사용하시겠습니까?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "번역된 텍스트 표시 위치"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "자동적 인"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Azure OpenAI의 사용 가능한 모델을 가져오려면 Azure 엔드포인트와 API 키를 입력하세요"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "DeepSeek 모델을 불러올 수 없습니다 (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "PayPal로 기부"
-  },
-  "msgDownloadingDocument": {
-    "message": "문서 다운로드 중..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "이 목록에 언어를 추가하지 않았습니다."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "이 목록에 사이트를 추가하지 않았습니다."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "이 공급자의 사용 가능한 모델을 가져오려면 API 키를 입력하세요"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "단축키"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "OpenAI API 키는 어떻게 받나요?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "OpenRouter API 키를 얻는 방법?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "기부해 주시면 감사하겠습니다."
-  },
   "msgInterfaceComplex": {
     "message": "고급"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "선택한 텍스트를 번역 안 함"
-  },
-  "msgNoUseWidgets": {
-    "message": "아니오 (위젯 사용)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Yandex Translate에서 열기"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "선택한 텍스트를 이 대상 언어로 번역"
   },
-  "msgSendDocument": {
-    "message": "문서 보내기"
-  },
   "msgSites": {
     "message": "사이트"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "스타일"
   },
-  "msgThanksForUseExtension": {
-    "message": "이 확장 기능을 사용해주셔서 감사합니다."
-  },
-  "msgToTranslateSites": {
-    "message": "사이트 번역"
-  },
   "msgToTranslateThisDocument": {
     "message": "이 $DOC_TYPE$ 문서를 번역하려면 HTML로 변환해야 합니다",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "$LANGUAGE_NAME$ 언어로 번역",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "예"
   },
-  "msgYesRecommended": {
-    "message": "예 (권장)"
-  },
   "openNativeShortcutManager": {
     "message": "브라우저 단축키 설정 열기"
   },
   "optionFloatingConfig": {
     "message": "플로팅 버튼 표시"
   },
-  "optionPopupAuto": {
-    "message": "자동"
-  },
   "optionPopupConfig": {
     "message": "모바일 팝업 표시"
   },
   "optionPopupThreeFingers": {
     "message": "화면을 손가락 세 개로 터치했을 때"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "\"이 사이트 번역\" 버튼을 클릭했을 때만"
   },
   "optionsAddToCustomDictionary": {
     "message": "사용자 정의 사전에 추가(웹 페이지 번역 중에 특정 단어를 건너뛸 수 있음)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "번역하지 않을 사이트 목록"
   },
-  "optionsPageTitle": {
-    "message": "웹 페이지 번역기 - 옵션"
-  },
   "pageActionTitle": {
     "message": "이 페이지 번역"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "사이트가 번역되면 팝업 아이콘을 파란색으로 표시"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "파일에서 복원"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "원문 표시"

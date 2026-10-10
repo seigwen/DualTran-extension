@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "बात सुनो"
   },
-  "btnMobileDonate": {
-    "message": "दान करना"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "इस साइट का अनुवाद कभी मत करो"
-  },
   "btnMobileOriginal": {
     "message": "मूल"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "सुनना बंद करो"
   },
-  "btnSubmit": {
-    "message": "जमा करें"
-  },
   "btnTranslate": {
     "message": "अनुवाद करना"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "गणना"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "क्या आप चाहते हैं कि Dualtran भविष्य में AI के साथ स्वचालित रूप से अनुवाद करे?"
   },
   "confirmSetApiKeyNow": {
     "message": "API key सेट नहीं है। क्या आप इसे अभी सेट करना चाहते हैं?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "क्या आप अनुवाद कैश हटाना चाहते हैं?"
-  },
-  "donatewithpaypal": {
-    "message": "पेपैल के साथ दान करें"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "यह न दिखाएं कि क्या पृष्ठ भाषा लक्ष्य भाषा है"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Hide original text"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "जोड़ना"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "केवल उन अनुवादों को AI से सुधारें जिनमें शब्दों की संख्या इससे अधिक हो",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "हमेशा इस साइट का अनुवाद करें (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API कुंजी"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API कुंजी"
-  },
-  "lblAutoImproveByAi": {
-    "message": "AI द्वारा अनुवाद अपने-आप बेहतर करें"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "किसी ऐसे लिंक पर क्लिक करने पर स्वचालित रूप से अनुवाद करें जो आपको वर्तमान साइट के समान डोमेन पर ले जाता है"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "विशेष कीबोर्ड शॉर्टकट"
   },
-  "lblMakeDonation": {
-    "message": "एक दान करें"
-  },
   "lblNeverTranslateLangs": {
     "message": "इन साइटों का अनुवाद कभी न करें"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI मॉडल"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API बेस (वैकल्पिक)"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter मॉडल"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer हेडर (वैकल्पिक)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title हेडर (वैकल्पिक)"
   },
   "lblOthers": {
     "message": "अन्य"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "पृष्ठ अनुवाद सेवा"
-  },
   "lblPersonalSettings": {
     "message": "व्यक्तिगत सेटिंग"
-  },
-  "lblPlsDonate": {
-    "message": "एक दान के साथ डेवलपर की मदद करें"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "रिलीज नोट्स"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "$SHORTCUT_KEY$ को दो बार दबाने पर चयनित टेक्स्ट को अनुवादित टेक्स्ट से बदलें",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "समस्या के बारे में बताएं"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "अद्यतन करते समय रिलीज़ नोट दिखाएं"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "चयनित पाठ का अनुवाद करने के लिए बटन दिखाएं"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "इन साइटों पर मँडराते समय अनुवादित पाठ दिखाएं"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "मँडराते समय अनुवादित पाठ दिखाएं"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "$LANGUAGE_NAME$में वेबसाइटों पर मँडराते समय अनुवाद दिखाएं",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "लक्षित भाषा"
   },
-  "lblTextTranslationService": {
-    "message": "पाठ अनुवाद सेवा"
-  },
   "lblTranslate": {
     "message": "इस पेज का अनुवाद करें?"
-  },
-  "lblTranslateInterface": {
-    "message": "इंटरफ़ेस का अनुवाद करें"
   },
   "lblTranslateLongerThan": {
     "message": "केवल उस पाठ का अनुवाद करें जिसमें शब्दों की संख्या इस मान से अधिक हो",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "अनुवाद कैश"
   },
-  "lblTranslationService": {
-    "message": "अनुवाद सेवा"
-  },
   "lblTtsSpeed": {
     "message": "पाठ से वाक् ऑडियो गति"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "नए अनुवाद एल्गोरिथ्म का उपयोग करें?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "अनुवादित पाठ कहाँ प्रदर्शित करें"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "स्वचालित"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "कृपया Azure endpoint और API कुंजी दर्ज करें ताकि Azure OpenAI के लिए उपलब्ध मॉडल प्राप्त किए जा सकें"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "DeepSeek मॉडल लोड नहीं हो सके (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "पेपैल के साथ दान करें"
-  },
-  "msgDownloadingDocument": {
-    "message": "दस्तावेज़ डाउनलोड हो रहा है..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "आपने इस सूची में कोई भी भाषा नहीं जोड़ी है।"
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "आपने इस सूची में कोई साइट नहीं जोड़ी है।"
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "कृपया इस प्रदाता के लिए उपलब्ध मॉडलों को प्राप्त करने हेतु API कुंजी दर्ज करें"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "हॉटकी"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "OpenAI API कुंजी कैसे प्राप्त करें?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "OpenRouter API कुंजी कैसे प्राप्त करें?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "यदि आप दान कर सकते हैं तो मैं आभारी रहूंगा।"
-  },
   "msgInterfaceComplex": {
     "message": "उन्नत"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "चयनित पाठ का अनुवाद न करें"
-  },
-  "msgNoUseWidgets": {
-    "message": "नहीं (विजेट का उपयोग करें)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "यैंडेक्स अनुवाद में खोलें"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "चयनित पाठ का इस लक्षित भाषा में अनुवाद करें"
   },
-  "msgSendDocument": {
-    "message": "दस्तावेज़ भेजें"
-  },
   "msgSites": {
     "message": "साइटों"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "अंदाज"
   },
-  "msgThanksForUseExtension": {
-    "message": "इस एक्सटेंशन का उपयोग करने के लिए धन्यवाद।"
-  },
-  "msgToTranslateSites": {
-    "message": "साइट का अनुवाद करने के लिए"
-  },
   "msgToTranslateThisDocument": {
     "message": "इस दस्तावेज़ $DOC_TYPE$ का अनुवाद करने के लिए इसे HTML में बदलना आवश्यक है",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "$LANGUAGE_NAME$में अनुवाद करें",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "हाँ"
   },
-  "msgYesRecommended": {
-    "message": "हाँ (अनुशंसित)"
-  },
   "openNativeShortcutManager": {
     "message": "देशी शॉर्टकट कुंजी प्रबंधक खोलें"
   },
   "optionFloatingConfig": {
     "message": "फ्लोटिंग बटन दिखाएं"
   },
-  "optionPopupAuto": {
-    "message": "खुद ब खुद"
-  },
   "optionPopupConfig": {
     "message": "मोबाइल पॉपअप दिखाएं"
   },
   "optionPopupThreeFingers": {
     "message": "जब मैं स्क्रीन पर तीन उंगलियां छूता हूं"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "केवल जब मैं \"इस साइट का अनुवाद करता हूं\" पर क्लिक करता हूं"
   },
   "optionsAddToCustomDictionary": {
     "message": "कस्टम शब्दकोश में जोड़ें (यह आपको वेब पेज अनुवाद के दौरान कुछ शब्दों को छोड़ने की अनुमति देता है)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "इन साइटों का अनुवाद कभी न करें"
   },
-  "optionsPageTitle": {
-    "message": "वेब पेज का अनुवाद करें - विकल्प"
-  },
   "pageActionTitle": {
     "message": "इस पेज का अनुवाद करें"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "साइट का अनुवाद करने पर पॉप-अप आइकन नीला करें"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "फ़ाइल से पुनर्स्थापित करें"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Show original text"

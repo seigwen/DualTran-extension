@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "استمع"
   },
-  "btnMobileDonate": {
-    "message": "تبرع"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "لا تترجم هذا الموقع ابدًا"
-  },
   "btnMobileOriginal": {
     "message": "الأصلي"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "توقف عن الاستماع"
   },
-  "btnSubmit": {
-    "message": "إرسال"
-  },
   "btnTranslate": {
     "message": "ترجم"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "احسب"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "هل تريد من Dualtran أن يترجم تلقائياً بالذكاء الاصطناعي في المستقبل؟"
   },
   "confirmSetApiKeyNow": {
     "message": "لم يتم تعيين مفتاح API. هل تريد تعيينه الآن؟"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "هل تريد حذف ذاكرة التخزين المؤقت للترجمة؟"
-  },
-  "donatewithpaypal": {
-    "message": "تبرع بواسطة PayPal"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "لا تعرض ما إذا كانت لغة الصفحة هي اللغة الهدف"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "إخفاء النص الأصلي"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "يضيف"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "تحسين الترجمات بالذكاء الاصطناعي فقط للنصوص التي تحتوي على أكثر من",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "ترجمة هذه المواقع دائمًا (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "مفتاح API الخاص بـ OpenAI"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "مفتاح واجهة برمجة تطبيقات OpenRouter"
-  },
-  "lblAutoImproveByAi": {
-    "message": "تحسين الترجمات تلقائيًا بواسطة الذكاء الاصطناعي"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "ترجمة تلقائية عند النقر على رابط يأخذك إلى نفس النطاق مثل الموقع الحالي"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "اختصارات لوحة المفاتيح الخاصة"
   },
-  "lblMakeDonation": {
-    "message": "التبرع"
-  },
   "lblNeverTranslateLangs": {
     "message": "لا تترجم هذه المواقع أبدًا"
-  },
-  "lblOpenAiModel": {
-    "message": "نموذج OpenAI"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "قاعدة واجهة برمجة تطبيقات OpenRouter (اختياري)"
-  },
-  "lblOpenRouterModel": {
-    "message": "نموذج OpenRouter"
-  },
-  "lblOpenRouterReferer": {
-    "message": "ترويسة HTTP Referer (اختياري)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "ترويسة X-Title (اختياري)"
   },
   "lblOthers": {
     "message": "أخرى"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "خدمة ترجمة الصفحة"
-  },
   "lblPersonalSettings": {
     "message": "الإعدادات الشخصية"
-  },
-  "lblPlsDonate": {
-    "message": "مساعدة المطور بالتبرع"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "ملاحظات الإصدار"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "استبدل النص المحدد بالنص المترجم عند الضغط على $SHORTCUT_KEY$ مرتين",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "الإبلاغ عن مشكلة"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "إظهار ملاحظات الإصدار عند التحديث"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "أظهر الزر لترجمة النص المحدد"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "إظهار النص المترجم عند التمرير فوق هذه المواقع"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "إظهار النص المترجم عند التمرير"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "إظهار الترجمة عند التمرير فوق المواقع باللغة $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "اللغة المستهدفة"
   },
-  "lblTextTranslationService": {
-    "message": "خدمة ترجمة النص"
-  },
   "lblTranslate": {
     "message": "ترجم هذه الصفحة؟"
-  },
-  "lblTranslateInterface": {
-    "message": "ترجمة الواجهة"
   },
   "lblTranslateLongerThan": {
     "message": "ترجم فقط النص الذي يحتوي على عدد كلمات أكبر من هذه القيمة",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "ذاكرة التخزين المؤقت للترجمة"
   },
-  "lblTranslationService": {
-    "message": "خدمة الترجمة"
-  },
   "lblTtsSpeed": {
     "message": "سرعة صوت تحويل النص إلى كلام"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "استخدم خوارزمية الترجمة الجديدة؟"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "أين يتم عرض النص المترجم"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "تلقائي"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "يرجى إدخال نقطة نهاية Azure ومفتاح API للحصول على النماذج المتاحة لـ Azure OpenAI"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "تعذر تحميل نماذج DeepSeek (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "تبرع بواسطة PayPal"
-  },
-  "msgDownloadingDocument": {
-    "message": "تحميل ثيقة..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "لم تقم بإضافة أي لغات إلى هذه القائمة."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "لم تقم بإضافة أي مواقع إلى هذه القائمة."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "يرجى إدخال مفتاح API للحصول على النماذج المتاحة لهذا المزود"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "مفاتيح التشغيل السريع"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "كيف أحصل على مفتاح واجهة برمجة تطبيقات OpenAI؟"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "كيف أحصل على مفتاح واجهة برمجة تطبيقات OpenRouter؟"
-  },
-  "msgIWillBeGrateful": {
-    "message": "سأكون ممتنًا إذا أمكنك التبرع."
-  },
   "msgInterfaceComplex": {
     "message": "متقدم"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "لا تترجم النص المحدد"
-  },
-  "msgNoUseWidgets": {
-    "message": "لا (استخدم widgets)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "فتح في ترجمة yandex"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "ترجمة النص المحدد إلى هذه اللغة الهدف"
   },
-  "msgSendDocument": {
-    "message": "إرسال مستند"
-  },
   "msgSites": {
     "message": "المواقع"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "أسلوب"
   },
-  "msgThanksForUseExtension": {
-    "message": "شكرا لك على استخدام هذا الامتداد."
-  },
-  "msgToTranslateSites": {
-    "message": "لترجمة الموقع"
-  },
   "msgToTranslateThisDocument": {
     "message": "لترجمة هذا المستند $DOC_TYPE$ من الضروري تحويله إلى HTML",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "ترجم إلى $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "نعم"
   },
-  "msgYesRecommended": {
-    "message": "نعم (موصى به)"
-  },
   "openNativeShortcutManager": {
     "message": "افتح مدير مفتاح الاختصار الأصلي"
   },
   "optionFloatingConfig": {
     "message": "إظهار الزر العائم"
   },
-  "optionPopupAuto": {
-    "message": "تلقائيًا"
-  },
   "optionPopupConfig": {
     "message": "إظهار النافذة المنبثقة للجوال"
   },
   "optionPopupThreeFingers": {
     "message": "عندما ألمس الشاشة بثلاث أصابع"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "فقط عندما أنقر على \"ترجم هذا الموقع\""
   },
   "optionsAddToCustomDictionary": {
     "message": "إضافة إلى القاموس المخصص (يسمح لك هذا بتخطي كلمات معينة أثناء ترجمة صفحة الويب)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "لا تترجم هذه المواقع أبدًا"
   },
-  "optionsPageTitle": {
-    "message": "ترجمة صفحات الويب - خيارات"
-  },
   "pageActionTitle": {
     "message": "ترجم هذه الصفحة"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "اجعل الأيقونة المنبثقة زرقاء عند ترجمة الموقع"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "استعادة من ملف"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "عرض النص الأصلي"

@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "شنیدن"
   },
-  "btnMobileDonate": {
-    "message": "حمایت مالی"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "هرگز این سایت ترجمه نشود"
-  },
   "btnMobileOriginal": {
     "message": "اصلی"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "توقف شنیدن"
   },
-  "btnSubmit": {
-    "message": "ارسال"
-  },
   "btnTranslate": {
     "message": "ترجمه"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "محاسبه"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
   },
   "confirmSetApiKeyNow": {
     "message": "کلید API تنظیم نشده است. آیا می‌خواهید اکنون آن را تنظیم کنید؟"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "آیا می خواهید کش ترجمه را حذف کنید؟"
-  },
-  "donatewithpaypal": {
-    "message": "کمک مالی با پی پال"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "اگر زبان صفحه، زبان مقصد است، نشان داده نشود"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "پنهان کردن متن اصلی"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "افزودن"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "بهبود ترجمه‌ها با هوش مصنوعی فقط برای متونی که بیش از این تعداد واژه دارند",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "این سایت ها را همیشه ترجمه کن (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "کلید API OpenAI"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "کلید API اوپن‌روتر"
-  },
-  "lblAutoImproveByAi": {
-    "message": "بهبود خودکار ترجمه‌ها با هوش مصنوعی"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "با کلیک بر روی پیوندی که شما را به همان دامنه سایت فعلی می برد، به صورت خودکار ترجمه کنید"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "میانبرهای ویژه صفحه کلید"
   },
-  "lblMakeDonation": {
-    "message": "کمک مالی کنید"
-  },
   "lblNeverTranslateLangs": {
     "message": "هرگز این زبان ها را ترجمه نکن"
-  },
-  "lblOpenAiModel": {
-    "message": "مدل OpenAI"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "آدرس پایه OpenRouter API (اختیاری)"
-  },
-  "lblOpenRouterModel": {
-    "message": "مدل OpenRouter"
-  },
-  "lblOpenRouterReferer": {
-    "message": "هدر HTTP Referer (اختیاری)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "هدر X-Title (اختیاری)"
   },
   "lblOthers": {
     "message": "سایر موارد"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "خدمات ترجمه‌ی صفحه"
-  },
   "lblPersonalSettings": {
     "message": "تنظیمات شخصی"
-  },
-  "lblPlsDonate": {
-    "message": "کمک مالی به برنامه نویس"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "یادداشت های انتشار"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "با دو بار فشار دادن $SHORTCUT_KEY$ ، متن انتخاب شده را با متن ترجمه شده جایگزین کنید",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "یک مشکل را گزارش کنید"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "نمایش تغییرات نسخه های منتشر شده ، هنگام به روز رسانی"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "نمایش دکمه‌ ای جهت ترجمه‌ متن انتخاب شده"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "نمایش متن ترجمه‌شده در این سایت‌ها هنگام نگه‌داشتن ماوس"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "نمایش متن ترجمه شده هنگام نگه داشتن ماوس"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "نمایش ترجمه هنگام قرار دادن ماوس روی وب‌سایت‌ها به زبان $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "زبان مقصد"
   },
-  "lblTextTranslationService": {
-    "message": "سرویس ترجمه•ی متن"
-  },
   "lblTranslate": {
     "message": "این صفحه ترجمه شود ؟"
-  },
-  "lblTranslateInterface": {
-    "message": "رابط را ترجمه کنید"
   },
   "lblTranslateLongerThan": {
     "message": "فقط متنی را ترجمه کن که تعداد کلماتش بیشتر از این مقدار باشد",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "حافظه‌ی پنهان ترجمه"
   },
-  "lblTranslationService": {
-    "message": "سرویس ترجمه"
-  },
   "lblTtsSpeed": {
     "message": "سرعت تبدیل متن به گفتار"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "از الگوریتم ترجمه جدید استفاده می کنید ؟"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "محل نمایش متن ترجمه‌شده"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "خودکار"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "لطفاً endpoint و کلید API سرویس Azure را وارد کنید تا مدل‌های موجود برای Azure OpenAI دریافت شوند"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "بارگذاری مدل‌های DeepSeek امکان‌پذیر نیست (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "کمک مالی با پی پال (حساب خارجی)"
-  },
-  "msgDownloadingDocument": {
-    "message": "در حال بارگیری سند..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "شما هیچ زبانی را به این فهرست اضافه نکرده اید."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "شما هیچ سایتی را به این فهرست اضافه نکرده اید."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "لطفاً کلید API را وارد کنید تا مدل‌های موجود برای این سرویس دریافت شوند"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "کلیدهای میانبر"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "چگونه کلید API اوپن‌اِی‌آی را دریافت کنم؟"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "چطور کلید API اوپن‌روتر را دریافت کنم؟"
-  },
-  "msgIWillBeGrateful": {
-    "message": "اگر بتوانید کمک مالی بکنید سپاسگزار خواهم بود."
-  },
   "msgInterfaceComplex": {
     "message": "پیشرفته"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "متن انتخاب شده را ترجمه نکن"
-  },
-  "msgNoUseWidgets": {
-    "message": "خیر (استفاده از ویجت ها)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "باز کردن در مترجم یاندکس"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "متن انتخاب شده را به این زبان مقصد ترجمه کنید"
   },
-  "msgSendDocument": {
-    "message": "ارسال سند"
-  },
   "msgSites": {
     "message": "سایت ها"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "سبک"
   },
-  "msgThanksForUseExtension": {
-    "message": "از شما برای استفاده از این افزونه متشکریم."
-  },
-  "msgToTranslateSites": {
-    "message": "برای ترجمه سایت"
-  },
   "msgToTranslateThisDocument": {
     "message": "برای ترجمه این سند $DOC_TYPE$ لازم است آن را به اچ•تی•ام•ال تبدیل کنید",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "ترجمه به زبان $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "بله"
   },
-  "msgYesRecommended": {
-    "message": "بله (پیشنهاد شده)"
-  },
   "openNativeShortcutManager": {
     "message": "مدیر کلید میانبر بومی را باز کنید"
   },
   "optionFloatingConfig": {
     "message": "نمایش دکمه شناور"
   },
-  "optionPopupAuto": {
-    "message": "بطور خودکار"
-  },
   "optionPopupConfig": {
     "message": "نمایش پنجره‌ی کوچک اعلان دهنده"
   },
   "optionPopupThreeFingers": {
     "message": "وقتی سه انگشت را روی صفحه لمس می کنم"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "فقط وقتی روی \"ترجمه کردن این سایت\" کلیک می کنم"
   },
   "optionsAddToCustomDictionary": {
     "message": "افزودن به فرهنگ لغت سفارشی (این به شما امکان می دهد از کلمات خاصی در حین ترجمه صفحه وب رد شوید)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "هرگز این سایت ها ترجمه نشود"
   },
-  "optionsPageTitle": {
-    "message": "ترجمه صفحات وب - گزینه ها"
-  },
   "pageActionTitle": {
     "message": "ترجمه این صفحه"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "هنگام ترجمه سایت، نماد پاپ آپ را آبی کن"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "بازیابی از فایل"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "نمایش متن اصلی"

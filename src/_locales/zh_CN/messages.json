@@ -115,12 +115,6 @@
   "btnListen": {
     "message": "朗读"
   },
-  "btnMobileDonate": {
-    "message": "捐助支持"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "永不翻译此网站"
-  },
   "btnMobileOriginal": {
     "message": "原文"
   },
@@ -160,9 +154,6 @@
   "btnStopListening": {
     "message": "停止朗读"
   },
-  "btnSubmit": {
-    "message": "提交"
-  },
   "btnTranslate": {
     "message": "翻译"
   },
@@ -174,9 +165,6 @@
   },
   "calculatestorage": {
     "message": "计算"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "您希望 Dualtran 以后自动使用 AI 翻译吗？"
   },
   "confirmSetApiKeyNow": {
     "message": "尚未设置 API 密钥。您想现在去设置吗？"
@@ -195,9 +183,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "要删除翻译缓存吗？"
-  },
-  "donatewithpaypal": {
-    "message": "PayPal 捐款"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "若页面语言与目标语言一致，则不显示"
@@ -265,9 +250,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "显示原文"
   },
-  "floatingButtonTooltip": {
-    "message": "点击可切换翻译状态；拖动可改变本按钮位置"
-  },
   "hideOriginalText": {
     "message": "隐藏原文"
   },
@@ -286,9 +268,6 @@
   },
   "lblAdd": {
     "message": "添加"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "仅对单词数超过此值的文本使用 AI 自动改进",
@@ -318,15 +297,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "总是使用 AI 翻译这些网站"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API 密钥"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API 密钥"
-  },
-  "lblAutoImproveByAi": {
-    "message": "自动使用 AI 改进翻译"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "若点击链接所访问的网站与当前域名相同，则自动翻译"
@@ -390,26 +360,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "特殊键盘快捷键"
   },
-  "lblMakeDonation": {
-    "message": "捐助支持"
-  },
   "lblNeverTranslateLangs": {
     "message": "永不翻译这些语言"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI 模型"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API 基础地址（可选）"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter 模型"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer 请求头（可选）"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title 请求头（可选）"
   },
   "lblOthers": {
     "message": "其他"
@@ -423,14 +375,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "页面翻译服务"
-  },
   "lblPersonalSettings": {
     "message": "个人设置"
-  },
-  "lblPlsDonate": {
-    "message": "通过捐款帮助开发者"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API 端点 URL",
@@ -482,17 +428,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "发行说明"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "连按两下 $SHORTCUT_KEY$ 键替换选中文本为译文",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "反馈问题"
   },
@@ -517,9 +452,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "仅当「译文显示位置」设为「用译文替换原文」时生效。"
   },
-  "lblShowReleaseNotes": {
-    "message": "更新后显示发行说明"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "显示翻译选中文本的按钮"
   },
@@ -531,9 +463,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "在这些网站悬停显示译文"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "悬停显示译文"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "在此语言的网站悬停显示译文 - $LANGUAGE_NAME$",
@@ -565,14 +494,8 @@
   "lblTargetLanguageGroup": {
     "message": "目标语言"
   },
-  "lblTextTranslationService": {
-    "message": "文本翻译服务"
-  },
   "lblTranslate": {
     "message": "翻译此页面？"
-  },
-  "lblTranslateInterface": {
-    "message": "贡献翻译"
   },
   "lblTranslateLongerThan": {
     "message": "仅翻译单词数超过此值的文本",
@@ -626,14 +549,8 @@
   "lblTranslationCache": {
     "message": "翻译缓存"
   },
-  "lblTranslationService": {
-    "message": "翻译服务"
-  },
   "lblTtsSpeed": {
     "message": "文字转语音的语速"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "使用新的翻译算法？"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "译文显示位置"
@@ -659,34 +576,12 @@
   "msgAutomatic": {
     "message": "自动"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "请输入Azure OpenAI API Key和Endpoint以加载模型列表"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "无法加载DeepSeek模型 (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "无法加载Google Gemini模型"
   },
   "msgDefault": {
     "message": "默认",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "PayPal 捐款"
-  },
-  "msgDownloadingDocument": {
-    "message": "正在下载文档..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "您尚未将任何语言添加至此列表。"
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "您尚未将任何网站添加至此列表。"
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "请先输入API key以获取该提供商的可用模型列表"
   },
   "msgEnterDictionaryKeyword": {
     "message": "输入关键词，至少两个字母"
@@ -734,15 +629,6 @@
   "msgHotkeys": {
     "message": "热键"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "如何获取 OpenAI API Key？"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "如何获取 OpenRouter API Key？"
-  },
-  "msgIWillBeGrateful": {
-    "message": "若您能够提供捐助，我将不胜感激。"
-  },
   "msgInterfaceComplex": {
     "message": "高级"
   },
@@ -763,9 +649,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "不要翻译选中文本"
-  },
-  "msgNoUseWidgets": {
-    "message": "否（使用微件）"
   },
   "msgOpenOnYandexTranslator": {
     "message": "在 Yandex 中打开翻译"
@@ -823,9 +706,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "翻译选中文本为该目标语言"
   },
-  "msgSendDocument": {
-    "message": "发送文档"
-  },
   "msgSites": {
     "message": "网站"
   },
@@ -835,27 +715,12 @@
   "msgStyle": {
     "message": "样式"
   },
-  "msgThanksForUseExtension": {
-    "message": "感谢您使用此扩展。"
-  },
-  "msgToTranslateSites": {
-    "message": "翻译该网站"
-  },
   "msgToTranslateThisDocument": {
     "message": "要翻译此文档 $DOC_TYPE$，须将其转换为 HTML",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "翻译为 $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -895,26 +760,17 @@
   "msgYes": {
     "message": "是"
   },
-  "msgYesRecommended": {
-    "message": "是（推荐）"
-  },
   "openNativeShortcutManager": {
     "message": "打开本地快捷键管理器"
   },
   "optionFloatingConfig": {
     "message": "在页面显示浮动的翻译按键"
   },
-  "optionPopupAuto": {
-    "message": "自动"
-  },
   "optionPopupConfig": {
     "message": "Show the mobile popup"
   },
   "optionPopupThreeFingers": {
     "message": "当我三指轻触屏幕时"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "当我点按\"翻译此网站\"时"
   },
   "optionsAddToCustomDictionary": {
     "message": "添加到我的字典（这允许您在网页翻译时跳过某些单词）"
@@ -928,23 +784,8 @@
   "optionsNeverTranslate": {
     "message": "永不翻译这些网站"
   },
-  "optionsPageTitle": {
-    "message": "翻译网页 - 选项"
-  },
   "pageActionTitle": {
     "message": "翻译此页面"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "若网站已翻译，则将地址栏中图标变为蓝色"
@@ -964,15 +805,6 @@
   "restoreFromFile": {
     "message": "从文件恢复"
   },
-  "serviceBing": {
-    "message": "必应"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google 翻译"
   },
@@ -981,9 +813,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "Translate Web Pages"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "显示原文"

@@ -115,12 +115,6 @@
   "btnListen": {
     "message": "聆聽"
   },
-  "btnMobileDonate": {
-    "message": "資助"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "永不翻譯此網站"
-  },
   "btnMobileOriginal": {
     "message": "原文"
   },
@@ -160,9 +154,6 @@
   "btnStopListening": {
     "message": "停止聆聽"
   },
-  "btnSubmit": {
-    "message": "提交"
-  },
   "btnTranslate": {
     "message": "翻譯"
   },
@@ -174,9 +165,6 @@
   },
   "calculatestorage": {
     "message": "計算"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
   },
   "confirmSetApiKeyNow": {
     "message": "尚未設定 API 金鑰。您想現在前往設定嗎？"
@@ -195,9 +183,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "您要刪除翻譯快取嗎？"
-  },
-  "donatewithpaypal": {
-    "message": "透過 PayPal 資助我"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "在頁面語言是要翻譯的目標語言時不顯示"
@@ -265,9 +250,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "顯示原文"
   },
-  "floatingButtonTooltip": {
-    "message": "點擊可切換翻譯狀態；拖曳可變更此按鈕位置"
-  },
   "hideOriginalText": {
     "message": "隱藏原文"
   },
@@ -286,9 +268,6 @@
   },
   "lblAdd": {
     "message": "新增"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "僅針對字數超過此值的文字使用 AI 自動優化",
@@ -318,15 +297,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "總是使用 AI 翻譯這些網站"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API 金鑰"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API 金鑰"
-  },
-  "lblAutoImproveByAi": {
-    "message": "自動使用 AI 改進翻譯"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "當點到一個將您帶到與目前網站相同網域的連結時，自動進行翻譯"
@@ -390,26 +360,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "特殊快捷鍵"
   },
-  "lblMakeDonation": {
-    "message": "捐款"
-  },
   "lblNeverTranslateLangs": {
     "message": "永不翻譯這些語言"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI 模型"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API 基底位址（選填）"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter 模型"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer 標頭（選填）"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title 標頭（選填）"
   },
   "lblOthers": {
     "message": "其他"
@@ -423,14 +375,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "網頁翻譯伺服器"
-  },
   "lblPersonalSettings": {
     "message": "個人設定"
-  },
-  "lblPlsDonate": {
-    "message": "資助開發者"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API 端點 URL",
@@ -482,17 +428,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "版本資訊"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "按 $SHORTCUT_KEY$ 兩次時用譯文取代所選文字",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "回報問題"
   },
@@ -517,9 +452,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "僅當「譯文顯示位置」設為「以譯文取代原文」時生效。"
   },
-  "lblShowReleaseNotes": {
-    "message": "更新時顯示更新日誌"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "在選取的文字旁顯示翻譯按鈕"
   },
@@ -531,9 +463,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "停留在這些網站上時顯示譯文"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "停留時顯示譯文"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "停留在$LANGUAGE_NAME$網站上時顯示翻譯",
@@ -565,14 +494,8 @@
   "lblTargetLanguageGroup": {
     "message": "目標語言"
   },
-  "lblTextTranslationService": {
-    "message": "文字翻譯伺服器"
-  },
   "lblTranslate": {
     "message": "翻譯此頁面？"
-  },
-  "lblTranslateInterface": {
-    "message": "協助翻譯此擴充套件"
   },
   "lblTranslateLongerThan": {
     "message": "僅翻譯單詞數超過此值的文本",
@@ -626,14 +549,8 @@
   "lblTranslationCache": {
     "message": "翻譯快取"
   },
-  "lblTranslationService": {
-    "message": "翻譯伺服器"
-  },
   "lblTtsSpeed": {
     "message": "文字轉語音速度"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "使用新的翻譯演算法？"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "譯文顯示位置"
@@ -659,34 +576,12 @@
   "msgAutomatic": {
     "message": "自動"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "請先輸入 Azure 的 endpoint 和 API key 以取得 Azure OpenAI 的可用模型列表"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "無法載入 DeepSeek 模型 (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "無法載入Google Gemini模型"
   },
   "msgDefault": {
     "message": "預設",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "用 PayPal 資助"
-  },
-  "msgDownloadingDocument": {
-    "message": "下載文件中……"
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "您尚未新增任何語言至此清單。"
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "您尚未新增任何網站至此清單。"
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "請先輸入API key以取得該提供者的可用模型列表"
   },
   "msgEnterDictionaryKeyword": {
     "message": "輸入關鍵詞，至少兩個字母"
@@ -734,15 +629,6 @@
   "msgHotkeys": {
     "message": "快捷鍵"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "如何取得 OpenAI API 金鑰？"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "如何取得 OpenRouter API Key？"
-  },
-  "msgIWillBeGrateful": {
-    "message": "如果您有能力捐款，我將感激不盡。"
-  },
   "msgInterfaceComplex": {
     "message": "進階"
   },
@@ -763,9 +649,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "不要翻譯選取的文字"
-  },
-  "msgNoUseWidgets": {
-    "message": "否（使用小工具）"
   },
   "msgOpenOnYandexTranslator": {
     "message": "在 Yandex 翻譯中打開"
@@ -823,9 +706,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "將所選文本翻譯成該目標語言"
   },
-  "msgSendDocument": {
-    "message": "傳送文件"
-  },
   "msgSites": {
     "message": "網站"
   },
@@ -835,27 +715,12 @@
   "msgStyle": {
     "message": "樣式"
   },
-  "msgThanksForUseExtension": {
-    "message": "感謝您使用這個擴充套件"
-  },
-  "msgToTranslateSites": {
-    "message": "翻譯這個網站"
-  },
   "msgToTranslateThisDocument": {
     "message": "如要翻譯此文件類型 $DOC_TYPE$ 需要先轉換為 HTML 格式",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "翻譯成$LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -895,26 +760,17 @@
   "msgYes": {
     "message": "是"
   },
-  "msgYesRecommended": {
-    "message": "是（推薦）"
-  },
   "openNativeShortcutManager": {
     "message": "開啟原生快捷鍵管理器"
   },
   "optionFloatingConfig": {
     "message": "顯示浮動按鈕"
   },
-  "optionPopupAuto": {
-    "message": "自動"
-  },
   "optionPopupConfig": {
     "message": "顯示行動裝置彈出視窗"
   },
   "optionPopupThreeFingers": {
     "message": "當我以三隻手指觸控時。"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "當我選擇「翻譯此網站」時"
   },
   "optionsAddToCustomDictionary": {
     "message": "新增至自訂的字典（這能讓您在網頁翻譯期間跳過特定的字詞）"
@@ -928,23 +784,8 @@
   "optionsNeverTranslate": {
     "message": "永不翻譯這些網站"
   },
-  "optionsPageTitle": {
-    "message": "網頁翻譯器 - 選項"
-  },
   "pageActionTitle": {
     "message": "翻譯此頁面"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "當網站翻譯完成時讓彈出圖示變為藍色"
@@ -964,15 +805,6 @@
   "restoreFromFile": {
     "message": "從檔案還原"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google 翻譯"
   },
@@ -981,9 +813,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "顯示原文"

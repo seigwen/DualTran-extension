@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Lyssna"
   },
-  "btnMobileDonate": {
-    "message": "Donera"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Översätt aldrig denna webbplats"
-  },
   "btnMobileOriginal": {
     "message": "Original"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Sluta lyssna"
   },
-  "btnSubmit": {
-    "message": "Skicka"
-  },
   "btnTranslate": {
     "message": "Översätt"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Beräkna"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Vill du att Dualtran automatiskt ska översätta med AI i framtiden?"
   },
   "confirmSetApiKeyNow": {
     "message": "API-nyckeln är inte inställd. Vill du ställa in den nu?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Vill du ta bort översättningscachen?"
-  },
-  "donatewithpaypal": {
-    "message": "Donera via PayPal"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Visa inte om sidans språk är målspråket"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Dölj originaltext"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Lägg till"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Förbättra översättningar med AI endast för texter med fler ord än",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Översätt alltid dessa webbplatser (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API-nyckel"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API-nyckel"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Förbättra automatiskt översättningar med AI"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Översätt automatiskt när du klickar på en länk som tar dig till samma domän som den aktuella webbplatsen"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Speciella tangentbordsgenvägar"
   },
-  "lblMakeDonation": {
-    "message": "Donera"
-  },
   "lblNeverTranslateLangs": {
     "message": "Översätt aldrig dessa språk"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI Modell"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API-bas (valfritt)"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter-modell"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer-rubrik (valfritt)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title-rubrik (valfritt)"
   },
   "lblOthers": {
     "message": "Övriga"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Översättningstjänst för webbplatser"
-  },
   "lblPersonalSettings": {
     "message": "Personliga inställningar"
-  },
-  "lblPlsDonate": {
-    "message": "Hjälp utvecklaren med en donation"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Utgivningsanmärkningar"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Ersätt markerad text med översatt text när du trycker två gånger på $SHORTCUT_KEY$",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Rapportera ett problem"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Visa versionsfakta vid uppdatering"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Visa knappen för att översätta markerad text"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Visa översatt text när du svävar på dessa webbplatser"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Visa översatt text när du svävar"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Visa översättning när du svävar över webbplatser på $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Målspråk"
   },
-  "lblTextTranslationService": {
-    "message": "Översättningstjänst för text"
-  },
   "lblTranslate": {
     "message": "Översätt denna sida?"
-  },
-  "lblTranslateInterface": {
-    "message": "Översätt gränssnittet"
   },
   "lblTranslateLongerThan": {
     "message": "Översätt bara text som har fler ord än detta värde",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Översättningscache"
   },
-  "lblTranslationService": {
-    "message": "Översättningstjänst"
-  },
   "lblTtsSpeed": {
     "message": "Ljudhastighet för text-till-tal"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Använd den nya översättningsalgoritmen?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Var den översatta texten ska visas"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Automatisk"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Ange Azure-endpunkt och API-nyckel för att få tillgängliga modeller för Azure OpenAI"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "Det gick inte att ladda DeepSeek-modeller (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Donera via PayPal"
-  },
-  "msgDownloadingDocument": {
-    "message": "Hämtar dokumentet..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Du har inte lagt till några språk i denna lista."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Du har inte lagt till några webbplatser i denna lista."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Ange API-nyckel för att få tillgängliga modeller för denna leverantör"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Snabbtangenter"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "Hur får jag en OpenAI API-nyckel?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "Hur får jag en OpenRouter API-nyckel?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Jag är tacksam om du kan göra en donation."
-  },
   "msgInterfaceComplex": {
     "message": "Avancerad"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Översätt inte markerad text"
-  },
-  "msgNoUseWidgets": {
-    "message": "Nej (använd widget)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Öppna i Yandex Translate"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Översätt vald text till detta målspråk"
   },
-  "msgSendDocument": {
-    "message": "Skicka dokument"
-  },
   "msgSites": {
     "message": "Webbplatser"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Stil"
   },
-  "msgThanksForUseExtension": {
-    "message": "Tack för att du använder det här tillägget."
-  },
-  "msgToTranslateSites": {
-    "message": "Att översätta webbplatsen"
-  },
   "msgToTranslateThisDocument": {
     "message": "För att översätta detta dokument $DOC_TYPE$ måste det konverteras till HTML",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Översätt till $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Ja"
   },
-  "msgYesRecommended": {
-    "message": "Ja (rekommenderas)"
-  },
   "openNativeShortcutManager": {
     "message": "Öppna inbyggd hanterare för tangentbordsgenvägar"
   },
   "optionFloatingConfig": {
     "message": "visa den flytande knappen"
   },
-  "optionPopupAuto": {
-    "message": "Automatiskt"
-  },
   "optionPopupConfig": {
     "message": "Visa den mobila popup-skärmen"
   },
   "optionPopupThreeFingers": {
     "message": "När jag trycker på skärmen med tre fingrar"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Endast när jag klickar på \"Översätt denna webbplats\""
   },
   "optionsAddToCustomDictionary": {
     "message": "Lägg till i anpassad ordbok (Detta låter dig hoppa över vissa ord under översättning av webbsidor)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Översätt aldrig dessa webbplatser"
   },
-  "optionsPageTitle": {
-    "message": "Översätt webbplatser - Alternativ"
-  },
   "pageActionTitle": {
     "message": "Översätt denna sida"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Gör popup-ikonen blå när webbplatsen översätts"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Återställ från fil"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Visa originaltext"

@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Hlusta"
   },
-  "btnMobileDonate": {
-    "message": "Styrkja"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Aldrei þýða þessa síðu"
-  },
   "btnMobileOriginal": {
     "message": "Upprunalegt"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Hætta að hlusta"
   },
-  "btnSubmit": {
-    "message": "Senda"
-  },
   "btnTranslate": {
     "message": "Þýða"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Reikna"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Do you want Dualtran to AUTOMATICALLY translate with AI in future?"
   },
   "confirmSetApiKeyNow": {
     "message": "API-lykill er ekki stilltur. Viltu stilla hann núna?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Viltu eyða þýðingarskyndiminni?"
-  },
-  "donatewithpaypal": {
-    "message": "Styrkja með PayPal"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Ekki sýna ef síðutungumálið er marktungumálið"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Fela upprunalegan texta"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Bæta við"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Bæta aðeins þýðingar með AI ef orðin eru fleiri en",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Alltaf þýða þessar síður (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API lykill"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API-lykill"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Bæta þýðingar sjálfvirkt með AI"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Þýða sjálfkrafa þegar smellt er á tengil sem færir þig á sama lén og núverandi síða"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Sérstakar flýtilyklar"
   },
-  "lblMakeDonation": {
-    "message": "Styrkja verkefnið"
-  },
   "lblNeverTranslateLangs": {
     "message": "Aldrei þýða þessi tungumál"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI Líkan"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API-grunnur (valkvæmt)"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter-líkan"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer haus (valkvæmt)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title haus (valkvæmt)"
   },
   "lblOthers": {
     "message": "Annað"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Síðuþýðingarþjónusta"
-  },
   "lblPersonalSettings": {
     "message": "Persónulegar stillingar"
-  },
-  "lblPlsDonate": {
-    "message": "Hjálpa hönnuðinum með því að styrkja"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Útgáfuupplýsingar"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Skipta út völdum texta fyrir þýddan texta þegar ýtt er tvisvar á $SHORTCUT_KEY$",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Tilkynna vandamál"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Sýna útgáfuupplýsingar við uppfærslu"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Sýna hnappinn til að þýða valda textann"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Sýna þýddan texta þegar sveimað er yfir á þessum síðum"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Sýna þýddan texta þegar þú sveimar yfir"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Sýna þýðingu þegar þú sveimar yfir vefsíður á $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Markmál"
   },
-  "lblTextTranslationService": {
-    "message": "Textaþýðingarþjónusta"
-  },
   "lblTranslate": {
     "message": "Þýða þessa síðu?"
-  },
-  "lblTranslateInterface": {
-    "message": "Þýða viðmótið"
   },
   "lblTranslateLongerThan": {
     "message": "Þýða aðeins texta með fleiri orðum en þetta gildi",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Þýðingarskyndiminni"
   },
-  "lblTranslationService": {
-    "message": "Þýðingarþjónusta"
-  },
   "lblTtsSpeed": {
     "message": "Hljóðhraði textatal"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Nota nýja þýðingarreikniritið?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Hvar á að birta þýdda textann"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Sjálfvirkt"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Vinsamlegast sláðu inn Azure-endapunkt og API-lykil til að fá tiltæk líkön fyrir Azure OpenAI"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "Ekki tókst að hlaða DeepSeek-módellunum (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Styrkja með PayPal"
-  },
-  "msgDownloadingDocument": {
-    "message": "Sækir skjalið..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Þú hefur ekki bætt neinum tungumálum við þennan lista."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Þú hefur ekki bætt neinum síðum við þennan lista."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Vinsamlegast sláðu inn API-lykil til að fá lista yfir tiltæk líkan fyrir þennan veitanda"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Flýtilyklar"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "Hvernig fæ ég OpenAI API-lykil?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "Hvernig fæ ég OpenRouter API-lykil?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Ég mun vera þakklát(ur) ef þú getur styrkjað mig."
-  },
   "msgInterfaceComplex": {
     "message": "Ítarlegt"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Ekki þýða valinn texta"
-  },
-  "msgNoUseWidgets": {
-    "message": "Nei (nota widgets)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Opna í Yandex Translate"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Þýddu valinn texta yfir á þetta markmál"
   },
-  "msgSendDocument": {
-    "message": "Senda skjal"
-  },
   "msgSites": {
     "message": "Síður"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Stíll"
   },
-  "msgThanksForUseExtension": {
-    "message": "Þakka þér fyrir að nota þessa viðbót."
-  },
-  "msgToTranslateSites": {
-    "message": "Til að þýða síðuna"
-  },
   "msgToTranslateThisDocument": {
     "message": "Til að þýða þetta skjal $DOC_TYPE$ er nauðsynlegt að breyta því í HTML",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Þýða yfir á $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Já"
   },
-  "msgYesRecommended": {
-    "message": "Já (mælt með)"
-  },
   "openNativeShortcutManager": {
     "message": "Opna heimaflýtilyklastjóra"
   },
   "optionFloatingConfig": {
     "message": "sýndu fljótandi hnappinn"
   },
-  "optionPopupAuto": {
-    "message": "Sjálfkrafa"
-  },
   "optionPopupConfig": {
     "message": "Sýna farsímasprettigluggann"
   },
   "optionPopupThreeFingers": {
     "message": "Þegar ég snerti skjáinn með þremur fingrum"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Aðeins þegar ég smelli á \"Þýða þessa síðu\""
   },
   "optionsAddToCustomDictionary": {
     "message": "Bæta við sérsniðna orðabók (Þetta gerir þér kleift að sleppa tilteknum orðum við þýðingar á vefsíðu)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Aldrei þýða þessa síðu"
   },
-  "optionsPageTitle": {
-    "message": "Þýða vefsíður - Valkostir"
-  },
   "pageActionTitle": {
     "message": "Þýða þessa síðu"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Gera sprettimerkið blátt þegar síðan er þýdd"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Endurheimta úr skrá"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Sýna upprunalegan texta"

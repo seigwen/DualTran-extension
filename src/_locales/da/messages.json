@@ -116,12 +116,6 @@
   "btnListen": {
     "message": "Lyt"
   },
-  "btnMobileDonate": {
-    "message": "Donér"
-  },
-  "btnMobileNeverTranslate": {
-    "message": "Oversæt aldrig denne hjemmeside"
-  },
   "btnMobileOriginal": {
     "message": "Original"
   },
@@ -163,9 +157,6 @@
   "btnStopListening": {
     "message": "Stop lytning"
   },
-  "btnSubmit": {
-    "message": "Send"
-  },
   "btnTranslate": {
     "message": "Oversæt"
   },
@@ -178,9 +169,6 @@
   },
   "calculatestorage": {
     "message": "Beregn"
-  },
-  "confirmAutoTranslateWithAI": {
-    "message": "Vil du have Dualtran til automatisk at oversætte med AI i fremtiden?"
   },
   "confirmSetApiKeyNow": {
     "message": "API-nøglen er ikke indstillet. Vil du indstille den nu?"
@@ -199,9 +187,6 @@
   },
   "doYouWantToDeleteTranslationCache": {
     "message": "Vil du slette oversættelsescachen?"
-  },
-  "donatewithpaypal": {
-    "message": "Doner med PayPal"
   },
   "dontShowIfPageLangIsTargetLang": {
     "message": "Vis ikke hvis sidens sprog er målsproget"
@@ -271,9 +256,6 @@
   "floatingButtonOriginalTooltip": {
     "message": "Show original text"
   },
-  "floatingButtonTooltip": {
-    "message": "Click to toggle translation state; drag to move this button"
-  },
   "hideOriginalText": {
     "message": "Skjul originaltekst"
   },
@@ -292,9 +274,6 @@
   },
   "lblAdd": {
     "message": "Tilføj"
-  },
-  "lblAiFeatures": {
-    "message": "AI Features"
   },
   "lblAiImproveForLongerThan": {
     "message": "Forbedr kun oversættelser med AI, der har flere ord end",
@@ -324,15 +303,6 @@
   },
   "lblAlwaysTranslateSitesWithAi": {
     "message": "Oversæt altid disse hjemmesider (AI)"
-  },
-  "lblApiKeyOpenAI": {
-    "message": "OpenAI API-nøgle"
-  },
-  "lblApiKeyOpenRouter": {
-    "message": "OpenRouter API-nøgle"
-  },
-  "lblAutoImproveByAi": {
-    "message": "Forbedr automatisk oversættelser med AI"
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Oversæt automatisk, når du klikker på et link, der tager dig til det samme domæne som det aktuelle websted"
@@ -396,26 +366,8 @@
   "lblKeyboardShortcutsSpecial": {
     "message": "Særlige tastaturgenveje"
   },
-  "lblMakeDonation": {
-    "message": "Lav en donation"
-  },
   "lblNeverTranslateLangs": {
     "message": "Oversæt aldrig disse sprog"
-  },
-  "lblOpenAiModel": {
-    "message": "OpenAI Model"
-  },
-  "lblOpenRouterBaseUrl": {
-    "message": "OpenRouter API-base (valgfri)"
-  },
-  "lblOpenRouterModel": {
-    "message": "OpenRouter-model"
-  },
-  "lblOpenRouterReferer": {
-    "message": "HTTP Referer-header (valgfri)"
-  },
-  "lblOpenRouterTitle": {
-    "message": "X-Title-header (valgfri)"
   },
   "lblOthers": {
     "message": "Andre"
@@ -429,14 +381,8 @@
       }
     }
   },
-  "lblPageTranslationService": {
-    "message": "Sideoversættelses tjeneste"
-  },
   "lblPersonalSettings": {
     "message": "Personlige indstillinger"
-  },
-  "lblPlsDonate": {
-    "message": "Hjælp udvikleren med en donation"
   },
   "lblProviderApiEndpoint": {
     "message": "$PROVIDER_NAME$ API Endpoint URL",
@@ -488,17 +434,6 @@
       }
     }
   },
-  "lblReleaseNotes": {
-    "message": "Udgivelsesnoter"
-  },
-  "lblReplaceSelectedTextWithTranslatedText": {
-    "message": "Erstat valgt tekst med oversat tekst, når du trykker to gange på $SHORTCUT_KEY$",
-    "placeholders": {
-      "SHORTCUT_KEY": {
-        "content": "[Ctrl]"
-      }
-    }
-  },
   "lblReport": {
     "message": "Rapporter et problem"
   },
@@ -523,9 +458,6 @@
   "lblShowOriginalTextWhenHoveringNote": {
     "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
   },
-  "lblShowReleaseNotes": {
-    "message": "Vis udgivelsesnoter ved opdatering"
-  },
   "lblShowTranslateSelectedButton": {
     "message": "Vis knappen til oversættelse af det valgte tekst"
   },
@@ -537,9 +469,6 @@
   },
   "lblShowTranslatedHoveringSites": {
     "message": "Vis oversat tekst ved svævning på disse websteder"
-  },
-  "lblShowTranslatedWhenHovering": {
-    "message": "Vis oversat tekst ved svævning"
   },
   "lblShowTranslatedWhenHoveringThisLang": {
     "message": "Vis oversættelse ved svævning over hjemmesider i $LANGUAGE_NAME$",
@@ -571,14 +500,8 @@
   "lblTargetLanguageGroup": {
     "message": "Målsprog"
   },
-  "lblTextTranslationService": {
-    "message": "Tekstoversættelses tjeneste"
-  },
   "lblTranslate": {
     "message": "Oversæt denne side?"
-  },
-  "lblTranslateInterface": {
-    "message": "Oversæt brugerflade"
   },
   "lblTranslateLongerThan": {
     "message": "Oversæt kun tekst med flere ord end denne værdi",
@@ -632,14 +555,8 @@
   "lblTranslationCache": {
     "message": "Oversættelsescache"
   },
-  "lblTranslationService": {
-    "message": "Oversættelsestjeneste"
-  },
   "lblTtsSpeed": {
     "message": "Tekst-til-tale lydhastighed"
-  },
-  "lblUseNewAlgorithm": {
-    "message": "Brug den nye oversættelsesalgoritme?"
   },
   "lblWhereToDisplayTranslatedText": {
     "message": "Hvor den oversatte tekst skal vises"
@@ -665,13 +582,6 @@
   "msgAutomatic": {
     "message": "Automatisk"
   },
-  "msgAzureEnterKeyAndEndpoint": {
-    "message": "Indtast venligst Azure-endpoint og API-nøgle for at hente tilgængelige modeller til Azure OpenAI"
-  },
-  "msgCannotLoadDeepSeekModelsHttp": {
-    "message": "Kan ikke indlæse DeepSeek-modeller (HTTP $1)",
-    "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
-  },
   "msgCannotLoadGoogleGeminiModels": {
     "message": "Unable to load Google Gemini models",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
@@ -679,21 +589,6 @@
   "msgDefault": {
     "message": "Default",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
-  },
-  "msgDonateWithPaypal": {
-    "message": "Doner med PayPal"
-  },
-  "msgDownloadingDocument": {
-    "message": "Downloader dokumentet..."
-  },
-  "msgEmptyListAlwaysTranslateLanguages": {
-    "message": "Du har ikke tilføjet nogen sprog til denne liste."
-  },
-  "msgEmptyListNeverTranslateSites": {
-    "message": "Du har ikke tilføjet nogen sider til denne liste."
-  },
-  "msgEnterApiKeyForModels": {
-    "message": "Indtast venligst API-nøglen for at hente tilgængelige modeller for denne udbyder"
   },
   "msgEnterDictionaryKeyword": {
     "message": "Enter the keyword, minimum two letters",
@@ -744,15 +639,6 @@
   "msgHotkeys": {
     "message": "Genvejstaster"
   },
-  "msgHowToGetOpenAIKey": {
-    "message": "Hvordan får jeg en OpenAI API-nøgle?"
-  },
-  "msgHowToGetOpenRouterKey": {
-    "message": "Hvordan får jeg en OpenRouter API-nøgle?"
-  },
-  "msgIWillBeGrateful": {
-    "message": "Jeg vil være taknemmelig, hvis du kan donere."
-  },
   "msgInterfaceComplex": {
     "message": "Avanceret"
   },
@@ -773,9 +659,6 @@
   },
   "msgNoTranslateSelectedText": {
     "message": "Oversæt ikke valgt tekst"
-  },
-  "msgNoUseWidgets": {
-    "message": "Nej (brug widgets)"
   },
   "msgOpenOnYandexTranslator": {
     "message": "Åbn i Yandex oversæt"
@@ -833,9 +716,6 @@
   "msgSelectTargetLanguageForText": {
     "message": "Oversæt valgt tekst til dette målsprog"
   },
-  "msgSendDocument": {
-    "message": "Send dokument"
-  },
   "msgSites": {
     "message": "Sider"
   },
@@ -845,27 +725,12 @@
   "msgStyle": {
     "message": "Stil"
   },
-  "msgThanksForUseExtension": {
-    "message": "Tak for din brug af denne udvidelse."
-  },
-  "msgToTranslateSites": {
-    "message": "Til oversættelse af hjemmeside"
-  },
   "msgToTranslateThisDocument": {
     "message": "For at oversætte dette dokument $DOC_TYPE$ er det nødvendigt at konvertere det til HTML",
     "placeholders": {
       "DOC_TYPE": {
         "content": "$1",
         "example": "(.pdf)"
-      }
-    }
-  },
-  "msgTranslateFor": {
-    "message": "Oversæt til $LANGUAGE_NAME$",
-    "placeholders": {
-      "LANGUAGE_NAME": {
-        "content": "$1",
-        "example": "English"
       }
     }
   },
@@ -907,26 +772,17 @@
   "msgYes": {
     "message": "Ja"
   },
-  "msgYesRecommended": {
-    "message": "Ja (anbefales)"
-  },
   "openNativeShortcutManager": {
     "message": "Åbn håndtering af genvejstasten"
   },
   "optionFloatingConfig": {
     "message": "vis den flydende knap"
   },
-  "optionPopupAuto": {
-    "message": "Automatisk"
-  },
   "optionPopupConfig": {
     "message": "Vis mobilpopupen"
   },
   "optionPopupThreeFingers": {
     "message": "Når jeg rører tre fingre på skærmen"
-  },
-  "optionPopupjustWhenIClickTranlateThisSite": {
-    "message": "Kun når jeg klikker \"Oversæt denne hjemmeside\""
   },
   "optionsAddToCustomDictionary": {
     "message": "Føj til brugerdefineret ordbog (Dette giver dig mulighed for at springe visse ord over under oversættelse af websider)"
@@ -940,23 +796,8 @@
   "optionsNeverTranslate": {
     "message": "Oversæt aldrig disse hjemmesider"
   },
-  "optionsPageTitle": {
-    "message": "Oversæt Hjemmesider - Indstillinger"
-  },
   "pageActionTitle": {
     "message": "Oversæt denne side"
-  },
-  "placeholderOpenRouterBase": {
-    "message": "https://openrouter.ai/api/v1/chat/completions"
-  },
-  "placeholderOpenRouterModel": {
-    "message": "openai/gpt-4o-mini"
-  },
-  "placeholderOpenRouterReferer": {
-    "message": "https://your-site.example"
-  },
-  "placeholderOpenRouterTitle": {
-    "message": "DualTran"
   },
   "popupBlueWhenSiteIsTranslated": {
     "message": "Gør pop-up-ikonet blåt, når hjemmesiden er oversat"
@@ -976,15 +817,6 @@
   "restoreFromFile": {
     "message": "Gendan fra fil"
   },
-  "serviceBing": {
-    "message": "Bing"
-  },
-  "serviceDeepL": {
-    "message": "DeepL"
-  },
-  "serviceGoogle": {
-    "message": "Google"
-  },
   "serviceGoogleTranslate": {
     "message": "Google Translate"
   },
@@ -993,9 +825,6 @@
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
-  },
-  "serviceYandex": {
-    "message": "Yandex"
   },
   "showOriginalText": {
     "message": "Vis originaltekst"
