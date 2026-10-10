@@ -251,6 +251,25 @@ describe("manifest i18n", () => {
     const missing = msgRefs.filter((key) => !messages[key]);
     expect(missing, `i18n keys missing from ${locale}/messages.json`).toEqual([]);
   });
+
+  // spec 47 P2 batch ② (#157): the top-level description was the last hardcoded
+  // English prose in the manifest — every locale saw the same English sentence
+  // on the extensions card / install dialog while the hand-translated
+  // `extensionDescription` key sat orphaned in all 38 locales.
+  it("top-level description is localized through __MSG_extensionDescription__", () => {
+    expect(manifest.description).toBe("__MSG_extensionDescription__");
+  });
+
+  it("extensionDescription carries real text in the base + hand-translated locales", () => {
+    for (const locale of ["en", "zh_CN", "zh_TW"]) {
+      const messagesPath = path.join(ROOT, "src/_locales", locale, "messages.json");
+      const messages = JSON.parse(fs.readFileSync(messagesPath, "utf8"));
+      expect(
+        messages.extensionDescription?.message?.length,
+        `${locale}/messages.json extensionDescription`
+      ).toBeGreaterThan(0);
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------
