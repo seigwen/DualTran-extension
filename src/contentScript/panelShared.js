@@ -175,7 +175,7 @@ function setPanelTranslationLoadingState(node) {
   const label = document.createElement("span");
   label.className = "dualtran-loading-label";
   label.textContent =
-    (chrome && chrome.i18n && chrome.i18n.getMessage("loading")) ||
+    (chrome && chrome.i18n && chrome.i18n.getMessage("loading")) || // i18n-exempt: legacy — key "loading" missing in all locales; fix to msgLoadingModels in #157 batch ①
     "Loading...";
   node.appendChild(spinner);
   node.appendChild(label);

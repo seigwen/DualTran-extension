@@ -70,13 +70,13 @@ function updateInlineBtnStateClass(btnAi, state) {
  */
 export function renderAiSuccessIndicator(btnAi) {
   if (!btnAi || !btnAi.btnAiTxtNode) return;
-  btnAi.btnAiTxtNode.textContent = "AI";
+  btnAi.btnAiTxtNode.textContent = "AI"; // i18n-exempt: legacy — engine label token "AI"; localize-vs-token decided in #157 batch ③
   updateInlineBtnStateClass(btnAi, "success");
 }
 
 export function renderAiErrorIndicator(btnAi) {
   if (!btnAi || !btnAi.btnAiTxtNode) return;
-  btnAi.btnAiTxtNode.textContent = "AI";
+  btnAi.btnAiTxtNode.textContent = "AI"; // i18n-exempt: legacy — engine label token "AI"; localize-vs-token decided in #157 batch ③
   updateInlineBtnStateClass(btnAi, "error");
   const crossSpan = btnAi.ownerDocument.createElement("span");
   crossSpan.textContent = "\u2715";

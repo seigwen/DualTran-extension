@@ -814,6 +814,7 @@ twpConfig.onReady(function () {
   });
 
   $("#addToAlwaysTranslateSites").onclick = (e) => { // Add site button
+    // i18n-exempt: legacy — Sites hostname prompt is hardcoded; i18n in #157 batch ③
     const hostname = prompt("Enter the site hostname", "www.site.com"); // Prompt for input
     if (!hostname) return; // Return on cancel
 
@@ -853,6 +854,7 @@ twpConfig.onReady(function () {
   });
 
   $("#addToAlwaysTranslateSitesAI").onclick = (e) => { // Add site button
+    // i18n-exempt: legacy — Sites hostname prompt is hardcoded; i18n in #157 batch ③
     const hostname = prompt("Enter the site hostname", "www.site.com"); // Prompt for input
     if (!hostname) return; // Return on cancel
 
@@ -894,7 +896,7 @@ twpConfig.onReady(function () {
   });
 
   $("#addToNeverTranslateSites").onclick = (e) => { // Add never-translate site
-    const hostname = prompt("Enter the site hostname", "www.site.com");
+    const hostname = prompt("Enter the site hostname", "www.site.com"); // i18n-exempt: legacy — Sites hostname prompt is hardcoded; i18n in #157 batch ③
     if (!hostname) return;
 
     const li = createNodeToNeverTranslateSitesList(hostname);
@@ -938,6 +940,7 @@ twpConfig.onReady(function () {
   });
 
   $("#addToCustomDictionary").onclick = (e) => { // Add custom entry
+    // i18n-exempt: legacy — custom-dictionary prompt is hardcoded; i18n in #157 batch ③
     let keyWord = prompt("Enter the keyWord, Minimum two letters ", ""); // Enter keyword
     if (!keyWord || keyWord.length < 2) return; // Return if too short
     keyWord = keyWord.trim().toLowerCase(); // Normalize
@@ -986,7 +989,7 @@ twpConfig.onReady(function () {
   });
 
   $("#addSiteToTranslateWhenHovering").onclick = (e) => { // Add translate-on-hover site
-    const hostname = prompt("Enter the site hostname", "www.site.com");
+    const hostname = prompt("Enter the site hostname", "www.site.com"); // i18n-exempt: legacy — Sites hostname prompt is hardcoded; i18n in #157 batch ③
     if (!hostname) return;
 
     const li = createNodeToSitesToTranslateWhenHoveringList(hostname);
@@ -1195,7 +1198,7 @@ twpConfig.onReady(function () {
         errorToNotice: (error) =>
           error instanceof Error && error.message
             ? error.message
-            : i18nOrDefault("msgCannotLoadGoogleGeminiModelsHttp", "Unable to load Google Gemini models"),
+            : i18nOrDefault("msgCannotLoadGoogleGeminiModelsHttp", "Unable to load Google Gemini models"), // i18n-exempt: legacy — Gemini HTTP-variant key missing; add key in #157 batch ③
       });
     } catch (error) {
       console.warn("Unable to load Google Gemini models from API:", error);
@@ -1300,7 +1303,7 @@ twpConfig.onReady(function () {
     select.innerHTML = "";
     const loadingOption = document.createElement("option");
     loadingOption.value = "";
-    loadingOption.textContent = "Loading...";
+    loadingOption.textContent = "Loading..."; // i18n-exempt: legacy — dead legacy populate path; removed in #157 batch ④
     loadingOption.disabled = true;
     loadingOption.selected = true;
     select.appendChild(loadingOption);
@@ -1337,7 +1340,7 @@ twpConfig.onReady(function () {
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${sanitizedKey}`);
       if (!response.ok) {
-        let message = i18nOrDefault("msgCannotLoadGoogleGeminiModelsHttp", `Unable to load Google Gemini models (HTTP ${response.status})`);
+        let message = i18nOrDefault("msgCannotLoadGoogleGeminiModelsHttp", `Unable to load Google Gemini models (HTTP ${response.status})`); // i18n-exempt: legacy — Gemini HTTP-variant key missing; add key in #157 batch ③
         try {
           const errorPayload = await response.json();
           if (errorPayload?.error?.message) {
@@ -1837,6 +1840,7 @@ twpConfig.onReady(function () {
     const li = document.createElement("li"); // Outer LI
     li.classList.add("shortcut-row"); // Add style class
     li.setAttribute("id", hotkeyname); // Set id
+    // i18n-exempt: legacy:start — Firefox-only hotkey rows are never re-translated (no translateDocument); fix in #157 batch ③
     li.innerHTML = `
         <div>${description}</div>
         <div class="shortcut-input-options">
@@ -1848,6 +1852,7 @@ twpConfig.onReady(function () {
             <div class="w3-hover-light-grey shortcut-button" name="resetKey"><i class="gg-sync"></i></div>
         </div>  
         `; // Template string inserting edit area structure
+        // i18n-exempt:end
     $("#KeyboardShortcuts").appendChild(li); // Insert into shortcut list container
 
     const input = /** @type {HTMLInputElement} */ (li.querySelector(`[name="input"]`)); // Cast to input element
