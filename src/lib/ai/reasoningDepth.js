@@ -33,7 +33,7 @@ export const REASONING_DEFAULT = "";
 /** Canonical display order for known effort values. */
 const EFFORT_ORDER = ["none", "minimal", "low", "medium", "high", "xhigh", "max", "default"];
 
-/** Display labels (English, consistent with the other dynamic panel labels). */
+/** Display labels (English fallback; the options page localizes via the `translate` hook). */
 const EFFORT_LABELS = {
   none: "None",
   minimal: "Minimal",
@@ -45,6 +45,18 @@ const EFFORT_LABELS = {
   // `default` is a real Groq value (provider default) — it must not be
   // confused with the "do not send" option, so it carries a distinct label.
   default: "Default (provider)",
+};
+
+/** i18n message keys for the effort values (consumed via the `translate` hook). */
+const EFFORT_LABEL_KEYS = {
+  none: "msgReasoningDepthNone",
+  minimal: "msgReasoningDepthMinimal",
+  low: "msgReasoningDepthLow",
+  medium: "msgReasoningDepthMedium",
+  high: "msgReasoningDepthHigh",
+  xhigh: "msgReasoningDepthXHigh",
+  max: "msgReasoningDepthMax",
+  default: "msgReasoningDepthProviderDefault",
 };
 
 /**
@@ -120,12 +132,16 @@ function _accepts(dialectName, value) {
  *    "on" value). `budget_tokens` is intentionally not supported in this round.
  *  - No `reasoning_options` at all → only `Default`.
  *
- * @param {{ provider?: string, npm?: string, reasoningOptions?: Array<Object> }} params
+ * Labels go through the optional `translate(key, fallback)` hook so callers can
+ * localize them (the options page passes `chrome.i18n`); the default identity
+ * hook keeps the English fallback labels.
+ *
+ * @param {{ provider?: string, npm?: string, reasoningOptions?: Array<Object>, translate?: Function }} params
  * @returns {Array<{value: string, label: string}>}
  */
-export function buildReasoningDepthOptions({ provider, npm, reasoningOptions } = {}) {
+export function buildReasoningDepthOptions({ provider, npm, reasoningOptions, translate = (_key, fallback) => fallback } = {}) {
   const dialectName = resolveDialect({ provider, npm });
-  const options = [{ value: REASONING_DEFAULT, label: "Default" }];
+  const options = [{ value: REASONING_DEFAULT, label: translate("msgDefault", "Default") }];
 
   const declared = Array.isArray(reasoningOptions) ? reasoningOptions.filter(Boolean) : [];
   const effort = declared.find((o) => o.type === "effort");
@@ -153,7 +169,11 @@ export function buildReasoningDepthOptions({ provider, npm, reasoningOptions } =
   }
 
   for (const value of candidates) {
-    options.push({ value, label: EFFORT_LABELS[value] || value });
+    const labelKey = EFFORT_LABEL_KEYS[value];
+    options.push({
+      value,
+      label: labelKey ? translate(labelKey, EFFORT_LABELS[value] || value) : value,
+    });
   }
   return options;
 }

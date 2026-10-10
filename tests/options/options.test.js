@@ -215,7 +215,34 @@ vi.mock("../../src/options/aiModelRefresh.js", () => ({
 }));
 vi.mock("../../src/lib/ai/providerRegistry.js", () => {
   const known = ["openai","openrouter","anthropic","google-gemini","azure-openai","deepseek","grok","mistral","cohere","together","groq","zhipu","moonshot","qwen","baidu","bytedance","iflytek","perplexity"];
-  const providerList = known.map(id => ({ id, name: id }));
+  // Display names mirror BUILT_IN_PROVIDERS: the AI panel renders labels from
+  // def.name — a mock with `name: id` silently drifted from production (#155).
+  const displayNames = {
+    openai: "OpenAI",
+    openrouter: "OpenRouter",
+    anthropic: "Anthropic",
+    "google-gemini": "Google Gemini",
+    "azure-openai": "Azure OpenAI",
+    deepseek: "DeepSeek",
+    grok: "xAI (Grok)",
+    mistral: "Mistral AI",
+    cohere: "Cohere",
+    together: "Together AI",
+    groq: "Groq",
+    zhipu: "智谱AI (Zhipu/GLM)",
+    moonshot: "月之暗面 (Moonshot/Kimi)",
+    qwen: "阿里通义千问 (Qwen/DashScope)",
+    baidu: "百度文心 (Baidu/ERNIE)",
+    bytedance: "字节豆包 (ByteDance/Doubao)",
+    iflytek: "讯飞星火 (iFlytek Spark)",
+    perplexity: "Perplexity",
+  };
+  const providerList = known.map(id => ({
+    id,
+    name: displayNames[id] || id,
+    // OpenAI carries the help link in production — the label tests assert it.
+    ...(id === "openai" ? { apiKeyUrl: "https://platform.openai.com/api-keys" } : {}),
+  }));
   return {
     createProviderRegistry: (providers = []) => {
       const providerMap = new Map();
@@ -430,6 +457,7 @@ function installBrowserGlobals({
   omitStorageOnChanged = false,
   commandsUpdateInChrome = false,
   modelsDevProviders = null,
+  messageOverrides = {},
 } = {}) {
   const messages = {
     lblSettings: "Settings",
@@ -440,6 +468,7 @@ function installBrowserGlobals({
     fileIsCorrupted: "File is corrupted",
     // Feedback section (plan 35): the copy button swaps its label to this
     msgFeedbackCopied: "Copied",
+    ...messageOverrides,
   };
 
   window.scrollTo = vi.fn();
@@ -453,7 +482,14 @@ function installBrowserGlobals({
 
   globalThis.chrome = {
     i18n: {
-      getMessage: vi.fn((key) => messages[key] ?? ""),
+      // Mirror chrome.i18n's placeholder substitution for the $PROVIDER_NAME$
+      // family (plan 45): options.js passes the provider display name as $1.
+      getMessage: vi.fn((key, substitutions) => {
+        const message = messages[key] ?? "";
+        if (!message || substitutions === undefined) return message;
+        const values = Array.isArray(substitutions) ? substitutions : [substitutions];
+        return message.replace(/\$PROVIDER_NAME\$/g, String(values[0] ?? ""));
+      }),
     },
     // Chrome 148+ shape: the `commands` namespace exists (getAll) but has no
     // `update`; Firefox shape: `update` is a callable function.
@@ -1203,6 +1239,109 @@ describe("options/options", () => {
     const select = document.querySelector("#genericReasoningDepth");
     expect(select).not.toBeNull();
     expect(Array.from(select.options).map((o) => o.value)).toEqual([""]);
+  });
+
+  // ── AI 面板文案 i18n（plan 45）─────────────────────────────────────────
+  // 契约：AI 部分所有动态可见文案必须经 _locales 键渲染；provider 动态名
+  // 通过 $PROVIDER_NAME$ 占位符（$1）替换；键缺失时保持英文回退（行为面零改动）。
+
+  it("renders the four provider-panel labels with the provider name through i18n", async () => {
+    await loadOptionsModule({}, {
+      messageOverrides: {
+        lblProviderApiKey: "$PROVIDER_NAME$ API 密钥",
+        lblProviderApiEndpoint: "$PROVIDER_NAME$ API 端点 URL",
+        lblProviderModel: "$PROVIDER_NAME$ 模型",
+        lblProviderReasoningDepth: "$PROVIDER_NAME$ 推理深度",
+      },
+    });
+
+    // RED under the old hardcoded English; GREEN once the labels flow through
+    // chrome.i18n.getMessage(key, [providerName]).
+    expect(document.querySelector("#genericApiKeyLabel").textContent).toBe("OpenAI API 密钥");
+    expect(document.querySelector("#genericApiBaseLabel").textContent).toBe("OpenAI API 端点 URL");
+    expect(document.querySelector("#genericModelLabel").textContent).toBe("OpenAI 模型");
+    expect(document.querySelector("#genericReasoningDepthLabel").textContent).toBe("OpenAI 推理深度");
+  });
+
+  it("keeps the English fallback for the panel labels when their keys are missing", async () => {
+    // 回退形态（键缺失时不得渲染空串/原始占位符）：mock 无对应键 → i18nOrDefault 兜底
+    await loadOptionsModule();
+
+    expect(document.querySelector("#genericApiKeyLabel").textContent).toBe("OpenAI API Key");
+    expect(document.querySelector("#genericApiBaseLabel").textContent).toBe("OpenAI API Endpoint URL");
+    expect(document.querySelector("#genericModelLabel").textContent).toBe("OpenAI Model");
+    expect(document.querySelector("#genericReasoningDepthLabel").textContent).toBe("OpenAI Reasoning Depth");
+  });
+
+  it("localizes the API-key help link text through i18n (href unchanged)", async () => {
+    await loadOptionsModule({}, {
+      messageOverrides: { lblHowToGetProviderApiKey: "如何获取 $PROVIDER_NAME$ API 密钥？" },
+    });
+
+    const link = document.querySelector("#genericApiKeyLink");
+    expect(link.textContent).toBe("如何获取 OpenAI API 密钥？");
+    // 行为面零改动：href 与可见性仍来自 provider 定义
+    expect(link.href).toBe("https://platform.openai.com/api-keys");
+    expect(link.style.display).not.toBe("none");
+  });
+
+  it("localizes the provider-dropdown loading span through i18n", async () => {
+    await loadOptionsModule({}, { messageOverrides: { msgLoadingModels: "加载中..." } });
+
+    // 动态创建的 span 是 #aiProvider 的兄弟节点（body 直下），静态 HTML 的
+    // .model-loading-msg 在测试 DOM 中位于 <p> 内——用 body 直下限定选它。
+    const spans = Array.from(document.querySelectorAll("body > .model-loading-msg"));
+    expect(spans).toHaveLength(1);
+    expect(spans[0].textContent).toBe("加载中...");
+  });
+
+  it("localizes the custom-provider name and endpoint prompts through i18n", async () => {
+    await loadOptionsModule({}, {
+      messageOverrides: {
+        msgEnterProviderName: "请输入提供商名称：",
+        msgEnterProviderApiBase: "请输入 API 端点 URL（可选，点击确定跳过）：",
+      },
+    });
+
+    globalThis.prompt.mockReturnValueOnce("My Provider").mockReturnValueOnce("");
+    document.querySelector("#btnAddCustomProvider").click();
+
+    const promptTexts = globalThis.prompt.mock.calls.map((call) => call[0]);
+    expect(promptTexts).toEqual([
+      "请输入提供商名称：",
+      "请输入 API 端点 URL（可选，点击确定跳过）：",
+    ]);
+  });
+
+  it("localizes the custom-model prompt through i18n", async () => {
+    await loadOptionsModule({}, { messageOverrides: { msgEnterModelName: "请输入模型名称/ID：" } });
+
+    globalThis.prompt.mockReturnValueOnce("my-model");
+    document.querySelector("#btnAddCustomModel").click();
+
+    expect(globalThis.prompt).toHaveBeenCalledWith("请输入模型名称/ID：");
+  });
+
+  it("localizes the reasoning-depth option labels through the translate hook", async () => {
+    await loadOptionsModule(
+      { providerConfigs: { openai: { apiKey: "k", model: "m" } } },
+      {
+        modelsDevProviders: modelsDevCache({
+          npm: "@ai-sdk/openai",
+          models: { m: { reasoning_options: [{ type: "effort", values: ["low", "high"] }] } },
+        }),
+        messageOverrides: {
+          msgDefault: "默认",
+          msgReasoningDepthLow: "低",
+          msgReasoningDepthHigh: "高",
+        },
+      }
+    );
+    await flushAsyncWork();
+
+    const select = document.querySelector("#genericReasoningDepth");
+    expect(select).not.toBeNull();
+    expect(Array.from(select.options).map((o) => o.textContent)).toEqual(["默认", "低", "高"]);
   });
 });
 

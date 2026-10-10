@@ -68,6 +68,14 @@
   "backupToFile": {
     "message": "备份至文件"
   },
+  "btnAddCustomModelTooltip": {
+    "message": "添加自定义模型",
+    "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
+  },
+  "btnAddCustomProviderTooltip": {
+    "message": "添加列表中不存在的自定义提供商",
+    "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
+  },
   "btnAlwaysTranslate": {
     "message": "总是使用 Google 翻译此网站"
   },
@@ -348,6 +356,16 @@
   "lblHotTranslatedSelectedText": {
     "message": "自动替换选中文本为译文"
   },
+  "lblHowToGetProviderApiKey": {
+    "message": "如何获取 $PROVIDER_NAME$ API 密钥？",
+    "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
   "lblKeyboardShortcuts": {
     "message": "键盘快捷键"
   },
@@ -395,6 +413,56 @@
   },
   "lblPlsDonate": {
     "message": "通过捐款帮助开发者"
+  },
+  "lblProviderApiEndpoint": {
+    "message": "$PROVIDER_NAME$ API 端点 URL",
+    "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
+  "lblProviderApiKey": {
+    "message": "$PROVIDER_NAME$ API 密钥",
+    "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
+  "lblProviderDocumentation": {
+    "message": "$PROVIDER_NAME$ 文档",
+    "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
+  "lblProviderModel": {
+    "message": "$PROVIDER_NAME$ 模型",
+    "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
+  "lblProviderReasoningDepth": {
+    "message": "$PROVIDER_NAME$ 推理深度",
+    "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
   },
   "lblReleaseNotes": {
     "message": "发行说明"
@@ -599,8 +667,24 @@
   "msgEnterApiKeyForModels": {
     "message": "请先输入API key以获取该提供商的可用模型列表"
   },
+  "msgEnterModelName": {
+    "message": "请输入模型名称/ID：",
+    "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
+  },
+  "msgEnterProviderApiBase": {
+    "message": "请输入 API 端点 URL（可选，点击确定跳过）：",
+    "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
+  },
+  "msgEnterProviderName": {
+    "message": "请输入提供商名称：",
+    "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
+  },
   "msgErrorDownloadingDocument": {
     "message": "下载文档时出错"
+  },
+  "msgErrorLoadingModels": {
+    "message": "模型加载失败",
+    "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "优先选择目标语言"
@@ -664,6 +748,38 @@
   },
   "msgPleaseWait": {
     "message": "请稍候…"
+  },
+  "msgReasoningDepthHigh": {
+    "message": "高",
+    "description": "Reasoning depth option label (models.dev effort value: high)."
+  },
+  "msgReasoningDepthLow": {
+    "message": "低",
+    "description": "Reasoning depth option label (models.dev effort value: low)."
+  },
+  "msgReasoningDepthMax": {
+    "message": "最高",
+    "description": "Reasoning depth option label (models.dev effort value: max)."
+  },
+  "msgReasoningDepthMedium": {
+    "message": "中",
+    "description": "Reasoning depth option label (models.dev effort value: medium)."
+  },
+  "msgReasoningDepthMinimal": {
+    "message": "极低",
+    "description": "Reasoning depth option label (models.dev effort value: minimal)."
+  },
+  "msgReasoningDepthNone": {
+    "message": "无",
+    "description": "Reasoning depth option label (models.dev effort value: none)."
+  },
+  "msgReasoningDepthProviderDefault": {
+    "message": "默认（提供商）",
+    "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
+  },
+  "msgReasoningDepthXHigh": {
+    "message": "极高",
+    "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
     "message": "最近"

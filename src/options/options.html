@@ -390,7 +390,7 @@
         </select>
         <br />
         <p><b data-i18n="lblAiProvider">AI provider</b>
-          <button id="btnAddCustomProvider" class="w3-btn w3-tiny w3-round" style="margin-left:8px;padding:2px 8px;" title="Add a custom provider not in the list">+</button>
+          <button id="btnAddCustomProvider" class="w3-btn w3-tiny w3-round" style="margin-left:8px;padding:2px 8px;" title="Add a custom provider not in the list" data-i18n-title="btnAddCustomProviderTooltip">+</button>
         </p>
         <select id="aiProvider" class="w3-select w3-margin">
           <!-- Options populated dynamically from providerRegistry.js -->
@@ -411,10 +411,10 @@
             <br />
             <p>
               <b id="genericModelLabel">Model</b> <span class="model-loading-msg" data-i18n="msgLoadingModels">Loading...</span>
-              <button id="btnAddCustomModel" class="w3-btn w3-tiny w3-round" style="margin-left:8px;padding:2px 8px;" title="Add a custom model">+</button>
+              <button id="btnAddCustomModel" class="w3-btn w3-tiny w3-round" style="margin-left:8px;padding:2px 8px;" title="Add a custom model" data-i18n-title="btnAddCustomModelTooltip">+</button>
             </p>
             <select id="genericModel" class="w3-select w3-margin" disabled>
-              <option value="" disabled>Loading...</option>
+              <option value="" disabled data-i18n="msgLoadingModels">Loading...</option>
             </select>
             <br />
             <p>

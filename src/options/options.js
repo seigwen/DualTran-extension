@@ -72,9 +72,10 @@
   // Helper: get i18n text with a default fallback (to avoid empty strings when some locales lack a key)
   // If the passed fallback contains Chinese characters, convert it to English using a set of safe replacement rules.
   // The conversion uses localization-friendly simple mappings/rules covering common error messages and patterns like empty model lists.
-  function i18nOrDefault(key, fallback) {
+  // Optional `substitutions` are forwarded to chrome.i18n.getMessage (placeholder substitution, e.g. $PROVIDER_NAME$).
+  function i18nOrDefault(key, fallback, substitutions) {
     try {
-      const msg = chrome.i18n.getMessage(key);
+      const msg = chrome.i18n.getMessage(key, substitutions);
       if (msg && msg.length) return msg;
     } catch (e) {
       // ignore
@@ -2252,7 +2253,7 @@ twpConfig.onReady(function () {
     const _providerLoadingSpan = document.createElement("span");
     _providerLoadingSpan.className = "model-loading-msg";
     _providerLoadingSpan.setAttribute("data-i18n", "msgLoadingModels");
-    _providerLoadingSpan.textContent = "Loading...";
+    _providerLoadingSpan.textContent = i18nOrDefault("msgLoadingModels", "Loading...");
     _providerLoadingSpan.style.display = "none";
     _aiProviderDropdown.parentNode?.insertBefore(_providerLoadingSpan, _aiProviderDropdown.nextSibling);
 
@@ -2359,24 +2360,24 @@ twpConfig.onReady(function () {
         const modelLabel = document.querySelector("#genericModelLabel");
         const reasoningLabel = document.querySelector("#genericReasoningDepthLabel");
         const apiKeyLink = document.querySelector("#genericApiKeyLink");
-        if (keyLabel) keyLabel.textContent = name ? `${name} API Key` : "API Key";
-        if (baseLabel) baseLabel.textContent = name ? `${name} API Endpoint URL` : "API Endpoint URL";
-        if (modelLabel) modelLabel.textContent = name ? `${name} Model` : "Model";
+        if (keyLabel) keyLabel.textContent = i18nOrDefault("lblProviderApiKey", `${name} API Key`, [name]);
+        if (baseLabel) baseLabel.textContent = i18nOrDefault("lblProviderApiEndpoint", `${name} API Endpoint URL`, [name]);
+        if (modelLabel) modelLabel.textContent = i18nOrDefault("lblProviderModel", `${name} Model`, [name]);
         // Drop the i18n binding once a provider-specific label is applied —
         // the other three labels carry no data-i18n either, so a later
         // translateDocument() pass cannot revert this to the generic text.
         if (reasoningLabel) {
-          reasoningLabel.textContent = name ? `${name} Reasoning Depth` : "Reasoning Depth";
+          reasoningLabel.textContent = i18nOrDefault("lblProviderReasoningDepth", `${name} Reasoning Depth`, [name]);
           if (name) reasoningLabel.removeAttribute("data-i18n");
         }
         if (apiKeyLink) {
           if (def?.apiKeyUrl) {
             apiKeyLink.href = def.apiKeyUrl;
-            apiKeyLink.textContent = `How to get ${name} API Key?`;
+            apiKeyLink.textContent = i18nOrDefault("lblHowToGetProviderApiKey", `How to get ${name} API Key?`, [name]);
             apiKeyLink.style.display = "";
           } else if (def?.doc) {
             apiKeyLink.href = def.doc;
-            apiKeyLink.textContent = `${name} Documentation`;
+            apiKeyLink.textContent = i18nOrDefault("lblProviderDocumentation", `${name} Documentation`, [name]);
             apiKeyLink.style.display = "";
           } else {
             apiKeyLink.style.display = "none";
@@ -2458,7 +2459,12 @@ twpConfig.onReady(function () {
         if (stored.apiKey && hasModelApi) {
           // Has API key and model list endpoint → fetch from API
           modelSelect.disabled = true;
-          modelSelect.innerHTML = '<option value="" disabled>Loading...</option>';
+          modelSelect.innerHTML = "";
+          const loadingOpt = document.createElement("option");
+          loadingOpt.value = "";
+          loadingOpt.disabled = true;
+          loadingOpt.textContent = i18nOrDefault("msgLoadingModels", "Loading...");
+          modelSelect.appendChild(loadingOpt);
           loadAiProviderModelOptions({
             provider: providerId,
             apiKey: stored.apiKey,
@@ -2494,7 +2500,12 @@ twpConfig.onReady(function () {
         function _loadPreviewModelsFallback(showErrorNotice) {
           if (!modelSelect) return;
           modelSelect.disabled = true;
-          modelSelect.innerHTML = '<option value="" disabled>Loading...</option>';
+          modelSelect.innerHTML = "";
+          const loadingOpt = document.createElement("option");
+          loadingOpt.value = "";
+          loadingOpt.disabled = true;
+          loadingOpt.textContent = i18nOrDefault("msgLoadingModels", "Loading...");
+          modelSelect.appendChild(loadingOpt);
           loadPreviewModels({ provider: providerId }).then(models => {
             modelSelect.innerHTML = "";
             // When API Key fetch fails, insert a notice at the first row
@@ -2532,7 +2543,12 @@ twpConfig.onReady(function () {
             if (storedModel) modelSelect.value = storedModel;
             _hideLoading();
           }).catch(() => {
-            modelSelect.innerHTML = '<option value="" disabled>Error loading models</option>';
+            modelSelect.innerHTML = "";
+            const errorOpt = document.createElement("option");
+            errorOpt.value = "";
+            errorOpt.disabled = true;
+            errorOpt.textContent = i18nOrDefault("msgErrorLoadingModels", "Error loading models");
+            modelSelect.appendChild(errorOpt);
             modelSelect.disabled = false;
             _hideLoading();
           });
@@ -2560,6 +2576,7 @@ twpConfig.onReady(function () {
           provider: providerId,
           npm: def?.npm,
           reasoningOptions: def?.reasoningOptions,
+          translate: i18nOrDefault,
         });
         select.innerHTML = "";
         const defaultOpt = document.createElement("option");
@@ -2661,10 +2678,10 @@ twpConfig.onReady(function () {
     const _btnAddCustomProvider = document.querySelector("#btnAddCustomProvider");
     if (_btnAddCustomProvider) {
       _btnAddCustomProvider.addEventListener("click", () => {
-        const name = (prompt("Enter provider name:") || "").trim();
+        const name = (prompt(i18nOrDefault("msgEnterProviderName", "Enter provider name:")) || "").trim();
         if (!name) return;
         const id = "_custom_" + name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-        const apiBase = (prompt("Enter API Endpoint URL (optional, press OK to skip):") || "").trim();
+        const apiBase = (prompt(i18nOrDefault("msgEnterProviderApiBase", "Enter API Endpoint URL (optional, press OK to skip):")) || "").trim();
 
         // Add to dropdown list
         const opt = document.createElement("option");
@@ -2687,7 +2704,7 @@ twpConfig.onReady(function () {
     const _btnAddCustomModel = document.querySelector("#btnAddCustomModel");
     if (_btnAddCustomModel) {
       _btnAddCustomModel.addEventListener("click", () => {
-        const modelName = (prompt("Enter model name/ID:") || "").trim();
+        const modelName = (prompt(i18nOrDefault("msgEnterModelName", "Enter model name/ID:")) || "").trim();
         if (!modelName) return;
         const modelSelect = document.querySelector("#genericModel");
         if (!modelSelect) return;

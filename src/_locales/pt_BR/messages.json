@@ -68,6 +68,14 @@
   "backupToFile": {
     "message": "Backup para arquivo"
   },
+  "btnAddCustomModelTooltip": {
+    "message": "Add a custom model",
+    "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
+  },
+  "btnAddCustomProviderTooltip": {
+    "message": "Add a custom provider not in the list",
+    "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
+  },
   "btnAlwaysTranslate": {
     "message": "Sempre traduzir este site (Google)"
   },
@@ -348,6 +356,16 @@
   "lblHotTranslatedSelectedText": {
     "message": "Substituir o texto selecionado pelo texto traduzido instantaneamente"
   },
+  "lblHowToGetProviderApiKey": {
+    "message": "How to get $PROVIDER_NAME$ API Key?",
+    "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
   "lblKeyboardShortcuts": {
     "message": "Atalhos do teclado"
   },
@@ -395,6 +413,56 @@
   },
   "lblPlsDonate": {
     "message": "Ajude o desenvolvedor com uma doação"
+  },
+  "lblProviderApiEndpoint": {
+    "message": "$PROVIDER_NAME$ API Endpoint URL",
+    "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
+  "lblProviderApiKey": {
+    "message": "$PROVIDER_NAME$ API Key",
+    "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
+  "lblProviderDocumentation": {
+    "message": "$PROVIDER_NAME$ Documentation",
+    "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
+  "lblProviderModel": {
+    "message": "$PROVIDER_NAME$ Model",
+    "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
+  "lblProviderReasoningDepth": {
+    "message": "$PROVIDER_NAME$ Reasoning Depth",
+    "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
   },
   "lblReleaseNotes": {
     "message": "Notas da versão"
@@ -599,8 +667,24 @@
   "msgEnterApiKeyForModels": {
     "message": "Por favor, insira a chave de API para obter os modelos disponíveis para este provedor"
   },
+  "msgEnterModelName": {
+    "message": "Enter model name/ID:",
+    "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
+  },
+  "msgEnterProviderApiBase": {
+    "message": "Enter API Endpoint URL (optional, press OK to skip):",
+    "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
+  },
+  "msgEnterProviderName": {
+    "message": "Enter provider name:",
+    "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
+  },
   "msgErrorDownloadingDocument": {
     "message": "Erro ao baixar o documento"
+  },
+  "msgErrorLoadingModels": {
+    "message": "Error loading models",
+    "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "idiomas favoritos"
@@ -664,6 +748,38 @@
   },
   "msgPleaseWait": {
     "message": "Por favor, aguarde..."
+  },
+  "msgReasoningDepthHigh": {
+    "message": "High",
+    "description": "Reasoning depth option label (models.dev effort value: high)."
+  },
+  "msgReasoningDepthLow": {
+    "message": "Low",
+    "description": "Reasoning depth option label (models.dev effort value: low)."
+  },
+  "msgReasoningDepthMax": {
+    "message": "Max",
+    "description": "Reasoning depth option label (models.dev effort value: max)."
+  },
+  "msgReasoningDepthMedium": {
+    "message": "Medium",
+    "description": "Reasoning depth option label (models.dev effort value: medium)."
+  },
+  "msgReasoningDepthMinimal": {
+    "message": "Minimal",
+    "description": "Reasoning depth option label (models.dev effort value: minimal)."
+  },
+  "msgReasoningDepthNone": {
+    "message": "None",
+    "description": "Reasoning depth option label (models.dev effort value: none)."
+  },
+  "msgReasoningDepthProviderDefault": {
+    "message": "Default (provider)",
+    "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
+  },
+  "msgReasoningDepthXHigh": {
+    "message": "XHigh",
+    "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
     "message": "Recentes"

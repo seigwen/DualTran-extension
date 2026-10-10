@@ -257,3 +257,49 @@ describe("popup always-translate language rows carry the language-name placehold
     expect(wrongShape).toEqual([]);
   });
 });
+
+describe("AI options panel provider labels carry the $PROVIDER_NAME$ placeholder (#155)", () => {
+  // Guard for the options page's provider-panel labels, which append the
+  // provider's display name at runtime (e.g. "OpenAI API Key" / "OpenAI 模型").
+  // A locale that drops the placeholder (or its $1 mapping) silently loses the
+  // provider name — the label degrades to a bare "API Key" in that language.
+  const PROVIDER_LABEL_KEYS = [
+    "lblProviderApiKey",
+    "lblProviderApiEndpoint",
+    "lblProviderModel",
+    "lblProviderReasoningDepth",
+    "lblHowToGetProviderApiKey",
+    "lblProviderDocumentation",
+  ];
+  const locales = readdirSync(LOCALES_DIR).filter((entry) =>
+    existsSync(join(LOCALES_DIR, entry, "messages.json"))
+  );
+  const enMessages = readMessages("en");
+
+  it("en defines all six keys with the provider-name placeholder and its $1 mapping", () => {
+    for (const key of PROVIDER_LABEL_KEYS) {
+      const entry = enMessages[key];
+      expect(typeof entry?.message, `en is missing ${key}`).toBe("string");
+      expect(entry.message).toContain("$PROVIDER_NAME$");
+      expect(entry.placeholders?.PROVIDER_NAME?.content).toBe("$1");
+    }
+  });
+
+  it("every locale keeps the $PROVIDER_NAME$ placeholder and its $1 mapping", () => {
+    const broken = [];
+    for (const locale of locales) {
+      const messages = readMessages(locale);
+      for (const key of PROVIDER_LABEL_KEYS) {
+        const entry = messages[key];
+        const keepsPlaceholder =
+          typeof entry?.message === "string" &&
+          entry.message.includes("$PROVIDER_NAME$") &&
+          entry.placeholders?.PROVIDER_NAME?.content === "$1";
+        if (!keepsPlaceholder) {
+          broken.push(`${locale}:${key}`);
+        }
+      }
+    }
+    expect(broken).toEqual([]);
+  });
+});
