@@ -20,6 +20,13 @@
 - [ ] Does it affect the state-machine legality table?
       → If yes: are the legal/illegal transitions updated? (Illegal transitions must throw during development/testing)
 
+## i18n Impact (required — spec 47 RULE 19)
+
+- [ ] No user-visible strings added/changed, **or** new strings went through `_locales`: key in en (+`description`), `npm run i18n:sync`, zh_CN/zh_TW hand-translated
+- [ ] Write sites use a registered wrapper (`getMessageWithFallback` / `i18nOrDefault`) — no hand-rolled env guards
+- [ ] If one of the five sentinel surfaces changed (options / popup / floating group / hover box / selection panel): local sentinel run green after `npm run build` (`--scenario=i18n-sentinel`)
+- [ ] New exemptions/allowlist entries carry a reason — `data` / `platform` only; `legacy` count stays 0
+
 ## Testing
 
 - [ ] Unit tests added/updated (`npm test`)
