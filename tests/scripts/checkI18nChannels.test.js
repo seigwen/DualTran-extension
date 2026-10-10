@@ -164,3 +164,12 @@ describe("check-i18n-channels lint", () => {
     expect(output).toContain("Cannot load");
   });
 });
+
+// ── Implementation-point map (CLAUDE.md RULE 19: i18n output rule, spec 47 / #157) ──
+// check-rule-symmetry resolves each identifier below to test coverage:
+//   getMessageWithFallback — content-script write-site reader (contentScript/i18n.js)
+//   i18nOrDefault         — options write-site reader (options.js)
+//   auditPlaceholders     — placeholder full-enumeration audit (i18nCompleteness.test.js)
+//   auditDescriptions     — description freeze audit (i18nDescriptions.test.js)
+//   I18N_CHANNELS         — six-channel SSOT (tests/shared/i18n-channels.mjs)
+//   classifyItems         — sentinel classifier (tests/shared/i18n-sentinel-rules.mjs)

@@ -942,3 +942,14 @@ function createDom() {
 
 - `globals: true` — `describe`/`test`/`expect`/`vi` etc. don't need import
 - `restoreMocks: true` — automatically restores all mocks after each test
+
+## i18n 纪律（spec 47 / #157 —— 新增/修改任何用户可见文案前必读）
+
+- 流程：键进 `src/_locales/en/messages.json`（**必须带 `description`**）→ `npm run i18n:sync` → zh_CN/zh_TW 手译 → RED-first 断言（先复现缺失/回退再修）。
+- 读法：content-script 写点一律 `getMessageWithFallback`；options 一律 `i18nOrDefault`。**禁止自写环境守卫**（`typeof chrome` 会挂 platform-probe lint 硬失败）。
+- 动态前缀（provider 名 / 语言名 / 快捷键）必须走 `$NAME$` 占位符族 + `placeholders.$N` 映射；全枚举守卫在 `tests/static/i18nCompleteness.test.js`（按名对齐、顺序自由、legacy 字面值样式镜像 en）。
+- description 冻结：`tests/static/i18nDescriptions.test.js` + `fixtures/i18nDescriptions/legacyNoDescription.json`（shrink-only —— 键补描述后必须从清单摘除）。
+- L1 豁免语法 `// i18n-exempt: <category> — <理由>`；**`legacy` 类计数必须保持 0**（新豁免一律不许 legacy；data / platform 需逐条理由）。
+- 改动五面（options / popup / 浮动组 / 悬停框 / 划词面板）任一文案渲染 → 先 `npm run build` 再跑 `--scenario=i18n-sentinel`。
+- 改动守卫自身（check-i18n-* / 哨兵）→ 跑对应自测 + `node scripts/check-i18n-channels.js` 三方核对 + `npm run i18n:check`。
+

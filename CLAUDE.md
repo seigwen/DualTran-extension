@@ -328,6 +328,14 @@ Content Script (fetchSSE.js)
 - **测试：** `tests/manifest/buildArtifactGuards.test.js`（N1 产物级 AST 零 console 引用——对 dist/chrome/**/*.js 逐文件解析，含计算属性与 window/globalThis/self 变体；N2 HTML 本地引用可解析）；`tests/contentScript/pageTranslator.test.js`（emitDualTranDebugLog 真值表：error/log/未知 level 回退，负向格）；`tests/options/options.test.js`（未命中经 debugLog + 存在元素负向格）。
 - **门禁纪律：** 改动 `sw.js` 的 `log`/`logError` 注入点、`pageTranslator` 调试发点或 options 的 `$`/`debugLog` 后，必须跑 `buildArtifactGuards.test.js`（产物级 N1 是唯一能验「terser 是否删得掉」的手段；静态 grep 会误判 provider URL 字符串）。
 
+**RULE: i18n 产出规则（i18n output rule, spec 47 / #157）—— 一切用户可见字符串必须经 `_locales` 机制产出：**
+
+- **症状/机制：** 用户可见文案的三类逃逸史：① 代码层拼接写死（#155：options AI 面板 15 处英文 label 全语言可见）；② 引用不存在/拼错的键（静默回退英文：`getMessage("loading")`、toast 键、`btnChangeLanguages` —— 五类全语言英文存量）；③ 静态/平台面写死（#121 GitHub 模板中文；manifest description 多年英文）。单点人工修复追不上新代码——必须由守卫默认拦截。
+- **裁决：** 新增任何用户可见字符串（JS 写点 / HTML 绑定 / manifest 可本地化字段）必须经 `_locales`：键入 en（带 `description`）→ `npm run i18n:sync` → zh_CN/zh_TW 手译。英文回退只允许出现在「i18n runtime 缺失」的最后兜底位（`||` 右侧 / helper 兜底参数）；动态前缀（provider 名 / 语言名 / 快捷键）必须走 `$NAME$` 占位符族。
+- **实现点清单（规则对称性）：** `getMessageWithFallback`、`i18nOrDefault`、`auditPlaceholders`、`auditDescriptions`、`I18N_CHANNELS`、`classifyItems`（六个标识符；宿主文件与职责见 `tests/scripts/checkI18nChannels.test.js` 的 Implementation-point map）。
+- **测试：** `tests/static/i18nWrites.test.js`（L1 双向校准：干净绿 / 脏必红）、`tests/shared/i18nSentinelRules.test.js`（分类器 11 格自测）、`tests/static/i18nCompleteness.test.js`（占位符全枚举 + 删 token 负例）、`tests/static/i18nDescriptions.test.js`（冻结三负例 + 真树演示）、`tests/scripts/checkI18nChannels.test.js`（channels lint 七格 fixtures）。E2E：`tests/browser-e2e/i18n-sentinel.mjs`（五面运行时全称检查，CI E2E 套件内）。
+- **门禁纪律：** ① 文案改动先 red 后绿（先写断言复现缺失/回退，再补键/修写点）；② 新 en 键必带 `description`（冻结清单只缩不加）；③ content-script 写点一律 `getMessageWithFallback`、options 一律 `i18nOrDefault`——**禁止自写 `typeof chrome` / `chrome &&` 守卫**（platform-probe lint 硬失败）；④ 豁免仅 `// i18n-exempt: <category> — <理由>`，`legacy` 类计数必须保持 0；⑤ 改动守卫自身或管线接线后必须跑 `node scripts/check-i18n-channels.js` 与 `npm run i18n:check`。
+
 **基础设施假设清单（Infrastructure Assumptions，M1 issue #31）—— 每个假设必须有测试引用（M3 用 check-infra-assumptions.js 强制）：**
 - **假设：** `document.body` 元素可能被框架整体替换（Turbo Drive 回退导航 `replaceWith`，2026-09-10 github.com 实测）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav」2 个
 - **假设：** `document.documentElement`（`<html>`）在 SPA 导航中存活（实测 `htmlReplaced: false`）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav: body element replaced immediately → host must be recreated」

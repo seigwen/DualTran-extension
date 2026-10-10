@@ -28,6 +28,17 @@
 2. **i18n**：`src/` 下所有字符串必须走 i18n（`_locales/`），注释必须纯英文（CI hard failure）。
 3. **规则落档**：任何新规则/新教训必须写入根 `CLAUDE.md`  和 AGENTS.md 或 `tests/CLAUDE.md` 或 dualtran-extension skill，禁止只存在口头/临时记忆中。
 
+## i18n 机制表（spec 47 —— 写文案前查这 6 通道）
+
+| 通道 | 守卫 | 正确姿势 | 陷阱 |
+|---|---|---|---|
+| 写点（JS） | `check-i18n-writes.js`（CI + pre-push） | 写点经 `getMessageWithFallback`（content-script）/ `i18nOrDefault`（options） | 自写 `typeof chrome` / `chrome &&` 守卫会挂 platform-probe lint 硬失败；`||` 右侧英文仅限「runtime 缺失」最后兜底 |
+| 运行时 | `i18n-sentinel.mjs`（E2E 五面哨兵） | 新面接入哨兵；放行三层：自动派生 > `data-i18n-exempt` > register | register 条目必须命中且带理由（stale 报告点名）；跑 E2E 前必 `npm run build` |
+| 静态完整性 | `i18nCompleteness.test.js` | 新键 `npm run i18n:sync` + zh 手译 | 占位符 token 按名对齐（顺序自由）、映射镜像 en；legacy 字面值样式被冻结 |
+| 译者描述 | `i18nDescriptions.test.js` | 新 en 键必带 `description` | 冻结清单只缩：键补了描述必须从清单摘除 |
+| 同步管线 | `sync-locales.js`（`i18n:sync` / `i18n:check`） | 改 en 后 sync；check 已挂 CI + pre-push | 旧 `i18n:apply` / `i18n:verify` 已删（依赖从未存在的文件） |
+| manifest | `manifestValidation.test.js` | 可本地化头字段走 `__MSG_` | description 变更影响 chrome://extensions 卡片文案 |
+
 ## 诊断铁律（状态 bug）
 
 1. 先用 `uiStateStore.dumpLog()` 回溯状态变更历史——**禁止直接改代码盲猜**。
