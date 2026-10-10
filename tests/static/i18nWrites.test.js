@@ -11,7 +11,9 @@
  *   - dirty fixture  → exit 1 and every seeded violation is reported with the
  *     right rule tag (R1 / R1b / R2 / R3), while the same-line
  *     `i18n-exempt: legacy` marker suppresses exactly its own line and
- *     `data-i18n-ph-value` is never key-checked.
+ *     `data-i18n-ph-value` is never key-checked;
+ *   - orphan fixture → exit 1 for an en key referenced nowhere (the orphan hard
+ *     gate), naming exactly the orphan and not the referenced sibling key.
  *
  * RED-first calibration (2026-10-10, precision-probe runs over the real tree):
  * 82 → 43 → 33 raw hits across three rule-narrowing iterations (CJS/ESM
@@ -63,6 +65,14 @@ describe("i18n write-site guard (check-i18n-writes)", () => {
     expect(out).not.toContain('"Exempted"');
     // data-i18n-ph-value is a substitution value, never a key
     expect(out).not.toContain('"(.pdf)"');
+  });
+
+  it("fails on orphan en keys (hard gate: key exists but is referenced nowhere)", () => {
+    const { status, out } = runLint(resolve(__dirname, "fixtures/i18nWrites/orphan/src"));
+    expect(status, out).toBe(1);
+    expect(out).toContain("orphanDemoKey");
+    expect(out).toContain("orphan");
+    expect(out).not.toContain("referencedDemoKey");
   });
 
   it("passes on the real src tree (zero unexempted violations)", () => {

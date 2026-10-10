@@ -19,10 +19,12 @@
          insertAdjacentHTML must not contain hardcoded visible text, unless the
          template carries data-i18n* wiring (then R3 applies at file level).
     R2   key reference integrity — message keys used in getMessage-family calls
-         and in data-i18n* attributes must exist in src/_locales/en/messages.json
+         and in data-i18n* attributes must exist in en/messages.json
          (case-insensitive — chrome.i18n.getMessage lookup is case-insensitive).
          Concatenated keys need a registered prefix allowlist. Orphan en keys
-         (mentioned nowhere in src/ outside _locales) are warnings only.
+         (mentioned nowhere in src/ outside _locales) are a HARD failure —
+         remove the key from every locale (`npm run i18n:sync`) or register the
+         dynamic prefix.
     R3   dead data-i18n bindings — a JS file that writes data-i18n* bindings
          inside HTML fragments must also call translateDocument() somewhere in
          that file; otherwise the binding never runs and the English default
@@ -53,7 +55,13 @@ const ROOT = path.resolve(__dirname, "..");
 const args = process.argv.slice(2);
 const dirArgIdx = args.indexOf("--dir");
 const SOURCE_DIR = dirArgIdx >= 0 ? path.resolve(args[dirArgIdx + 1]) : path.join(ROOT, "src");
-const EN_MESSAGES_PATH = path.join(ROOT, "src", "_locales", "en", "messages.json");
+// en key-set resolution: a fixture that ships its own _locales/en/messages.json is
+// judged against its own keys (self-contained calibration); the real tree resolves
+// to the same file via either branch.
+const EN_MESSAGES_PATH = (() => {
+  const scoped = path.join(SOURCE_DIR, "_locales", "en", "messages.json");
+  return fs.existsSync(scoped) ? scoped : path.join(ROOT, "src", "_locales", "en", "messages.json");
+})();
 const MANIFEST_PATH = path.join(ROOT, "src", "manifest.json");
 
 const CJK_RE = /[\u4E00-\u9FFF]/;
@@ -666,10 +674,16 @@ async function main() {
   }
 
   if (orphans.length > 0) {
-    console.warn(
-      `⚠️  orphan en keys (mentioned nowhere outside _locales — warn only, ${orphans.length}):`
+    console.error(
+      `i18n orphan en keys found (${orphans.length}) — keys in en/messages.json referenced nowhere in src/ (JS/HTML/manifest):`
     );
-    for (const k of orphans) console.warn("   - " + k);
+    for (const k of orphans) console.error("   - " + k);
+    console.error("");
+    console.error(
+      "Remove each key from every locale (`npm run i18n:sync` prunes extras) or, if the key is " +
+        "built dynamically, register its prefix (KEY_PREFIX_ALLOWLIST / a getMessage-family " +
+        "concatenation the lint can see)."
+    );
   }
 
   const summary = {
@@ -684,7 +698,7 @@ async function main() {
   };
   console.log("summary:", JSON.stringify(summary));
 
-  if (deduped.length > 0) process.exit(1);
+  if (deduped.length > 0 || orphans.length > 0) process.exit(1);
   console.log("✅ No i18n write-site violations found.");
   process.exit(0);
 }

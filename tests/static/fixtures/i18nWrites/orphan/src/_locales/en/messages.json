@@ -1,0 +1,8 @@
+{
+  "orphanDemoKey": {
+    "message": "Orphan demo (referenced nowhere — must be reported)"
+  },
+  "referencedDemoKey": {
+    "message": "Referenced demo (used below — must NOT be reported)"
+  }
+}
