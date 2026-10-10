@@ -23,6 +23,8 @@
  * spinner behind.
  */
 
+import { getMessageWithFallback } from "./i18n.js";
+
 const TYPE_COLORS = {
   google: "rgb(22, 163, 74)",   // green-600
   ai: "rgb(124, 58, 237)",      // violet-600
@@ -116,7 +118,11 @@ function createSpinner(type) {
   span.style.cssText =
     "display:inline-block; width:12px; height:12px; border:2px solid currentColor; border-right-color:transparent; border-radius:999px; animation:dualtranBlockSpinnerRotate 0.7s linear infinite; opacity:0.5; vertical-align:middle; margin-left:4px; box-sizing:border-box;";
   span.style.color = TYPE_COLORS[type];
-  span.setAttribute("aria-label", type + " translation in progress"); // i18n-exempt: legacy — indicator aria text is English-only; i18n in #157 batch ①
+  // #157 batch ①: localized via locales through the shared getMessageWithFallback
+  // helper (try/catch + optional chaining); the English string stays only as a
+  // last-resort fallback for a missing i18n runtime.
+  const progressText = getMessageWithFallback("msgTranslationInProgress", "translation in progress");
+  span.setAttribute("aria-label", type + " " + progressText);
   return span;
 }
 
@@ -136,8 +142,9 @@ function createErrorIcon(type, errorMessage) {
     "display:inline-block; font-size:12px; opacity:0.5; vertical-align:middle; margin-left:4px; cursor:pointer;";
   span.style.color = TYPE_COLORS[type];
   span.textContent = "⚠";
-  span.title = errorMessage || "Translation error";
-  span.setAttribute("aria-label", type + " translation error"); // i18n-exempt: legacy — indicator aria text is English-only; i18n in #157 batch ①
+  span.title = errorMessage || getMessageWithFallback("msgTranslationError", "Translation error"); // #157 batch ①: localized; English kept as last-resort fallback only
+  const errorText = getMessageWithFallback("msgTranslationError", "translation error");
+  span.setAttribute("aria-label", type + " " + errorText);
   return span;
 }
 

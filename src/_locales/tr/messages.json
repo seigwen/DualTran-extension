@@ -103,6 +103,10 @@
   "btnApply": {
     "message": "Uygula"
   },
+  "btnChangeLanguages": {
+    "message": "Change languages",
+    "description": "Popup/mobile menu row: open the change-languages view"
+  },
   "btnFeedbackCopyDiagnostics": {
     "message": "Copy diagnostic info"
   },
@@ -156,6 +160,10 @@
   },
   "btnTranslate": {
     "message": "Çevir"
+  },
+  "btnTryAgain": {
+    "message": "Try Again",
+    "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
     "message": "Kopyala"
@@ -216,6 +224,14 @@
   },
   "errorCopyFailedInsecure": {
     "message": "Metin kopyalama başarısız. Muhtemelen sayfanın URL protokolü güvenli olmayan HTTP, HTTPS değil."
+  },
+  "errorTranslationFailed": {
+    "message": "Translation failed",
+    "description": "Toast + in-box error text when a text translation request fails"
+  },
+  "errorTranslationTimeout": {
+    "message": "Translation request timed out",
+    "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
     "message": "Çeviri hatası: bilinmeyen hata."
@@ -849,6 +865,14 @@
         "example": "English"
       }
     }
+  },
+  "msgTranslationError": {
+    "message": "translation error",
+    "description": "aria-label suffix on the error icon of the block translation indicator"
+  },
+  "msgTranslationInProgress": {
+    "message": "translation in progress",
+    "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
     "message": "Çeviriler"

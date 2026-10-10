@@ -103,6 +103,9 @@
   "btnApply": {
     "message": "套用"
   },
+  "btnChangeLanguages": {
+    "message": "變更語言"
+  },
   "btnFeedbackCopyDiagnostics": {
     "message": "複製診斷資訊"
   },
@@ -156,6 +159,9 @@
   },
   "btnTranslate": {
     "message": "翻譯"
+  },
+  "btnTryAgain": {
+    "message": "重試"
   },
   "btncopy": {
     "message": "複製"
@@ -216,6 +222,12 @@
   },
   "errorCopyFailedInsecure": {
     "message": "複製文字失敗。可能是因為頁面 URL 協定不安全（HTTP 而非 HTTPS）。"
+  },
+  "errorTranslationFailed": {
+    "message": "翻譯失敗"
+  },
+  "errorTranslationTimeout": {
+    "message": "翻譯請求逾時"
   },
   "errorTranslationUnknown": {
     "message": "翻譯錯誤：未知錯誤。"
@@ -849,6 +861,12 @@
         "example": "English"
       }
     }
+  },
+  "msgTranslationError": {
+    "message": "翻譯錯誤"
+  },
+  "msgTranslationInProgress": {
+    "message": "翻譯進行中"
   },
   "msgTranslations": {
     "message": "翻譯"

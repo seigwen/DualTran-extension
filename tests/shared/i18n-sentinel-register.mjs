@@ -35,11 +35,6 @@ export const REGISTER = [
     reason: "engine label token (hardcoded in floating group); decision in #157 batch ③",
   },
   {
-    text: "Loading...",
-    category: "legacy",
-    reason: "panelShared loading label — key \"loading\" missing in all locales; fix to msgLoadingModels in #157 batch ①",
-  },
-  {
     text: "More languages",
     category: "legacy",
     reason: "panels' + button tooltip (hardcoded title, no key exists); add key + data-i18n-title in #157 batch ③",
