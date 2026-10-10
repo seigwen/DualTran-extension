@@ -798,13 +798,18 @@ export async function waitForPageStorageValue(page, key, expectedValue, timeoutM
  *   serviceWorker: import("playwright").Worker,
  * }) => Promise<T>} callback - 在隔离上下文中执行的测试逻辑
  * @param {ErrorCollector|null} [collector=null] - 错误收集器实例
- * @param {{ locale?: string }} [options={}] - 额外选项，locale 指定浏览器 UI 语言
+ * @param {{ locale?: string, prepareExtDir?: (baseDir: string) => Promise<string>, initScripts?: Function[] }} [options={}] - 额外选项：
+ *   - locale: 指定浏览器 UI 语言（--lang）
+ *   - prepareExtDir: 可选钩子——接收「已准备的基础扩展目录」，返回实际加载的目录
+ *     （哨兵场景用它复制一份并注入自定义 _locales/xx_XX；默认原样使用）
+ *   - initScripts: 可选的 context.addInitScript 列表（如 attachShadow closed→open 补丁）
  * @returns {Promise<T>}
  */
 export async function runWithIsolatedExtensionContext(callback, collector = null, options = {}) {
   const userDataDir = await fs.mkdtemp(path.join(os.tmpdir(), "dualtran-options-e2e-"));
   /** 浏览器启动参数 */
-  const extDir = await prepareExtensionDir();
+  const baseExtDir = await prepareExtensionDir();
+  const extDir = options.prepareExtDir ? await options.prepareExtDir(baseExtDir) : baseExtDir;
   const launchArgs = [
     `--disable-extensions-except=${extDir}`,
     `--load-extension=${extDir}`,
@@ -817,6 +822,11 @@ export async function runWithIsolatedExtensionContext(callback, collector = null
     headless: false,
     args: launchArgs,
   });
+  if (Array.isArray(options.initScripts)) {
+    for (const script of options.initScripts) {
+      await isolatedContext.addInitScript(script);
+    }
+  }
 
   try {
     const extensionId = await findExtensionId(isolatedContext, 30_000);
