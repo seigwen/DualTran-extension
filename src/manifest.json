@@ -3,7 +3,7 @@
   "default_locale": "en",
   "name": "DualTran",
 	"version": "2.1.30",
-	"description": "AI-powered browser extension that translates web pages and displays the translated text with the original text in the same page.",
+	"description": "__MSG_extensionDescription__",
   // Register default keyboard shortcuts. Docs: https://developer.chrome.com/docs/extensions/mv3/declare_commands/
   "commands": {
     "hotkey-toggle-translation": {

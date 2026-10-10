@@ -746,6 +746,33 @@ describe("options/options", () => {
     expect(document.querySelector("#alwaysTranslateSites li")?.textContent).toContain("docs.example");
   });
 
+  // ── i18n batch ③ (#157): Sites + dictionary prompts go through i18nOrDefault ──
+
+  it("localizes the Sites and dictionary prompts through i18n (#157 batch ③)", async () => {
+    await loadOptionsModule(
+      { alwaysTranslateSites: [] },
+      {
+        messageOverrides: {
+          msgEnterSiteHostname: "输入网站主机名",
+          msgEnterDictionaryKeyword: "输入关键词，至少两个字母",
+          msgEnterDictionaryValue: "（可选）可输入替换值。",
+        },
+      }
+    );
+
+    globalThis.prompt.mockReturnValueOnce("docs.example");
+    document.querySelector("#addToAlwaysTranslateSites").click();
+    expect(globalThis.prompt).toHaveBeenCalledWith("输入网站主机名", "www.site.com");
+
+    globalThis.prompt.mockClear();
+    globalThis.prompt.mockReturnValueOnce("hallo").mockReturnValueOnce("hello");
+    document.querySelector("#addToCustomDictionary").click();
+    expect(globalThis.prompt.mock.calls.map((call) => call[0])).toEqual([
+      "输入关键词，至少两个字母",
+      "（可选）可输入替换值。",
+    ]);
+  });
+
   // ── AI always-translate lists (issue #145) ──────────────────────────
 
   it("adds a language to the always-translate-AI list", async () => {
@@ -899,6 +926,23 @@ describe("options/options", () => {
       expect(row.querySelector(":scope > div").textContent.trim()).not.toBe("");
     });
     expect(document.getElementById("hotkey-toggle-translation").querySelector('[name="input"]').value).toBe("Alt+T");
+  });
+
+  it("sets the hotkey-row placeholder directly from i18n (this page has no translateDocument pass, #157 batch ③)", async () => {
+    await loadOptionsModule({ hotkeys: { "hotkey-toggle-translation": "Alt+T" } }, {
+      commandsGetAllResults: [
+        { name: "hotkey-toggle-translation", description: "Switch", shortcut: "Alt+T" },
+      ],
+      manifestCommands: { "hotkey-toggle-translation": { suggested_key: { default: "Alt+T" } } },
+      browserGlobal: firefoxBrowserStub(),
+      messageOverrides: { enterShortcut: "输入一个快捷键" },
+    });
+
+    const rows = document.querySelectorAll("#KeyboardShortcuts .shortcut-row");
+    expect(rows).toHaveLength(1);
+    // The old data-i18n-placeholder binding never fired here (no translateDocument
+    // in the options page) — the placeholder must come from the direct JS write.
+    expect(rows[0].querySelector('[name="input"]').placeholder).toBe("输入一个快捷键");
   });
 
   // ── 平台形态矩阵：storage.onChanged 订阅点（P1, issue #88）──
