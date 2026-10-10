@@ -68,6 +68,14 @@
   "backupToFile": {
     "message": "備份至檔案"
   },
+  "btnAddCustomModelTooltip": {
+    "message": "新增自訂模型",
+    "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
+  },
+  "btnAddCustomProviderTooltip": {
+    "message": "新增不在清單中的自訂提供者",
+    "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
+  },
   "btnAlwaysTranslate": {
     "message": "總是使用 Google 翻譯此網站"
   },
@@ -272,7 +280,7 @@
     "message": "AI 提供者"
   },
   "lblAiReasoningDepth": {
-    "message": "Reasoning depth",
+    "message": "推理深度",
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
@@ -312,7 +320,7 @@
     "message": "黑暗模式"
   },
   "lblEnableAiTranslationCache": {
-    "message": "Enable AI translation cache",
+    "message": "啟用 AI 翻譯快取",
     "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
@@ -347,6 +355,16 @@
   },
   "lblHotTranslatedSelectedText": {
     "message": "立即將所選文字取代為譯文"
+  },
+  "lblHowToGetProviderApiKey": {
+    "message": "如何取得 $PROVIDER_NAME$ API 金鑰？",
+    "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
   },
   "lblKeyboardShortcuts": {
     "message": "鍵盤快捷鍵"
@@ -395,6 +413,56 @@
   },
   "lblPlsDonate": {
     "message": "資助開發者"
+  },
+  "lblProviderApiEndpoint": {
+    "message": "$PROVIDER_NAME$ API 端點 URL",
+    "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
+  "lblProviderApiKey": {
+    "message": "$PROVIDER_NAME$ API 金鑰",
+    "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
+  "lblProviderDocumentation": {
+    "message": "$PROVIDER_NAME$ 說明文件",
+    "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
+  "lblProviderModel": {
+    "message": "$PROVIDER_NAME$ 模型",
+    "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
+  },
+  "lblProviderReasoningDepth": {
+    "message": "$PROVIDER_NAME$ 推理深度",
+    "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
+    "placeholders": {
+      "PROVIDER_NAME": {
+        "content": "$1",
+        "example": "OpenAI"
+      }
+    }
   },
   "lblReleaseNotes": {
     "message": "版本資訊"
@@ -581,7 +649,7 @@
     "description": "Error message when DeepSeek models cannot be loaded (with HTTP status placeholder $1)"
   },
   "msgDefault": {
-    "message": "Default",
+    "message": "預設",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgDonateWithPaypal": {
@@ -599,8 +667,24 @@
   "msgEnterApiKeyForModels": {
     "message": "請先輸入API key以取得該提供者的可用模型列表"
   },
+  "msgEnterModelName": {
+    "message": "請輸入模型名稱/ID：",
+    "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
+  },
+  "msgEnterProviderApiBase": {
+    "message": "請輸入 API 端點 URL（選填，按確定略過）：",
+    "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
+  },
+  "msgEnterProviderName": {
+    "message": "請輸入提供者名稱：",
+    "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
+  },
   "msgErrorDownloadingDocument": {
     "message": "下載文件時發生錯誤"
+  },
+  "msgErrorLoadingModels": {
+    "message": "模型載入失敗",
+    "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "優先選擇目標語言"
@@ -664,6 +748,38 @@
   },
   "msgPleaseWait": {
     "message": "請稍候……"
+  },
+  "msgReasoningDepthHigh": {
+    "message": "高",
+    "description": "Reasoning depth option label (models.dev effort value: high)."
+  },
+  "msgReasoningDepthLow": {
+    "message": "低",
+    "description": "Reasoning depth option label (models.dev effort value: low)."
+  },
+  "msgReasoningDepthMax": {
+    "message": "最高",
+    "description": "Reasoning depth option label (models.dev effort value: max)."
+  },
+  "msgReasoningDepthMedium": {
+    "message": "中",
+    "description": "Reasoning depth option label (models.dev effort value: medium)."
+  },
+  "msgReasoningDepthMinimal": {
+    "message": "極低",
+    "description": "Reasoning depth option label (models.dev effort value: minimal)."
+  },
+  "msgReasoningDepthNone": {
+    "message": "無",
+    "description": "Reasoning depth option label (models.dev effort value: none)."
+  },
+  "msgReasoningDepthProviderDefault": {
+    "message": "預設（提供者）",
+    "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
+  },
+  "msgReasoningDepthXHigh": {
+    "message": "極高",
+    "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
     "message": "最近記錄"

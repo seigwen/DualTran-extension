@@ -48,6 +48,72 @@ const EXPECTED_TEXTS = {
   },
 };
 
+/**
+ * AI 面板的动态文案期望值（#155）——直接来自各 locale 的 messages.json：
+ * provider 面板四个 label（`$PROVIDER_NAME$` 占位符替换后）、API-key 帮助链接、
+ * 两个「+」按钮的 tooltip。en 断言兼防 $PROVIDER_NAME$ 字面泄漏。
+ */
+const EXPECTED_AI_PANEL = {
+  "zh-CN": {
+    apiKeyLabel: "OpenAI API 密钥",
+    apiKeyLink: "如何获取 OpenAI API 密钥？",
+    modelLabel: "OpenAI 模型",
+    reasoningLabel: "OpenAI 推理深度",
+    addProviderTitle: "添加列表中不存在的自定义提供商",
+    addModelTitle: "添加自定义模型",
+  },
+  "en": {
+    apiKeyLabel: "OpenAI API Key",
+    apiKeyLink: "How to get OpenAI API Key?",
+    modelLabel: "OpenAI Model",
+    reasoningLabel: "OpenAI Reasoning Depth",
+    addProviderTitle: "Add a custom provider not in the list",
+    addModelTitle: "Add a custom model",
+  },
+};
+
+/**
+ * 等待 AI 面板的动态 label 离开静态初始值（provider 面板就绪）。
+ * 初始静态文案为 "Model"；_updatePanelLabels 运行后被替换为
+ * "{Provider} Model"（如 "OpenAI 模型"）——以此作为就绪信号。
+ */
+async function waitForAiPanelReady(page) {
+  await page.waitForFunction(() => {
+    const el = document.getElementById("genericModelLabel");
+    return !!el && !!el.textContent && el.textContent !== "Model";
+  }, null, { timeout: 15000 });
+}
+
+/** 读取 AI 面板的 i18n 可见面（四个 label + 帮助链接 + 两个 tooltip）。 */
+async function readAiPanelTexts(page) {
+  return page.evaluate(() => ({
+    apiKeyLabel: document.getElementById("genericApiKeyLabel")?.textContent ?? null,
+    apiKeyLink: document.getElementById("genericApiKeyLink")?.textContent ?? null,
+    modelLabel: document.getElementById("genericModelLabel")?.textContent ?? null,
+    reasoningLabel: document.getElementById("genericReasoningDepthLabel")?.textContent ?? null,
+    addProviderTitle: document.getElementById("btnAddCustomProvider")?.title ?? null,
+    addModelTitle: document.getElementById("btnAddCustomModel")?.title ?? null,
+  }));
+}
+
+/**
+ * 断言 AI 面板动态文案与期望集合完全一致（逐字段报错）。
+ * @param {Object} actual
+ * @param {Object} expected
+ * @param {string} stepPrefix - 报错前缀（如 "[I1]"）
+ */
+function assertAiPanelTexts(actual, expected, stepPrefix) {
+  for (const [field, expectedValue] of Object.entries(expected)) {
+    const actualValue = actual[field];
+    if (actualValue !== expectedValue) {
+      throw new Error(
+        `${stepPrefix} AI 面板 ${field} 应为 "${expectedValue}"，实际为 "${actualValue}"`
+      );
+    }
+    console.log(`  ${stepPrefix} AI 面板 ${field} = "${actualValue}" ✓`);
+  }
+}
+
 // ═════════════════════════════════════════════════════════════════
 // I1: 中文 locale → 验证中文文本渲染
 // ═════════════════════════════════════════════════════════════════
@@ -66,8 +132,8 @@ async function i1ChineseLocale(scope) {
   console.log("[I1] 中文 locale i18n 验证...");
 
   await runWithIsolatedExtensionContext(async ({ page, extensionId }) => {
-    // 导航到选项页
-    await page.goto(`chrome-extension://${extensionId}/options/options.html#translations`, { waitUntil: "load" });
+    // 导航到选项页 AI 区块（#155：AI 面板动态文案必须在真实 locale 下正确渲染）
+    await page.goto(`chrome-extension://${extensionId}/options/options.html#ai`, { waitUntil: "load" });
 
     // 等待 i18n.translateDocument() 执行完成
     // translateDocument 在 i18n.js 加载时自动执行（typeof chrome.tabs !== "undefined" 时）
@@ -102,6 +168,11 @@ async function i1ChineseLocale(scope) {
       );
     }
     console.log(`  [I1] lblAiProvider 中文正确 ✓`);
+
+    // #155：AI 面板动态文案（$PROVIDER_NAME$ 替换后的 label / 帮助链接 / tooltip）
+    await waitForAiPanelReady(page);
+    const aiPanelTexts = await readAiPanelTexts(page);
+    assertAiPanelTexts(aiPanelTexts, EXPECTED_AI_PANEL["zh-CN"], "[I1]");
   }, scope.collector, { locale: "zh-CN" });
 
   console.log("[I1] 通过 ✓\n");
@@ -122,8 +193,8 @@ async function i2EnglishLocale(scope) {
   console.log("[I2] 英文 locale i18n 验证...");
 
   await runWithIsolatedExtensionContext(async ({ page, extensionId }) => {
-    // 导航到选项页
-    await page.goto(`chrome-extension://${extensionId}/options/options.html#translations`, { waitUntil: "load" });
+    // 导航到选项页 AI 区块
+    await page.goto(`chrome-extension://${extensionId}/options/options.html#ai`, { waitUntil: "load" });
 
     // 等待 i18n 初始化
     await page.waitForTimeout(2000);
@@ -156,6 +227,11 @@ async function i2EnglishLocale(scope) {
       );
     }
     console.log(`  [I2] lblAiProvider 英文正确 ✓`);
+
+    // #155：en 断言兼防 $PROVIDER_NAME$ 字面泄漏（相等断言天然覆盖）
+    await waitForAiPanelReady(page);
+    const aiPanelTexts = await readAiPanelTexts(page);
+    assertAiPanelTexts(aiPanelTexts, EXPECTED_AI_PANEL.en, "[I2]");
   }, scope.collector, { locale: "en" });
 
   console.log("[I2] 通过 ✓\n");
@@ -215,6 +291,11 @@ async function i3FallbackLocale(scope) {
       );
     }
     console.log(`  [I3] lblAiProvider fallback 到英文正确 ✓`);
+
+    // #155：不存在的 locale 下 AI 面板动态文案同样回退到英文
+    await waitForAiPanelReady(page);
+    const aiPanelTexts = await readAiPanelTexts(page);
+    assertAiPanelTexts(aiPanelTexts, EXPECTED_AI_PANEL.en, "[I3]");
   }, scope.collector, { locale: "xx-XX" });
 
   console.log("[I3] 通过 ✓\n");
