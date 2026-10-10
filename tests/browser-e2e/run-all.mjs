@@ -90,6 +90,7 @@ const SCENARIO_MODULE_PATHS = [
   "./hover-panel.mjs",
   "./reasoning-depth.mjs",
   "./feedback-entry.mjs",
+  "./i18n-sentinel.mjs",
   "./visual-audit.mjs",
 ];
 
