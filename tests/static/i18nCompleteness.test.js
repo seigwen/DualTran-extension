@@ -110,24 +110,6 @@ describe("context menu translate labels (Google/AI)", () => {
     expect(enMessages.msgTranslateWithAi.message).toContain("AI");
   });
 
-  it("every locale keeps the $LANGUAGE_NAME$ placeholder and its $1 mapping in both keys", () => {
-    const broken = [];
-    for (const locale of locales) {
-      const messages = readMessages(locale);
-      for (const key of MENU_LABEL_KEYS) {
-        const entry = messages[key];
-        const keepsPlaceholder =
-          typeof entry?.message === "string" &&
-          entry.message.includes("$LANGUAGE_NAME$") &&
-          entry.placeholders?.LANGUAGE_NAME?.content === "$1";
-        if (!keepsPlaceholder) {
-          broken.push(`${locale}:${key}`);
-        }
-      }
-    }
-    expect(broken).toEqual([]);
-  });
-
   it("no locale renders the Google and AI labels identically", () => {
     const identical = locales.filter((locale) => {
       const messages = readMessages(locale);
@@ -222,24 +204,6 @@ describe("popup always-translate language rows carry the language-name placehold
     expect(enMessages.btnAlwaysTranslateThisLanguageWithAi.message).toContain("AI");
   });
 
-  it("every locale keeps the $LANGUAGE_NAME$ placeholder and its $1 mapping in both keys", () => {
-    const broken = [];
-    for (const locale of locales) {
-      const messages = readMessages(locale);
-      for (const key of LANGUAGE_ROW_KEYS) {
-        const entry = messages[key];
-        const keepsPlaceholder =
-          typeof entry?.message === "string" &&
-          entry.message.includes("$LANGUAGE_NAME$") &&
-          entry.placeholders?.LANGUAGE_NAME?.content === "$1";
-        if (!keepsPlaceholder) {
-          broken.push(`${locale}:${key}`);
-        }
-      }
-    }
-    expect(broken).toEqual([]);
-  });
-
   it("no locale has a language row that omits the language-name segment entirely", () => {
     // Sanity on shape: the value must END with the placeholder (the dash + name
     // is appended there) — a translation that moved or merged the placeholder
@@ -284,22 +248,99 @@ describe("AI options panel provider labels carry the $PROVIDER_NAME$ placeholder
       expect(entry.placeholders?.PROVIDER_NAME?.content).toBe("$1");
     }
   });
+});
 
-  it("every locale keeps the $PROVIDER_NAME$ placeholder and its $1 mapping", () => {
-    const broken = [];
-    for (const locale of locales) {
-      const messages = readMessages(locale);
-      for (const key of PROVIDER_LABEL_KEYS) {
-        const entry = messages[key];
-        const keepsPlaceholder =
-          typeof entry?.message === "string" &&
-          entry.message.includes("$PROVIDER_NAME$") &&
-          entry.placeholders?.PROVIDER_NAME?.content === "$1";
-        if (!keepsPlaceholder) {
-          broken.push(`${locale}:${key}`);
+// ── spec 47 P3-a: placeholder integrity, full enumeration ──────────────────
+// Supersedes the former hand-listed preservation cells ($LANGUAGE_NAME$ /
+// $PROVIDER_NAME$ families, retired above). Every en key containing a $TOKEN$
+// placeholder must keep the same token SET (order-free — tokens substitute by
+// NAME, a translation may reorder them) and a mapping for each token in every
+// locale. Mapping style MIRRORS en: $-referencing keys must keep the exact same
+// $N reference; keys whose en mapping is a literal (legacy style, e.g.
+// SHORTCUT_KEY -> "[Ctrl]", HTML_TAG_NAME -> "<PRE>") need a non-empty literal.
+
+const PLACEHOLDER_RE = /\$([A-Z0-9_]+)\$/g;
+
+function placeholderTokens(message) {
+  return [...String(message).matchAll(PLACEHOLDER_RE)].map((m) => m[1]);
+}
+
+/**
+ * Pure audit: token-set equality (by name) + mapping completeness for every
+ * placeholder-bearing en key in every locale. Returns human-readable breaks.
+ */
+function auditPlaceholders(en, messagesByLocale) {
+  const breaks = [];
+  const keys = Object.keys(en).filter((k) => placeholderTokens(en[k].message).length > 0);
+  for (const [locale, messages] of Object.entries(messagesByLocale)) {
+    for (const key of keys) {
+      const expected = placeholderTokens(en[key].message);
+      const entry = messages[key];
+      if (!entry || typeof entry.message !== "string") {
+        breaks.push(`${locale}:${key}:missing`);
+        continue;
+      }
+      const actual = placeholderTokens(entry.message);
+      const sameSet =
+        actual.length === expected.length &&
+        [...actual].sort().join("|") === [...expected].sort().join("|");
+      if (!sameSet) {
+        breaks.push(`${locale}:${key}:tokens [${actual}] != [${expected}]`);
+        continue;
+      }
+      for (const token of expected) {
+        const content = entry.placeholders?.[token]?.content;
+        const enContent = en[key].placeholders?.[token]?.content;
+        if (typeof content !== "string" || content.length === 0) {
+          breaks.push(`${locale}:${key}:${token} mapping content=missing`);
+        } else if (/^\$\d+$/.test(String(enContent)) && content !== enContent) {
+          breaks.push(`${locale}:${key}:${token} mapping content=${content} expected ${enContent}`);
         }
       }
     }
-    expect(broken).toEqual([]);
+  }
+  return breaks;
+}
+
+describe("placeholder integrity (full enumeration, spec 47 P3-a)", () => {
+  const en = readMessages("en");
+  const locales = readdirSync(LOCALES_DIR).filter((entry) =>
+    existsSync(join(LOCALES_DIR, entry, "messages.json"))
+  );
+
+  it("en carries placeholder-bearing keys spanning the known families (sanity)", () => {
+    const keys = Object.keys(en).filter((k) => placeholderTokens(en[k].message).length > 0);
+    expect(keys.length).toBeGreaterThan(0);
+    expect(en.lblProviderModel.message).toContain("$PROVIDER_NAME$");
+    expect(en.msgTranslateWithGoogle.message).toContain("$LANGUAGE_NAME$");
+  });
+
+  it("every locale keeps every placeholder token set + mapping for every placeholder key", () => {
+    const messagesByLocale = {};
+    for (const locale of locales) messagesByLocale[locale] = readMessages(locale);
+    expect(auditPlaceholders(en, messagesByLocale)).toEqual([]);
+  });
+
+  it("self-check: dropped token / dropped mapping / wrong $N reference are all flagged (negative calibration)", () => {
+    const enFixture = { k: { message: "Go $LANGUAGE_NAME$ now", placeholders: { LANGUAGE_NAME: { content: "$1" } } } };
+    const droppedToken = { loc: { k: { message: "Go now", placeholders: { LANGUAGE_NAME: { content: "$1" } } } } };
+    const droppedMapping = { loc: { k: { message: "Go $LANGUAGE_NAME$ now" } } };
+    const wrongRef = { loc: { k: { message: "Go $LANGUAGE_NAME$ now", placeholders: { LANGUAGE_NAME: { content: "$2" } } } } };
+    expect(auditPlaceholders(enFixture, droppedToken)).toEqual(["loc:k:tokens [] != [LANGUAGE_NAME]"]);
+    expect(auditPlaceholders(enFixture, droppedMapping)).toEqual(["loc:k:LANGUAGE_NAME mapping content=missing"]);
+    expect(auditPlaceholders(enFixture, wrongRef)).toEqual(["loc:k:LANGUAGE_NAME mapping content=$2 expected $1"]);
+  });
+
+  it("self-check: legacy literal-content style is accepted when en uses it, rejected when en is positional", () => {
+    const literalEn = { k: { message: "Press $SHORTCUT_KEY$ twice", placeholders: { SHORTCUT_KEY: { content: "[Ctrl]" } } } };
+    const literalLoc = { loc: { k: { message: "Appuyez $SHORTCUT_KEY$ deux fois", placeholders: { SHORTCUT_KEY: { content: "[Ctrl]" } } } } };
+    expect(auditPlaceholders(literalEn, literalLoc)).toEqual([]); // legacy style mirrors en — fine
+    const positionalEn = { k: { message: "Press $KEY$ twice", placeholders: { KEY: { content: "$1" } } } };
+    const locMapUnderDifferentName = {
+      loc: { k: { message: "Appuyez $KEY$ deux fois", placeholders: { SHORTCUT_KEY: { content: "[Ctrl]" } } } },
+    };
+    expect(auditPlaceholders(positionalEn, locMapUnderDifferentName)).toEqual([
+      "loc:k:KEY mapping content=missing",
+    ]); // en is positional — a locale that kept only a stray literal mapping is flagged
   });
 });

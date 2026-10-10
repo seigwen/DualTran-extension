@@ -32,6 +32,8 @@ node scripts/check-visual-checks.js
 node scripts/check-platform-probes.js
 node scripts/check-content-update-channels.js
 node scripts/check-announcement-channels.js
+node scripts/check-i18n-channels.js
+npm run i18n:check
 
 echo ""
 echo "── 2/3 全量单元测试 ──"
