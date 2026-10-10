@@ -232,6 +232,8 @@ tests/
 - 纪律：**凡以「运行的有效意图」为条件的决定（发音/显示/循环/抑制）必须读同一源、同一处收口**；新增任一闸门时必须同步核对其余闸门。与 plan 40「出口唯一化」（发什么）互为镜像——本条收口**认什么**。
 - 测试锁定点：`hoverBtnBehavior.integration.test.js` #152 disarm 格 + armed+ai 对照格（`_getForceAiTranslation` getter）；E2E `ai-nav-restore.mjs` Scene 4（跨页流）；E2E `floating-btn-three-state.mjs` Step 8（确定性同页格：显式切走 + 合成 popstate；newLine 走 `expectVisible` 交叉核对，replaceOriginal 用直读 ai-span 锁）。
 - 竞态禁令：显式切走后的同页格**不得**依赖「尽早点 G」的竞态时序（多数落 `showGoogleOnly` 分支 = 无 RED 能力）——必须用确定性三输入（marker 硬校验 / `aiModeActive=false` / 合成 `popstate`）。
+- **读取点登记（plan 51 / 第 18 lint）：** `src/` 中对意图信号（`aiModeActive` / `shouldForceAiForThisRun` / `shouldForceAiAfterPageTranslation`）的每一处代码引用（注释、字符串、regex 字面量除外）必须落在 `// [intent-gate:<id>]` 标记段内并登记于 SSOT `tests/shared/intent-gates.mjs`——逐段计数哨兵（引用增减即红）；新增读取点/新文件出现引用而未登记 = `check-intent-gates.js` 硬红。派生公式三副本（`currentPageIntentMode` / `deriveIntentUi` / `resolveInitialUiState`）已收敛为单一实现 `derivePageIntent`（`src/contentScript/intentDerivation.js`）。
+- **lint 自测纪律：** `tests/scripts/checkIntentGates.test.js`（20 格：I0–I4 每规则负例 + 干净正例 + 掩码回归锁：regex 反引号不级联 / 模板插值计一次 / 注释与字符串永不计）。
 
 ### 划词面板不变量（Selection Panel Invariants，plan 31 / #106）
 

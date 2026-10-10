@@ -38,6 +38,7 @@ import platformInfo from "../lib/platformInfo.js"
 
 const _providerRegistry = createProviderRegistry(BUILT_IN_PROVIDERS);
 import showOriginal from "./showOriginal.js"
+import { derivePageIntent } from "./intentDerivation.js"
 import { translateWithAI } from "./fetchSSE.js"
 import { markTextWrite, isExtensionWrittenText } from "./extensionTextWrites.js"
 import { markAttributeWrite, isExtensionWrittenAttribute } from "./extensionAttributeWrites.js"
@@ -270,6 +271,7 @@ let nodesToRestore = [];
 let openAiRateLimitCountDown = 0
 let timerAiTran
 let hadGoogleTranslationError = false
+// [intent-gate:state-decls]
 let shouldForceAiAfterPageTranslation = false
 // Q5: whether AI results should switch the display when they arrive.
 // Default true (engine applies results); the floating button sets it false
@@ -1098,6 +1100,7 @@ function setAiRenderState(state) {
 // Block-scope gate: apply the arrival when page-level mode is still AI, or when
 // no true→false page-level switch happened since the request was captured
 // (stale flag never suppresses — see the `aiModeActive` comment above).
+// [intent-gate:arrival-gate]
 function isAiArrivalAllowedForBlock(capturedEpoch) {
   if (aiModeActive) return true
   return capturedEpoch === aiModeEpoch
@@ -2198,12 +2201,13 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   /**
    * Current page-level intent (plan 30 / Q4d): new blocks register with the
    * page's live intent so incremental content matches what the user asked
-   * for. Mirrors the store's derivation rule (uiStateStore.deriveIntentUi):
-   * the engine mirrors drive it — no dependency on the floating button.
+   * for. Single derivation source (intentDerivation.derivePageIntent — plan 51;
+   * previously mirrored uiStateStore.deriveIntentUi): the engine mirrors drive
+   * it — no dependency on the floating button.
    */
+  // [intent-gate:page-intent-derive]
   function currentPageIntentMode() {
-    if (pageLanguageState !== "translated") return "original";
-    return aiRenderState !== "idle" && aiModeActive ? "ai" : "google";
+    return derivePageIntent({ pageLanguageState, aiRenderState, aiModeActive });
   }
    // Current target language. Initially loaded from config; when the user changes the target language during use, currentTargetLanguage updates accordingly
   currentTargetLanguage = twpConfig.get("targetLanguage");
@@ -2679,6 +2683,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     } else {
        // Non-bfcache restore (full page load): check if AI translation state needs to be restored
       if (checkAiAppliedFlag()) {
+        // [intent-gate:flag-restore-handlers]
         console.log("[AI-STATE] pageshow (non-bfcache): restoring shouldForceAiAfterPageTranslation");
         shouldForceAiAfterPageTranslation = true;
         setAiRenderState("loading");
@@ -4157,6 +4162,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    // Auto-translate with AI.
    // Note: Since this is a cross-origin request, the browser will send a preflight request. Unfortunately, OpenAI also counts preflight requests as valid... making rate limits easier to trigger
   //
+   // [intent-gate:ai-loop-gate]
    // shouldForceAiAfterPageTranslation semantics:
    // Set to true when the user clicks the AI button, and remains true for the entire page session,
    // so that subsequently loaded dynamic content (e.g., x.com feed, infinite scroll pages) is also automatically AI-translated.
@@ -4297,6 +4303,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     * Used when the user actively switches from AI translation to Google translation.
     * Note: restorePage() already includes this reset internally, so no extra call is needed when restoring original text.
    */
+  // [intent-gate:flag-reset-stop]
   pageTranslator.stopAiAutoTranslate = function () {
     shouldForceAiAfterPageTranslation = false;
   };
@@ -4331,6 +4338,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    * an arrival only when the epoch moved DURING the request — a stale flag from
    * an earlier switch must not veto a later block-scope direct request.
    */
+  // [intent-gate:intent-accessors]
   pageTranslator.setAiModeActive = function (active) {
     const next = !!active
     // #70: bump the epoch on every true→false switch (page-level switch-away).
@@ -4409,6 +4417,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    * Show only Google translations (hide AI spans). Called when user clicks Google button
    * while AI is active — switches from AI view to Google-only view without re-translating.
    */
+  // [intent-gate:show-only-writes]
   pageTranslator.showGoogleOnly = function () {
     getAllProxies().forEach((p) => {
       // Per-block logic lives in aiUiState.applyShowGoogleOnlyState so the
@@ -4456,6 +4465,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
   }  
 
+  // [intent-gate:translate-page-ai-flag]
   pageTranslator.translatePageAi = function (targetLanguage) {
     if (!hasActiveProviderApiKey()) {
       // E3 (plan 30 / §3.2, audit fix): the intent is announced even on the
@@ -4499,6 +4509,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    * @param {*} targetLanguage 
    */
   pageTranslator.translatePage = function (targetLanguage) {
+    // [intent-gate:run-arm-restore]
     const shouldForceAiForThisRun = shouldForceAiAfterPageTranslation
     fooCount++;
      // Restore original page. silent=true (plan 30 / E2): this internal call
@@ -4554,6 +4565,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     // stale armed flag alone clobbered the explicit click (E2E
     // floating-btn-three-state replaceOriginal step 2: armed marker from
     // the previous pass, Google click → AI highlighted).
+    // [intent-gate:announce-e1]
     emitRequestedModeChange(shouldForceAiForThisRun && aiModeActive ? "ai" : "google");
 
      // Translate title
@@ -4567,6 +4579,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   };
 
    // Restore original page
+  // [intent-gate:restore-page-reset]
   pageTranslator.restorePage = function (silent = false) {
     shouldForceAiAfterPageTranslation = false;
     hadGoogleTranslationError = false;
@@ -4696,6 +4709,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    /** @internal — for testing AI continuous translation mode (detects "dynamic content AI translation failure" regressions) */
   pageTranslator._aiTranslateDynamically = aiTranslateDynamically;
    /** @internal — for testing: set shouldForceAiAfterPageTranslation internal state */
+  // [intent-gate:test-hooks]
   pageTranslator._setForceAiTranslation = (v) => { shouldForceAiAfterPageTranslation = v; };
    /** @internal — for testing the #152 disarm contract: read shouldForceAiAfterPageTranslation */
   pageTranslator._getForceAiTranslation = () => shouldForceAiAfterPageTranslation;
@@ -4773,6 +4787,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     } else if (request.action === "getCurrentPageLanguageState") {
       sendResponse(pageLanguageState);
     } else if (request.action === "getCurrentUiState") {
+      // [intent-gate:engine-payload]
       // A2: full engine state for E2E state-consistency assertions
       // (assertUiStateMatchesEngine). Mirrors pageTranslator.getState().
       sendResponse({
@@ -4913,6 +4928,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         }
       );
     };
+     // [intent-gate:init-restore]
      // Safety fallback: if the pageshow event fired before the pageshow listener was registered,
      // supplement the sessionStorage marker check here to ensure shouldForceAiAfterPageTranslation
      // is correctly set before onTabVisible → translatePage.
