@@ -16,6 +16,8 @@
  *   { type: "promptConfig" }                  — no API key: show config prompt, no translation
  */
 
+import { derivePageIntent } from "./intentDerivation.js";
+
 export function resolveFloatingBtnClick(uiState, buttonId) {
   const {
     pageLanguageState,
@@ -65,9 +67,9 @@ export function resolveFloatingBtnClick(uiState, buttonId) {
  * @returns {{ highlight: string, displayMode: string }}
  */
 export function resolveInitialUiState(engineState) {
-  const { pageLanguageState, aiRenderState, aiModeActive } = engineState;
-  const aiFlowStarted = aiRenderState !== "idle" && aiModeActive;
-  const mode = pageLanguageState === "translated" ? (aiFlowStarted ? "ai" : "google") : "original";
+  // plan 51: single derivation implementation (intentDerivation.derivePageIntent);
+  // previously an inline mirror of the rule.
+  const mode = derivePageIntent(engineState);
   return { highlight: mode, displayMode: mode };
 }
 

@@ -25,8 +25,11 @@
  *   - UI decision state (highlight/displayMode/intervention/
  *     googleInFlight/aiInFlight): owned exclusively by this store.
  */
+import { derivePageIntent } from "./intentDerivation.js";
+
 const MAX_LOG_ENTRIES = 50;
 
+// [intent-gate:store-engine-defaults]
 const engineState = {
   pageLanguageState: "original", // "original" | "translated"
   pageRenderState: "idle", // "idle" | "loading" | "success" | "error"
@@ -60,17 +63,9 @@ const subscribers = new Set();
  * shows Google + a spinner (legal midstate, plan 30 §〇).
  */
 function deriveIntentUi(engine) {
-  const aiIntent =
-    engine.pageLanguageState === "translated" &&
-    engine.aiModeActive &&
-    engine.aiRenderState !== "idle"; // loading | success | error
-  const mode =
-    engine.pageLanguageState === "translated"
-      ? aiIntent
-        ? "ai"
-        : "google"
-      : "original";
-  return { highlight: mode };
+  // plan 51: the formula lives in ONE place (intentDerivation.derivePageIntent).
+  // This store keeps its own entry point (watchdog / resetForRebuild), never a copy.
+  return { highlight: derivePageIntent(engine) };
 }
 
 function pushLog(source, patch, before, after) {
@@ -198,6 +193,7 @@ export function dumpLog() {
 }
 
 /** Test-only: clear all state and logs. */
+// [intent-gate:store-test-reset]
 export function __resetForTest() {
   Object.assign(engineState, {
     pageLanguageState: "original",

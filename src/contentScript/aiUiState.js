@@ -347,6 +347,7 @@ export function applyAiSuccessState(btnAi, options = {}) {
  *   text untouched, status reset to idle so a later AI click re-requests
  *   (cache-backed, zero token cost) (Q23)
  */
+// [intent-gate:ai-apply-param]
 export function applyAiSuccessWithModeCheck(btnAi, options = {}, aiModeActive, arrivalAllowed) {
   if (!btnAi) return;
   // #70: the caller may override the legacy flag read with the epoch-based

@@ -351,6 +351,7 @@ if (window.self !== window.top) {
             pageLanguageState: "original",
             pageRenderState: "idle",
             aiRenderState: "idle",
+            // [intent-gate:btn-state-default]
             aiModeActive: true,
           });
     // Seed the store's engine mirrors once at startup so resetForRebuild
@@ -822,6 +823,7 @@ if (window.self !== window.top) {
       // Q5: engine needs to know whether the user is in AI mode when an AI
       // response arrives (decides display switch vs discard).
       pageTranslator.setAiModeActive?.(buttonId === "ai");
+      // [intent-gate:btn-click-intent-writes]
       setState({ aiModeActive: buttonId === "ai" }, "handleButtonClick");
 
       const action = resolveFloatingBtnClick(buildUiState(), buttonId);
