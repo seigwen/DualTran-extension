@@ -42,6 +42,7 @@
     "i18n:check": "node scripts/sync-locales.js --dry --fail-on-extra",
     "i18n:sync": "node scripts/sync-locales.js --prune-extras",
     "map": "npm merge-source-maps --inline-sources --inline-source-map all.min.js",
+    "cert": "node scripts/cert-run.mjs",
     "verify": "bash scripts/pre-push-verify.sh"
   },
   "dependencies": {
