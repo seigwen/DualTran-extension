@@ -270,6 +270,22 @@ export async function run(scope) {
   await waitForPageTranslatorReady(serviceWorker, page.url());
   await page.waitForTimeout(1500);
 
+  // 隔离前置不变量（#173 实证）：新加载的测试页必须是未翻译态。若同一 tab+origin 的
+  // sessionStorage「AI 已译标记」存活（reset 跨 origin 清除失效时），页面会自动恢复
+  // 翻译，#selection-word 将带出 <translated> 子节点并污染后续选区。显式失败并给出
+  // 行动指引，避免下游 10s 超时的困惑性报错（resetScenarioState 2b 为对应修复）。
+  {
+    const preTranslated = await page.evaluate(
+      () => document.querySelectorAll("translated").length
+    );
+    if (preTranslated > 0) {
+      throw new Error(
+        `[precondition] fresh test page is unexpectedly pre-translated (${preTranslated} <translated> nodes) — ` +
+        `sessionStorage AI-marker leak across scenario isolation; see resetScenarioState step 2b`
+      );
+    }
+  }
+
   await page.evaluate(() => {
     const element = document.getElementById("selection-target");
     if (!element) throw new Error("selection-target not found");
