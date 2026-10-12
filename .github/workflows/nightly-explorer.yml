@@ -1,0 +1,71 @@
+# Nightly journey explorer — plan 51 P3 (docs 55/56/57)
+#
+# 夜间例行：定向种子全量（S1–S6）+ 状态感知随机种子（v0.2）+ 违例自动收缩。
+# 与 P2-C 的确定性场景不同，这里刻意引入随机深度旅程——它的职责是「发现」
+# （把家族新违例的发现渠道从用户实机前移到机器常规），发现到的违例由收缩器
+# 缩成最小序列，证据随 artifact 留档。
+#
+# 失败判定：持久违例 → 场景抛错 → 本作业红。GitHub 默认向 watcher 发失败
+# 通知；完整轨迹（journey-explorer-*.json）在 artifact 中保留 14 天。
+# 手动触发：Actions → Nightly journey explorer → Run workflow。
+
+name: Nightly journey explorer
+
+on:
+  schedule:
+    - cron: "23 18 * * *" # 02:23 北京时间（UTC+8）
+  workflow_dispatch: {}
+
+jobs:
+  explorer:
+    name: Journey explorer (nightly)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      # 定向全量（S1–S6，含 S1 = #152 校准锚）+ 8 条状态感知随机旅程（深度 10）。
+      # 任一步持久违例 → 场景失败；违例旅程自动跑收缩器（预算 14 次重放）。
+      - name: Journey explorer — directed full + state-aware random seeds
+        env:
+          EXPLORER_TAG: nightly-${{ github.run_id }}
+          EXPLORER_DIRECTED: full
+          EXPLORER_SEEDS: "101,102,103,104,105,106,107,108"
+          EXPLORER_DEPTH: "10"
+          EXPLORER_RANDOM_MODE: state
+          EXPLORER_SHRINK: "1"
+        run: xvfb-run -a node tests/browser-e2e/run-all.mjs --scenario=journey-explorer
+
+      # Q5 回归锁（cold external-op 幽灵 span）：隔离 replaceOriginal 腿在修复前
+      # 确定性红（step 7 超时）；修复后必绿。与上面的探索器互为发现/回归两端。
+      - name: Cold external-op isolation lock (replaceOriginal leg, Q5)
+        env:
+          E2E_ONLY_MODE: replaceOriginal
+        run: xvfb-run -a node tests/browser-e2e/run-all.mjs --scenario=floating-btn-three-state
+
+      - name: Upload explorer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: explorer-nightly-evidence
+          path: |
+            /tmp/e2e-shots/journey-explorer-*.json
+            /tmp/*.log
+          retention-days: 14
+          if-no-files-found: warn

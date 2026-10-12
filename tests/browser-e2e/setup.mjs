@@ -1016,10 +1016,26 @@ export const DISPLAY_MODES = Object.freeze(["newLine", "replaceOriginal"]);
  * @param {(mode: string, index: number) => Promise<void>} fn 每个模式的验证体
  * @returns {Promise<void>}
  */
+/**
+ * 本次运行的显示模式清单（P3 v0.2）。默认双模式全集（模式对称性规则）；
+ * 环境变量 E2E_ONLY_MODE=<newLine|replaceOriginal> 时返回单模式——dev /
+ * cert 认证用的隔离旋钮（Q5「隔离 replaceOriginal 腿」），CI 不设该变量。
+ */
+export function getDisplayModesForRun() {
+  const only = (process.env.E2E_ONLY_MODE || "").trim();
+  if (!only) return DISPLAY_MODES;
+  if (!DISPLAY_MODES.includes(only)) {
+    throw new Error(`E2E_ONLY_MODE="${only}" is not a display mode (${DISPLAY_MODES.join(" | ")})`);
+  }
+  console.warn(`[e2e] E2E_ONLY_MODE="${only}" — single-mode isolation (dev / certification knob; CI runs both modes)`);
+  return [only];
+}
+
 export async function forEachDisplayMode(scope, fn) {
   const { serviceWorker } = scope;
-  for (let index = 0; index < DISPLAY_MODES.length; index++) {
-    const mode = DISPLAY_MODES[index];
+  const modes = getDisplayModesForRun();
+  for (let index = 0; index < modes.length; index++) {
+    const mode = modes[index];
     await writeStorage(serviceWorker, "whereToDisplayTranslatedText", mode);
     await fn(mode, index);
   }

@@ -17,6 +17,9 @@ import {
   pickWeighted,
   planRandomJourney,
   isValidPlan,
+  STATE_ACTION_WEIGHTS,
+  deriveExplorerMode,
+  pickStateAwareAction,
 } from "../shared/journeyPlanner.mjs";
 
 describe("journeyPlanner — directed seed library", () => {
@@ -86,5 +89,46 @@ describe("journeyPlanner — seeded randomness", () => {
     expect(isValidPlan(p1)).toBe(true);
     expect(isValidPlan([])).toBe(false);
     expect(isValidPlan(["teleport"])).toBe(false);
+  });
+});
+
+describe("state-aware walk (plan 51 P3 v0.2)", () => {
+  it("deriveExplorerMode applies the frozen plan-30 mapping", () => {
+    expect(deriveExplorerMode(null)).toBe("original");
+    expect(deriveExplorerMode({ pageLanguageState: "original", aiRenderState: "idle", aiModeActive: false })).toBe("original");
+    expect(deriveExplorerMode({ pageLanguageState: "translated", aiRenderState: "idle", aiModeActive: false })).toBe("google");
+    expect(deriveExplorerMode({ pageLanguageState: "translated", aiRenderState: "active", aiModeActive: false })).toBe("ai");
+    expect(deriveExplorerMode({ pageLanguageState: "translated", aiRenderState: "idle", aiModeActive: true })).toBe("ai");
+  });
+
+  it("pickStateAwareAction draws only from the current mode's table", () => {
+    for (const mode of ["original", "google", "ai"]) {
+      const rng = mulberry32(7);
+      const allowed = Object.keys(STATE_ACTION_WEIGHTS[mode]);
+      for (let i = 0; i < 50; i++) {
+        expect(allowed).toContain(pickStateAwareAction(rng, mode));
+      }
+    }
+  });
+
+  it("the AI-mode table never re-picks click:ai, and original prefers translation", () => {
+    const rng = mulberry32(11);
+    for (let i = 0; i < 200; i++) expect(pickStateAwareAction(rng, "ai")).not.toBe("click:ai");
+    expect(Object.keys(STATE_ACTION_WEIGHTS.original)).toContain("click:ai");
+    expect(Object.keys(STATE_ACTION_WEIGHTS.ai)).toContain("click:google");
+  });
+
+  it("is deterministic: equal seeds produce equal walks", () => {
+    const r1 = mulberry32(42);
+    const r2 = mulberry32(42);
+    const a = [];
+    const b = [];
+    for (let i = 0; i < 20; i++) {
+      const mode = i % 2 ? "google" : "ai";
+      a.push(pickStateAwareAction(r1, mode));
+      b.push(pickStateAwareAction(r2, mode));
+    }
+    expect(a).toEqual(b);
+    expect(a).toHaveLength(20);
   });
 });

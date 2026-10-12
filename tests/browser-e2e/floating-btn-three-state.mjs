@@ -24,6 +24,7 @@ import {
   assertUiStateMatchesEngine,
   dumpUiStateLog,
   readVisibleTruthInPage,
+  getDisplayModesForRun,
 } from "./setup.mjs";
 
 export const name = "floating-btn-three-state";
@@ -307,11 +308,14 @@ export async function run(scope) {
     });
   }, { apiBase });
 
-  // newLine 模式
-  await runThreeStateJourney(page, serviceWorker, testPageUrl, mockServerConfig, "newLine", collector);
+  // 模式遍历：默认双模式（模式对称性规则）；E2E_ONLY_MODE=<mode> 时单模式隔离
+  // （dev / cert 认证用旋钮——Q5「隔离 replaceOriginal 腿」；CI 不设该变量）。
+  const modes = getDisplayModesForRun();
+  for (const mode of modes) {
+    await runThreeStateJourney(page, serviceWorker, testPageUrl, mockServerConfig, mode, collector);
+  }
 
-  // replaceOriginal 模式（模式对称性规则）
-  await runThreeStateJourney(page, serviceWorker, testPageUrl, mockServerConfig, "replaceOriginal", collector);
-
-  console.log("\n  PASS: three-state journey passed in both modes");
+  console.log(
+    `\n  PASS: three-state journey passed in ${modes.length === 2 ? "both modes" : `mode=${modes[0]} (single-mode isolation)`}`
+  );
 }
