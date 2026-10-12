@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "default_locale": "en",
   "name": "DualTran",
-	"version": "2.1.30",
+	"version": "2.1.31",
 	"description": "__MSG_extensionDescription__",
   // Register default keyboard shortcuts. Docs: https://developer.chrome.com/docs/extensions/mv3/declare_commands/
   "commands": {

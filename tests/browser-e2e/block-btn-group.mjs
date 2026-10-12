@@ -12,6 +12,9 @@
  *      intent 高亮翻转为激活（单一意图渲染源）。
  *   S4（运行时切换）：storage 改写 display → 控件即时增删（无需刷新）；
  *      切回触发模式后悬停不再弹出（入口策略即时生效）。
+ *   S5（options 页修订，#171 2026-10-12）：依赖组的显示/隐藏双向翻转
+ *      （triggered → 常驻组隐藏、触发组可见；always → 反之），组为
+ *      **隐藏而非 disabled**，且 "Always-visible style" label 文案落地。
  *
  * touch 模拟：Playwright CDP session → Emulation.setTouchEmulationEnabled +
  * Input.dispatchTouchEvent（真实输入管线：pointer 事件 + 点击合成由浏览器产生）。
@@ -443,6 +446,82 @@ async function sceneRuntimeSwitch(scope) {
   assert(!(await singletonVisible(page)), "[S4] mode switch to always did not close the hover group");
 }
 
+// ─── 场景 S5：options 页依赖项隐藏（#171 修订 2026-10-12） ──────────
+
+async function sceneOptionsVisibility(scope) {
+  const { page, serviceWorker, extensionId } = scope;
+
+  console.log("  [S5] options 页：依赖组隐藏双向 + label 文案");
+
+  // 前置：triggered → 常驻组应隐藏、触发组应可见。
+  // 注①：options 页必须在 storage 写入之后新开——陈旧 in-memory config 陷阱
+  // （setup.mjs 注释有载：hash 导航不触发重载，select 会显示旧值）。
+  // 注②：等待信号必须选「存储值 ≠ HTML 默认首选项」的字段——hover/click 的
+  // HTML 默认首选项都是 "yes"，用默认值相等的字段做等待会在 init 前即通过、
+  // 断言读到 init 之前的 DOM（实测竞态）。visibility 在 init 中先于 hover/click
+  // 赋值执行，hover/click 到位即证明 visibility 已执行。
+  await writeStorage(serviceWorker, "blockBtnGroupDisplay", "triggered");
+  await writeStorage(serviceWorker, "blockBtnGroupShowOnHover", "no");
+  await writeStorage(serviceWorker, "blockBtnGroupShowOnClick", "no");
+  await page.goto(`chrome-extension://${extensionId}/options/options.html#translations`, { waitUntil: "load" });
+  await page.waitForFunction(
+    () => {
+      const hover = document.querySelector("#blockBtnGroupShowOnHover");
+      const click = document.querySelector("#blockBtnGroupShowOnClick");
+      return hover?.value === "no" && click?.value === "no";
+    },
+    null,
+    { timeout: 5_000 }
+  );
+
+  const snap = () =>
+    page.evaluate(() => {
+      const probe = (sel) => {
+        const el = document.querySelector(sel);
+        return { display: getComputedStyle(el).display, disabled: el.hasAttribute("disabled") };
+      };
+      return {
+        always: probe("#blockBtnGroupAlwaysOptions"),
+        trigger: probe("#blockBtnGroupTriggerOptions"),
+        styleLabel: (document.querySelector('b[data-i18n="lblBlockBtnGroupAlwaysStyle"]')?.textContent || "").trim(),
+      };
+    });
+
+  let v = await snap();
+  if (v.always.display !== "none") {
+    const diag = await page.evaluate(async () => {
+      const stored = await new Promise((r) => chrome.storage.local.get("blockBtnGroupDisplay", r));
+      const el = document.querySelector("#blockBtnGroupAlwaysOptions");
+      return {
+        storedDisplay: stored.blockBtnGroupDisplay,
+        selectDisplay: document.querySelector("#blockBtnGroupDisplay")?.value,
+        styleAttr: el?.getAttribute("style"),
+      };
+    });
+    throw new Error(`[S5] triggered: the always-style group must be hidden: ${JSON.stringify(diag)}`);
+  }
+  assert(v.trigger.display !== "none", "[S5] triggered: the trigger group must be visible");
+  assert(
+    !v.always.disabled && !v.trigger.disabled,
+    "[S5] revision: the groups must be hidden, not disabled (grey-out dropped)"
+  );
+  assert(v.styleLabel === "Always-visible style", `[S5] label text mismatch: ${v.styleLabel}`);
+
+  // 页内切换 triggered → always：可见性立即翻转
+  await page.selectOption("#blockBtnGroupDisplay", "always");
+  await page.waitForTimeout(150);
+  v = await snap();
+  assert(v.always.display !== "none", "[S5] always: the always-style group must become visible");
+  assert(v.trigger.display === "none", "[S5] always: the trigger group must become hidden");
+
+  // 切回 triggered：双向
+  await page.selectOption("#blockBtnGroupDisplay", "triggered");
+  await page.waitForTimeout(150);
+  v = await snap();
+  assert(v.always.display === "none", "[S5] back to triggered: the always-style group must hide again");
+  assert(v.trigger.display !== "none", "[S5] back to triggered: the trigger group must reappear");
+}
+
 // ─── 场景入口 ────────────────────────────────────────────────────
 
 export async function run(scope) {
@@ -458,6 +537,7 @@ export async function run(scope) {
   await sceneBadge(scope);
   await sceneInlineButtons(scope);
   await sceneRuntimeSwitch(scope);
+  await sceneOptionsVisibility(scope);
 
   console.log("  [block-btn-group] ALL SCENES PASS");
 }
