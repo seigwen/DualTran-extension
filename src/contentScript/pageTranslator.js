@@ -71,7 +71,7 @@ import { AI_ENGINE_LABEL } from "./engineLabels.js";
 import Toastify from 'toastify-js'
 import { encode } from 'gpt-tokenizer'
 import { wordsCount } from "../util/globalWordsCount.js"
-import { registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, setCallbacks, getProxiesForTranslation, getAllProxies, getBlockState, updateSingletonUI } from "./singletonBtnGroup.js";
+import { registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, setCallbacks, getProxiesForTranslation, getAllProxies, getBlockState, updateSingletonUI, hideButtonGroup, setEntryPolicyProvider, syncBlockBadges, syncAllBlockBadgeActiveStates } from "./singletonBtnGroup.js";
 import { resolveSingletonBtnClick } from "./singletonBtnClickResolver.js";
 import { setBlockTranslationIndicator, injectBlockIndicatorStyles } from "./blockTranslationIndicator.js";
 import { installFeedbackReporter } from "./feedbackReporter.js";
@@ -176,6 +176,47 @@ function ensureSingletonInit() {
   attachHoverDelegation();
   setCallbacks({
     onBtnClick: handleSingletonBtnClick,
+  });
+  setEntryPolicyProvider(blockBtnGroupEntryPolicy);
+  ensureBlockBtnGroupSyncSubscription();
+}
+
+/**
+ * Entry policy source (#57): the singleton reads it at every event; this
+ * module owns config access. Fallbacks mirror the static defaults so a
+ * missing key can never flip the pre-settings behavior.
+ */
+function blockBtnGroupEntryPolicy() {
+  return {
+    display: twpConfig.get("blockBtnGroupDisplay") || "triggered",
+    alwaysStyle: twpConfig.get("blockBtnGroupAlwaysStyle") || "badge",
+    showOnHover: twpConfig.get("blockBtnGroupShowOnHover") || "yes",
+    showOnClick: twpConfig.get("blockBtnGroupShowOnClick") || "no",
+  };
+}
+
+let _blockBtnGroupSyncSubscribed = false;
+
+/**
+ * Live settings changes (#57): display / style switches reconcile the
+ * always-visible controls without a reload; every change also closes a
+ * popover / hover group that no longer matches its mode.
+ */
+function ensureBlockBtnGroupSyncSubscription() {
+  if (_blockBtnGroupSyncSubscribed) return;
+  _blockBtnGroupSyncSubscribed = true;
+  twpConfig.onChanged((name) => {
+    if (typeof name !== "string" || !name.startsWith("blockBtnGroup")) return;
+    try {
+      syncBlockBadges();
+    } catch (e) {
+      console.warn("[DualTran] badge sync on settings change failed", e);
+    }
+    try {
+      hideButtonGroup();
+    } catch (e) {
+      console.warn("[DualTran] hide on settings change failed", e);
+    }
   });
 }
 
@@ -2297,6 +2338,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    *
    * Currently detects:
    * - .dualtran-aitranslatedtext-replacemode: AI translation result span (replaceOriginal mode)
+   * - .dualtran-block-indicator: loading spinner / error icon
+   * - .dualtran-block-badge / .dualtran-block-btn-row / .dualtran-block-btn: always-visible
+   *   paragraph controls (#171)
    * - [data-dualtran-encapsulated]: <font> wrapper from encapsulateTextNode (showOriginal)
    *
    * @param {Node} node
@@ -2306,6 +2350,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     return node.nodeType === 1 && (
       node.classList?.contains("dualtran-aitranslatedtext-replacemode") ||
       node.classList?.contains("dualtran-block-indicator") ||
+      node.classList?.contains("dualtran-block-badge") ||
+      node.classList?.contains("dualtran-block-btn-row") ||
+      node.classList?.contains("dualtran-block-btn") ||
       node.hasAttribute?.("data-dualtran-encapsulated")
     );
   }
@@ -4422,6 +4469,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         st.intentMode = mode;
       } catch (e) { console.warn("[DualTran] propagateIntentToBlocks failed", e); }
     });
+    // #57: the always-visible inline rows render from intentMode — one
+    // page-level write, every row follows.
+    try { syncAllBlockBadgeActiveStates(); } catch (e) { console.warn("[DualTran] inline control sync failed", e); }
   };
 
   /**

@@ -1078,6 +1078,11 @@ export async function resetScenarioState(scope) {
       .evaluate(async () => {
         await chrome.storage.local.set({
           whereToDisplayTranslatedText: "newLine",
+          // #171: block button group display settings（控件族状态污染守卫）
+          blockBtnGroupDisplay: "triggered",
+          blockBtnGroupAlwaysStyle: "badge",
+          blockBtnGroupShowOnHover: "yes",
+          blockBtnGroupShowOnClick: "no",
           alwaysTranslateSites: [],
           alwaysTranslateLangs: [],
           alwaysTranslateSitesAI: [],

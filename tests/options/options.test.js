@@ -23,6 +23,10 @@ const state = vi.hoisted(() => {
     pageTranslatorService: "google",
     ttsSpeed: "1.25",
     showOriginalTextWhenHovering: "yes",
+    blockBtnGroupDisplay: "triggered",
+    blockBtnGroupAlwaysStyle: "badge",
+    blockBtnGroupShowOnHover: "yes",
+    blockBtnGroupShowOnClick: "no",
     translateTag_pre: "yes",
     dontSortResults: "no",
     translateDynamicallyCreatedContent: "yes",
@@ -360,6 +364,14 @@ function createOptionsDom() {
     <input id="ttsSpeed" />
     <span id="displayTtsSpeed"></span>
     <select id="showOriginalTextWhenHovering"><option value="yes">yes</option><option value="no">no</option></select>
+    <select id="blockBtnGroupDisplay"><option value="triggered">triggered</option><option value="always">always</option></select>
+    <div id="blockBtnGroupAlwaysOptions">
+      <select id="blockBtnGroupAlwaysStyle"><option value="badge">badge</option><option value="buttons">buttons</option></select>
+    </div>
+    <div id="blockBtnGroupTriggerOptions">
+      <select id="blockBtnGroupShowOnHover"><option value="yes">yes</option><option value="no">no</option></select>
+      <select id="blockBtnGroupShowOnClick"><option value="yes">yes</option><option value="no">no</option></select>
+    </div>
     <select id="translateTag_pre"><option value="yes">yes</option><option value="no">no</option></select>
     <select id="dontSortResults"><option value="yes">yes</option><option value="no">no</option></select>
     <select id="translateDynamicallyCreatedContent"><option value="yes">yes</option><option value="no">no</option></select>
@@ -702,6 +714,39 @@ describe("options/options", () => {
     document.querySelectorAll("#translateSelectedAdvancedOptions input").forEach((input) => {
       expect(input.hasAttribute("disabled")).toBe(false);
     });
+  });
+
+  it("initializes the block-button-group selects from config and greys the inactive group (#171)", async () => {
+    await loadOptionsModule({
+      blockBtnGroupDisplay: "always",
+      blockBtnGroupAlwaysStyle: "buttons",
+      blockBtnGroupShowOnHover: "no",
+      blockBtnGroupShowOnClick: "yes",
+    });
+
+    expect(document.querySelector("#blockBtnGroupDisplay").value).toBe("always");
+    expect(document.querySelector("#blockBtnGroupAlwaysStyle").value).toBe("buttons");
+    expect(document.querySelector("#blockBtnGroupShowOnHover").value).toBe("no");
+    expect(document.querySelector("#blockBtnGroupShowOnClick").value).toBe("yes");
+    // always mode → the two trigger selects are greyed (visible but disabled)
+    expect(document.querySelector("#blockBtnGroupShowOnHover").hasAttribute("disabled")).toBe(true);
+    expect(document.querySelector("#blockBtnGroupShowOnClick").hasAttribute("disabled")).toBe(true);
+    expect(document.querySelector("#blockBtnGroupAlwaysStyle").hasAttribute("disabled")).toBe(false);
+  });
+
+  it("greys the always-mode style select in triggered mode and flips on change (#171)", async () => {
+    await loadOptionsModule(); // default: triggered
+
+    expect(document.querySelector("#blockBtnGroupAlwaysStyle").hasAttribute("disabled")).toBe(true);
+    expect(document.querySelector("#blockBtnGroupShowOnHover").hasAttribute("disabled")).toBe(false);
+
+    const display = document.querySelector("#blockBtnGroupDisplay");
+    display.value = "always";
+    display.onchange({ target: display });
+
+    expect(state.configMock.set).toHaveBeenCalledWith("blockBtnGroupDisplay", "always");
+    expect(document.querySelector("#blockBtnGroupAlwaysStyle").hasAttribute("disabled")).toBe(false);
+    expect(document.querySelector("#blockBtnGroupShowOnHover").hasAttribute("disabled")).toBe(true);
   });
 
   it("binds checkbox config values on initialization and change", async () => {
@@ -1134,6 +1179,11 @@ describe("options/options", () => {
     { id: "pageTranslatorService", type: "select", configKey: "pageTranslatorService", testValue: "microsoft", note: "HTML 在 prod 中被注释，handler 仅在 dev 测试 DOM 中生效" },
     { id: "ttsSpeed", type: "range", configKey: "ttsSpeed", testValue: "0.5", note: "使用 oninput 而非 onchange" },
     { id: "showOriginalTextWhenHovering", type: "select", configKey: "showOriginalTextWhenHovering", testValue: "yes" },
+    // ── 段落按钮组显示模式（#171）──
+    { id: "blockBtnGroupDisplay", type: "select", configKey: "blockBtnGroupDisplay", testValue: "always" },
+    { id: "blockBtnGroupAlwaysStyle", type: "select", configKey: "blockBtnGroupAlwaysStyle", testValue: "buttons" },
+    { id: "blockBtnGroupShowOnHover", type: "select", configKey: "blockBtnGroupShowOnHover", testValue: "no" },
+    { id: "blockBtnGroupShowOnClick", type: "select", configKey: "blockBtnGroupShowOnClick", testValue: "yes" },
     { id: "translateTag_pre", type: "select", configKey: "translateTag_pre", testValue: "yes" },
     // 注: dontSortResults 的 HTML 在 options.html 中被注释（pageTranslator.js TODO 要求强制 yes）
     { id: "dontSortResults", type: "select", configKey: "dontSortResults", testValue: "yes", note: "HTML 在 prod 中被注释（TODO: 强制 yes）" },

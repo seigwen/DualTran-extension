@@ -32,6 +32,14 @@ import {
   GOOGLE_ENGINE_LABEL,
   getOriginalButtonLabel,
 } from "./engineLabels.js";
+import { BTN_COLORS } from "./blockBtnGroupShared.js";
+import {
+  upsertBlockBadge,
+  removeBlockBadge,
+  removeAllBlockBadges,
+  setBlockBadgeCallbacks,
+  syncBlockBadgeActiveState,
+} from "./blockBtnGroupBadge.js";
 
 // ── Shared dummy objects (absorb writes when proxy is not current target) ──
 
@@ -126,6 +134,68 @@ export function registerBlock(translatedElement, sourceString, translatedTextNod
     // it afterwards via propagateIntentToBlocks.
     intentMode: "google",
   });
+
+  // Always mode (#57): a persistent control at the block end for no-mouse
+  // users — badge or inline three buttons (blockBtnGroupBadge.js). The
+  // initial active-state paint is deferred: the call sites set the inherited
+  // intentMode right AFTER registerBlock returns, and the row must reflect
+  // that value, not the registration default ("google").
+  const policy = _getEntryPolicy();
+  if (policy.display === "always") {
+    try {
+      upsertBlockBadge(translatedElement, policy.alwaysStyle);
+      queueMicrotask(() => {
+        try {
+          const st = blockStateMap.get(translatedElement);
+          if (st) syncBlockBadgeActiveState(translatedElement, st.intentMode);
+        } catch (e) {
+          console.warn("[DualTran] badge state paint failed", e);
+        }
+      });
+    } catch (e) {
+      console.warn("[DualTran] badge upsert failed", e);
+    }
+  }
+}
+
+// ── Entry policy (#57) ───────────────────────────────────────────
+// The settings (blockBtnGroupDisplay / AlwaysStyle / ShowOnHover /
+// ShowOnClick) decide WHEN the singleton group appears. The provider is
+// installed by pageTranslator (which owns config access) and read fresh at
+// every event — no staleness, no subscription needed for gating. The module
+// default mirrors the pre-settings behavior so unit tests that never install
+// a provider keep their old semantics (hover-only, no tap).
+const DEFAULT_ENTRY_POLICY = Object.freeze({
+  display: "triggered",
+  alwaysStyle: "badge",
+  showOnHover: "yes",
+  showOnClick: "no",
+});
+
+let _entryPolicyProvider = null;
+
+export function setEntryPolicyProvider(provider) {
+  _entryPolicyProvider = typeof provider === "function" ? provider : null;
+}
+
+function _getEntryPolicy() {
+  try {
+    const policy = _entryPolicyProvider && _entryPolicyProvider();
+    if (policy && policy.display) return policy;
+  } catch (e) {
+    console.warn("[DualTran] entry policy provider failed", e);
+  }
+  return DEFAULT_ENTRY_POLICY;
+}
+
+/** Hover entry is live only in triggered mode with the hover toggle on. */
+function _hoverEntryEnabled(policy) {
+  return policy.display === "triggered" && policy.showOnHover === "yes";
+}
+
+/** Tap/click entry is live only in triggered mode with the click toggle on. */
+function _clickEntryEnabled(policy) {
+  return policy.display === "triggered" && policy.showOnClick === "yes";
 }
 
 // ── BtnAiProxy adapter ──────────────────────────────────────────
@@ -230,6 +300,7 @@ export function getBlockState(translatedElement) {
 
 let _singleton = {
   currentTarget: null,
+  _anchorEl: null,
   host: null,
   btnGroup: null,
   originalBtn: null,
@@ -245,22 +316,11 @@ let _singleton = {
 // ── Three-button palette (#65, NQ2) ──────────────────────────────
 // Exact same spec as the floating group (floatingBtn.js 834-871):
 // colors are applied as JS inline styles, the shadow <style> keeps
-// layout only. Active state source = the block's displayMode.
-
-const BTN_COLORS = {
-  original: {
-    active: { color: "#ffffff", background: "#374151", borderColor: "#374151" },
-    inactive: { color: "#6b7280", background: "#f3f4f6", borderColor: "#d1d5db" },
-  },
-  google: {
-    active: { color: "#ffffff", background: "#1d4ed8", borderColor: "#1d4ed8" },
-    inactive: { color: "#1d4ed8", background: "#eff6ff", borderColor: "#bfdbfe" },
-  },
-  ai: {
-    active: { color: "#ffffff", background: "#7c3aed", borderColor: "#7c3aed" },
-    inactive: { color: "#7c3aed", background: "#f5f3ff", borderColor: "#ddd6fe" },
-  },
-};
+// layout only. Active state source = the block's intentMode.
+//
+// #57: the constant itself now lives in blockBtnGroupShared.js — the
+// always-visible inline row (blockBtnGroupBadge.js) renders the same
+// palette. Re-exported below so existing import paths keep working.
 
 /**
  * Export the palette spec so tests can lock the exact values (rule
@@ -383,6 +443,14 @@ function createSingletonHost() {
         pointer-events: none;
       }
       .dualtran-ai-btn:hover .dualtran-ai-tooltip { display: block; }
+      /* Coarse pointers (#57): finger-sized tap targets for the popover. */
+      @media (pointer: coarse) {
+        .dualtran-original-btn, .dualtran-google-btn, .dualtran-ai-btn {
+          font-size: 14px;
+          padding: 10px 14px;
+          min-height: 44px;
+        }
+      }
     </style>
     <div class="dualtran-btn-group">
       <button class="dualtran-original-btn"></button>
@@ -454,6 +522,20 @@ function createSingletonHost() {
  */
 export function setCallbacks(callbacks) {
   _singleton._callbacks = callbacks;
+  // #57: route the always-visible controls through the same single-entry
+  // executor as the popover buttons (onBtnClick(buttonId, blockEl)).
+  setBlockBadgeCallbacks({
+    onInlineButtonClick(buttonId, blockEl) {
+      try {
+        _singleton._callbacks?.onBtnClick?.(buttonId, blockEl);
+      } catch (e) {
+        console.warn("[DualTran] inline button dispatch failed", e);
+      }
+    },
+    onBadgeClick(badgeEl, blockEl) {
+      handleBadgeClick(badgeEl, blockEl);
+    },
+  });
 }
 
 /**
@@ -468,18 +550,25 @@ export function setCallbacks(callbacks) {
 export function destroySingletonButtonGroup() {
   singletonHandle.disable();
   _detachHoverListeners();
-  _singleton = { ..._singleton, host: null, btnGroup: null, originalBtn: null, currentTarget: null, _visible: false, _pendingHideTimer: null };
+  _pointerDownInfo = null;
+  try {
+    removeAllBlockBadges();
+  } catch (e) {
+    console.warn("[DualTran] badge sweep failed", e);
+  }
+  _singleton = { ..._singleton, host: null, btnGroup: null, originalBtn: null, currentTarget: null, _anchorEl: null, _visible: false, _pendingHideTimer: null };
 }
 
 // ── Positioning ─────────────────────────────────────────────────
 
 /**
- * Position the button group relative to a translated element.
- * Defaults below-left. Flips above if viewport overflow.
+ * Position the button group relative to an anchor element (the block, or
+ * the badge in always mode — #57). Defaults below-left. Flips above if
+ * viewport overflow; clamps to the right edge.
  */
-export function positionButtonGroup(translatedElement) {
-  if (!_singleton.host) return;
-  const rect = translatedElement.getBoundingClientRect();
+export function positionButtonGroup(anchorEl) {
+  if (!_singleton.host || !anchorEl) return;
+  const rect = anchorEl.getBoundingClientRect();
   const host = _singleton.host;
 
   // Force layout recalculation
@@ -492,13 +581,21 @@ export function positionButtonGroup(translatedElement) {
     top = rect.top - hostRect.height - 4;
   }
 
-  host.style.left = Math.max(0, rect.left) + "px";
+  // Viewport clamp (#57): left edge only guards the left; a three-button row
+  // anchored at the end of a narrow-viewport line can overflow the right.
+  // The clamped value feeds BOTH positioning branches below — the absolute
+  // fallback (transformed ancestors) must not bypass the guard.
+  let clampedLeft = Math.max(0, rect.left);
+  if (hostRect.width && clampedLeft + hostRect.width > window.innerWidth - 4) {
+    clampedLeft = Math.max(0, window.innerWidth - hostRect.width - 4);
+  }
+  host.style.left = clampedLeft + "px";
   host.style.top = Math.max(0, top) + "px";
 
   // Fixed-position fallback: detect ancestor transform
   if (hasAncestorTransform()) {
     host.style.position = "absolute";
-    host.style.left = (rect.left + window.scrollX) + "px";
+    host.style.left = (clampedLeft + window.scrollX) + "px";
     host.style.top = (top + window.scrollY) + "px";
   } else {
     host.style.position = "fixed";
@@ -556,7 +653,8 @@ export function hasAncestorTransform() {
  * parked over A — a "ghost group" whose clicks operate on B's data while
  * pointing at A.
  */
-export function showButtonGroup(translatedElement) {
+export function showButtonGroup(translatedElement, options = {}) {
+  const anchorEl = options.anchorEl || translatedElement;
   if (!blockStateMap.get(translatedElement)) {
     hideButtonGroup();
     if (_singleton._pendingHideTimer) {
@@ -572,8 +670,9 @@ export function showButtonGroup(translatedElement) {
     _singleton._pendingHideTimer = null;
   }
   _singleton.currentTarget = translatedElement;
+  _singleton._anchorEl = anchorEl;
   updateSingletonUI(translatedElement);
-  positionButtonGroup(translatedElement);
+  positionButtonGroup(anchorEl);
   _singleton._visible = true;
 }
 
@@ -583,6 +682,7 @@ export function showButtonGroup(translatedElement) {
 export function hideButtonGroup() {
   if (!_singleton.host) return;
   _singleton.currentTarget = null;
+  _singleton._anchorEl = null;
   _singleton._visible = false;
   _singleton.host.style.top = "-9999px";
   _singleton.host.style.left = "-9999px";
@@ -601,8 +701,18 @@ export function hideButtonGroup() {
  * #83: the label stays a plain "AI" — nothing decorates it anymore.
  */
 export function updateSingletonUI(translatedElement) {
-  if (!_singleton.aiBtn) return;
   const state = blockStateMap.get(translatedElement);
+  // #57: refresh this block's always-visible inline controls first — that
+  // path is host-independent (the row can exist while the popover host was
+  // never created, e.g. always mode + buttons style on a fresh page).
+  if (state) {
+    try {
+      syncBlockBadgeActiveState(translatedElement, state.intentMode);
+    } catch (e) {
+      console.warn("[DualTran] inline control refresh failed", e);
+    }
+  }
+  if (!_singleton.aiBtn) return;
   if (!state) return;
 
   // Intent-driven active-state highlight (plan 30 / Q2a). Legacy fallback
@@ -615,6 +725,69 @@ export function updateSingletonUI(translatedElement) {
   applyButtonPalette(intentMode);
 }
 
+// ── Always-visible controls orchestration (#57) ──────────────────
+
+/**
+ * Badge click (always mode): open the shared singleton group as a popover
+ * anchored at the badge; clicking the same badge again closes it. The
+ * identity guard mirrors showButtonGroup's fail-safe: only registered blocks
+ * have state (a Turbo snapshot clone carries the attribute but not the
+ * WeakMap entry).
+ */
+function handleBadgeClick(badgeEl, blockEl) {
+  if (!blockStateMap.get(blockEl)) return;
+  if (
+    _singleton._visible &&
+    _singleton.currentTarget === blockEl &&
+    _singleton._anchorEl === badgeEl
+  ) {
+    hideButtonGroup();
+  } else {
+    showButtonGroup(blockEl, { anchorEl: badgeEl });
+  }
+}
+
+/**
+ * Reconcile every registered block's control with the current settings:
+ * inject (or swap the style of) controls in always mode, remove them in
+ * triggered mode. Called on settings changes (pageTranslator's config
+ * listener).
+ */
+export function syncBlockBadges() {
+  const policy = _getEntryPolicy();
+  const styleMode = policy.alwaysStyle === "buttons" ? "buttons" : "badge";
+  for (const el of document.querySelectorAll("translated, [data-dualtran-block]")) {
+    if (!blockStateMap.has(el)) continue;
+    try {
+      if (policy.display === "always") {
+        upsertBlockBadge(el, styleMode);
+        const st = blockStateMap.get(el);
+        if (st) syncBlockBadgeActiveState(el, st.intentMode);
+      } else {
+        removeBlockBadge(el);
+      }
+    } catch (e) {
+      console.warn("[DualTran] syncBlockBadges failed", e);
+    }
+  }
+}
+
+/**
+ * Repaint every registered block's inline row from its intentMode — the
+ * page-level intent propagation path (one write, every row follows).
+ */
+export function syncAllBlockBadgeActiveStates() {
+  for (const el of document.querySelectorAll("translated, [data-dualtran-block]")) {
+    if (!blockStateMap.has(el)) continue;
+    try {
+      const st = blockStateMap.get(el);
+      if (st) syncBlockBadgeActiveState(el, st.intentMode);
+    } catch (e) {
+      console.warn("[DualTran] syncAllBlockBadgeActiveStates failed", e);
+    }
+  }
+}
+
 // ── Event delegation ────────────────────────────────────────────
 
 let _hoverDelegationAttached = false;
@@ -622,10 +795,18 @@ let _hoverDelegationAttached = false;
 const HIDE_DELAY_MS = 250;
 
 const _onMouseover = (e) => {
+  // #171: touch-synthesized compat mouse events (Chrome fires mouseover after
+  // every tap) must not enter through the hover gate — the tap guards own the
+  // touch path; the hover gate is for real pointers only.
+  if (_isTouchSynthesizedMouseEvent(e)) return;
   // Find <translated> element (newLine mode) or element with data-dualtran-block attribute (replaceOriginal mode)
   const translated = e.target.closest("translated, [data-dualtran-block]");
   if (translated) {
-    showButtonGroup(translated);
+    // #57: the hover entry respects the entry policy (triggered mode + hover
+    // toggle). In always mode the persistent controls are the only entry.
+    if (_hoverEntryEnabled(_getEntryPolicy())) {
+      showButtonGroup(translated);
+    }
     return;
   }
   // Entering the button host itself cancels any pending hide
@@ -638,6 +819,14 @@ const _onMouseover = (e) => {
 };
 
 const _onMouseout = (e) => {
+  // #171: mirror of the mouseover guard — touch-synthesized mouseout must not
+  // hide a group that a tap just opened (dismissal on touch = outside
+  // pointerdown / scroll / re-tap).
+  if (_isTouchSynthesizedMouseEvent(e)) return;
+  // #57: hover-hide applies only while the hover entry is live — a group
+  // opened by tap or badge survives mouse-out (it is dismissed by outside
+  // pointerdown / scroll / re-tap instead).
+  if (!_hoverEntryEnabled(_getEntryPolicy())) return;
   // Only trigger if leaving a translated element and not entering another or the btnGroup
   // Find <translated> element (newLine mode) or element with data-dualtran-block attribute (replaceOriginal mode)
   const leaveTranslated = e.target.closest("translated, [data-dualtran-block]");
@@ -661,21 +850,112 @@ const _onScroll = () => {
   }
 };
 
-const _onTouchstart = (e) => {
-  const translated = e.target.closest("translated");
-  if (translated) {
-    if (_singleton._visible && _singleton.currentTarget === translated) {
+// ── Tap / click entry (#57) ──────────────────────────────────────
+// Replaces the legacy touchstart handler. Tap semantics: pointerup with
+// movement / duration guards so that scroll starts, long-press text
+// selection and link taps never open the group; pointerdown outside a block
+// keeps the snappy dismiss the old handler had.
+//
+// #171 probe findings (xvfb E2E, block-btn-group scenario):
+//   1. Chrome synthesizes compat mouse events (mouseover/mousedown/…/click)
+//      after touch taps — the synthetic mouseover used to enter through the
+//      HOVER gate and bypass the tap guards. Touch-synthesized mouse events
+//      are now ignored for the hover entry (sourceCapabilities.firesTouchEvents
+//      + a post-touch fallback window).
+//   2. Handler-run-time (performance.now) overstates a gesture's duration
+//      when the renderer is congested (events are delivered late). The tap
+//      guards therefore use the event's own input timestamp (e.timeStamp).
+
+const TAP_MAX_MOVE_PX = 12;
+const TAP_MAX_DURATION_MS = 600;
+const TOUCH_MOUSE_SUPPRESS_MS = 700;
+const INTERACTIVE_SELECTOR =
+  'a, button, input, select, textarea, summary, [contenteditable], [role="button"]';
+
+let _pointerDownInfo = null;
+let _lastTouchInteractionAt = null;
+
+function _isTouchSynthesizedMouseEvent(e) {
+  // Chrome marks compat mouse events synthesized from touch input.
+  if (e && e.sourceCapabilities && e.sourceCapabilities.firesTouchEvents) return true;
+  // Fallback for shapes without sourceCapabilities: a mouse hover event in
+  // the window right after a real touch pointer is the synthetic twin of the
+  // tap, not a mouse hover.
+  return (
+    typeof _lastTouchInteractionAt === "number" &&
+    performance.now() - _lastTouchInteractionAt < TOUCH_MOUSE_SUPPRESS_MS
+  );
+}
+
+function _eventTime(e) {
+  return typeof e.timeStamp === "number" ? e.timeStamp : performance.now();
+}
+
+function _isExtensionControl(target) {
+  return !!(
+    target &&
+    target.closest &&
+    target.closest(
+      ".dualtran-block-badge, .dualtran-block-btn-row, #dualtran-singleton-btn-host"
+    )
+  );
+}
+
+function _blockOf(target) {
+  return target && target.closest
+    ? target.closest("translated, [data-dualtran-block]")
+    : null;
+}
+
+const _onPointerDown = (e) => {
+  if (e.button !== undefined && e.button !== 0) return;
+  if (e.isPrimary === false) return;
+  if (e.pointerType === "touch") _lastTouchInteractionAt = performance.now();
+  const target = e.target;
+  const block = _blockOf(target);
+  if (!block) {
+    if (_singleton._visible && !_isExtensionControl(target)) {
       hideButtonGroup();
-    } else {
-      showButtonGroup(translated);
     }
-  } else if (_singleton._visible && !e.target.closest("#dualtran-singleton-btn-host")) {
+    _pointerDownInfo = null;
+    return;
+  }
+  _pointerDownInfo = {
+    x: e.clientX,
+    y: e.clientY,
+    t: _eventTime(e),
+    blockEl: block,
+  };
+};
+
+const _onPointerUp = (e) => {
+  const info = _pointerDownInfo;
+  _pointerDownInfo = null;
+  if (!info) return;
+  if (e.pointerType === "touch") _lastTouchInteractionAt = performance.now();
+  if (!_clickEntryEnabled(_getEntryPolicy())) return;
+  if (_eventTime(e) - info.t > TAP_MAX_DURATION_MS) return;
+  const dx = (typeof e.clientX === "number" ? e.clientX : info.x) - info.x;
+  const dy = (typeof e.clientY === "number" ? e.clientY : info.y) - info.y;
+  if (Math.sqrt(dx * dx + dy * dy) > TAP_MAX_MOVE_PX) return;
+  const target = e.target;
+  if (_isExtensionControl(target)) return;
+  if (target.closest && target.closest(INTERACTIVE_SELECTOR)) return;
+  const block = _blockOf(target);
+  if (!block || block !== info.blockEl) return;
+  if (_singleton._visible && _singleton.currentTarget === block) {
     hideButtonGroup();
+  } else {
+    showButtonGroup(block);
   }
 };
 
+const _onPointerCancel = () => {
+  _pointerDownInfo = null;
+};
+
 /**
- * Attach hover + scroll + touch event delegation.
+ * Attach hover + tap/click + scroll event delegation.
  * Call once per page load.
  */
 export function attachHoverDelegation() {
@@ -685,14 +965,18 @@ export function attachHoverDelegation() {
   document.addEventListener("mouseover", _onMouseover);
   document.addEventListener("mouseout", _onMouseout);
   window.addEventListener("scroll", _onScroll, { passive: true, capture: true });
-  document.addEventListener("touchstart", _onTouchstart);
+  document.addEventListener("pointerdown", _onPointerDown);
+  document.addEventListener("pointerup", _onPointerUp);
+  document.addEventListener("pointercancel", _onPointerCancel);
 }
 
 function _detachHoverListeners() {
   document.removeEventListener("mouseover", _onMouseover);
   document.removeEventListener("mouseout", _onMouseout);
   window.removeEventListener("scroll", _onScroll, { capture: true });
-  document.removeEventListener("touchstart", _onTouchstart);
+  document.removeEventListener("pointerdown", _onPointerDown);
+  document.removeEventListener("pointerup", _onPointerUp);
+  document.removeEventListener("pointercancel", _onPointerCancel);
   _hoverDelegationAttached = false;
 }
 

@@ -17,6 +17,7 @@ import {
   buildStartupStorageReset,
   evaluateReleaseNotesDisplay,
   getReloadableTabIds,
+  resolveBlockBtnGroupClickBackfill,
   resolveDevelopmentReloadPlan,
 } from "../background/installHelpers.js"
 import {
@@ -415,10 +416,33 @@ function updateContextMenu(pageLanguageState = "original") {
   }
 }
 
+/**
+ * #171: write-if-absent backfill for the block button group's tap/click
+ * entry default (mobile/tablet yes, desktop no — see
+ * resolveBlockBtnGroupClickBackfill). Best-effort: a degraded platform shape
+ * must never break startup / install handling.
+ */
+function applyBlockBtnGroupClickBackfill() {
+  try {
+    chrome.storage.local.get(["blockBtnGroupShowOnClick"], (got) => {
+      const backfill = resolveBlockBtnGroupClickBackfill({
+        storedValue: got ? got.blockBtnGroupShowOnClick : undefined,
+        isMobile: platformInfo.isMobile.any,
+      });
+      if (backfill) {
+        twpConfig.set("blockBtnGroupShowOnClick", backfill.blockBtnGroupShowOnClick);
+      }
+    });
+  } catch (e) {
+    console.warn("[DualTran] block button group click backfill failed", e);
+  }
+}
+
 // Listen for browser startup event, reset global state on startup
 chrome.runtime.onStartup.addListener((details) => {
   const startupReset = buildStartupStorageReset()
   runStorageEffects(buildStartupExecutionPlan(startupReset))
+  applyBlockBtnGroupClickBackfill()
 });
 
 // Listen for install event, open options page or release notes on install/update
@@ -473,6 +497,9 @@ chrome.runtime.onInstalled.addListener((details) => {
     runInstallEffects(buildInstalledExecutionPlan({
       shouldDisableDeepL: plan.shouldDisableDeepL,
     }))
+    // #171: per-platform default for the block button group's tap/click
+    // entry (write-if-absent; user choices are never overwritten).
+    applyBlockBtnGroupClickBackfill()
   });
 
   // Dev mode: auto-reload all http/https tabs after install/update to re-inject fresh content scripts

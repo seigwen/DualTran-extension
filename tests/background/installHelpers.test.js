@@ -5,6 +5,7 @@ import {
   evaluateReleaseNotesDisplay,
   getReloadableTabIds,
   resolveDevelopmentReloadPlan,
+  resolveBlockBtnGroupClickBackfill,
 } from "../../src/background/installHelpers.js";
 
 describe("installHelpers", () => {
@@ -163,5 +164,34 @@ describe("installHelpers", () => {
       installType: "development",
       tabs,
     })).toEqual([]);
+  });
+});
+
+describe("block button group click default backfill (#171)", () => {
+  it("returns yes for mobile/tablet when the key was never written", () => {
+    expect(
+      resolveBlockBtnGroupClickBackfill({ storedValue: undefined, isMobile: true })
+    ).toEqual({ blockBtnGroupShowOnClick: "yes" });
+  });
+
+  it("returns no for desktop when the key was never written", () => {
+    expect(
+      resolveBlockBtnGroupClickBackfill({ storedValue: undefined, isMobile: false })
+    ).toEqual({ blockBtnGroupShowOnClick: "no" });
+  });
+
+  it("never overwrites an existing value (both stored values are left alone)", () => {
+    expect(
+      resolveBlockBtnGroupClickBackfill({ storedValue: "yes", isMobile: false })
+    ).toBeNull();
+    expect(
+      resolveBlockBtnGroupClickBackfill({ storedValue: "no", isMobile: true })
+    ).toBeNull();
+  });
+
+  it("treats null like absent (degraded shapes)", () => {
+    expect(
+      resolveBlockBtnGroupClickBackfill({ storedValue: null, isMobile: true })
+    ).toEqual({ blockBtnGroupShowOnClick: "yes" });
   });
 });

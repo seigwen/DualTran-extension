@@ -840,5 +840,41 @@
   },
   "translateClickingOnce": {
     "message": "पता बार में बटन पर एक बार क्लिक करके पृष्ठ का अनुवाद करें। (पॉपअप देखने के लिए राइट-क्लिक करें)"
+  },
+  "lblBlockBtnGroupDisplay": {
+    "message": "Display of the paragraph button group",
+    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
+  },
+  "blockBtnGroupDisplayTriggered": {
+    "message": "Show on hover or click",
+    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
+  },
+  "blockBtnGroupDisplayAlways": {
+    "message": "Always show",
+    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
+  },
+  "lblBlockBtnGroupAlwaysStyle": {
+    "message": "Display style",
+    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
+  },
+  "blockBtnGroupAlwaysStyleBadge": {
+    "message": "Small badge (click to expand)",
+    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
+  },
+  "blockBtnGroupAlwaysStyleButtons": {
+    "message": "Three buttons shown directly",
+    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
+  },
+  "lblBlockBtnGroupShowOnHover": {
+    "message": "Show the paragraph button group when hovering over a paragraph",
+    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
+  },
+  "lblBlockBtnGroupShowOnClick": {
+    "message": "Show the paragraph button group when clicking a paragraph",
+    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
+  },
+  "blockBtnGroupBadgeTooltip": {
+    "message": "Paragraph translation options",
+    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }
