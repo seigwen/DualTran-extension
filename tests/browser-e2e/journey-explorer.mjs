@@ -18,6 +18,8 @@
  *   EXPLORER_DIRECTED=full npm run test:e2e:explorer   # 全部六条定向种子
  *   EXPLORER_DIRECTED=off EXPLORER_SEEDS=11,22 EXPLORER_DEPTH=8 ...  # 纯加权随机
  *   EXPLORER_SCRIPT="click:ai,advance,click:google,back" ...  # 临时脚本（| 分隔多条）
+ *   EXPLORER_RANDOM_MODE=state ...                      # v0.2：状态感知随机（动作随引擎模式自适应）
+ *   EXPLORER_SHRINK=1 ...                               # v0.2：持久违例自动收缩（贪心去步，预算 14 次重放）
  *
  * 产物：<e2e-shots>/journey-explorer-<tag>.json（全量轨迹 + 摘要）；违反时另含
  * store 日志尾部与可见真相 dump。
@@ -39,6 +41,9 @@ import {
   DEFAULT_SEED_IDS,
   planRandomJourney,
   isValidPlan,
+  mulberry32,
+  pickStateAwareAction,
+  deriveExplorerMode,
 } from "../shared/journeyPlanner.mjs";
 
 export const name = "journey-explorer";
@@ -58,6 +63,9 @@ const SCRIPTS = (process.env.EXPLORER_SCRIPT || "")
   .filter(Boolean)
   .map((s) => s.split(",").map((x) => x.trim()).filter(Boolean));
 const TAG = process.env.EXPLORER_TAG || `run-${Date.now()}`;
+const RANDOM_MODE = (process.env.EXPLORER_RANDOM_MODE || "plan").trim(); // plan | state（v0.2）
+const SHRINK_ENABLED = process.env.EXPLORER_SHRINK === "1"; // 持久违例自动收缩
+const SHRINK_BUDGET = parseInt(process.env.EXPLORER_SHRINK_BUDGET || "14", 10);
 
 const shortUrl = (u) => {
   try {
@@ -251,17 +259,28 @@ async function getFloatingBtnHighlight(page) {
 }
 
 /** 单条旅程：重置状态 → 落到源页 → 逐步执行 + 收敛 + 不变量检查。 */
-async function runJourney(c, label, plan) {
+async function runJourney(c, label, planOrSpec, opts = {}) {
+  const isStateAware = !Array.isArray(planOrSpec);
+  const totalSteps = isStateAware ? planOrSpec.depth : planOrSpec.length;
+  const rng = isStateAware ? mulberry32((planOrSpec.seed * 2654435761) % 4294967296) : null;
+  const executed = [];
   const steps = [];
   let violation = null;
+  let lastEngine = null;
   await resetScenarioState(c.scope);
   await c.page.goto(c.scope.spaSourceUrl, { waitUntil: "domcontentloaded" }).catch(() => {});
   await waitForContentScriptInjected(c.serviceWorker, c.page.url()).catch(() => {});
   await waitForPageTranslatorReady(c.serviceWorker, c.page.url()).catch(() => {});
   await c.page.waitForTimeout(400);
+  if (isStateAware) {
+    try {
+      lastEngine = await sendMessageToTab(c.serviceWorker, c.page.url(), { action: "getCurrentUiState" });
+    } catch (_) {}
+  }
 
-  for (let i = 0; i < plan.length; i++) {
-    const actionName = plan[i];
+  for (let i = 0; i < totalSteps; i++) {
+    const actionName = isStateAware ? pickStateAwareAction(rng, deriveExplorerMode(lastEngine)) : planOrSpec[i];
+    executed.push(actionName);
     const action = ACTIONS[actionName];
     if (!action) continue;
     let runErr = null;
@@ -273,6 +292,7 @@ async function runJourney(c, label, plan) {
     }
     const settled = await settle(c);
     const chk = await check(c);
+    lastEngine = chk.engine || settled.state || lastEngine;
     const step = {
       i,
       action: actionName,
@@ -288,7 +308,7 @@ async function runJourney(c, label, plan) {
     };
     steps.push(step);
     console.log(
-      `  [${label} ${i + 1}/${plan.length}] ${actionName} @${step.url} settled=${step.settled} hl=${step.highlight} ${
+      `  [${label} ${i + 1}/${totalSteps}] ${actionName} @${step.url} settled=${step.settled} hl=${step.highlight} ${
         chk.ok ? "✓" : "✗(" + step.kind + ") " + (step.detail || "").slice(0, 200)
       }`
     );
@@ -325,7 +345,44 @@ async function runJourney(c, label, plan) {
       )?.slice(-25);
     } catch (_) {}
   }
-  return { seed: label, plan, steps, violation };
+  if (violation && SHRINK_ENABLED && !opts.noShrink && executed.length > 1) {
+    violation.shrink = await shrinkJourney(c, label, executed, violation.kind);
+  }
+  return { seed: label, plan: isStateAware ? executed : planOrSpec, steps, violation };
+}
+
+/**
+ * 违例收缩器（P3 v0.2）：贪心去步——逐个尝试删掉一步并重放整条旅程，若同类
+ * 持久违例仍复现则接受该删除，直到删无可删或达重放预算。产出「最小重现序列」，
+ * 让新违例的报告从「一段长旅程」缩成「不可再短的动作序列」。
+ */
+async function shrinkJourney(c, label, plan, originalKind) {
+  let current = plan.slice();
+  let replays = 0;
+  let changed = false;
+  console.log(`  [${label}] shrink: greedy step-removal (budget ${SHRINK_BUDGET} replays, kind=${originalKind})`);
+  let progress = true;
+  while (progress && replays < SHRINK_BUDGET) {
+    progress = false;
+    for (let i = 0; i < current.length && replays < SHRINK_BUDGET; i++) {
+      const candidate = current.slice(0, i).concat(current.slice(i + 1));
+      if (candidate.length === 0) continue;
+      replays += 1;
+      const jr = await runJourney(c, `${label}~shrink${replays}`, candidate, { noShrink: true });
+      const same = !!jr.violation && jr.violation.kind === originalKind;
+      console.log(
+        `  [${label}] shrink replay ${replays}: remove[${i}]=${current[i]} -> [${candidate.join(" -> ")}] ${same ? "STILL VIOLATES (accept)" : "clean (reject)"}`
+      );
+      if (same) {
+        current = candidate;
+        changed = true;
+        progress = true;
+        break;
+      }
+    }
+  }
+  console.log(`  [${label}] shrink done: [${current.join(" -> ")}] (${changed ? "minimized" : "already minimal"}, ${replays} replay(s))`);
+  return { replays, changed, plan: current };
 }
 
 /** 组装旅程清单：定向种子（default/full/off）+ 临时脚本 + 加权随机种子。 */
@@ -339,10 +396,18 @@ function buildJourneyList() {
     for (const s of seeds) journeys.push({ label: s.id, plan: s.plan });
   }
   SCRIPTS.forEach((plan, i) => journeys.push({ label: `script-${i + 1}`, plan }));
+  if (!["plan", "state"].includes(RANDOM_MODE)) {
+    throw new Error(`journey-explorer: EXPLORER_RANDOM_MODE must be "plan" or "state" (got "${RANDOM_MODE}")`);
+  }
   for (const seed of RANDOM_SEEDS) {
-    journeys.push({ label: `seed-${seed}`, plan: planRandomJourney(seed, DEPTH) });
+    if (RANDOM_MODE === "state") {
+      journeys.push({ label: `seed-${seed}`, plan: null, stateAware: { seed, depth: DEPTH } });
+    } else {
+      journeys.push({ label: `seed-${seed}`, plan: planRandomJourney(seed, DEPTH) });
+    }
   }
   for (const j of journeys) {
+    if (j.plan === null) continue; // 状态感知旅程：动作在运行时按引擎模式选择
     if (!isValidPlan(j.plan)) {
       throw new Error(`journey-explorer: invalid plan for "${j.label}": ${JSON.stringify(j.plan)}`);
     }
@@ -364,8 +429,10 @@ export async function run(scope) {
 
   const result = { tag: TAG, startedAt: new Date().toISOString(), journeys: [], summary: {} };
   for (const j of journeys) {
-    console.log(`\n▶ ${j.label}: [${j.plan.join(" → ")}]`);
-    const journey = await runJourney(c, j.label, j.plan);
+    console.log(
+      `\n▶ ${j.label}: ${j.plan ? `[${j.plan.join(" → ")}]` : `(state-aware walk, depth ${j.stateAware.depth})`}`
+    );
+    const journey = await runJourney(c, j.label, j.plan !== null ? j.plan : j.stateAware);
     result.journeys.push(journey);
     console.log(
       `  ${j.label} verdict: ${journey.violation ? "VIOLATION" : "clean"} (${journey.steps.length} steps)`

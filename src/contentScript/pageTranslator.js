@@ -1424,23 +1424,34 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true, onBlockSe
           // In-memory cache write.
           // Dual-span mode: AI text lives in aiSpan (translatedTextNode is googleSpan),
           // so read the AI text from aiSpan when present.
-          const aiTextForCache = btnAi.aiSpan
+          // Q5 fix (cold external-op discard): an arrival that was display-discarded
+          // (switch-away during the request) leaves the span EMPTY — caching that ""
+          // poisoned every later AI request for the same text (cache-hit -> empty
+          // apply -> nothing ever shows: button AI / content unchanged). Prefer the
+          // parsed stream text whenever the DOM read-back carries nothing, and never
+          // write an empty translation to either cache.
+          const domReadBack = btnAi.aiSpan
             ? btnAi.aiSpan.textContent
             : (btnAi.translatedTextNode ? btnAi.translatedTextNode.textContent : "");
-          aiCache.push({
-            original: btnAi.sourceString,
-            targetLanguage: targetLanguageCodeForAI,
-            translated: aiTextForCache
-          })
-          // Persistent cache write (fire-and-forget, sourceLanguage defaults to "und")
-          setCachedAiTranslation(
-            "und", targetLanguageCodeForAI,
-            twpConfig.get("aiProvider") || "openai",
-            getModelForProvider(twpConfig.get("aiProvider") || "openai"),
-            getReasoningDepthForProvider(twpConfig.get("aiProvider") || "openai"),
-            btnAi.sourceString,
-            aiTextForCache
-          );
+          const aiTextForCache = (domReadBack && domReadBack.trim().length > 0)
+            ? domReadBack
+            : (progress.translatedText || "");
+          if (aiTextForCache && aiTextForCache.trim().length > 0) {
+            aiCache.push({
+              original: btnAi.sourceString,
+              targetLanguage: targetLanguageCodeForAI,
+              translated: aiTextForCache
+            })
+            // Persistent cache write (fire-and-forget, sourceLanguage defaults to "und")
+            setCachedAiTranslation(
+              "und", targetLanguageCodeForAI,
+              twpConfig.get("aiProvider") || "openai",
+              getModelForProvider(twpConfig.get("aiProvider") || "openai"),
+              getReasoningDepthForProvider(twpConfig.get("aiProvider") || "openai"),
+              btnAi.sourceString,
+              aiTextForCache
+            );
+          }
           settleBlock(btnAi);
           // Continue loop — there may be more blocks in the remainder.
         } else {

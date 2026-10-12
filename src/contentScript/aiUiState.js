@@ -174,6 +174,40 @@ export function applyAiTranslatingState(btnAi, {
  * request was in-flight, the result is kept (newLine) without stealing the
  * display; a later AI click re-shows it locally with zero requests.
  */
+/**
+ * Q5 fix (ghost span): return a LIVE AI text target for the block.
+ *
+ * The registry's `translatedTextNode` can become DETACHED: restorePage removes
+ * the `.dualtran-aitranslatedtext-replacemode` spans from the DOM without
+ * touching the registry, and a subsequent pass that does not re-register the
+ * block leaves a ghost reference. Writing into the ghost kept the live DOM
+ * empty while the engine reported success — button AI / content unchanged
+ * (the desync family's signature; cold external-op repro: floating-btn-three-
+ * state in replaceOriginal mode, step 7). Re-resolve the live span under the
+ * block element, or re-create it, and repair the registry reference so every
+ * later pass sees the same live node.
+ */
+export function ensureLiveAiTextTarget(btnAi) {
+  if (!btnAi) return null;
+  let st = null;
+  try { st = btnAi._st ? btnAi._st() : null; } catch (_) { st = null; }
+  if (!st) return null;
+  const node = st.translatedTextNode;
+  if (node && node.isConnected) return node;
+  let live = null;
+  try {
+    const el = btnAi._el;
+    live = el && el.querySelector ? el.querySelector(".dualtran-aitranslatedtext-replacemode") : null;
+    if (!live && el && el.appendChild && typeof document !== "undefined") {
+      live = document.createElement("span");
+      live.classList.add("dualtran-aitranslatedtext-replacemode");
+      el.appendChild(live);
+    }
+  } catch (_) { live = null; }
+  if (live) st.translatedTextNode = live;
+  return live || null;
+}
+
 export function applyAiResult(btnAi, {
   translatedText,
   translatedTextColor,
@@ -193,11 +227,17 @@ export function applyAiResult(btnAi, {
       if (typeof translatedText === "string") {
         btnAi.aiSpan.textContent = translatedText;
       }
-    } else if (typeof translatedText === "string" && btnAi.translatedTextNode) {
-      // Legacy single-span / replaceOriginal mode: write AI text
-      btnAi.translatedTextNode.textContent = translatedText;
-      if (btnAi.translatedTextNode.style) {
-        btnAi.translatedTextNode.style.display = "";
+    } else if (typeof translatedText === "string") {
+      // Legacy single-span / replaceOriginal mode: write AI text.
+      // Q5 fix (ghost span): heal a detached registry ref before writing —
+      // see ensureLiveAiTextTarget. Without this the AI result landed in a
+      // ghost node and never became visible (cold external-op repro).
+      const target = ensureLiveAiTextTarget(btnAi) || btnAi.translatedTextNode;
+      if (target) {
+        target.textContent = translatedText;
+        if (target.style) {
+          target.style.display = "";
+        }
       }
     }
     applyAiTranslatedTextColor(btnAi, translatedTextColor);
