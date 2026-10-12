@@ -180,11 +180,12 @@ function main() {
     }
     fs.writeFileSync(path.join(outDir, "revert.patch"), patch);
 
-    // E2E steps run against dist/ (needsXvfb implies a built tree); lint/
-    // vitest steps read src/ and tools only — skip the build when none is
-    // selected (fast --only iterations).
+    // E2E steps run against dist/ (needsXvfb implies a built tree); steps
+    // that read build artifacts declare needsBuild (e.g. the production
+    // console guard). Plain lint/vitest steps read src/ only — the build is
+    // skipped when none is selected (fast --only iterations).
     const stepsToRun = certCase.steps.filter((s) => !opts.only || opts.only.has(s.name));
-    const needBuild = stepsToRun.some((s) => s.needsXvfb === true);
+    const needBuild = stepsToRun.some((s) => s.needsXvfb === true || s.needsBuild === true);
 
     // ── shared deps + build ──
     try {

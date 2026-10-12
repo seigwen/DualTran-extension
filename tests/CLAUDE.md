@@ -235,6 +235,7 @@ tests/
 - **读取点登记（plan 51 / 第 18 lint）：** `src/` 中对意图信号（`aiModeActive` / `shouldForceAiForThisRun` / `shouldForceAiAfterPageTranslation`）的每一处代码引用（注释、字符串、regex 字面量除外）必须落在 `// [intent-gate:<id>]` 标记段内并登记于 SSOT `tests/shared/intent-gates.mjs`——逐段计数哨兵（引用增减即红）；新增读取点/新文件出现引用而未登记 = `check-intent-gates.js` 硬红。派生公式三副本（`currentPageIntentMode` / `deriveIntentUi` / `resolveInitialUiState`）已收敛为单一实现 `derivePageIntent`（`src/contentScript/intentDerivation.js`）。
 - **lint 自测纪律：** `tests/scripts/checkIntentGates.test.js`（20 格：I0–I4 每规则负例 + 干净正例 + 掩码回归锁：regex 反引号不级联 / 模板插值计一次 / 注释与字符串永不计）。
 - **RED 认证 / 锁活性纪律（plan 51 P2-D）：** 修复的 RED 能力由 cert 复验：`npm run cert -- --case <id>`（案例登记 `tests/shared/cert-cases.mjs`；还原修复 → 构建 → 目标锁必红且签名匹配 → 自动留档；「还原后仍绿 = 死锁」）。锚串由 `certCases.test.js` 轮换守卫（修复行移动/编辑必须同批更新案例）；节奏：季度 / 发版前 `--all`（首轮报告：manage 55 号）。
+- **单模式隔离（E2E_ONLY_MODE）：** 需隔离跑某一显示模式（如 Q5「隔离 replaceOriginal 腿」/ cert 认证）时设 `E2E_ONLY_MODE=newLine|replaceOriginal`——仅限 dev / 认证用途，**CI 不设**（双模式遍历是模式对称性契约）。自建模式循环的场景（如浮标三态）经 `getDisplayModesForRun()` 统一消费此旋钮。
 
 ### 划词面板不变量（Selection Panel Invariants，plan 31 / #106）
 

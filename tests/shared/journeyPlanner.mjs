@@ -104,3 +104,40 @@ export function planRandomJourney(seed, depth) {
 export function isValidPlan(plan) {
   return Array.isArray(plan) && plan.length > 0 && plan.every((a) => JOURNEY_ACTIONS.includes(a));
 }
+
+/**
+ * State-aware action weights (P3 v0.2, plan 51): the next action depends on the
+ * CURRENT engine display mode, so the walk keeps pushing the UI across mode
+ * boundaries (original -> translate, google -> ai, ai -> google/original)
+ * instead of blind random steps. Consumed at runtime by the scenario picker —
+ * this module stays pure and unit-testable.
+ */
+export const STATE_ACTION_WEIGHTS = Object.freeze({
+  original: { "click:ai": 5, "click:google": 4, reload: 1 },
+  google: { "click:ai": 5, advance: 2, back: 2, "click:original": 1 },
+  ai: { "click:google": 5, "click:original": 2, back: 2, reload: 1 },
+});
+
+/**
+ * Derive the explorer display mode from a `getCurrentUiState` reading (the same
+ * frozen plan-30 rule the UI derivation uses): not translated -> "original";
+ * translated with AI engaged -> "ai"; translated otherwise -> "google".
+ */
+export function deriveExplorerMode(engine) {
+  if (!engine || engine.pageLanguageState !== "translated") return "original";
+  if (engine.aiModeActive === true || (engine.aiRenderState && engine.aiRenderState !== "idle")) return "ai";
+  return "google";
+}
+
+/** Weighted pick constrained to the current mode's table (unknown mode -> google table). */
+export function pickStateAwareAction(rng, mode) {
+  const table = STATE_ACTION_WEIGHTS[mode] || STATE_ACTION_WEIGHTS.google;
+  const entries = Object.entries(table);
+  const total = entries.reduce((sum, [, w]) => sum + w, 0);
+  let r = rng() * total;
+  for (const [action, w] of entries) {
+    r -= w;
+    if (r < 0) return action;
+  }
+  return entries[entries.length - 1][0];
+}

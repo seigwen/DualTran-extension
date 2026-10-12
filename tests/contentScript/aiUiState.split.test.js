@@ -226,3 +226,60 @@ describe("display-claim completeness — a claimed AI display must be physically
     expect(btnAi._container.style.display).toBe("block");
   });
 });
+
+describe("applyAiResult — ghost-span heal (Q5 cold external-op fix)", () => {
+  // 背景：restorePage 从 DOM 移除 .dualtran-aitranslatedtext-replacemode span，
+  // 但注册表可能仍持有脱连引用（其后一趟不重注册的 pass 留下幽灵）。AI 结果写入
+  // 幽灵 → 活 DOM 永远为空，而引擎报 success（按钮 AI / 内容不变的家族签名）。
+  function makeGhostBtnAi() {
+    const parent = document.createElement("div");
+    document.body.appendChild(parent);
+    const detached = document.createElement("span");
+    detached.classList.add("dualtran-aitranslatedtext-replacemode");
+    detached.textContent = "";
+    const state = {
+      displayMode: "google",
+      googleBtnState: "success",
+      nodesToClear: [],
+      translatedTextNode: detached,
+    };
+    return {
+      parent,
+      detached,
+      _el: parent,
+      _st: () => state,
+      get translatedTextNode() { return state.translatedTextNode; },
+      translationStatus: "translating",
+      classList: { remove: () => {} },
+      style: {},
+      setAttribute: () => {},
+    };
+  }
+
+  it("replaceOriginal: a DETACHED registry span is healed — live span re-created under the block element, registry ref repaired", () => {
+    const btnAi = makeGhostBtnAi();
+    applyAiResult(btnAi, { translatedText: "AI translation" });
+    // 活 DOM 里出现带文的 replacemode span（等待/显示都能看到它）
+    const live = btnAi.parent.querySelector(".dualtran-aitranslatedtext-replacemode");
+    expect(live).toBeTruthy();
+    expect(live.textContent).toBe("AI translation");
+    // 注册表引用被修复到活节点；幽灵保持脱连、未被写入
+    expect(btnAi._st().translatedTextNode).toBe(live);
+    expect(btnAi._st().translatedTextNode.isConnected).toBe(true);
+    expect(btnAi.detached.isConnected).toBe(false);
+    expect(btnAi.detached.textContent).toBe("");
+  });
+
+  it("replaceOriginal: a healthy live span is reused as-is (heal is a no-op)", () => {
+    const btnAi = makeGhostBtnAi();
+    const live = document.createElement("span");
+    live.classList.add("dualtran-aitranslatedtext-replacemode");
+    btnAi.parent.appendChild(live);
+    btnAi._st().translatedTextNode = live;
+    const childrenBefore = btnAi.parent.childElementCount;
+    applyAiResult(btnAi, { translatedText: "Bonjour" });
+    expect(live.textContent).toBe("Bonjour");
+    expect(btnAi.parent.childElementCount).toBe(childrenBefore); // 未新建节点
+    expect(btnAi._st().translatedTextNode).toBe(live);
+  });
+});
