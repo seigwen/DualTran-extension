@@ -234,6 +234,7 @@ tests/
 - 竞态禁令：显式切走后的同页格**不得**依赖「尽早点 G」的竞态时序（多数落 `showGoogleOnly` 分支 = 无 RED 能力）——必须用确定性三输入（marker 硬校验 / `aiModeActive=false` / 合成 `popstate`）。
 - **读取点登记（plan 51 / 第 18 lint）：** `src/` 中对意图信号（`aiModeActive` / `shouldForceAiForThisRun` / `shouldForceAiAfterPageTranslation`）的每一处代码引用（注释、字符串、regex 字面量除外）必须落在 `// [intent-gate:<id>]` 标记段内并登记于 SSOT `tests/shared/intent-gates.mjs`——逐段计数哨兵（引用增减即红）；新增读取点/新文件出现引用而未登记 = `check-intent-gates.js` 硬红。派生公式三副本（`currentPageIntentMode` / `deriveIntentUi` / `resolveInitialUiState`）已收敛为单一实现 `derivePageIntent`（`src/contentScript/intentDerivation.js`）。
 - **lint 自测纪律：** `tests/scripts/checkIntentGates.test.js`（20 格：I0–I4 每规则负例 + 干净正例 + 掩码回归锁：regex 反引号不级联 / 模板插值计一次 / 注释与字符串永不计）。
+- **RED 认证 / 锁活性纪律（plan 51 P2-D）：** 修复的 RED 能力由 cert 复验：`npm run cert -- --case <id>`（案例登记 `tests/shared/cert-cases.mjs`；还原修复 → 构建 → 目标锁必红且签名匹配 → 自动留档；「还原后仍绿 = 死锁」）。锚串由 `certCases.test.js` 轮换守卫（修复行移动/编辑必须同批更新案例）；节奏：季度 / 发版前 `--all`（首轮报告：manage 55 号）。
 
 ### 划词面板不变量（Selection Panel Invariants，plan 31 / #106）
 
