@@ -1108,6 +1108,33 @@ export async function resetScenarioState(scope) {
       .catch(() => {});
   }
 
+  // ── 2b) sessionStorage（跨 origin 兜底，#173 实证）：若上个场景把共享页留在了
+  // 其他 origin（例如把页面停在 options 页），步骤 2 只清到「当前 origin」——
+  // 测试页 origin 的「AI 已译标记」（pageTranslator 的 getAiAppliedStorageKey）会
+  // 存活，下个场景加载同一 URL 时自动恢复整页翻译（实测：selected-panel 单词格
+  // 选区被污染 → 10s 超时）。这里把共享页导航回测试页、待其中可能触发的自动恢复
+  // 翻译落定后，对该 origin 连清两次（最后一次紧贴离开，缩小恢复成功回写窗口）。
+  if (page && !page.isClosed?.() && scope?.testPageUrl) {
+    try {
+      await page.goto(scope.testPageUrl, { waitUntil: "domcontentloaded" }).catch(() => {});
+      await page.waitForTimeout(400);
+      for (let i = 0; i < 2; i++) {
+        await page
+          .evaluate(() => {
+            try {
+              sessionStorage.clear();
+            } catch (_) {
+              /* ignore */
+            }
+          })
+          .catch(() => {});
+        await page.waitForTimeout(150);
+      }
+    } catch (err) {
+      console.warn(`[reset] 测试页 origin sessionStorage 清除失败（忽略）: ${err.message}`);
+    }
+  }
+
   // ── 3) 页面回到中立态（避免下一个场景继承上一个场景的 DOM）──
   if (page && !page.isClosed?.()) {
     await page.goto("about:blank").catch(() => {});

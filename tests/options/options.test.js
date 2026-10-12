@@ -716,7 +716,7 @@ describe("options/options", () => {
     });
   });
 
-  it("initializes the block-button-group selects from config and greys the inactive group (#171)", async () => {
+  it("initializes the block-button-group selects from config and hides the inactive group (#171, revised 2026-10-12)", async () => {
     await loadOptionsModule({
       blockBtnGroupDisplay: "always",
       blockBtnGroupAlwaysStyle: "buttons",
@@ -728,25 +728,27 @@ describe("options/options", () => {
     expect(document.querySelector("#blockBtnGroupAlwaysStyle").value).toBe("buttons");
     expect(document.querySelector("#blockBtnGroupShowOnHover").value).toBe("no");
     expect(document.querySelector("#blockBtnGroupShowOnClick").value).toBe("yes");
-    // always mode → the two trigger selects are greyed (visible but disabled)
-    expect(document.querySelector("#blockBtnGroupShowOnHover").hasAttribute("disabled")).toBe(true);
-    expect(document.querySelector("#blockBtnGroupShowOnClick").hasAttribute("disabled")).toBe(true);
-    expect(document.querySelector("#blockBtnGroupAlwaysStyle").hasAttribute("disabled")).toBe(false);
+    // always mode → the trigger group is hidden entirely (revision: no longer greyed out)
+    expect(document.querySelector("#blockBtnGroupTriggerOptions").style.display).toBe("none");
+    expect(document.querySelector("#blockBtnGroupAlwaysOptions").style.display).toBe("block");
+    // hidden ≠ disabled: the revision dropped the grey-out semantics
+    expect(document.querySelector("#blockBtnGroupShowOnHover").hasAttribute("disabled")).toBe(false);
   });
 
-  it("greys the always-mode style select in triggered mode and flips on change (#171)", async () => {
+  it("hides the always-style group in triggered mode and flips group visibility on change (#171, revised 2026-10-12)", async () => {
     await loadOptionsModule(); // default: triggered
 
-    expect(document.querySelector("#blockBtnGroupAlwaysStyle").hasAttribute("disabled")).toBe(true);
-    expect(document.querySelector("#blockBtnGroupShowOnHover").hasAttribute("disabled")).toBe(false);
+    expect(document.querySelector("#blockBtnGroupAlwaysOptions").style.display).toBe("none");
+    expect(document.querySelector("#blockBtnGroupTriggerOptions").style.display).toBe("block");
+    expect(document.querySelector("#blockBtnGroupAlwaysStyle").hasAttribute("disabled")).toBe(false);
 
     const display = document.querySelector("#blockBtnGroupDisplay");
     display.value = "always";
     display.onchange({ target: display });
 
     expect(state.configMock.set).toHaveBeenCalledWith("blockBtnGroupDisplay", "always");
-    expect(document.querySelector("#blockBtnGroupAlwaysStyle").hasAttribute("disabled")).toBe(false);
-    expect(document.querySelector("#blockBtnGroupShowOnHover").hasAttribute("disabled")).toBe(true);
+    expect(document.querySelector("#blockBtnGroupAlwaysOptions").style.display).toBe("block");
+    expect(document.querySelector("#blockBtnGroupTriggerOptions").style.display).toBe("none");
   });
 
   it("binds checkbox config values on initialization and change", async () => {

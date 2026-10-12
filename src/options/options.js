@@ -1580,30 +1580,20 @@ twpConfig.onReady(function () {
   // ── Block button group display (#171) ─────────────────────────────
   // "triggered" (default): hover/click entry toggles; "always": the badge /
   // inline three-button row is always visible at the end of each block.
-  // Dependent groups are greyed (disabled, not hidden — same convention as
-  // the translate-selected advanced options above).
-  function enableOrDisableBlockBtnGroupOptions(displayValue) {
+  // The inactive dependent group is hidden entirely — revised 2026-10-12 at
+  // the user's request (the initial grey-out/disabled convention was dropped).
+  function updateBlockBtnGroupOptionVisibility(displayValue) {
     const alwaysMode = displayValue === "always";
-    document
-      .querySelectorAll("#blockBtnGroupAlwaysOptions select")
-      .forEach((select) => {
-        if (alwaysMode) select.removeAttribute("disabled");
-        else select.setAttribute("disabled", "");
-      });
-    document
-      .querySelectorAll("#blockBtnGroupTriggerOptions select")
-      .forEach((select) => {
-        if (alwaysMode) select.setAttribute("disabled", "");
-        else select.removeAttribute("disabled");
-      });
+    $("#blockBtnGroupAlwaysOptions").style.display = alwaysMode ? "block" : "none";
+    $("#blockBtnGroupTriggerOptions").style.display = alwaysMode ? "none" : "block";
   }
 
   $("#blockBtnGroupDisplay").onchange = (e) => {
     twpConfig.set("blockBtnGroupDisplay", e.target.value);
-    enableOrDisableBlockBtnGroupOptions(e.target.value);
+    updateBlockBtnGroupOptionVisibility(e.target.value);
   };
   $("#blockBtnGroupDisplay").value = twpConfig.get("blockBtnGroupDisplay") || "triggered";
-  enableOrDisableBlockBtnGroupOptions($("#blockBtnGroupDisplay").value);
+  updateBlockBtnGroupOptionVisibility($("#blockBtnGroupDisplay").value);
 
   $("#blockBtnGroupAlwaysStyle").onchange = (e) => {
     twpConfig.set("blockBtnGroupAlwaysStyle", e.target.value);

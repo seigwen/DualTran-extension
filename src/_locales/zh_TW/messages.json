@@ -842,7 +842,7 @@
     "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
   },
   "lblBlockBtnGroupAlwaysStyle": {
-    "message": "顯示方式",
+    "message": "常駐顯示方式",
     "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
   },
   "blockBtnGroupAlwaysStyleBadge": {
