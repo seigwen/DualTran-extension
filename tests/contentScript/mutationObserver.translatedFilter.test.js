@@ -90,6 +90,10 @@ vi.mock("../../src/contentScript/singletonBtnGroup.js", () => ({
   createSingletonButtonGroup: vi.fn(),
   destroySingletonButtonGroup: vi.fn(),
   attachHoverDelegation: vi.fn(),
+  hideButtonGroup: vi.fn(),
+  setEntryPolicyProvider: vi.fn(),
+  syncBlockBadges: vi.fn(),
+  syncAllBlockBadgeActiveStates: vi.fn(),
   setCallbacks: vi.fn(),
   getProxiesForTranslation: vi.fn(() => []),
   getAllProxies: vi.fn(() => []),
@@ -273,5 +277,28 @@ describe("isDualTranGeneratedNode — MutationObserver 过滤 DualTran 生成元
   it("文本节点应返回 false（非元素节点）", () => {
     const textNode = document.createTextNode("纯文本");
     expect(isDualTranGeneratedNode(textNode)).toBe(false);
+  });
+
+  it("常驻徽标 (.dualtran-block-badge) 应返回 true（#171）", () => {
+    const badge = document.createElement("span");
+    badge.className = "dualtran-block-badge";
+    badge.textContent = "⇄";
+    expect(isDualTranGeneratedNode(badge)).toBe(true);
+  });
+
+  it("常驻内联按钮行 / 按钮 (.dualtran-block-btn-row / .dualtran-block-btn) 应返回 true（#171）", () => {
+    const row = document.createElement("span");
+    row.className = "dualtran-block-btn-row";
+    expect(isDualTranGeneratedNode(row)).toBe(true);
+
+    const btn = document.createElement("button");
+    btn.className = "dualtran-block-btn";
+    expect(isDualTranGeneratedNode(btn)).toBe(true);
+  });
+
+  it("无标记的普通按钮应返回 false（防误伤，负向对照）", () => {
+    const plain = document.createElement("button");
+    plain.textContent = "Send";
+    expect(isDualTranGeneratedNode(plain)).toBe(false);
   });
 });

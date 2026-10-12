@@ -828,5 +828,41 @@
   },
   "translateClickingOnce": {
     "message": "點一下網址列中的按鈕來翻譯網頁。（要顯示彈出視窗則點擊右鍵）"
+  },
+  "lblBlockBtnGroupDisplay": {
+    "message": "段落按鈕組的顯示方式",
+    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
+  },
+  "blockBtnGroupDisplayTriggered": {
+    "message": "動作觸發顯示",
+    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
+  },
+  "blockBtnGroupDisplayAlways": {
+    "message": "常駐顯示",
+    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
+  },
+  "lblBlockBtnGroupAlwaysStyle": {
+    "message": "顯示方式",
+    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
+  },
+  "blockBtnGroupAlwaysStyleBadge": {
+    "message": "小徽標（點擊展開三個按鈕）",
+    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
+  },
+  "blockBtnGroupAlwaysStyleButtons": {
+    "message": "直接顯示三個按鈕",
+    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
+  },
+  "lblBlockBtnGroupShowOnHover": {
+    "message": "懸停文字段落時顯示段落按鈕組",
+    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
+  },
+  "lblBlockBtnGroupShowOnClick": {
+    "message": "點擊文字段落時顯示段落按鈕組",
+    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
+  },
+  "blockBtnGroupBadgeTooltip": {
+    "message": "段落翻譯選項",
+    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

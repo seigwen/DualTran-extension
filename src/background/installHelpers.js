@@ -90,3 +90,19 @@ export function resolveDevelopmentReloadPlan({
 
   return getReloadableTabIds(tabs);
 }
+
+/**
+ * Block button group (#171): the tap/click entry default differs per
+ * platform (mobile/tablet yes — no-mouse users get the tap path; desktop no —
+ * clicks must not interrupt selection). A static defaultConfig value cannot
+ * express that, so the effective value is backfilled into storage
+ * (write-if-absent) on install/update and on browser startup. Returns null
+ * when the key already exists — a stored user choice is never overwritten.
+ *
+ * @param {{ storedValue?: string|null, isMobile: boolean }} args
+ * @returns {{ blockBtnGroupShowOnClick: "yes"|"no" } | null}
+ */
+export function resolveBlockBtnGroupClickBackfill({ storedValue, isMobile }) {
+  if (storedValue !== undefined && storedValue !== null) return null;
+  return { blockBtnGroupShowOnClick: isMobile ? "yes" : "no" };
+}

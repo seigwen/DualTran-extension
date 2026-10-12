@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
-import { BtnAiProxy, createBlockState, getProxiesForTranslation, getAllProxies, registerBlock, getBlockState, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, updateSingletonUI, setCallbacks, BTN_COLORS } from "../../src/contentScript/singletonBtnGroup.js";
+import { BtnAiProxy, createBlockState, getProxiesForTranslation, getAllProxies, registerBlock, getBlockState, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, updateSingletonUI, setCallbacks, setEntryPolicyProvider, syncBlockBadges, positionButtonGroup, BTN_COLORS } from "../../src/contentScript/singletonBtnGroup.js";
 import { applyAiTranslatingState, applyAiSuccessState, applyAiErrorState } from "../../src/contentScript/aiUiState.js";
 
 describe("BtnAiProxy", () => {
@@ -900,7 +900,12 @@ describe("未注册块悬停 — fail-safe 守卫 (#65)", () => {
   let registeredEl;
 
   const hover = (el) => el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-  const touch = (el) => el.dispatchEvent(new Event("touchstart", { bubbles: true }));
+  // #171: the touchstart entry was replaced by the policy-gated pointer tap
+  // path — the fail-safe cells now drive the new event model.
+  const tap = (el) => {
+    el.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, clientX: 10, clientY: 10, button: 0 }));
+    el.dispatchEvent(new MouseEvent("pointerup", { bubbles: true, clientX: 10, clientY: 10, button: 0 }));
+  };
   const hostCount = () => document.querySelectorAll("#dualtran-singleton-btn-host").length;
   const host = () => document.getElementById("dualtran-singleton-btn-host");
 
@@ -975,18 +980,20 @@ describe("未注册块悬停 — fail-safe 守卫 (#65)", () => {
     snapshotClone.remove();
   });
 
-  test("④touchstart 入口：未注册块不创建 host 且不显示", () => {
+  test("④tap 入口（#171 迁移）：未注册块不创建 host 且不显示", () => {
+    setEntryPolicyProvider(() => ({ display: "triggered", alwaysStyle: "badge", showOnHover: "yes", showOnClick: "yes" }));
     const snapshotClone = registeredEl.cloneNode(true);
     document.body.appendChild(snapshotClone);
 
-    touch(snapshotClone);
+    tap(snapshotClone);
     expect(hostCount()).toBe(0);
 
     createSingletonButtonGroup();
     expect(host().style.top).toBe("-9999px");
-    touch(snapshotClone);
+    tap(snapshotClone);
     expect(host().style.top).toBe("-9999px");
     snapshotClone.remove();
+    setEntryPolicyProvider(null);
   });
 
   test("⑤已注册块回归对照 → 正常创建并显示（守卫不误伤）", () => {
@@ -1176,5 +1183,330 @@ describe("三按钮结构 + 色板（#65：Original / Google / AI，对齐浮动
     expect(spy).toHaveBeenNthCalledWith(1, "original", translatedEl);
     expect(spy).toHaveBeenNthCalledWith(2, "google", translatedEl);
     expect(spy).toHaveBeenNthCalledWith(3, "ai", translatedEl);
+  });
+});
+
+
+// ══════════════════════════════════════════════════════════════════
+// #171 — 段落按钮组显示模式设置：入口策略 / tap 语义 / 常驻控件
+// ══════════════════════════════════════════════════════════════════
+
+describe("#171 — 入口策略（设置门控）", () => {
+  let translatedEl;
+
+  const hover = (el) => el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+  const host = () => document.getElementById("dualtran-singleton-btn-host");
+  const shown = () => {
+    const h = host();
+    return !!h && h.style.top !== "-9999px";
+  };
+
+  beforeEach(() => {
+    vi.spyOn(HTMLElement.prototype, "attachShadow").mockImplementation(function (init) {
+      return Element.prototype.attachShadow.call(this, { ...init, mode: "open" });
+    });
+    document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
+    document.querySelectorAll(".dualtran-block-badge, .dualtran-block-btn-row").forEach((el) => el.remove());
+    destroySingletonButtonGroup();
+    attachHoverDelegation();
+    translatedEl = document.createElement("translated");
+    translatedEl.textContent = "Bonjour";
+    document.body.appendChild(translatedEl);
+    registerBlock(translatedEl, "Hello", document.createTextNode("Bonjour"), "Bonjour", null);
+    createSingletonButtonGroup();
+  });
+
+  afterEach(() => {
+    setEntryPolicyProvider(null);
+    document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
+    document.querySelectorAll(".dualtran-block-badge, .dualtran-block-btn-row").forEach((el) => el.remove());
+    destroySingletonButtonGroup();
+    translatedEl.remove();
+    vi.restoreAllMocks();
+  });
+
+  test("悬停门控：showOnHover=no → 悬停不显示；恢复 yes → 显示", () => {
+    setEntryPolicyProvider(() => ({ display: "triggered", alwaysStyle: "badge", showOnHover: "no", showOnClick: "no" }));
+    hover(translatedEl);
+    expect(shown()).toBe(false);
+
+    setEntryPolicyProvider(() => ({ display: "triggered", alwaysStyle: "badge", showOnHover: "yes", showOnClick: "no" }));
+    hover(translatedEl);
+    expect(shown()).toBe(true);
+  });
+
+  test("display=always → 悬停不显示（常驻控件是唯一入口）", () => {
+    setEntryPolicyProvider(() => ({ display: "always", alwaysStyle: "badge", showOnHover: "yes", showOnClick: "yes" }));
+    hover(translatedEl);
+    expect(shown()).toBe(false);
+  });
+
+  test("触摸合成 mouseover 不进 hover 入口（sourceCapabilities.firesTouchEvents）", () => {
+    setEntryPolicyProvider(() => ({ display: "triggered", alwaysStyle: "badge", showOnHover: "yes", showOnClick: "no" }));
+    const synthetic = new MouseEvent("mouseover", { bubbles: true });
+    Object.defineProperty(synthetic, "sourceCapabilities", { value: { firesTouchEvents: true } });
+    translatedEl.dispatchEvent(synthetic);
+    expect(shown()).toBe(false);
+
+    // 对照：真实鼠标 mouseover 仍走 hover 入口
+    hover(translatedEl);
+    expect(shown()).toBe(true);
+  });
+
+  test("触摸后兜底窗口：无 sourceCapabilities 的普通 mouseover 也被压制", () => {
+    setEntryPolicyProvider(() => ({ display: "triggered", alwaysStyle: "badge", showOnHover: "yes", showOnClick: "no" }));
+    const pdown = new MouseEvent("pointerdown", { bubbles: true, clientX: 10, clientY: 10, button: 0 });
+    Object.defineProperty(pdown, "pointerType", { value: "touch" });
+    translatedEl.dispatchEvent(pdown);
+    const pup = new MouseEvent("pointerup", { bubbles: true, clientX: 10, clientY: 10, button: 0 });
+    Object.defineProperty(pup, "pointerType", { value: "touch" });
+    translatedEl.dispatchEvent(pup);
+
+    hover(translatedEl); // 触摸后窗口内的 mouseover → 压制
+    expect(shown()).toBe(false);
+  });
+});
+
+describe("#171 — tap / 点击语义", () => {
+  let translatedEl;
+
+  const down = (el, x = 10, y = 10) => el.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, clientX: x, clientY: y, button: 0 }));
+  const up = (el, x = 10, y = 10) => el.dispatchEvent(new MouseEvent("pointerup", { bubbles: true, clientX: x, clientY: y, button: 0 }));
+  const host = () => document.getElementById("dualtran-singleton-btn-host");
+  const shown = () => {
+    const h = host();
+    return !!h && h.style.top !== "-9999px";
+  };
+  const clickPolicy = () =>
+    setEntryPolicyProvider(() => ({ display: "triggered", alwaysStyle: "badge", showOnHover: "yes", showOnClick: "yes" }));
+
+  beforeEach(() => {
+    vi.spyOn(HTMLElement.prototype, "attachShadow").mockImplementation(function (init) {
+      return Element.prototype.attachShadow.call(this, { ...init, mode: "open" });
+    });
+    document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
+    document.querySelectorAll(".dualtran-block-badge, .dualtran-block-btn-row").forEach((el) => el.remove());
+    destroySingletonButtonGroup();
+    attachHoverDelegation();
+    translatedEl = document.createElement("translated");
+    translatedEl.textContent = "Bonjour";
+    document.body.appendChild(translatedEl);
+    registerBlock(translatedEl, "Hello", document.createTextNode("Bonjour"), "Bonjour", null);
+    createSingletonButtonGroup();
+  });
+
+  afterEach(() => {
+    setEntryPolicyProvider(null);
+    document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
+    document.querySelectorAll(".dualtran-block-badge, .dualtran-block-btn-row").forEach((el) => el.remove());
+    destroySingletonButtonGroup();
+    translatedEl.remove();
+    vi.restoreAllMocks();
+  });
+
+  test("tap 显示 → 再 tap 同块收起（toggle）", () => {
+    clickPolicy();
+    down(translatedEl); up(translatedEl);
+    expect(shown()).toBe(true);
+    down(translatedEl); up(translatedEl);
+    expect(shown()).toBe(false);
+  });
+
+  test("位移 >12px 不显示（滚动起手不闪出）", () => {
+    clickPolicy();
+    down(translatedEl, 10, 10); up(translatedEl, 40, 10);
+    expect(shown()).toBe(false);
+  });
+
+  test("时长 >600ms 不显示（长按窗口不闪出；判定读事件 timeStamp，抗交付延迟）", () => {
+    clickPolicy();
+    const downEv = new MouseEvent("pointerdown", { bubbles: true, clientX: 10, clientY: 10, button: 0 });
+    Object.defineProperty(downEv, "timeStamp", { value: 1000 });
+    translatedEl.dispatchEvent(downEv);
+    const upEv = new MouseEvent("pointerup", { bubbles: true, clientX: 10, clientY: 10, button: 0 });
+    Object.defineProperty(upEv, "timeStamp", { value: 1700 });
+    translatedEl.dispatchEvent(upEv);
+    expect(shown()).toBe(false);
+  });
+
+  test("pointercancel（长按选字接手）作废，不显示", () => {
+    clickPolicy();
+    down(translatedEl);
+    translatedEl.dispatchEvent(new Event("pointercancel", { bubbles: true }));
+    up(translatedEl);
+    expect(shown()).toBe(false);
+  });
+
+  test("链接内 tap 不显示（页面交互放行）", () => {
+    clickPolicy();
+    const link = document.createElement("a");
+    link.href = "#";
+    link.textContent = "link";
+    translatedEl.appendChild(link);
+    down(link); up(link);
+    expect(shown()).toBe(false);
+    link.remove();
+  });
+
+  test("showOnClick=no → tap 不显示（桌面默认）", () => {
+    down(translatedEl); up(translatedEl);
+    expect(shown()).toBe(false);
+  });
+
+  test("replaceOriginal 块可 tap（不对称缺口修复：鼠标路径匹配、旧触摸路径不匹配）", () => {
+    clickPolicy();
+    const p = document.createElement("p");
+    p.textContent = "Hello";
+    document.body.appendChild(p);
+    registerBlock(p, "Hello", document.createTextNode("Bonjour"), "", []);
+    down(p); up(p);
+    expect(shown()).toBe(true);
+    p.remove();
+  });
+
+  test("点空白 pointerdown 立即收起", () => {
+    clickPolicy();
+    down(translatedEl); up(translatedEl);
+    expect(shown()).toBe(true);
+    document.body.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
+    expect(shown()).toBe(false);
+  });
+});
+
+describe("#171 — 常驻控件（badge / 内联三按钮）", () => {
+  let translatedEl;
+
+  const hostCount = () => document.querySelectorAll("#dualtran-singleton-btn-host").length;
+  const host = () => document.getElementById("dualtran-singleton-btn-host");
+  const shown = () => {
+    const h = host();
+    return !!h && h.style.top !== "-9999px";
+  };
+  const badges = () => document.querySelectorAll(".dualtran-block-badge");
+  const rows = () => document.querySelectorAll(".dualtran-block-btn-row");
+  const asHex = (v) => {
+    const m = /^rgb\((\d+), (\d+), (\d+)\)$/.exec(v || "");
+    return m ? "#" + [1, 2, 3].map((i) => Number(m[i]).toString(16).padStart(2, "0")).join("") : (v || "").toLowerCase();
+  };
+  const setAlwaysPolicy = (style = "badge") =>
+    setEntryPolicyProvider(() => ({ display: "always", alwaysStyle: style, showOnHover: "yes", showOnClick: "yes" }));
+  const setTriggeredPolicy = () =>
+    setEntryPolicyProvider(() => ({ display: "triggered", alwaysStyle: "badge", showOnHover: "yes", showOnClick: "no" }));
+
+  beforeEach(() => {
+    vi.spyOn(HTMLElement.prototype, "attachShadow").mockImplementation(function (init) {
+      return Element.prototype.attachShadow.call(this, { ...init, mode: "open" });
+    });
+    document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
+    document.querySelectorAll(".dualtran-block-badge, .dualtran-block-btn-row").forEach((el) => el.remove());
+    destroySingletonButtonGroup();
+    attachHoverDelegation();
+    setAlwaysPolicy("badge");
+    createSingletonButtonGroup();
+    translatedEl = document.createElement("translated");
+    translatedEl.textContent = "Bonjour";
+    document.body.appendChild(translatedEl);
+    registerBlock(translatedEl, "Hello", document.createTextNode("Bonjour"), "Bonjour", null);
+  });
+
+  afterEach(() => {
+    setEntryPolicyProvider(null);
+    document.querySelectorAll("#dualtran-singleton-btn-host").forEach((el) => el.remove());
+    document.querySelectorAll(".dualtran-block-badge, .dualtran-block-btn-row").forEach((el) => el.remove());
+    destroySingletonButtonGroup();
+    translatedEl.remove();
+    vi.restoreAllMocks();
+  });
+
+  test("always+badge：注册即注入，锚在 <translated> 之前（原文行末）", () => {
+    expect(badges().length).toBe(1);
+    expect(translatedEl.previousSibling.classList.contains("dualtran-block-badge")).toBe(true);
+    // reachability：徽标不在 <translated> 内部 — Original 态隐藏译文时不会被吞掉
+    expect(translatedEl.previousSibling.closest("translated")).toBeNull();
+  });
+
+  test("badge 点击 → 弹层显示；再点同徽标 → 收起", () => {
+    const badge = badges()[0];
+    badge.click();
+    expect(shown()).toBe(true);
+    badge.click();
+    expect(shown()).toBe(false);
+  });
+
+  test("Original 态（<translated> display:none）下徽标仍可见可点（reachability）", () => {
+    const badge = badges()[0];
+    translatedEl.style.display = "none"; // 模拟 restoreBlockOriginal 的 newLine 分支
+    expect(badge.isConnected).toBe(true);
+    badge.click();
+    expect(shown()).toBe(true);
+    translatedEl.style.display = "";
+  });
+
+  test("always+buttons：sync 换型为内联三按钮行（engineLabels 标签）", () => {
+    setAlwaysPolicy("buttons");
+    syncBlockBadges();
+    expect(badges().length).toBe(0);
+    expect(rows().length).toBe(1);
+    const labels = Array.from(rows()[0].querySelectorAll("button")).map((b) => b.textContent);
+    expect(labels).toEqual(["Original", "Google", "AI"]);
+  });
+
+  test("内联按钮点击走单一 onBtnClick(id, block)", () => {
+    setAlwaysPolicy("buttons");
+    syncBlockBadges();
+    const spy = vi.fn();
+    setCallbacks({ onBtnClick: spy });
+    rows()[0].querySelector('[data-button-id="ai"]').click();
+    expect(spy).toHaveBeenCalledWith("ai", translatedEl);
+  });
+
+  test("注册后 intentMode 继承 → microtask 后行高亮跟随（不落在注册默认值）", async () => {
+    setAlwaysPolicy("buttons");
+    const el = document.createElement("translated");
+    el.textContent = "Salut";
+    document.body.appendChild(el);
+    registerBlock(el, "Hi", document.createTextNode("Salut"), "Salut", null);
+    getBlockState(el).intentMode = "ai"; // 调用点：registerBlock 之后的意图继承
+    await Promise.resolve();
+    const row = el.previousSibling;
+    expect(row.classList.contains("dualtran-block-btn-row")).toBe(true);
+    expect(asHex(row.querySelector('[data-button-id="ai"]').style.background)).toBe("#7c3aed");
+    expect(asHex(row.querySelector('[data-button-id="google"]').style.background)).toBe("#eff6ff");
+    el.remove();
+  });
+
+  test("syncBlockBadges：triggered → 移除；切回 always → 再注入", () => {
+    expect(badges().length).toBe(1);
+    setTriggeredPolicy();
+    syncBlockBadges();
+    expect(badges().length).toBe(0);
+
+    setAlwaysPolicy("badge");
+    syncBlockBadges();
+    expect(badges().length).toBe(1);
+    expect(translatedEl.previousSibling.classList.contains("dualtran-block-badge")).toBe(true);
+  });
+
+  test("destroySingletonButtonGroup 全量清扫徽标与内联行（restore 语义）", () => {
+    setAlwaysPolicy("buttons");
+    syncBlockBadges();
+    expect(rows().length).toBe(1);
+    destroySingletonButtonGroup();
+    expect(badges().length).toBe(0);
+    expect(rows().length).toBe(0);
+    expect(hostCount()).toBe(0);
+  });
+
+  test("positionButtonGroup 右缘钳制（窄视口不溢出）", () => {
+    const h = host();
+    h.getBoundingClientRect = () => ({ width: 300, height: 40, top: 0, left: 0, right: 300, bottom: 40 });
+    const anchorEl = document.createElement("span");
+    document.body.appendChild(anchorEl);
+    anchorEl.getBoundingClientRect = () => ({ width: 10, height: 10, top: 100, left: 1000, right: 1010, bottom: 110 });
+    positionButtonGroup(anchorEl);
+    // jsdom: hasAncestorTransform() 走 absolute 分支（getComputedStyle 默认空串），
+    // 钳制值在两条分支上同源：left = min(1000, 1024 - 300 - 4 = 720)，scrollX = 0。
+    expect(h.style.left).toBe("720px");
+    anchorEl.remove();
   });
 });
