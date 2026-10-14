@@ -32,14 +32,17 @@ const SOURCE_DIR = path.join(ROOT, "src");
 
 const CJK_RE = /[\u4E00-\u9FFF]/;
 const EXEMPT_FILES = new Set([
-  "src/lib/languages.js",
+  // plan 59: the canonical implementations moved to src/core/ — the exemptions
+  // follow the data (the files above in src/lib/ai/ are plain re-exports /
+  // glue kept for compatibility; the CJK display names now live in core).
+  // src/lib/languages.js was removed from this list in plan 59 M3-7: the
+  // language-name dictionaries moved to core and the remaining file is CJK-free.
   "src/lib/ai/providerRegistry.js",
   "src/lib/ai/providerModelPreview.js",
-  // plan 59: the canonical implementation moved to src/core/ — the exemption
-  // follows the data (the shims above are plain re-exports / glue, kept for
-  // compatibility; the CJK provider+model display names now live here).
   "src/core/providers/registry.js",
   "src/core/providers/modelPreview.js",
+  // plan 59 M3-7: language-name dictionaries + otherConfigs moved to core.
+  "src/core/languages/names.js",
 ]);
 const ALLOW_MARKER = "i18n-allow-chinese";
 const ALLOW_START = `// ${ALLOW_MARKER}:start`;
