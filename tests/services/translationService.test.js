@@ -1,6 +1,13 @@
 import { readFile } from "node:fs/promises";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// plan 59: the shared engine modules injected into the instrumented source below.
+// Static import = one singleton shared by every cell of this file; the instrumented
+// translationService re-assigns serviceRuntime.cache on each import.
+import { Service as CoreService, serviceRuntime as coreServiceRuntime } from "../../src/core/engines/serviceBase.js";
+import { Utils as CoreUtils } from "../../src/core/engines/utils.js";
+import { googleService as coreGoogleService } from "../../src/core/engines/google.js";
+
 let _moduleLoadSeq = 0; // 确定性 cache-busting（替代 Math.random()）
 
 const SOURCE_FILE_URL = new URL("../../src/background/translationService.js", import.meta.url);
@@ -188,6 +195,21 @@ async function importTestableTranslationService() {
       /import translationCache from "\.\.\/background\/translationCache\.js"\s*/,
       'const translationCache = globalThis.__translationServiceTestDeps.translationCache;\n'
     )
+    // plan 59: data: URL modules cannot resolve relative specifiers
+    // (ERR_UNSUPPORTED_RESOLVE_REQUEST) — strip the core-engine imports and
+    // inject the modules through the deps object, same as languages/cache above.
+    .replace(
+      /import \{ Service, serviceRuntime \} from "\.\.\/core\/engines\/serviceBase\.js"\s*/,
+      'const { Service, serviceRuntime } = globalThis.__translationServiceTestDeps;\n'
+    )
+    .replace(
+      /import \{ Utils \} from "\.\.\/core\/engines\/utils\.js"\s*/,
+      'const { Utils } = globalThis.__translationServiceTestDeps;\n'
+    )
+    .replace(
+      /import \{ googleService \} from "\.\.\/core\/engines\/google\.js"\s*/,
+      'const { googleService } = globalThis.__translationServiceTestDeps;\n'
+    )
     .replace(
       /return translationService;\s*\}\)\(\);/,
       [
@@ -226,6 +248,11 @@ async function importTestableTranslationService() {
       get: (...args) => mockState.translationCacheGetMock(...args),
       set: (...args) => mockState.translationCacheSetMock(...args),
     },
+    // plan 59 core-engine modules (injected because data: URLs cannot import)
+    Service: CoreService,
+    Utils: CoreUtils,
+    googleService: coreGoogleService,
+    serviceRuntime: coreServiceRuntime,
   };
 
   const moduleUrl = `data:text/javascript;base64,${Buffer.from(instrumentedSource).toString("base64")}`;
