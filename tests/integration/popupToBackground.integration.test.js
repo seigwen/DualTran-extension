@@ -7,6 +7,13 @@ import { fileURLToPath } from "node:url";
 let _moduleLoadSeq = 0; // 确定性 cache-busting（替代 Math.random()）
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// plan 59: the shared engine modules injected into the instrumented source below.
+// Static import = one singleton shared by every cell of this file; the instrumented
+// translationService re-assigns serviceRuntime.cache on each import.
+import { Service as CoreService, serviceRuntime as coreServiceRuntime } from "../../src/core/engines/serviceBase.js";
+import { Utils as CoreUtils } from "../../src/core/engines/utils.js";
+import { googleService as coreGoogleService } from "../../src/core/engines/google.js";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const translationServiceSourcePath = resolve(__dirname, "../../src/background/translationService.js");
 const translationCacheSourcePath = resolve(__dirname, "../../src/background/translationCache.js");
@@ -27,6 +34,21 @@ async function importInstrumentedTranslationService() {
     .replace(
       /import translationCache from "\.\.\/background\/translationCache\.js"\s*/,
       'const translationCache = globalThis.__popupBackgroundTestDeps.translationCache;\n'
+    )
+    // plan 59: data: URL modules cannot resolve relative specifiers
+    // (ERR_UNSUPPORTED_RESOLVE_REQUEST) — strip the core-engine imports and
+    // inject the modules through the deps object, same as languages/cache above.
+    .replace(
+      /import \{ Service, serviceRuntime \} from "\.\.\/core\/engines\/serviceBase\.js"\s*/,
+      'const { Service, serviceRuntime } = globalThis.__popupBackgroundTestDeps;\n'
+    )
+    .replace(
+      /import \{ Utils \} from "\.\.\/core\/engines\/utils\.js"\s*/,
+      'const { Utils } = globalThis.__popupBackgroundTestDeps;\n'
+    )
+    .replace(
+      /import \{ googleService \} from "\.\.\/core\/engines\/google\.js"\s*/,
+      'const { googleService } = globalThis.__popupBackgroundTestDeps;\n'
     )
     .replace(
       /return translationService;\s*\}\)\(\);/,
@@ -117,6 +139,11 @@ describe("popup to background integration", () => {
         get: vi.fn(),
         set: vi.fn(),
       },
+      // plan 59 core-engine modules (injected because data: URLs cannot import)
+      Service: CoreService,
+      Utils: CoreUtils,
+      googleService: coreGoogleService,
+      serviceRuntime: coreServiceRuntime,
     };
 
     vi.spyOn(console, "log").mockImplementation(() => {});

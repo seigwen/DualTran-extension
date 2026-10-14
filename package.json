@@ -2,6 +2,12 @@
   "name": "dualtran",
   "description": "AI-powered browser extension that translates web pages and displays the translated text with the original text in the same page.",
   "version": "1.0.0",
+  "files": [
+    "dist-core",
+    "LICENSE",
+    "README.md",
+    "PROVENANCE.md"
+  ],
   "browserslist": [
     "firefox 63",
     "chrome 70"
@@ -9,11 +15,14 @@
   "scripts": {
     "dev": "webpack --config webpack.dev.js --watch",
     "build": "webpack --config webpack.production.js",
+    "build:core": "node scripts/build-core.mjs",
+    "tx": "node scripts/tx-cli.mjs",
     "dev-polyfill": "webpack --config polyfill.webpack.dev.js",
     "build-polyfill": "webpack --config polyfill.webpack.production.js",
     "test": "vitest run",
     "check:visual-fidelity": "node scripts/check-visual-fidelity.mjs --dir /tmp/e2e-shots",
     "lint:i18n-writes": "node scripts/check-i18n-writes.js",
+    "lint:core-boundary": "node scripts/check-core-boundary.js",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:ai": "vitest run tests/ai",
@@ -114,7 +123,7 @@
     "webpack-merge": "^5.8.0",
     "yaml": "^2.9.1"
   },
-  "main": "build.js",
+  "main": "dist-core/index.mjs",
   "directories": {
     "doc": "docs",
     "test": "tests"

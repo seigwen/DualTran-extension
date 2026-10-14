@@ -91,6 +91,29 @@ npm run build
 
 Output goes to `dist/chrome/`.
 
+## Core Library (`src/core`)
+
+The translation engine — provider registry, models.dev transport, prompt
+builders, Google engine, caches — lives in `src/core/`: a host-free layer with
+zero `chrome.*` dependencies, designed for reuse outside the extension
+(other browsers, workbench apps, agents). The extension imports it through
+thin shims kept at the original paths.
+
+```bash
+# Bundle the core (ESM; SDK deps stay external) into dist-core/
+npm run build:core
+
+# Run the engine from Node — proves the two translation paths work outside Chrome
+node scripts/tx-cli.mjs google --to zh --from en --text "Hello world"
+node scripts/tx-cli.mjs ai --provider openai --model gpt-4o-mini \
+  --base http://127.0.0.1:8788/openai/v1 --key test --to zh --text "Hello"
+```
+
+The boundary is enforced by `npm run lint:core-boundary` (wired into
+`npm run verify`): no host globals in code, no imports escaping `src/core/`.
+Every host capability (storage, fetch, caches, page hostname) is injected by
+the caller. Provenance/licensing: see [PROVENANCE.md](PROVENANCE.md).
+
 ## Testing
 
 ```bash
@@ -110,6 +133,7 @@ npm run test:browser-e2e
 src/
 ├── background/        # Service Worker (background scripts)
 ├── contentScript/     # Content scripts (injected into web pages)
+├── core/              # Host-free translation engine (see "Core Library")
 ├── lib/               # Shared libraries
 │   ├── ai/           # AI provider system
 │   └── config.js     # Configuration management

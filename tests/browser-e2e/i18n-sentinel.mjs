@@ -62,13 +62,15 @@ const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 // ─── 自动派生放行集（Q5 主层）────────────────────────────────────
 
 /**
- * 品牌/提供商显示名 token —— 从数据源文件文本派生（providerRegistry.js 的
- * `name:` 字段），不是手工列表；数据源演进而这里自动跟随。
+ * 品牌/提供商显示名 token —— 从数据源文件文本派生（core providerRegistry 的
+ * `name:` 字段；plan 59 起数据源位于 src/core/providers/registry.js，旧路径
+ * src/lib/ai/providerRegistry.js 只是 re-export shim），不是手工列表；
+ * 数据源演进而这里自动跟随。
  */
 async function deriveProviderNames() {
   const tokens = new Set(["DualTran"]); // brand
   try {
-    const src = await fs.readFile(path.join(PROJECT_ROOT, "src/lib/ai/providerRegistry.js"), "utf8");
+    const src = await fs.readFile(path.join(PROJECT_ROOT, "src/core/providers/registry.js"), "utf8");
     for (const m of src.matchAll(/name:\s*"([^"]+)"/g)) tokens.add(m[1]);
   } catch (err) {
     console.warn(`[S] providerRegistry 读取失败（放行集将不含提供商名）: ${err.message}`);

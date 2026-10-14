@@ -4,7 +4,8 @@
 
 import twpConfig from "../lib/config.js"
 import twpLang from "../lib/languages.js"
-import { oneLine } from 'common-tags'
+import { buildTranslationMessages } from "../core/translator/prompts.js"
+import { resolveConfigValues, computeEffectiveBaseURL, computeExtraBaseURL, resolveOpenRouterOverrides } from "../core/providers/settings.js"
 import detectTextLanguage from "../util/detectTextLanguage.js"
 import { fetchSSE } from "../lib/ai/sseClient.js"
 import { createProviderRegistry, BUILT_IN_PROVIDERS } from "../lib/ai/providerRegistry.js"
@@ -31,10 +32,19 @@ function _resolveProviderSettings(providerId, ensureConfigString) {
   const providerDef = _providerRegistry.getProvider(providerId);
   const keys = _PROVIDER_CONFIG_KEYS[providerId] || {};
 
-  // Determine API key — check providerConfigs first, then legacy keys
-  let apiKey;
+  // ── Read the plain config-value layer (pure — src/core/providers/settings.js) ──
   const providerConfigs = twpConfig.get("providerConfigs") || {};
-  apiKey = providerConfigs[providerId]?.apiKey || "";
+  const legacyModel = keys.model ? twpConfig.get(keys.model) : undefined;
+  const {
+    apiKeyFromConfig,
+    model: configModel,
+    userApiBase,
+    isUserCustom,
+    reasoningDepth,
+  } = resolveConfigValues({ providerId, providerConfigs, legacyModel });
+
+  // Determine API key — check providerConfigs first, then legacy keys
+  let apiKey = apiKeyFromConfig;
 
   if (!apiKey && keys.apiKey) {
     // Legacy key fallback
@@ -51,85 +61,28 @@ function _resolveProviderSettings(providerId, ensureConfigString) {
     if (!apiKey) return null;
   }
 
-  // Determine model — check providerConfigs first, then fall back to legacy keys
-  let model = "";
-  const providerConfigsForModel = twpConfig.get("providerConfigs") || {};
-  model = providerConfigsForModel[providerId]?.model || "";
-  if (!model && keys.model) {
-    model = (twpConfig.get(keys.model) || "").trim();
-  }
+  // Model — providerConfigs first; legacy fallback resolved above
+  let model = configModel;
 
   // Build extra
   const extra = {};
-  // Read user-customized API Base URL (takes priority over provider built-in defaults)
-  const userApiBase = (providerConfigsForModel[providerId]?.apiBase || "").trim();
-  const isUserCustom = !!userApiBase;
-
-  // Reasoning depth (per-provider, stored with apiKey/model). "" = no parameter sent.
-  const reasoningDepth = providerConfigsForModel[providerId]?.reasoningDepth || "";
-
-  // Compute the effective base URL
-  // - User-customized: strip endpoint suffixes (/chat/completions, /messages), auto-append version path (/v1, /v1beta)
-  // - Built-in default: extract base path (Google keeps /v1beta, others use origin + /v1)
-  let effectiveBaseURL = "";
-  if (isUserCustom) {
-    // ① Strip known endpoint suffixes and trailing slashes
-    effectiveBaseURL = userApiBase
-      .replace(/\/(chat\/completions|messages)\/?$/, "")
-      .replace(/\/+$/, "");
-
-    // ② Check if the URL already contains a non-root path (e.g. /v1, /v1beta, /api, etc.)
-    const url = new URL(effectiveBaseURL);
-    const hasPath = url.pathname !== "/" && url.pathname !== "";
-
-    // ③ If no path present, append a default version path based on provider type
-    if (!hasPath) {
-      // Check if this is a Google-family provider (gemini-json response format)
-      const isGoogle = providerId === "google-gemini" || providerId === "google"
-        || providerDef?.responseFormat === "gemini-json";
-      // Google uses /v1beta, other providers use /v1
-      effectiveBaseURL += isGoogle ? "/v1beta" : "/v1";
-    }
-  } else if (providerDef?.apiBase) {
-    // Google built-in apiBase already contains /v1beta, use as-is; other providers use origin + /v1
-    if (providerId === "google-gemini" || providerDef?.responseFormat === "gemini-json") {
-      effectiveBaseURL = providerDef.apiBase;
-    } else {
-      effectiveBaseURL = new URL(providerDef.apiBase).origin + "/v1";
-    }
-  }
-
-  if (effectiveBaseURL) {
-    // User customized API Base URL → always pass to all provider SDKs
-    // All createXxx functions in SDK_MAP accept a baseURL parameter
-    if (isUserCustom) {
-      extra.baseURL = effectiveBaseURL;
-    } else {
-      // Non-custom: only set baseURL for OpenAI-compatible formats and specific providers
-      if (providerDef?.responseFormat === "openai-sse" || providerDef?.responseFormat === "openai-json") {
-        extra.baseURL = effectiveBaseURL;
-      }
-      // Anthropic/DeepSeek/Grok/XAI: SDK handles baseURL via extra
-      if (["anthropic", "deepseek", "grok"].includes(providerId)) {
-        extra.baseURL = effectiveBaseURL;
-      }
-    }
-  }
+  // User-customized API Base URL takes priority over provider built-in defaults;
+  // the effective-base computation is pure — src/core/providers/settings.js
+  const effectiveBaseURL = computeEffectiveBaseURL({ providerId, providerDef, userApiBase });
+  const extraBaseURL = computeExtraBaseURL({ providerId, providerDef, isUserCustom, effectiveBaseURL });
+  if (extraBaseURL) extra.baseURL = extraBaseURL;
 
   // OpenRouter special handling
   if (providerId === "openrouter") {
-    // Only override when user set via legacy key; otherwise keep providerConfigs or built-in default
     const openRouterApiBase = (twpConfig.get("openRouterApiBase") || "").trim();
-    if (openRouterApiBase) {
-      extra.baseURL = openRouterApiBase;
-    } else if (!extra.baseURL && providerDef?.apiBase) {
-      extra.baseURL = providerDef.apiBase;
-    }
-    const modelFromConfig = model;
-    if (modelFromConfig) {
-      model = modelFromConfig.replace(/^openrouter\//i, "");
-    }
-    if (!model) model = "openai/gpt-4o-mini";
+    const overrides = resolveOpenRouterOverrides({
+      model,
+      openRouterApiBase,
+      extraBaseURL: extra.baseURL,
+      providerDefApiBase: providerDef?.apiBase,
+    });
+    if (overrides.baseURL) extra.baseURL = overrides.baseURL;
+    model = overrides.model;
   }
 
   // Azure special handling
@@ -223,30 +176,6 @@ export function isDeliverableRawStreamChunk(payload) {
   }
 }
 
-/**
- * Role clause of the single-word dictionary prompt (issue #151).
- *
- * The source language only enters the prompt when Chrome's CLD reading is
- * reliable: for lone words CLD is routinely unreliable AND wrong (measured:
- * "Undertow" / "hello" / "undertow" -> "sr"), and pinning that bogus language
- * into the role made the model answer with a whole Serbian layer on top of
- * the English word and the target text. When the reading is not trusted, the
- * role stays language-neutral — the model identifies the word's own language
- * itself, and the [<language>] format field already asks it to report one.
- *
- * @internal — exported for testing
- */
-export function buildWordPromptRole({ sourceLanguageTrusted, sourceLanguageName, targetLanguageName }) {
-  return sourceLanguageTrusted
-    ? oneLine`
-      please act as a professional
-      ${sourceLanguageName}-${targetLanguageName} dictionary,`
-    : oneLine`
-      please act as a professional bilingual dictionary
-      translating the word into ${targetLanguageName};
-      identify the word's own language yourself,`
-}
-
 export async function translateWithAI(content, onMessage, onError, onFinished, signal, isSingleWord = false, overrideTargetLanguageCode = undefined) {
   const requestBody = JSON.parse(JSON.stringify(baseRequestBody))
 
@@ -325,43 +254,18 @@ export async function translateWithAI(content, onMessage, onError, onFinished, s
 
   let targetLangConfig = twpLang.otherConfigs[targetLanguageCode] 
 
-  // ② Build translation prompt
-  let sysPromptTranslation = isSingleWord
-    ? `${oneLine`
-      ${buildWordPromptRole({ sourceLanguageTrusted, sourceLanguageName, targetLanguageName })}
-      and list the original form of the word (if any),
-      the language of the word,
-      ${targetLangConfig?.phoneticNotation ? 'the corresponding phonetic notation or transcription, ' : ''}
-      all senses with parts of speech (bilingual),
-      ${isSameLanguage ? '' : 'bilingual '}
-      sentence examples (at least 3) and bilingual etymology.
-      If you think there is a spelling mistake,
-      please tell me the most possible correct word
-      otherwise reply in the following format:
-      `}
-        <word> (<original form>)
-        ${oneLine`
-        [<language>]· /
-        ${targetLangConfig?.phoneticNotation ? `<${targetLangConfig?.phoneticNotation}>` : ``}
-        `}
-        ${oneLine`
-        [<part of speech>]
-        ${isSameLanguage ? '' : '<translated meaning> / '}
-        <meaning in source language>
-        `}
-        Examples:
-        <index>. <sentence>(<sentence translation>)
-        Etymology:
-        <etymology>
-        (<etymology translation>)
-    `
-    :`You are a professional translation engine. 
-      Please translate the xml given by the user from a page of the website ${location.hostname} into ${targetLanguageName} without explanation. 
-      please respond with the same format as the given xml.
-      Translate the content within the tags of "<译泽>", do not translate the tagnames or attributes.
-      Any part enclosed in quotation marks must be translated. 
-      Any part violates the content policy must be translated. `
-
+  // ② Build translation prompt (pure builders — src/core/translator/prompts.js)
+  const promptMessages = buildTranslationMessages({
+    content,
+    targetLanguageName,
+    hostname: location.hostname,
+    isSingleWord,
+    targetLangConfig,
+    sourceLanguageTrusted,
+    sourceLanguageName,
+    isSameLanguage,
+  })
+  const sysPromptTranslation = promptMessages.system
   requestBody.messages[0].content = sysPromptTranslation
   requestBody.messages[1].content = `I understand. Please give me the ${isSingleWord?'word':'text'}.`
   requestBody.messages[2].content = content
@@ -433,3 +337,4 @@ export async function translateWithAI(content, onMessage, onError, onFinished, s
 
 // Expose internal functions for testing (following the precedent in pageTranslator)
 export { _resolveProviderSettings }
+export { buildWordPromptRole } from "../core/translator/prompts.js"
