@@ -577,6 +577,8 @@ if (typeof chrome.contextMenus !== "undefined") {
       neverTranslateLabel: chrome.i18n.getMessage("btnNeverTranslate"),
       moreOptionsLabel: chrome.i18n.getMessage("btnMoreOptions"),
       pdfToHtmlLabel: chrome.i18n.getMessage("msgPDFtoHTML"),
+      // Firefox MV3 maps the legacy action contexts to "action" (plan 62 M2).
+      isGecko: !!chrome.runtime.getManifest()?.browser_specific_settings?.gecko,
     }),
     {
       createContextMenu: chrome.contextMenus.create,

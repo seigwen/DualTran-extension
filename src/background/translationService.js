@@ -11,6 +11,7 @@ import translationCache from "../background/translationCache.js"
 import { Service, serviceRuntime } from "../core/engines/serviceBase.js"
 import { Utils } from "../core/engines/utils.js"
 import { googleService } from "../core/engines/google.js"
+import { createEventPageKeepalive } from "./eventPageKeepalive.js"
 
 // ── Host wiring for the shared engine (plan 59 M3) ──
 // src/core/engines/* is host-free: the translation cache and the SW-context
@@ -938,6 +939,20 @@ const translationService = (function () {
     )[0][0];
   };
 
+  // Firefox keeps the background event page alive only while it is "busy"; a
+  // pending runtime message response does NOT count (plan 62 M2 smoke finding:
+  // the first translation of a fresh session died mid-flight and was lost
+  // silently). While translation work is pending, touch an extension API
+  // periodically so the event page is not unloaded. No-op on Chromium.
+  const keepalive = chrome.runtime.getManifest?.()?.browser_specific_settings?.gecko
+    ? createEventPageKeepalive({ runtime: chrome.runtime })
+    : null;
+  const trackAsync = (promise) => {
+    if (!keepalive) return promise;
+    keepalive.start();
+    return promise.finally(() => keepalive.stop());
+  };
+
   // Listen for translation requests from content scripts
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log(222222222, request)
@@ -945,8 +960,8 @@ const translationService = (function () {
     const dontSaveInPersistentCache = sender.tab ? sender.tab.incognito : false;
     if (request.action === "translateHTML") {
       console.log(333333333333)
-      translationService
-        .translateHTML(
+      trackAsync(
+        translationService.translateHTML(
           request.translationService,
           "auto",
           request.targetLanguage,
@@ -954,6 +969,7 @@ const translationService = (function () {
           dontSaveInPersistentCache,
           request.dontSortResults 
         )
+      )
         .then((results) => sendResponse(results))
         .catch((e) => {
           console.error("[DualTran][BackgroundTranslateHTMLCatch]", {
@@ -969,14 +985,15 @@ const translationService = (function () {
 
       return true;
     } else if (request.action === "translateText") {
-      translationService
-        .translateText(
+      trackAsync(
+        translationService.translateText(
           request.translationService,
           "auto",
           request.targetLanguage,
           request.sourceArray,
           dontSaveInPersistentCache
         )
+      )
         .then((results) => sendResponse(results))
         .catch((e) => {
           sendResponse();
@@ -985,14 +1002,15 @@ const translationService = (function () {
 
       return true;
     } else if (request.action === "translateSingleText") {
-      translationService
-        .translateSingleText(
+      trackAsync(
+        translationService.translateSingleText(
           request.translationService,
           "auto",
           request.targetLanguage,
           request.source,
           dontSaveInPersistentCache
         )
+      )
         .then((results) => sendResponse(results))
         .catch((e) => {
           sendResponse();

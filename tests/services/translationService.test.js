@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Service as CoreService, serviceRuntime as coreServiceRuntime } from "../../src/core/engines/serviceBase.js";
 import { Utils as CoreUtils } from "../../src/core/engines/utils.js";
 import { googleService as coreGoogleService } from "../../src/core/engines/google.js";
+import { createEventPageKeepalive as CoreEventPageKeepalive } from "../../src/background/eventPageKeepalive.js";
 
 let _moduleLoadSeq = 0; // 确定性 cache-busting（替代 Math.random()）
 
@@ -211,6 +212,10 @@ async function importTestableTranslationService() {
       'const { googleService } = globalThis.__translationServiceTestDeps;\n'
     )
     .replace(
+      /import \{ createEventPageKeepalive \} from "\.\/eventPageKeepalive\.js"\s*/,
+      'const { createEventPageKeepalive } = globalThis.__translationServiceTestDeps;\n'
+    )
+    .replace(
       /return translationService;\s*\}\)\(\);/,
       [
         "translationService.__testHooks = {",
@@ -253,6 +258,7 @@ async function importTestableTranslationService() {
     Utils: CoreUtils,
     googleService: coreGoogleService,
     serviceRuntime: coreServiceRuntime,
+    createEventPageKeepalive: CoreEventPageKeepalive,
   };
 
   const moduleUrl = `data:text/javascript;base64,${Buffer.from(instrumentedSource).toString("base64")}`;
@@ -929,6 +935,50 @@ describe("translationService", () => {
         true,
         false
       );
+      expect(sendResponse).toHaveBeenCalledWith([["bonjour"]]);
+    });
+
+    it("keeps the firefox event page alive while translateHTML is pending (plan 62 M2)", async () => {
+      globalThis.chrome.runtime.getManifest = () => ({
+        browser_specific_settings: { gecko: { id: "dualtran@seigwen.dev" } },
+      });
+      const getPlatformInfo = vi.fn();
+      globalThis.chrome.runtime.getPlatformInfo = getPlatformInfo;
+
+      const translationService = await importTestableTranslationService();
+      const listener = mockState.runtimeOnMessageListeners[0];
+      let resolveHtml;
+      vi.spyOn(translationService, "translateHTML").mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveHtml = resolve;
+          })
+      );
+      const sendResponse = vi.fn();
+
+      vi.useFakeTimers();
+      const keepAlive = listener(
+        {
+          action: "translateHTML",
+          translationService: "google",
+          targetLanguage: "fr",
+          sourceArray2d: [["hello"]],
+          dontSortResults: false,
+        },
+        { tab: { incognito: false } },
+        sendResponse
+      );
+      expect(keepAlive).toBe(true);
+
+      vi.advanceTimersByTime(8000);
+      expect(getPlatformInfo.mock.calls.length >= 1).toBe(true);
+
+      resolveHtml([["bonjour"]]);
+      for (let i = 0; i < 6; i++) await Promise.resolve();
+
+      const callsAfterResolve = getPlatformInfo.mock.calls.length;
+      vi.advanceTimersByTime(8000);
+      expect(getPlatformInfo.mock.calls.length).toBe(callsAfterResolve);
       expect(sendResponse).toHaveBeenCalledWith([["bonjour"]]);
     });
 
