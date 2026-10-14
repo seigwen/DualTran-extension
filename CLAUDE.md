@@ -84,8 +84,8 @@ MCP config is in `.mcp.json`. The skill definition is at `.claude/skills/run-e2e
 `src/background/` — runs in extension background context.
 
 - **`sw.js`** — main service worker entry. Imports 30+ helper modules (menu, icons, tabs, storage, etc.) and `aiProxy.js`.
-- **`aiProxy.js`** — listens on `chrome.runtime.onConnect("ai-sse")`. Receives structured requests, creates AI SDK clients dynamically (`SDK_MAP` lookup via `provider.npm`), calls `streamText()`, and streams text chunks back. Loads models.dev data at startup.
-- **`translationService.js`** — Google Translate API calls.
+- **`aiProxy.js`** — Chrome 端口适配器（plan 59）：持有 chrome.storage.local 版 models.dev store（启动预取）、`ai-sse` 端口协议与逐请求 AbortController 生命周期；它驱动的引擎（npm → SDK 分发表、客户端选择、streamText 循环）位于 `src/core/chat/*`。`createModelClient` 在历史路径 re-export（测试依赖此路径）。
+- **`translationService.js`** — 门面 + 消息路由 + yandex/bing/deepl/microsoft 服务实现；Google 引擎（Service 基类、googleService）位于 `src/core/engines/*`（plan 59），宿主能力经 `serviceRuntime` 注入。
 
 ### Options page
 
@@ -99,7 +99,7 @@ MCP config is in `.mcp.json`. The skill definition is at `.claude/skills/run-e2e
 
 ### AI provider system
 
-`src/lib/ai/` — provider definitions and model discovery.
+`src/lib/ai/` — provider definitions and model discovery。**（plan 59：实现已迁至 `src/core/providers/*`；本目录为稳定 shim——只许 re-export / 宿主胶水，禁止添加逻辑；下方条目按迁移后的职责阅读。）**
 
 - **`providerRegistry.js`** — `BUILT_IN_PROVIDERS` array (18 hardcoded providers). Each entry has: `id`, `name`, `apiBase` (full `/chat/completions` endpoint), `modelListUrl`, `auth` type, `responseFormat`, `npm` value. The `createProviderRegistry()` factory creates a lookup API.
 - **`providerModelPreview.js`** — `loadPreviewModels()` three-tier fallback:
@@ -113,7 +113,7 @@ MCP config is in `.mcp.json`. The skill definition is at `.claude/skills/run-e2e
 
 #### SDK routing: why some providers use `openai-compatible` fallback
 
-`aiProxy.js` uses a three-tier routing system to select the AI SDK client:
+`createModelClient` (`src/core/chat/`, driven through the aiProxy port adapter since plan 59) uses a three-tier routing system to select the AI SDK client:
 
 1. **Dedicated SDK** — if `models.dev` returns an `npm` value that matches an entry in `SDK_MAP`, use that specific SDK (e.g. `@ai-sdk/anthropic` → `createAnthropic`).
 2. **`openai-compatible` fallback** — if no match, use `createOpenAICompatible` with the provider's API base URL.
@@ -288,7 +288,7 @@ Content Script (fetchSSE.js)
 - **不发送优于发错：** 值不被方言接受时 `buildProviderOptions` 返回 `null`（不传 providerOptions，请求仍成功、只是没有推理提示）——**禁止**为「让参数生效」而在无对应能力的方言上强传（thin wrapper `@ai-sdk/{togetherai,perplexity,deepinfra,cerebras}` 不读 `reasoningEffort`，无独立方言键）。
 - **选项生成同样裁剪：** 下拉框选项 = 声明值 ∩ 方言接受集（`buildReasoningDepthOptions`），`Default`（value `""`）恒为首项且恒存在；`toggle` 型声明展开为 `Default` + 该方言的「开」值；`budget_tokens` 本轮不支持（显示 `Default`）。
 - **缓存一致性：** 推理深度是 AI 翻译持久缓存 key 的一段——改深度必须换条目，否则会静默返回旧深度的译文。
-- **实现点清单（规则对称性）：** `resolveDialect`（reasoningDepth.js，方言判据唯一实现）、`buildReasoningDepthOptions`（选项生成：声明值 ∩ 方言接受集）、`buildProviderOptions`（providerOptions 构造：不接受则返回 null）、`SDK_MAP`（aiProxy.js，npm → SDK 分发表——与方言表必须逐包对齐）、`buildCacheKey`（aiTranslationCache.js，深度参与 key 组成）、`getReasoningDepthForProvider`（pageTranslator.js，per-provider 深度读取，未设置返回 `""` 而非默认值）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- **实现点清单（规则对称性）：** `resolveDialect`（src/core/providers/reasoningDepth.js，方言判据唯一实现）、`buildReasoningDepthOptions`（选项生成：声明值 ∩ 方言接受集）、`buildProviderOptions`（providerOptions 构造：不接受则返回 null）、`SDK_MAP`（src/core/chat/sdkMap.js，npm → SDK 分发表——与方言表必须逐包对齐）、`buildCacheKey`（src/core/cache/keys.js，深度参与 key 组成）、`getReasoningDepthForProvider`（pageTranslator.js，per-provider 深度读取，未设置返回 `""` 而非默认值）。修改任一实现点必须同步检查其他实现点 + 对应测试。
 - **测试：** `tests/ai/reasoningDepth.test.js`（28 格：方言解析 + 值域裁剪 + toggle 展开 + 拒绝即丢弃 + **与 SDK_MAP 的逐包对齐断言**）+ `tests/background/aiProxyReasoningDepth.test.js`（port `start` → `streamText` 的 providerOptions 实捕 8 格）+ `tests/background/aiTranslationCacheReasoningDepth.test.js`（深度参与 key；升级前 4 段 key 不命中）+ `tests/contentScript/pageTranslator.integration.test.js`「getReasoningDepthForProvider (plan 32)」+ E2E `tests/browser-e2e/reasoning-depth.mjs`（**线级实锤**：mock 服务器 `/request-log` 必须出现 `reasoning_effort: "high"`，对照组不得出现任何 reasoning 字段）+ E2E `settings-translation.mjs` S12（真实 UI：选深度 → reload → 持久化且重选）。
 
 **RULE: 用户反馈通道规则（user feedback channel rule, plan 35 / #116）—— 一切可从扩展带出的产物必须经白名单构造、用户可见可删，禁止静默外发：**
@@ -337,6 +337,13 @@ Content Script (fetchSSE.js)
 - **实现点清单（规则对称性）：** `getMessageWithFallback`、`i18nOrDefault`、`auditPlaceholders`、`auditDescriptions`、`I18N_CHANNELS`、`classifyItems`（六个标识符；宿主文件与职责见 `tests/scripts/checkI18nChannels.test.js` 的 Implementation-point map）。
 - **测试：** `tests/static/i18nWrites.test.js`（L1 双向校准：干净绿 / 脏必红）、`tests/shared/i18nSentinelRules.test.js`（分类器 11 格自测）、`tests/static/i18nCompleteness.test.js`（占位符全枚举 + 删 token 负例）、`tests/static/i18nDescriptions.test.js`（冻结三负例 + 真树演示）、`tests/scripts/checkI18nChannels.test.js`（channels lint 七格 fixtures）。E2E：`tests/browser-e2e/i18n-sentinel.mjs`（五面运行时全称检查，CI E2E 套件内）。
 - **门禁纪律：** ① 文案改动先 red 后绿（先写断言复现缺失/回退，再补键/修写点）；② 新 en 键必带 `description`（冻结清单只缩不加）；③ content-script 写点一律 `getMessageWithFallback`、options 一律 `i18nOrDefault`——**禁止自写 `typeof chrome` / `chrome &&` 守卫**（platform-probe lint 硬失败）；④ 豁免仅 `// i18n-exempt: <category> — <理由>`，`legacy` 类计数必须保持 0；⑤ 改动守卫自身或管线接线后必须跑 `node scripts/check-i18n-channels.js` 与 `npm run i18n:check`。
+
+**RULE: core 边界规则（core boundary rule, plan 59 / plan 61）—— 引擎层（src/core/）必须 host-free：宿主能力一律经注入，shim 禁止夹带逻辑：**
+
+- **症状/机制：** 引擎解耦进 src/core/ 是为跨宿主复用（Node CLI、未来的浏览器家族 / 工作台 / Agent 宿主）——任何宿主全局引用（chrome. / window. / document. / indexedDB / location. / alert / confirm / prompt）或对扩展层的相对 import 都会让复用静默失效；宿主能力（storage、fetch、翻译缓存、页面 hostname、SW 环境探测）必须经注入点获得。src/lib 与 src/background 下的旧路径均为 shim——只许 re-export（providerModelPreview shim 的 chrome.storage 宿主胶水为已登记例外）。
+- **对称性要求：** 新增/迁移 core 代码后跑 `npm run lint:core-boundary`（第 19 个 lint，挂在 pre-push-verify 链）；负样例校准（违规必红 / 字符串与注释放行）由 tests/manifest/coreBoundary.test.js 三向锁定；改动注入面（serviceRuntime / storage 适配器 / 翻译缓存契约）必须同步检查全部宿主接线（aiProxy 端口适配器、translationService 门面、Node CLI）与其测试。
+- **实现点清单（规则对称性）：** `serviceRuntime`（宿主能力注入载体：cache / fetchImpl / isServiceWorkerContext）、`translateGoogle`（宿主无关的一次性 Google 入口：失败必须抛错、禁止把请求错误塌缩为空串）。修改任一实现点必须同步检查其他实现点 + 对应测试。
+- **测试：** tests/manifest/coreBoundary.test.js（真树 PASS / 违规 RED / 假阳性样例 PASS 三向校准）+ tests/core/txCli.test.js（dist-core 双路径：google 注入 fixture、文件缓存跨进程读回、失败抛错与重试不毒化；ai 走 aimock 流式）+ tests/services/translationService.test.js（注入面既有断言）。
 
 **基础设施假设清单（Infrastructure Assumptions，M1 issue #31）—— 每个假设必须有测试引用（M3 用 check-infra-assumptions.js 强制）：**
 - **假设：** `document.body` 元素可能被框架整体替换（Turbo Drive 回退导航 `replaceWith`，2026-09-10 github.com 实测）→ 测试：`tests/contentScript/pageTranslator.navRestore.integration.test.js`「T8: body 元素被替换后（Turbo back-nav），动态翻译 observer 仍存活」+ `tests/contentScript/floatingBtn.behavior.test.js`「turbo back-nav」2 个

@@ -10,6 +10,11 @@
  *
  * A guard that is never proven to fire is dead; a guard that fires on clean
  * code gets disabled. Both directions are pinned here.
+ *
+ * Implementation-point map (rule symmetry, CLAUDE.md "core boundary" rule):
+ *   serviceRuntime  — host-capability injection carrier (src/core/engines/serviceBase.js)
+ *   translateGoogle — host-free Google entry point (src/core/engines/google.js)
+ * (Paths stay in prose on purpose — the lint extracts bare identifiers only.)
  */
 import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import { execFileSync } from "node:child_process";
