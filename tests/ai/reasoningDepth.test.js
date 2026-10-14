@@ -10,8 +10,9 @@
  *   ⑥ 未知 npm → openaiCompatible key（不是 provider 品牌名）
  *   ⑦ 选项顺序 = Default 第一 + EFFORT_ORDER 排序
  *
- * 另外：npm → 方言 的判据必须与 aiProxy 的 SDK_MAP 对齐（issue #88 教训——
- * 两处独立维护同一判据会漂移，且漂移只会静默失败）。
+ * 另外：npm → 方言 的判据必须与 SDK_MAP 分发表对齐（issue #88 教训——
+ * 两处独立维护同一判据会漂移，且漂移只会静默失败）。plan 59 M2 起分发表位于
+ * src/core/chat/sdkMap.js（原 src/background/aiProxy.js）；守护断言不变。
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
@@ -53,14 +54,14 @@ describe("reasoningDepth — dialect resolution", () => {
     expect(resolveDialect({})).toBe("openai-compatible");
   });
 
-  it("keeps the npm list aligned with the aiProxy SDK_MAP dispatch table (issue #88 drift guard)", () => {
-    const aiProxySource = readFileSync(
-      resolve(__dirname, "../../src/background/aiProxy.js"),
+  it("keeps the npm list aligned with the SDK_MAP dispatch table (issue #88 drift guard)", () => {
+    const sdkMapSource = readFileSync(
+      resolve(__dirname, "../../src/core/chat/sdkMap.js"),
       "utf8"
     );
     // SDK_MAP 的键就是「有专用 SDK 的 npm 包」集合；两处不一致 = 会漂移的候选。
-    const sdkMapBlock = aiProxySource.match(/const SDK_MAP = Object\.freeze\(\{([\s\S]*?)\}\)/);
-    expect(sdkMapBlock, "SDK_MAP block not found in aiProxy.js").toBeTruthy();
+    const sdkMapBlock = sdkMapSource.match(/const SDK_MAP = Object\.freeze\(\{([\s\S]*?)\}\)/);
+    expect(sdkMapBlock, "SDK_MAP block not found in src/core/chat/sdkMap.js").toBeTruthy();
     const npmInAiProxy = [...sdkMapBlock[1].matchAll(/"(@ai-sdk\/[^"]+)":/g)]
       .map((m) => m[1])
       .sort();
