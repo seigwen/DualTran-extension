@@ -65,6 +65,18 @@ jobs:
     - name: web-ext lint (AMO validator + archived-warning policy)
       run: npm run lint:firefox
 
+    - name: Cache firefox tools
+      uses: actions/cache@v4
+      with:
+        path: tools/
+        key: ff-tools-firefox158-gecko0.37.1
+
+    - name: Fetch firefox + geckodriver (skipped on cache hit)
+      run: node scripts/fetch-firefox-tools.mjs
+
+    - name: Firefox smoke (real Firefox, temporary install, google translation)
+      run: npm run test:firefox-smoke
+
   e2e:
     name: Browser E2E (xvfb, 1 retry)
     runs-on: ubuntu-latest
