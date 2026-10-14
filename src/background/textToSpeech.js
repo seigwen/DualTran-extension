@@ -3,6 +3,7 @@
 console.log("textToSpeech.js is running")
 
 import twpConfig from "../lib/config.js"
+import { createQueuePlayer } from "./audioQueue.js";
 
 const textToSpeech = (function () {
   const textToSpeech = {};
@@ -35,6 +36,49 @@ const textToSpeech = (function () {
       this.audioSpeed = 1.0;
       /** @type {Map<string, (value?: any) => void>} */
       this._pendingResolves = new Map();
+      /**
+       * Firefox fallback (plan 62 M2): Firefox has no chrome.offscreen, so the
+       * background event page plays the audio itself through this queue.
+       * @type {ReturnType<typeof createQueuePlayer> | null}
+       */
+      this._localPlayer = null;
+      /** @type {{disconnect: () => void} | null} keepalive port held during local playback */
+      this._keepalivePort = null;
+    }
+
+    /** @returns {boolean} whether the Chrome offscreen playback backend is available */
+    hasOffscreen() {
+      return !!chrome["offscreen"];
+    }
+
+    /** Lazily create the in-background playback queue (Firefox path). */
+    getLocalPlayer() {
+      if (!this._localPlayer) {
+        this._localPlayer = createQueuePlayer({ createAudio: (src) => new Audio(src) });
+      }
+      return this._localPlayer;
+    }
+
+    /**
+     * Keep the background event page alive during local playback (Firefox
+     * unloads event pages when idle; an open runtime port counts as activity).
+     * @param {number=} tabId the tab that requested playback, when known
+     */
+    _startKeepalive(tabId) {
+      this._stopKeepalive();
+      if (typeof tabId !== "number" || !chrome.tabs?.connect) return;
+      try {
+        this._keepalivePort = chrome.tabs.connect(tabId, { name: "tts-keepalive" });
+      } catch (_) {
+        this._keepalivePort = null;
+      }
+    }
+
+    _stopKeepalive() {
+      try {
+        this._keepalivePort?.disconnect();
+      } catch (_) {}
+      this._keepalivePort = null;
     }
 
     /**
@@ -116,7 +160,12 @@ const textToSpeech = (function () {
      * @param {string} targetLanguage
      * @returns {Promise<void>} Promise\<void\>
      */
-    async textToSpeech(fullText, targetLanguage) {
+    /**
+     * @param {string} fullText
+     * @param {string} targetLanguage
+     * @param {{ keepaliveTabId?: number }} [opts]
+     */
+    async textToSpeech(fullText, targetLanguage, opts = {}) {
       const requests = this.getRequests(fullText);
       const promises = [];
 
@@ -143,7 +192,7 @@ const textToSpeech = (function () {
       const sources = requests
         .map((text) => this.audios.get([targetLanguage, text].join(", ")))
         .filter(Boolean);
-      return await this.play(sources);
+      return await this.play(sources, opts);
     }
 
     /**
@@ -154,19 +203,39 @@ const textToSpeech = (function () {
      * Play audio via Offscreen document
      * @param {string[] | string} audios data:URL list or single data:URL
      */
-    async play(audios) {
-      // Play via Offscreen document from SW
-      await this.ensureOffscreen();
-      this.stopAll();
-      const requestId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
-      await new Promise((resolve) => {
-        this._pendingResolves.set(requestId, resolve);
-        chrome.runtime.sendMessage({
-          action: "offscreenPlay",
-          sources: Array.isArray(audios) ? audios : [audios],
-          requestId,
+    /**
+     * Play audio via the available backend: the Chrome offscreen document, or
+     * (Firefox: no chrome.offscreen) the background event page itself.
+     * @param {string[] | string} audios data:URL list or single data:URL
+     * @param {{ keepaliveTabId?: number }} [opts]
+     */
+    async play(audios, opts = {}) {
+      const sources = Array.isArray(audios) ? audios : [audios];
+      if (this.hasOffscreen()) {
+        // Play via Offscreen document from SW
+        await this.ensureOffscreen();
+        this.stopAll();
+        const requestId = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        await new Promise((resolve) => {
+          this._pendingResolves.set(requestId, resolve);
+          chrome.runtime.sendMessage({
+            action: "offscreenPlay",
+            sources,
+            requestId,
+          });
         });
-      });
+      } else {
+        // Firefox fallback: play in the background page and hold a keepalive
+        // port so the event page is not unloaded mid-playback (plan 62 M2).
+        this.stopAll();
+        this._startKeepalive(opts.keepaliveTabId);
+        await new Promise((resolve) => {
+          this.getLocalPlayer().playAll(sources, () => {
+            this._stopKeepalive();
+            resolve();
+          });
+        });
+      }
     }
 
     async ensureOffscreen() {
@@ -205,16 +274,23 @@ const textToSpeech = (function () {
      */
     setAudioSpeed(speed) {
       this.audioSpeed = speed;
-      // Notify Offscreen to update speed
-      chrome.runtime.sendMessage({ action: "offscreenSetSpeed", speed: this.audioSpeed });
+      if (this.hasOffscreen()) {
+        // Notify Offscreen to update speed
+        chrome.runtime.sendMessage({ action: "offscreenSetSpeed", speed: this.audioSpeed });
+      }
+      this._localPlayer?.setSpeed(this.audioSpeed);
     }
 
     /**
      * Pause all audio and reset audio time to start
      */
     stopAll() {
-      // Notify Offscreen to stop
-      chrome.runtime.sendMessage({ action: "offscreenStop" });
+      if (this.hasOffscreen()) {
+        // Notify Offscreen to stop
+        chrome.runtime.sendMessage({ action: "offscreenStop" });
+      }
+      this._localPlayer?.stopAll();
+      this._stopKeepalive();
     }
   }
 
@@ -236,7 +312,9 @@ const textToSpeech = (function () {
     // request example: { action: "textToSpeech", text: "Hello world", targetLanguage: "en" }
     if (request.action === "textToSpeech") {
       googleService
-        .textToSpeech(request.text, request.targetLanguage)
+        .textToSpeech(request.text, request.targetLanguage, {
+          keepaliveTabId: sender?.tab?.id,
+        })
         .catch((e) => {
           console.error("text2speech failed: ", e);
         })

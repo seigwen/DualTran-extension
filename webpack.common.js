@@ -40,6 +40,7 @@ module.exports = {
         { from: 'src/_locales', to: '_locales' },
         { from: 'src/background/offscreen-audio.html', to: 'background/offscreen-audio.html' },
         { from: 'src/background/offscreen-audio.js', to: 'background/offscreen-audio.js' },
+        { from: 'src/background/audioQueue.js', to: 'background/audioQueue.js' },
         { from: 'src/contentScript/css', to: 'contentScript/css' },
         { from: 'src/contentScript/checkScriptIsInjected.js', to: 'contentScript/checkScriptIsInjected.js' },
         { from: 'src/contentScript/deepl.js', to: 'contentScript/deepl.js' },
