@@ -4,7 +4,7 @@
 # 覆盖：
 #   1. 19 个 lint 脚本（断言强度 / 模式对称 / 规则对称 / i18n / i18n 写点 / UI 状态初始化 / observer 挂载 / mock 忠实度（E2E）/ vitest mock 保真度 / 基础设施假设 / 状态可达性 / 宿主三态断言 / 视觉检查点 / 平台形态矩阵 / 内容更新通道一致性 / 通告通道一致性 / i18n 通道一致性 / 意图读取点登记 / core 边界（plan 59））
 #   2. 全量 vitest
-#   3. 构建（webpack）
+#   3. 构建（webpack：chrome + firefox 双目标）+ web-ext lint 门禁（firefox 警告白名单）
 #
 # 用法：npm run verify
 # 任意一步失败 → 非零退出，阻止 push 前的遗漏。
@@ -42,8 +42,10 @@ echo "── 2/3 全量单元测试 ──"
 npm test
 
 echo ""
-echo "── 3/3 构建 ──"
+echo "── 3/3 构建（chrome + firefox + web-ext lint）──"
 npm run build
+npm run build:firefox
+npm run lint:firefox
 
 echo ""
 echo "✅ verify 全部通过——可以 push"

@@ -40,6 +40,31 @@ jobs:
         path: dist/chrome/
         retention-days: 7
 
+  firefox:
+    # Plan 62 M1: Firefox target build + dist/firefox artifact guards +
+    # web-ext lint gate (archived-warning policy). Node 22 is required by
+    # web-ext 10; the unit-test job intentionally stays on 20.x.
+    name: Firefox build + web-ext lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js 22.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.x'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build firefox target (runs dist/firefox guards via postbuild:firefox)
+      run: npm run build:firefox
+
+    - name: web-ext lint (AMO validator + archived-warning policy)
+      run: npm run lint:firefox
+
   e2e:
     name: Browser E2E (xvfb, 1 retry)
     runs-on: ubuntu-latest

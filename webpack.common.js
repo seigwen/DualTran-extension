@@ -1,5 +1,10 @@
 const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const variant = require('./scripts/manifest-variant.js');
+
+// Build target (plan 62 M1): chrome by default, firefox via `TARGET=firefox`.
+const TARGET = process.env.TARGET === 'firefox' ? 'firefox' : 'chrome';
+const OUT_DIR = TARGET === 'firefox' ? 'dist/firefox' : 'dist/chrome';
 
 module.exports = {
   // webpack5中可在entry中通过键名(而不是键值)指定输出路径和名称: https://webpack.js.org/configuration/entry-context/#entry-descriptor
@@ -20,7 +25,7 @@ module.exports = {
     filename: '[name]', // 保持源文件名
     // parth.resolve: path.resolve() 方法将一系列路径或路径段解析为绝对路径。
     // see https://nodejs.org/api/path.html#pathresolvepaths
-    path: path.resolve(__dirname, 'dist/chrome'),
+    path: path.resolve(__dirname, OUT_DIR),
     publicPath: '/', // 扩展根路径，chunk 从 chrome-extension://<id>/ 加载
     chunkFilename: '[name].js', // 动态 import() 产生的 chunk 带 .js 后缀，便于 importScripts() 加载
     clean: true,
@@ -55,27 +60,10 @@ module.exports = {
           from: 'src/manifest.json',
           to: '.',
           transform(content) {
-            // Strip JS comments that are invalid in JSON. Handles full-line
-            // comments and inline comments while preserving :// inside strings.
-            const lines = content.toString('utf8').split('\n');
-            const cleaned = lines.map(line => {
-              const trimmed = line.trimStart();
-              if (trimmed.startsWith('//')) return '';
-              let inString = false;
-              let escape = false;
-              for (let i = 0; i < line.length; i++) {
-                const ch = line[i];
-                if (escape) { escape = false; continue; }
-                if (ch === '\\') { escape = true; continue; }
-                if (ch === '"') { inString = !inString; continue; }
-                if (!inString && ch === '/' && line[i + 1] === '/') {
-                  return line.slice(0, i).trimEnd();
-                }
-              }
-              return line;
-            }).join('\n');
-            const parsed = JSON.parse(cleaned);
-            return JSON.stringify(parsed, null, 2);
+            // Per-target manifest: comment stripping plus the declared Firefox
+            // differences live in scripts/manifest-variant.js (plan 62 M1).
+            const manifest = variant.buildManifest(content.toString('utf8'), TARGET);
+            return JSON.stringify(manifest, null, 2);
           },
         },
       ]
