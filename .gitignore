@@ -2,6 +2,7 @@ node_modules
 package-lock.json
 extra/package-lock.json
 dist
+dist-core
 test
 meta.txt
 result

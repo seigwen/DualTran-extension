@@ -35,6 +35,11 @@ const EXEMPT_FILES = new Set([
   "src/lib/languages.js",
   "src/lib/ai/providerRegistry.js",
   "src/lib/ai/providerModelPreview.js",
+  // plan 59: the canonical implementation moved to src/core/ — the exemption
+  // follows the data (the shims above are plain re-exports / glue, kept for
+  // compatibility; the CJK provider+model display names now live here).
+  "src/core/providers/registry.js",
+  "src/core/providers/modelPreview.js",
 ]);
 const ALLOW_MARKER = "i18n-allow-chinese";
 const ALLOW_START = `// ${ALLOW_MARKER}:start`;
