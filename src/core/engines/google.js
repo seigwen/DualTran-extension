@@ -199,6 +199,8 @@ export const googleService = new (class extends Service {
  * @param {{get: Function, set: Function}|null} [params.cache=null]
  * @param {Function|null} [params.fetchImpl=null]
  * @returns {Promise<string[]>} translated strings, aligned with sourceArray
+ * @throws {Error} "Google translation failed: …" when the underlying request failed.
+ *   The failure is never collapsed into an empty string (plan 61).
  */
 export async function translateGoogle({ sourceArray, sourceLanguage, targetLanguage, cache = null, fetchImpl = null }) {
   const prevCache = serviceRuntime.cache;
@@ -206,7 +208,22 @@ export async function translateGoogle({ sourceArray, sourceLanguage, targetLangu
   serviceRuntime.cache = cache;
   serviceRuntime.fetchImpl = fetchImpl;
   try {
-    const [row] = await googleService.translate(sourceLanguage, targetLanguage, [Array.from(sourceArray)]);
+    const pieces = Array.from(sourceArray);
+    // Mirror googleService.getRequests' single-request shape so the memo entry
+    // looked up below is the one THIS call created (plan 61).
+    const requestString = googleService.fixString(googleService.cbTransformRequest(pieces));
+    const requestHash = [sourceLanguage, targetLanguage, requestString].join(", ");
+
+    const [row] = await googleService.translate(sourceLanguage, targetLanguage, [pieces]);
+
+    const info = googleService.translationsInProgress.get(requestHash);
+    if (!info || info.status === "error") {
+      // Never collapse a failed request into a silent empty string (plan 61), and
+      // never poison the session memo: clear the errored entry so a retry re-fetches.
+      googleService.translationsInProgress.delete(requestHash);
+      const reason = info?.error?.message || "request failed (network or HTTP error)";
+      throw new Error(`Google translation failed: ${reason}`);
+    }
     return row;
   } finally {
     serviceRuntime.cache = prevCache;

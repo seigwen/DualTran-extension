@@ -412,6 +412,9 @@ export class Service {
             console.error(e);
             for (const transInfo of request) {
               transInfo.status = "error";
+              // plan 61: keep the failure cause for host-facing failure surfaces
+              // (translateGoogle throws on it; the extension reads only `status`).
+              transInfo.error = e;
               //this.translationsInProgress.delete([sourceLanguage, targetLanguage, transInfo.originalText])
             }
           })
