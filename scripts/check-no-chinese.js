@@ -5,13 +5,16 @@
   when CJK text appears in source files outside of the following exemptions:
 
     1. src/_locales/**            — the i18n data itself
-    2. src/lib/languages.js       — built-in language-name dictionary
-                                   (multilingual data, not UI strings)
+    2. src/core/languages/names.js — built-in language-name dictionary
+                                   (moved from src/lib/languages.js in plan 59;
+                                   multilingual data, not UI strings)
     3. lines containing <译泽>     — the AI-translation XML protocol marker
                                    (protocol token, not a UI string)
-    4. src/lib/ai/providerRegistry.js / providerModelPreview.js
+    4. src/core/providers/registry.js / modelPreview.js
                                    — provider/model display names (proper nouns,
-                                     intentionally bilingual)
+                                     intentionally bilingual). The src/lib/ai
+                                     originals are shims and CJK-free, so they
+                                     lost the exemption (plan 61).
     5. explicit marker blocks:
          // i18n-allow-chinese:start
          ... lines with CJK that are intentional (e.g. legacy error-message
@@ -33,12 +36,9 @@ const SOURCE_DIR = path.join(ROOT, "src");
 const CJK_RE = /[\u4E00-\u9FFF]/;
 const EXEMPT_FILES = new Set([
   // plan 59: the canonical implementations moved to src/core/ — the exemptions
-  // follow the data (the files above in src/lib/ai/ are plain re-exports /
-  // glue kept for compatibility; the CJK display names now live in core).
-  // src/lib/languages.js was removed from this list in plan 59 M3-7: the
-  // language-name dictionaries moved to core and the remaining file is CJK-free.
-  "src/lib/ai/providerRegistry.js",
-  "src/lib/ai/providerModelPreview.js",
+  // follow the data. plan 61 tightened this list: the src/lib/ai shims are
+  // plain re-exports / host glue and are CJK-free, so they lost their
+  // exemptions — a CJK string there now fails again instead of passing silently.
   "src/core/providers/registry.js",
   "src/core/providers/modelPreview.js",
   // plan 59 M3-7: language-name dictionaries + otherConfigs moved to core.
