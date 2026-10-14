@@ -1,11 +1,11 @@
 /**
  * models.dev data store — factory over injected host capabilities (plan 59 M2).
  *
- * Extracted from src/background/aiProxy.js §models.dev 段 with the semantics
- * kept verbatim: 24h TTL, the `> 10 providers` validity threshold, in-memory
- * memoization, and the concurrent-refresh re-check. All side effects that were
- * implicit (chrome.storage.local, global fetch, Date.now) are now explicit
- * injection points, so Node / test hosts can run the same store.
+ * Extracted from the models.dev section of src/background/aiProxy.js with the
+ * semantics kept verbatim: 24h TTL, the `> 10 providers` validity threshold,
+ * in-memory memoization, and the concurrent-refresh re-check. All side effects
+ * that were implicit (chrome.storage.local, global fetch, Date.now) are now
+ * explicit injection points, so Node / test hosts can run the same store.
  *
  * The extension wires it in src/background/aiProxy.js; the Node CLI uses a
  * memory storage adapter (see scripts/tx-cli.mjs).
