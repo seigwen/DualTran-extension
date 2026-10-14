@@ -444,6 +444,11 @@ tests/
 - **form 字段 id 集被冻结：** `bug_report.yml` 的 15 个字段 id 是预填 URL（`buildIssueUrl`）与 E2E（`feedback-entry.mjs`）的契约——重命名字段 = 预填静默失效；守卫以完整有序集合锁死。
 - **下拉值逐字节契约：** `feedbackLink.js` 映射出的 service/browser 值必须逐字节存在于对应字段的 options（GitHub 对不匹配的预填值静默丢弃）；改任一侧前先跑守卫。工作流内部注释刻意排除在本守卫外。
 
+### core 边界（Core Boundary，plan 59 / plan 61）
+- 规则：`src/core/**` 必须 host-free——不得出现宿主全局（chrome. / window. / document. / indexedDB / location. / alert( / confirm( / prompt(），相对 import 不得逃出 `src/core/`；模板插值内的引用同样扫描。宿主能力一律经注入（`serviceRuntime` / storage 适配器 / 翻译缓存契约）。
+- lint：`scripts/check-core-boundary.js`（第 19 个 lint，pre-push-verify 第 19 项）；校准：`tests/manifest/coreBoundary.test.js` 三向（真树 PASS / 违规 RED 逐形状 / 字符串与假阳性放行）。
+- 纪律：① 新增/迁移 core 代码 → 跑 `npm run lint:core-boundary`；② 改动注入面必须同步检查全部宿主接线（aiProxy 端口适配器 / translationService 门面 / Node CLI）与其测试；③ shim（`src/lib/ai/*` 等旧路径）只许 re-export，禁止夹带逻辑（`providerModelPreview` 的 chrome.storage 宿主胶水为已登记例外）；④ 失败面纪律：宿主无关入口（如 `translateGoogle`）不得把请求错误塌缩为空串，失败必须抛错且不得毒化会话 memo（plan 61）。
+
 ### 基础设施假设 → 测试映射表（M3 issue #33）
 
 **规则：** CLAUDE.md「基础设施假设清单」的每条假设必须有测试引用（`check-infra-assumptions.js` CI 强制）。恢复机制类假设（observer 挂载点/死亡/重建、popstate 定时器、pageshow）100% 必须有测试；非恢复机制类假设 100% 必须有文档条目。新增基础设施假设时同步更新此表 + CLAUDE.md。
