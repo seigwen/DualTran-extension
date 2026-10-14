@@ -2,6 +2,12 @@
   "name": "dualtran",
   "description": "AI-powered browser extension that translates web pages and displays the translated text with the original text in the same page.",
   "version": "1.0.0",
+  "files": [
+    "dist-core",
+    "LICENSE",
+    "README.md",
+    "PROVENANCE.md"
+  ],
   "browserslist": [
     "firefox 63",
     "chrome 70"
