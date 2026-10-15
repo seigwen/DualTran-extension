@@ -69,11 +69,11 @@
     "message": "파일로 백업"
   },
   "btnAddCustomModelTooltip": {
-    "message": "Add a custom model",
+    "message": "사용자 지정 모델 추가",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
   },
   "btnAddCustomProviderTooltip": {
-    "message": "Add a custom provider not in the list",
+    "message": "목록에 없는 사용자 지정 제공자 추가",
     "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
   },
   "btnAlwaysTranslate": {
@@ -104,14 +104,14 @@
     "message": "적용"
   },
   "btnChangeLanguages": {
-    "message": "Change languages",
+    "message": "언어 변경",
     "description": "Popup/mobile menu row: open the change-languages view"
   },
   "btnFeedbackCopyDiagnostics": {
-    "message": "Copy diagnostic info"
+    "message": "진단 정보 복사"
   },
   "btnFeedbackOpenGitHub": {
-    "message": "Open GitHub issue form"
+    "message": "GitHub 이슈 양식 열기"
   },
   "btnListen": {
     "message": "듣기"
@@ -123,7 +123,7 @@
     "message": "번역됨"
   },
   "btnMoreLanguages": {
-    "message": "More languages",
+    "message": "더 많은 언어",
     "description": "Panels' '+' button tooltip: open the full target-language list"
   },
   "btnMoreOptions": {
@@ -139,7 +139,7 @@
     "message": "옵션"
   },
   "btnOriginal": {
-    "message": "Original",
+    "message": "원본",
     "description": "Floating + hover button group: the 'show original' engine button label"
   },
   "btnReplace": {
@@ -161,7 +161,7 @@
     "message": "번역"
   },
   "btnTryAgain": {
-    "message": "Try Again",
+    "message": "다시 시도",
     "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
@@ -204,10 +204,10 @@
     "message": "단축키 입력"
   },
   "errorAiNoResponse": {
-    "message": "No response from AI provider. Please verify your API key and model name."
+    "message": "AI 제공자로부터 응답이 없습니다. API 키와 모델 이름을 확인하세요."
   },
   "errorAiResponseNoTranslationTags": {
-    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+    "message": "AI 응답에 예상된 번역 태그가 없습니다. 모델이 예상치 못한 형식의 텍스트를 반환했을 수 있습니다."
   },
   "errorApiKeyNotFound": {
     "message": "API 키를 찾을 수 없습니다!"
@@ -219,11 +219,11 @@
     "message": "텍스트 복사에 실패했습니다. 페이지 URL 프로토콜이 안전하지 않은 HTTP이고 HTTPS가 아니기 때문일 수 있습니다."
   },
   "errorTranslationFailed": {
-    "message": "Translation failed",
+    "message": "번역 실패",
     "description": "Toast + in-box error text when a text translation request fails"
   },
   "errorTranslationTimeout": {
-    "message": "Translation request timed out",
+    "message": "번역 요청 시간 초과",
     "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
@@ -248,13 +248,13 @@
     "message": "파일이 손상된 것 같습니다"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "Show AI translation"
+    "message": "AI 번역 표시"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "Show Google translation"
+    "message": "Google 번역 표시"
   },
   "floatingButtonOriginalTooltip": {
-    "message": "Show original text"
+    "message": "원문 텍스트 표시"
   },
   "hideOriginalText": {
     "message": "원문 숨기기"
@@ -269,7 +269,7 @@
     "message": "문자 입력"
   },
   "lblActivateTheExtension": {
-    "message": "Activate the extension",
+    "message": "확장 프로그램 활성화",
     "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
   },
   "lblAdd": {
@@ -283,11 +283,11 @@
     "message": "AI 공급자"
   },
   "lblAiReasoningDepth": {
-    "message": "Reasoning depth",
+    "message": "추론 깊이",
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
-    "message": "Color of AI translated text "
+    "message": "AI 번역 텍스트 색상"
   },
   "lblAlwaysTranslate": {
     "message": "$LANGUAGE_NAME$ 언어를 항상 번역",
@@ -314,7 +314,7 @@
     "message": "야간 모드"
   },
   "lblEnableAiTranslationCache": {
-    "message": "Enable AI translation cache",
+    "message": "AI 번역 캐시 사용",
     "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
@@ -336,22 +336,22 @@
     }
   },
   "lblFeedbackIntro": {
-    "message": "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser and system already filled in."
+    "message": "GitHub Issues에서 버그를 신고하거나 기능을 제안하세요 — 양식은 확장 프로그램 버전, 브라우저 및 시스템 정보가 이미 입력된 상태로 열립니다."
   },
   "lblFeedbackNoGithub": {
-    "message": "No GitHub account? You can still reach us:"
+    "message": "GitHub 계정이 없으신가요? 그래도 연락하실 수 있습니다:"
   },
   "lblFeedbackStoreSupport": {
-    "message": "Chrome Web Store support section"
+    "message": "Chrome Web Store 지원 섹션"
   },
   "lblFreeTranslationEngine": {
-    "message": "Free translation engine"
+    "message": "무료 번역 엔진"
   },
   "lblHotTranslatedSelectedText": {
     "message": "선택한 텍스트를 번역된 텍스트로 즉시 교체"
   },
   "lblHowToGetProviderApiKey": {
-    "message": "How to get $PROVIDER_NAME$ API Key?",
+    "message": "$PROVIDER_NAME$ API 키를 발급받는 방법은?",
     "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -385,7 +385,7 @@
     "message": "개인 설정"
   },
   "lblProviderApiEndpoint": {
-    "message": "$PROVIDER_NAME$ API Endpoint URL",
+    "message": "$PROVIDER_NAME$ API 엔드포인트 URL",
     "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -395,7 +395,7 @@
     }
   },
   "lblProviderApiKey": {
-    "message": "$PROVIDER_NAME$ API Key",
+    "message": "$PROVIDER_NAME$ API 키",
     "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -405,7 +405,7 @@
     }
   },
   "lblProviderDocumentation": {
-    "message": "$PROVIDER_NAME$ Documentation",
+    "message": "$PROVIDER_NAME$ 문서",
     "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -415,7 +415,7 @@
     }
   },
   "lblProviderModel": {
-    "message": "$PROVIDER_NAME$ Model",
+    "message": "$PROVIDER_NAME$ 모델",
     "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -425,7 +425,7 @@
     }
   },
   "lblProviderReasoningDepth": {
-    "message": "$PROVIDER_NAME$ Reasoning Depth",
+    "message": "$PROVIDER_NAME$ 추론 깊이",
     "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -456,7 +456,7 @@
     "message": "마우스를 가져다 대면 원본 텍스트 표시"
   },
   "lblShowOriginalTextWhenHoveringNote": {
-    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+    "message": "\"번역문을 표시할 위치\"가 \"원문을 번역문으로 바꾸기\"로 설정된 경우에만 적용됩니다."
   },
   "lblShowTranslateSelectedButton": {
     "message": "선택한 텍스트에 번역 버튼 표시"
@@ -583,49 +583,49 @@
     "message": "자동적 인"
   },
   "msgCannotLoadGoogleGeminiModels": {
-    "message": "Unable to load Google Gemini models",
+    "message": "Google Gemini 모델을 불러올 수 없습니다",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
   },
   "msgDefault": {
-    "message": "Default",
+    "message": "기본값",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgEnterDictionaryKeyword": {
-    "message": "Enter the keyword, minimum two letters",
+    "message": "키워드를 입력하세요. 최소 두 글자",
     "description": "prompt() dialog: custom dictionary keyword"
   },
   "msgEnterDictionaryValue": {
-    "message": "(Optional)\nYou can enter a value to replace it, or fill in nothing.",
+    "message": "(선택 사항)\n대체할 값을 입력하거나 아무것도 입력하지 않아도 됩니다.",
     "description": "prompt() dialog: custom dictionary replacement value (optional)"
   },
   "msgEnterModelName": {
-    "message": "Enter model name/ID:",
+    "message": "모델 이름/ID 입력:",
     "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
   },
   "msgEnterProviderApiBase": {
-    "message": "Enter API Endpoint URL (optional, press OK to skip):",
+    "message": "API 엔드포인트 URL 입력 (선택 사항, 건너뛰려면 확인):",
     "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
   },
   "msgEnterProviderName": {
-    "message": "Enter provider name:",
+    "message": "제공자 이름 입력:",
     "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
   },
   "msgEnterSiteHostname": {
-    "message": "Enter the site hostname",
+    "message": "사이트 호스트 이름 입력",
     "description": "prompt() dialog for adding a site (always/never/hover lists)"
   },
   "msgErrorDownloadingDocument": {
     "message": "문서 다운로드 중 오류 발생"
   },
   "msgErrorLoadingModels": {
-    "message": "Error loading models",
+    "message": "모델을 불러오는 중 오류 발생",
     "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "좋아하는 언어"
   },
   "msgFeedbackCopied": {
-    "message": "Copied"
+    "message": "복사됨"
   },
   "msgFileLargerThan": {
     "message": "이 서비스는 $FILE_SIZE$보다 큰 파일은 지원하지 않습니다",
@@ -652,7 +652,7 @@
     "message": "로딩 중..."
   },
   "msgModelListFetchFailed": {
-    "message": "Failed to fetch model list with API key. Available models:"
+    "message": "API 키로 모델 목록을 가져오지 못했습니다. 사용 가능한 모델:"
   },
   "msgNo": {
     "message": "아니오"
@@ -673,35 +673,35 @@
     "message": "기다려 주세요..."
   },
   "msgReasoningDepthHigh": {
-    "message": "High",
+    "message": "높음",
     "description": "Reasoning depth option label (models.dev effort value: high)."
   },
   "msgReasoningDepthLow": {
-    "message": "Low",
+    "message": "낮음",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
   "msgReasoningDepthMax": {
-    "message": "Max",
+    "message": "최대",
     "description": "Reasoning depth option label (models.dev effort value: max)."
   },
   "msgReasoningDepthMedium": {
-    "message": "Medium",
+    "message": "중간",
     "description": "Reasoning depth option label (models.dev effort value: medium)."
   },
   "msgReasoningDepthMinimal": {
-    "message": "Minimal",
+    "message": "최소",
     "description": "Reasoning depth option label (models.dev effort value: minimal)."
   },
   "msgReasoningDepthNone": {
-    "message": "None",
+    "message": "없음",
     "description": "Reasoning depth option label (models.dev effort value: none)."
   },
   "msgReasoningDepthProviderDefault": {
-    "message": "Default (provider)",
+    "message": "기본값 (제공자)",
     "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
   },
   "msgReasoningDepthXHigh": {
-    "message": "XHigh",
+    "message": "매우 높음",
     "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
@@ -738,7 +738,7 @@
     "message": "선택한 텍스트 번역"
   },
   "msgTranslateWithAi": {
-    "message": "Translate with AI to $LANGUAGE_NAME$",
+    "message": "AI로 $LANGUAGE_NAME$로 번역",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -747,7 +747,7 @@
     }
   },
   "msgTranslateWithGoogle": {
-    "message": "Translate with Google to $LANGUAGE_NAME$",
+    "message": "Google로 $LANGUAGE_NAME$로 번역",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -756,11 +756,11 @@
     }
   },
   "msgTranslationError": {
-    "message": "translation error",
+    "message": "번역 오류",
     "description": "aria-label suffix on the error icon of the block translation indicator"
   },
   "msgTranslationInProgress": {
-    "message": "translation in progress",
+    "message": "번역 진행 중",
     "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
@@ -818,10 +818,10 @@
     "message": "파일에서 복원"
   },
   "serviceGoogleTranslate": {
-    "message": "Google Translate"
+    "message": "Google 번역"
   },
   "serviceMicrosoftTranslate": {
-    "message": "Microsoft Translator"
+    "message": "Microsoft 번역기"
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
@@ -842,39 +842,39 @@
     "message": "주소 표시줄의 버튼을 한 번 클릭하여 페이지를 번역 (팝업을 보려면, 마우스 오른쪽 버튼을 클릭)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "When to display the paragraph button group",
+    "message": "문단 버튼 그룹 표시 시점",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {
-    "message": "Show on hover or click",
+    "message": "마우스를 올리거나 클릭할 때 표시",
     "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
   },
   "blockBtnGroupDisplayAlways": {
-    "message": "Always show",
+    "message": "항상 표시",
     "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
   },
   "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Always-visible style",
+    "message": "항상 표시 스타일",
     "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
   },
   "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Small badge (click to expand)",
+    "message": "작은 배지 (클릭하여 펼치기)",
     "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
   },
   "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Three buttons shown directly",
+    "message": "세 개의 버튼을 항상 표시",
     "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
   },
   "lblBlockBtnGroupShowOnHover": {
-    "message": "Show the paragraph button group when hovering over a paragraph",
+    "message": "문단 위로 마우스를 가져가면 문단 버튼 그룹 표시",
     "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblBlockBtnGroupShowOnClick": {
-    "message": "Show the paragraph button group when clicking a paragraph",
+    "message": "문단을 클릭하면 문단 버튼 그룹 표시",
     "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
   },
   "blockBtnGroupBadgeTooltip": {
-    "message": "Paragraph translation options",
+    "message": "문단 번역 옵션",
     "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

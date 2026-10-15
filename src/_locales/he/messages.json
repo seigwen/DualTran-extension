@@ -63,17 +63,17 @@
     "message": "Zhipu AI (GLM)"
   },
   "alertSpecifyTargetLanguage": {
-    "message": "Please specify target language first."
+    "message": "אנא ציין תחילה שפת יעד."
   },
   "backupToFile": {
     "message": "גבה לקובץ"
   },
   "btnAddCustomModelTooltip": {
-    "message": "Add a custom model",
+    "message": "הוסף מודל מותאם אישית",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
   },
   "btnAddCustomProviderTooltip": {
-    "message": "Add a custom provider not in the list",
+    "message": "הוסף ספק מותאם אישית שאינו ברשימה",
     "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
   },
   "btnAlwaysTranslate": {
@@ -104,14 +104,14 @@
     "message": "להגיש מועמדות"
   },
   "btnChangeLanguages": {
-    "message": "Change languages",
+    "message": "שנה שפות",
     "description": "Popup/mobile menu row: open the change-languages view"
   },
   "btnFeedbackCopyDiagnostics": {
-    "message": "Copy diagnostic info"
+    "message": "העתק מידע אבחוני"
   },
   "btnFeedbackOpenGitHub": {
-    "message": "Open GitHub issue form"
+    "message": "פתח טופס דיווח ב-GitHub"
   },
   "btnListen": {
     "message": "להקשיב"
@@ -123,7 +123,7 @@
     "message": "תורגם"
   },
   "btnMoreLanguages": {
-    "message": "More languages",
+    "message": "שפות נוספות",
     "description": "Panels' '+' button tooltip: open the full target-language list"
   },
   "btnMoreOptions": {
@@ -139,7 +139,7 @@
     "message": "אפשרויות"
   },
   "btnOriginal": {
-    "message": "Original",
+    "message": "מקור",
     "description": "Floating + hover button group: the 'show original' engine button label"
   },
   "btnReplace": {
@@ -161,7 +161,7 @@
     "message": "תרגם"
   },
   "btnTryAgain": {
-    "message": "Try Again",
+    "message": "נסה שוב",
     "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
@@ -204,13 +204,13 @@
     "message": "הקלד קיצור דרך"
   },
   "errorAiNoResponse": {
-    "message": "No response from AI provider. Please verify your API key and model name."
+    "message": "אין תגובה מספק ה-AI. אנא אמת את מפתח ה-API ושם המודל שלך."
   },
   "errorAiResponseNoTranslationTags": {
-    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+    "message": "תגובת ה-AI לא הכילה תגי תרגום צפויים. ייתכן שהמודל החזיר טקסט בפורמט לא צפוי."
   },
   "errorApiKeyNotFound": {
-    "message": "API key not found!"
+    "message": "מפתח API לא נמצא!"
   },
   "errorCopyFailed": {
     "message": "ההעתקה נכשלה."
@@ -219,11 +219,11 @@
     "message": "העתקת הטקסט נכשלה. כנראה בגלל שפרוטוקול כתובת הדף הוא HTTP לא מאובטח, לא HTTPS."
   },
   "errorTranslationFailed": {
-    "message": "Translation failed",
+    "message": "התרגום נכשל",
     "description": "Toast + in-box error text when a text translation request fails"
   },
   "errorTranslationTimeout": {
-    "message": "Translation request timed out",
+    "message": "פסק הזמן של בקשת התרגום",
     "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
@@ -248,13 +248,13 @@
     "message": "הקובץ נראה כקובץ תקול"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "Show AI translation"
+    "message": "הצג תרגום AI"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "Show Google translation"
+    "message": "הצג תרגום Google"
   },
   "floatingButtonOriginalTooltip": {
-    "message": "Show original text"
+    "message": "הצג טקסט מקורי"
   },
   "hideOriginalText": {
     "message": "הסתר טקסט מקורי"
@@ -269,7 +269,7 @@
     "message": "כתוב מכתב"
   },
   "lblActivateTheExtension": {
-    "message": "Activate the extension",
+    "message": "הפעל את התוסף",
     "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
   },
   "lblAdd": {
@@ -283,11 +283,11 @@
     "message": "ספק בינה מלאכותית"
   },
   "lblAiReasoningDepth": {
-    "message": "Reasoning depth",
+    "message": "עומק החשיבה",
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
-    "message": "Color of AI translated text "
+    "message": "צבע הטקסט המתורגם ב-AI"
   },
   "lblAlwaysTranslate": {
     "message": "תמיד תתרגם מ- $LANGUAGE_NAME$",
@@ -314,14 +314,14 @@
     "message": "מצב כהה"
   },
   "lblEnableAiTranslationCache": {
-    "message": "Enable AI translation cache",
+    "message": "הפעל מטמון תרגום AI",
     "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
     "message": "אפשר DeepL כמנוע תרגום לטקסט"
   },
   "lblEnterApiKey": {
-    "message": "Enter API key"
+    "message": "הזן מפתח API"
   },
   "lblError": {
     "message": "לא ניתן לתרגם דף זה"
@@ -336,22 +336,22 @@
     }
   },
   "lblFeedbackIntro": {
-    "message": "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser and system already filled in."
+    "message": "דווח על באגים או הצע תכונות ב-GitHub Issues — הטופס נפתח עם גרסת התוסף, הדפדפן והמערכת שלך כבר ממולאים."
   },
   "lblFeedbackNoGithub": {
-    "message": "No GitHub account? You can still reach us:"
+    "message": "אין לך חשבון GitHub? עדיין אפשר ליצור איתנו קשר:"
   },
   "lblFeedbackStoreSupport": {
-    "message": "Chrome Web Store support section"
+    "message": "אזור התמיכה ב-Chrome Web Store"
   },
   "lblFreeTranslationEngine": {
-    "message": "Free translation engine"
+    "message": "מנוע תרגום חינמי"
   },
   "lblHotTranslatedSelectedText": {
     "message": "החלף טקסט נבחר בטקסט מתורגם באופן מיידי"
   },
   "lblHowToGetProviderApiKey": {
-    "message": "How to get $PROVIDER_NAME$ API Key?",
+    "message": "איך משיגים מפתח API של $PROVIDER_NAME$?",
     "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -385,7 +385,7 @@
     "message": "הגדרות אישיות"
   },
   "lblProviderApiEndpoint": {
-    "message": "$PROVIDER_NAME$ API Endpoint URL",
+    "message": "כתובת URL של נקודת הקצה של API של $PROVIDER_NAME$",
     "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -395,7 +395,7 @@
     }
   },
   "lblProviderApiKey": {
-    "message": "$PROVIDER_NAME$ API Key",
+    "message": "מפתח API של $PROVIDER_NAME$",
     "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -405,7 +405,7 @@
     }
   },
   "lblProviderDocumentation": {
-    "message": "$PROVIDER_NAME$ Documentation",
+    "message": "תיעוד $PROVIDER_NAME$",
     "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -415,7 +415,7 @@
     }
   },
   "lblProviderModel": {
-    "message": "$PROVIDER_NAME$ Model",
+    "message": "מודל $PROVIDER_NAME$",
     "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -425,7 +425,7 @@
     }
   },
   "lblProviderReasoningDepth": {
-    "message": "$PROVIDER_NAME$ Reasoning Depth",
+    "message": "עומק החשיבה של $PROVIDER_NAME$",
     "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -456,7 +456,7 @@
     "message": "הראה טקסט מקורי בעת ריחוף"
   },
   "lblShowOriginalTextWhenHoveringNote": {
-    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+    "message": "חל רק כאשר \"היכן להציג את הטקסט המתורגם\" מוגדר ל\"החלף את הטקסט המקורי בטקסט המתורגם\"."
   },
   "lblShowTranslateSelectedButton": {
     "message": "הראה את הלחצן לתרגום הטקסט שנבחר"
@@ -583,49 +583,49 @@
     "message": "אוֹטוֹמָטִי"
   },
   "msgCannotLoadGoogleGeminiModels": {
-    "message": "Unable to load Google Gemini models",
+    "message": "לא ניתן לטעון את המודלים של Google Gemini",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
   },
   "msgDefault": {
-    "message": "Default",
+    "message": "ברירת מחדל",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgEnterDictionaryKeyword": {
-    "message": "Enter the keyword, minimum two letters",
+    "message": "הזן את מילת המפתח, לפחות שתי אותיות",
     "description": "prompt() dialog: custom dictionary keyword"
   },
   "msgEnterDictionaryValue": {
-    "message": "(Optional)\nYou can enter a value to replace it, or fill in nothing.",
+    "message": "（אופציונלי）\nניתן להזין ערך שיחליף אותו, או להשאיר ריק.",
     "description": "prompt() dialog: custom dictionary replacement value (optional)"
   },
   "msgEnterModelName": {
-    "message": "Enter model name/ID:",
+    "message": "הזן שם/מזהה מודל:",
     "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
   },
   "msgEnterProviderApiBase": {
-    "message": "Enter API Endpoint URL (optional, press OK to skip):",
+    "message": "הזן כתובת URL של נקודת קצה API (אופציונלי, לחץ אישור כדי לדלג):",
     "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
   },
   "msgEnterProviderName": {
-    "message": "Enter provider name:",
+    "message": "הזן שם ספק:",
     "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
   },
   "msgEnterSiteHostname": {
-    "message": "Enter the site hostname",
+    "message": "הזן את שם המארח של האתר",
     "description": "prompt() dialog for adding a site (always/never/hover lists)"
   },
   "msgErrorDownloadingDocument": {
     "message": "שגיאה בהורדת המסמך"
   },
   "msgErrorLoadingModels": {
-    "message": "Error loading models",
+    "message": "שגיאה בטעינת מודלים",
     "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "שפות אהובות"
   },
   "msgFeedbackCopied": {
-    "message": "Copied"
+    "message": "הועתק"
   },
   "msgFileLargerThan": {
     "message": "שירות זה אינו תומך בקבצים גדולים מ $FILE_SIZE$",
@@ -652,7 +652,7 @@
     "message": "טוען..."
   },
   "msgModelListFetchFailed": {
-    "message": "Failed to fetch model list with API key. Available models:"
+    "message": "נכשל באחזור רשימת המודלים עם מפתח API. מודלים זמינים:"
   },
   "msgNo": {
     "message": "לא"
@@ -673,35 +673,35 @@
     "message": "המתן בבקשה..."
   },
   "msgReasoningDepthHigh": {
-    "message": "High",
+    "message": "גבוהה",
     "description": "Reasoning depth option label (models.dev effort value: high)."
   },
   "msgReasoningDepthLow": {
-    "message": "Low",
+    "message": "נמוכה",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
   "msgReasoningDepthMax": {
-    "message": "Max",
+    "message": "מקסימלית",
     "description": "Reasoning depth option label (models.dev effort value: max)."
   },
   "msgReasoningDepthMedium": {
-    "message": "Medium",
+    "message": "בינונית",
     "description": "Reasoning depth option label (models.dev effort value: medium)."
   },
   "msgReasoningDepthMinimal": {
-    "message": "Minimal",
+    "message": "מינימלי",
     "description": "Reasoning depth option label (models.dev effort value: minimal)."
   },
   "msgReasoningDepthNone": {
-    "message": "None",
+    "message": "ללא",
     "description": "Reasoning depth option label (models.dev effort value: none)."
   },
   "msgReasoningDepthProviderDefault": {
-    "message": "Default (provider)",
+    "message": "ברירת מחדל (ספק)",
     "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
   },
   "msgReasoningDepthXHigh": {
-    "message": "XHigh",
+    "message": "גבוה במיוחד",
     "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
@@ -738,7 +738,7 @@
     "message": "תרגם טקסט נבחר"
   },
   "msgTranslateWithAi": {
-    "message": "Translate with AI to $LANGUAGE_NAME$",
+    "message": "תרגם עם AI ל$LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -747,7 +747,7 @@
     }
   },
   "msgTranslateWithGoogle": {
-    "message": "Translate with Google to $LANGUAGE_NAME$",
+    "message": "תרגם עם Google ל$LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -756,11 +756,11 @@
     }
   },
   "msgTranslationError": {
-    "message": "translation error",
+    "message": "שגיאת תרגום",
     "description": "aria-label suffix on the error icon of the block translation indicator"
   },
   "msgTranslationInProgress": {
-    "message": "translation in progress",
+    "message": "תרגום בתהליך",
     "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
@@ -803,7 +803,7 @@
     "message": "הפוך את סמל הקופץ לכחול כאשר האתר מתורגם"
   },
   "promptInputOpenAIKey": {
-    "message": "Please input your OpenAI API Key:"
+    "message": "אנא הזן את מפתח ה-API של OpenAI:"
   },
   "promptInputOpenRouterKey": {
     "message": "אנא הזן את מפתח ה-API של OpenRouter:"
@@ -842,39 +842,39 @@
     "message": "תרגם את הדף על ידי לחיצה אחת על הכפתור בשורת הכתובת. (כדי לראות את החלון הקופץ, לחץ לחיצה ימנית)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "When to display the paragraph button group",
+    "message": "מתי להציג את קבוצת הכפתורים של הפסקה",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {
-    "message": "Show on hover or click",
+    "message": "הצג בריחוף או בלחיצה",
     "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
   },
   "blockBtnGroupDisplayAlways": {
-    "message": "Always show",
+    "message": "הצג תמיד",
     "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
   },
   "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Always-visible style",
+    "message": "סגנון תצוגה תמידית",
     "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
   },
   "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Small badge (click to expand)",
+    "message": "תגית קטנה (לחץ להרחבה)",
     "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
   },
   "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Three buttons shown directly",
+    "message": "שלושה כפתורים מוצגים ישירות",
     "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
   },
   "lblBlockBtnGroupShowOnHover": {
-    "message": "Show the paragraph button group when hovering over a paragraph",
+    "message": "הצג את קבוצת כפתורי הפסקה בעת ריחוף מעל פסקה",
     "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblBlockBtnGroupShowOnClick": {
-    "message": "Show the paragraph button group when clicking a paragraph",
+    "message": "הצג את קבוצת כפתורי הפסקה בעת לחיצה על פסקה",
     "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
   },
   "blockBtnGroupBadgeTooltip": {
-    "message": "Paragraph translation options",
+    "message": "אפשרויות תרגום פסקה",
     "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

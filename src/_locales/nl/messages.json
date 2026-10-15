@@ -69,11 +69,11 @@
     "message": "Back-up naar bestand"
   },
   "btnAddCustomModelTooltip": {
-    "message": "Add a custom model",
+    "message": "Een aangepast model toevoegen",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
   },
   "btnAddCustomProviderTooltip": {
-    "message": "Add a custom provider not in the list",
+    "message": "Een aangepaste provider toevoegen die niet in de lijst staat",
     "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
   },
   "btnAlwaysTranslate": {
@@ -104,14 +104,14 @@
     "message": "Van toepassing zijn"
   },
   "btnChangeLanguages": {
-    "message": "Change languages",
+    "message": "Talen wijzigen",
     "description": "Popup/mobile menu row: open the change-languages view"
   },
   "btnFeedbackCopyDiagnostics": {
-    "message": "Copy diagnostic info"
+    "message": "Diagnostische informatie kopiëren"
   },
   "btnFeedbackOpenGitHub": {
-    "message": "Open GitHub issue form"
+    "message": "GitHub-probleemformulier openen"
   },
   "btnListen": {
     "message": "Luister"
@@ -123,7 +123,7 @@
     "message": "Vertaald"
   },
   "btnMoreLanguages": {
-    "message": "More languages",
+    "message": "Meer talen",
     "description": "Panels' '+' button tooltip: open the full target-language list"
   },
   "btnMoreOptions": {
@@ -139,7 +139,7 @@
     "message": "opties"
   },
   "btnOriginal": {
-    "message": "Original",
+    "message": "Origineel",
     "description": "Floating + hover button group: the 'show original' engine button label"
   },
   "btnReplace": {
@@ -161,7 +161,7 @@
     "message": "Vertalen"
   },
   "btnTryAgain": {
-    "message": "Try Again",
+    "message": "Opnieuw proberen",
     "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
@@ -204,10 +204,10 @@
     "message": "Typ een sneltoets"
   },
   "errorAiNoResponse": {
-    "message": "No response from AI provider. Please verify your API key and model name."
+    "message": "Geen reactie van AI-provider. Controleer je API-sleutel en modelnaam."
   },
   "errorAiResponseNoTranslationTags": {
-    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+    "message": "Het AI-antwoord bevatte niet de verwachte vertaaltags. Het model heeft de tekst mogelijk in een onverwacht formaat geretourneerd."
   },
   "errorApiKeyNotFound": {
     "message": "API-sleutel niet gevonden!"
@@ -219,11 +219,11 @@
     "message": "Tekst kopiëren mislukt. Waarschijnlijk omdat het URL-protocol van de pagina onveilig HTTP is, niet HTTPS."
   },
   "errorTranslationFailed": {
-    "message": "Translation failed",
+    "message": "Vertaling mislukt",
     "description": "Toast + in-box error text when a text translation request fails"
   },
   "errorTranslationTimeout": {
-    "message": "Translation request timed out",
+    "message": "Time-out van vertaalverzoek",
     "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
@@ -248,13 +248,13 @@
     "message": "Het bestand lijkt corrupt te zijn"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "Show AI translation"
+    "message": "AI-vertaling tonen"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "Show Google translation"
+    "message": "Google-vertaling tonen"
   },
   "floatingButtonOriginalTooltip": {
-    "message": "Show original text"
+    "message": "Originele tekst tonen"
   },
   "hideOriginalText": {
     "message": "Oorspronkelijke tekst verbergen"
@@ -269,7 +269,7 @@
     "message": "Typ een letter"
   },
   "lblActivateTheExtension": {
-    "message": "Activate the extension",
+    "message": "De extensie activeren",
     "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
   },
   "lblAdd": {
@@ -283,11 +283,11 @@
     "message": "AI-provider"
   },
   "lblAiReasoningDepth": {
-    "message": "Reasoning depth",
+    "message": "Redeneerdiepte",
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
-    "message": "Color of AI translated text "
+    "message": "Kleur van AI-vertaalde tekst"
   },
   "lblAlwaysTranslate": {
     "message": "Altijd vertalen vanuit $LANGUAGE_NAME$",
@@ -314,14 +314,14 @@
     "message": "Donkere modus"
   },
   "lblEnableAiTranslationCache": {
-    "message": "Enable AI translation cache",
+    "message": "AI-vertaalcache inschakelen",
     "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
     "message": "Schakel DeepL in als een tekst vertaaldienst"
   },
   "lblEnterApiKey": {
-    "message": "Enter API key"
+    "message": "API-sleutel invoeren"
   },
   "lblError": {
     "message": "Deze pagina kon niet worden vertaald"
@@ -336,22 +336,22 @@
     }
   },
   "lblFeedbackIntro": {
-    "message": "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser and system already filled in."
+    "message": "Meld bugs of stel functies voor via GitHub Issues — het formulier wordt geopend met je extensieversie, browser en systeem al ingevuld."
   },
   "lblFeedbackNoGithub": {
-    "message": "No GitHub account? You can still reach us:"
+    "message": "Geen GitHub-account? Je kunt ons ook bereiken via:"
   },
   "lblFeedbackStoreSupport": {
-    "message": "Chrome Web Store support section"
+    "message": "Supportgedeelte van de Chrome Web Store"
   },
   "lblFreeTranslationEngine": {
-    "message": "Free translation engine"
+    "message": "Gratis vertaalengine"
   },
   "lblHotTranslatedSelectedText": {
     "message": "Vervang geselecteerde tekst direct door vertaalde tekst"
   },
   "lblHowToGetProviderApiKey": {
-    "message": "How to get $PROVIDER_NAME$ API Key?",
+    "message": "Hoe krijg je een $PROVIDER_NAME$ API-sleutel?",
     "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -385,7 +385,7 @@
     "message": "Persoonlijke instellingen"
   },
   "lblProviderApiEndpoint": {
-    "message": "$PROVIDER_NAME$ API Endpoint URL",
+    "message": "$PROVIDER_NAME$ API-eindpunt-URL",
     "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -395,7 +395,7 @@
     }
   },
   "lblProviderApiKey": {
-    "message": "$PROVIDER_NAME$ API Key",
+    "message": "$PROVIDER_NAME$ API-sleutel",
     "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -405,7 +405,7 @@
     }
   },
   "lblProviderDocumentation": {
-    "message": "$PROVIDER_NAME$ Documentation",
+    "message": "$PROVIDER_NAME$ Documentatie",
     "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -425,7 +425,7 @@
     }
   },
   "lblProviderReasoningDepth": {
-    "message": "$PROVIDER_NAME$ Reasoning Depth",
+    "message": "$PROVIDER_NAME$ Redeneerdiepte",
     "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -456,7 +456,7 @@
     "message": "Toon originele tekst bij zweven"
   },
   "lblShowOriginalTextWhenHoveringNote": {
-    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+    "message": "Werkt alleen als \"Waar de vertaalde tekst moet worden weergegeven\" is ingesteld op \"Originele tekst vervangen door vertaalde tekst\"."
   },
   "lblShowTranslateSelectedButton": {
     "message": "Toon de knop om de geselecteerde tekst te vertalen"
@@ -583,49 +583,49 @@
     "message": "Automatisch"
   },
   "msgCannotLoadGoogleGeminiModels": {
-    "message": "Unable to load Google Gemini models",
+    "message": "Kan Google Gemini-modellen niet laden",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
   },
   "msgDefault": {
-    "message": "Default",
+    "message": "Standaard",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgEnterDictionaryKeyword": {
-    "message": "Enter the keyword, minimum two letters",
+    "message": "Voer het trefwoord in, minimaal twee letters",
     "description": "prompt() dialog: custom dictionary keyword"
   },
   "msgEnterDictionaryValue": {
-    "message": "(Optional)\nYou can enter a value to replace it, or fill in nothing.",
+    "message": "(Optioneel)\nJe kunt een waarde invoeren om deze te vervangen, of niets invullen.",
     "description": "prompt() dialog: custom dictionary replacement value (optional)"
   },
   "msgEnterModelName": {
-    "message": "Enter model name/ID:",
+    "message": "Voer modelnaam/ID in:",
     "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
   },
   "msgEnterProviderApiBase": {
-    "message": "Enter API Endpoint URL (optional, press OK to skip):",
+    "message": "Voer de API-eindpunt-URL in (optioneel, druk op OK om over te slaan):",
     "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
   },
   "msgEnterProviderName": {
-    "message": "Enter provider name:",
+    "message": "Voer de naam van de provider in:",
     "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
   },
   "msgEnterSiteHostname": {
-    "message": "Enter the site hostname",
+    "message": "Voer de hostnaam van de site in",
     "description": "prompt() dialog for adding a site (always/never/hover lists)"
   },
   "msgErrorDownloadingDocument": {
     "message": "Fout bij het downloaden van het document"
   },
   "msgErrorLoadingModels": {
-    "message": "Error loading models",
+    "message": "Fout bij laden van modellen",
     "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "Favorittspråk"
   },
   "msgFeedbackCopied": {
-    "message": "Copied"
+    "message": "Gekopieerd"
   },
   "msgFileLargerThan": {
     "message": "Deze dienst ondersteunt geen bestanden groter dan $FILE_SIZE$",
@@ -652,7 +652,7 @@
     "message": "Laden..."
   },
   "msgModelListFetchFailed": {
-    "message": "Failed to fetch model list with API key. Available models:"
+    "message": "Kan modellenlijst niet ophalen met API-sleutel. Beschikbare modellen:"
   },
   "msgNo": {
     "message": "Nee"
@@ -673,11 +673,11 @@
     "message": "Gelieve te wachten..."
   },
   "msgReasoningDepthHigh": {
-    "message": "High",
+    "message": "Hoog",
     "description": "Reasoning depth option label (models.dev effort value: high)."
   },
   "msgReasoningDepthLow": {
-    "message": "Low",
+    "message": "Laag",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
   "msgReasoningDepthMax": {
@@ -685,23 +685,23 @@
     "description": "Reasoning depth option label (models.dev effort value: max)."
   },
   "msgReasoningDepthMedium": {
-    "message": "Medium",
+    "message": "Gemiddeld",
     "description": "Reasoning depth option label (models.dev effort value: medium)."
   },
   "msgReasoningDepthMinimal": {
-    "message": "Minimal",
+    "message": "Minimaal",
     "description": "Reasoning depth option label (models.dev effort value: minimal)."
   },
   "msgReasoningDepthNone": {
-    "message": "None",
+    "message": "Geen",
     "description": "Reasoning depth option label (models.dev effort value: none)."
   },
   "msgReasoningDepthProviderDefault": {
-    "message": "Default (provider)",
+    "message": "Standaard (provider)",
     "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
   },
   "msgReasoningDepthXHigh": {
-    "message": "XHigh",
+    "message": "Extra hoog",
     "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
@@ -738,7 +738,7 @@
     "message": "Vertaal de geselecteerde tekst"
   },
   "msgTranslateWithAi": {
-    "message": "Translate with AI to $LANGUAGE_NAME$",
+    "message": "Vertaal met AI naar $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -747,7 +747,7 @@
     }
   },
   "msgTranslateWithGoogle": {
-    "message": "Translate with Google to $LANGUAGE_NAME$",
+    "message": "Vertaal met Google naar $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -756,11 +756,11 @@
     }
   },
   "msgTranslationError": {
-    "message": "translation error",
+    "message": "vertaalfout",
     "description": "aria-label suffix on the error icon of the block translation indicator"
   },
   "msgTranslationInProgress": {
-    "message": "translation in progress",
+    "message": "vertaling bezig",
     "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
@@ -842,39 +842,39 @@
     "message": "Vertaal de pagina door eenmaal op de knop in de adresbalk te klikken. (Klik met de rechtermuisknop om de pop-up te zien)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "When to display the paragraph button group",
+    "message": "Wanneer de knopgroep per alinea wordt weergegeven",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {
-    "message": "Show on hover or click",
+    "message": "Toon bij aanwijzen of klikken",
     "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
   },
   "blockBtnGroupDisplayAlways": {
-    "message": "Always show",
+    "message": "Altijd weergeven",
     "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
   },
   "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Always-visible style",
+    "message": "Altijd zichtbare stijl",
     "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
   },
   "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Small badge (click to expand)",
+    "message": "Kleine badge (klik om uit te klappen)",
     "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
   },
   "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Three buttons shown directly",
+    "message": "Drie knoppen direct weergegeven",
     "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
   },
   "lblBlockBtnGroupShowOnHover": {
-    "message": "Show the paragraph button group when hovering over a paragraph",
+    "message": "Toon de alineaknopgroep bij zweven over een alinea",
     "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblBlockBtnGroupShowOnClick": {
-    "message": "Show the paragraph button group when clicking a paragraph",
+    "message": "Toon de alineaknopgroep bij klikken op een alinea",
     "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
   },
   "blockBtnGroupBadgeTooltip": {
-    "message": "Paragraph translation options",
+    "message": "Vertaalopties voor alinea",
     "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

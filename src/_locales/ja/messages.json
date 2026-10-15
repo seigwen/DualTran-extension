@@ -69,11 +69,11 @@
     "message": "ファイルにバックアップ"
   },
   "btnAddCustomModelTooltip": {
-    "message": "Add a custom model",
+    "message": "カスタムモデルを追加",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
   },
   "btnAddCustomProviderTooltip": {
-    "message": "Add a custom provider not in the list",
+    "message": "リストにないカスタムプロバイダーを追加",
     "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
   },
   "btnAlwaysTranslate": {
@@ -104,14 +104,14 @@
     "message": "適用"
   },
   "btnChangeLanguages": {
-    "message": "Change languages",
+    "message": "言語を変更",
     "description": "Popup/mobile menu row: open the change-languages view"
   },
   "btnFeedbackCopyDiagnostics": {
-    "message": "Copy diagnostic info"
+    "message": "診断情報をコピー"
   },
   "btnFeedbackOpenGitHub": {
-    "message": "Open GitHub issue form"
+    "message": "GitHub の Issue フォームを開く"
   },
   "btnListen": {
     "message": "聴く"
@@ -123,7 +123,7 @@
     "message": "翻訳済み"
   },
   "btnMoreLanguages": {
-    "message": "More languages",
+    "message": "その他の言語",
     "description": "Panels' '+' button tooltip: open the full target-language list"
   },
   "btnMoreOptions": {
@@ -139,7 +139,7 @@
     "message": "オプション"
   },
   "btnOriginal": {
-    "message": "Original",
+    "message": "原文",
     "description": "Floating + hover button group: the 'show original' engine button label"
   },
   "btnReplace": {
@@ -161,7 +161,7 @@
     "message": "翻訳"
   },
   "btnTryAgain": {
-    "message": "Try Again",
+    "message": "再試行",
     "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
@@ -204,10 +204,10 @@
     "message": "ショートカットを入力"
   },
   "errorAiNoResponse": {
-    "message": "No response from AI provider. Please verify your API key and model name."
+    "message": "AI プロバイダーから応答がありません。API キーとモデル名を確認してください。"
   },
   "errorAiResponseNoTranslationTags": {
-    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+    "message": "AI の応答に翻訳タグが含まれていません。モデルが予期しない形式のテキストを返した可能性があります。"
   },
   "errorApiKeyNotFound": {
     "message": "API キーが見つかりません！"
@@ -219,11 +219,11 @@
     "message": "テキストのコピーに失敗しました。ページのURLプロトコルが安全でないHTTPであり、HTTPSではないことが原因の可能性があります。"
   },
   "errorTranslationFailed": {
-    "message": "Translation failed",
+    "message": "翻訳に失敗しました",
     "description": "Toast + in-box error text when a text translation request fails"
   },
   "errorTranslationTimeout": {
-    "message": "Translation request timed out",
+    "message": "翻訳リクエストがタイムアウトしました",
     "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
@@ -248,13 +248,13 @@
     "message": "ファイルが破損しているようです。"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "Show AI translation"
+    "message": "AI翻訳を表示"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "Show Google translation"
+    "message": "Google翻訳を表示"
   },
   "floatingButtonOriginalTooltip": {
-    "message": "Show original text"
+    "message": "原文を表示"
   },
   "hideOriginalText": {
     "message": "原文を非表示"
@@ -269,7 +269,7 @@
     "message": "文字を入力してください"
   },
   "lblActivateTheExtension": {
-    "message": "Activate the extension",
+    "message": "拡張機能を有効化",
     "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
   },
   "lblAdd": {
@@ -283,11 +283,11 @@
     "message": "AI プロバイダー"
   },
   "lblAiReasoningDepth": {
-    "message": "Reasoning depth",
+    "message": "推論の深さ",
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
-    "message": "Color of AI translated text "
+    "message": "AI翻訳テキストの色"
   },
   "lblAlwaysTranslate": {
     "message": "$LANGUAGE_NAME$のサイトを常に翻訳する",
@@ -314,7 +314,7 @@
     "message": "ダークモード"
   },
   "lblEnableAiTranslationCache": {
-    "message": "Enable AI translation cache",
+    "message": "AI翻訳キャッシュを有効にする",
     "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
@@ -336,22 +336,22 @@
     }
   },
   "lblFeedbackIntro": {
-    "message": "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser and system already filled in."
+    "message": "GitHub Issuesでバグ報告や機能提案ができます — フォームには拡張機能のバージョン、ブラウザ、システムがすでに入力された状態で開きます。"
   },
   "lblFeedbackNoGithub": {
-    "message": "No GitHub account? You can still reach us:"
+    "message": "GitHubアカウントをお持ちでない場合も、こちらからご連絡いただけます:"
   },
   "lblFeedbackStoreSupport": {
-    "message": "Chrome Web Store support section"
+    "message": "Chrome Web Storeのサポートセクション"
   },
   "lblFreeTranslationEngine": {
-    "message": "Free translation engine"
+    "message": "無料翻訳エンジン"
   },
   "lblHotTranslatedSelectedText": {
     "message": "選択したテキストを翻訳済みテキストに即座に置き換える"
   },
   "lblHowToGetProviderApiKey": {
-    "message": "How to get $PROVIDER_NAME$ API Key?",
+    "message": "$PROVIDER_NAME$ APIキーを取得する方法",
     "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -385,7 +385,7 @@
     "message": "個人設定"
   },
   "lblProviderApiEndpoint": {
-    "message": "$PROVIDER_NAME$ API Endpoint URL",
+    "message": "$PROVIDER_NAME$ APIエンドポイントURL",
     "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -395,7 +395,7 @@
     }
   },
   "lblProviderApiKey": {
-    "message": "$PROVIDER_NAME$ API Key",
+    "message": "$PROVIDER_NAME$ APIキー",
     "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -405,7 +405,7 @@
     }
   },
   "lblProviderDocumentation": {
-    "message": "$PROVIDER_NAME$ Documentation",
+    "message": "$PROVIDER_NAME$ ドキュメント",
     "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -415,7 +415,7 @@
     }
   },
   "lblProviderModel": {
-    "message": "$PROVIDER_NAME$ Model",
+    "message": "$PROVIDER_NAME$ モデル",
     "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -425,7 +425,7 @@
     }
   },
   "lblProviderReasoningDepth": {
-    "message": "$PROVIDER_NAME$ Reasoning Depth",
+    "message": "$PROVIDER_NAME$ 推論の深さ",
     "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -456,7 +456,7 @@
     "message": "マウスオーバー時に原文を表示"
   },
   "lblShowOriginalTextWhenHoveringNote": {
-    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+    "message": "「翻訳テキストの表示方法」が「元のテキストを翻訳テキストに置き換える」に設定されている場合にのみ有効です。"
   },
   "lblShowTranslateSelectedButton": {
     "message": "選択したテキストを翻訳するボタンを表示"
@@ -583,49 +583,49 @@
     "message": "自動"
   },
   "msgCannotLoadGoogleGeminiModels": {
-    "message": "Unable to load Google Gemini models",
+    "message": "Google Geminiモデルを読み込めません",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
   },
   "msgDefault": {
-    "message": "Default",
+    "message": "デフォルト",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgEnterDictionaryKeyword": {
-    "message": "Enter the keyword, minimum two letters",
+    "message": "キーワードを入力してください（最低2文字）",
     "description": "prompt() dialog: custom dictionary keyword"
   },
   "msgEnterDictionaryValue": {
-    "message": "(Optional)\nYou can enter a value to replace it, or fill in nothing.",
+    "message": "（任意）\n置き換える値を入力するか、何も入力しないでください。",
     "description": "prompt() dialog: custom dictionary replacement value (optional)"
   },
   "msgEnterModelName": {
-    "message": "Enter model name/ID:",
+    "message": "モデル名/IDを入力:",
     "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
   },
   "msgEnterProviderApiBase": {
-    "message": "Enter API Endpoint URL (optional, press OK to skip):",
+    "message": "APIエンドポイントURLを入力（任意、スキップするにはOKを押してください）:",
     "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
   },
   "msgEnterProviderName": {
-    "message": "Enter provider name:",
+    "message": "プロバイダー名を入力:",
     "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
   },
   "msgEnterSiteHostname": {
-    "message": "Enter the site hostname",
+    "message": "サイトのホスト名を入力してください",
     "description": "prompt() dialog for adding a site (always/never/hover lists)"
   },
   "msgErrorDownloadingDocument": {
     "message": "ドキュメントのダウンロードに失敗"
   },
   "msgErrorLoadingModels": {
-    "message": "Error loading models",
+    "message": "モデルの読み込みエラー",
     "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "好きな言語"
   },
   "msgFeedbackCopied": {
-    "message": "Copied"
+    "message": "コピーしました"
   },
   "msgFileLargerThan": {
     "message": "このサービスは$FILE_SIZE$より大きいファイルに対応していません。",
@@ -673,35 +673,35 @@
     "message": "処理中…"
   },
   "msgReasoningDepthHigh": {
-    "message": "High",
+    "message": "高",
     "description": "Reasoning depth option label (models.dev effort value: high)."
   },
   "msgReasoningDepthLow": {
-    "message": "Low",
+    "message": "低",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
   "msgReasoningDepthMax": {
-    "message": "Max",
+    "message": "最大",
     "description": "Reasoning depth option label (models.dev effort value: max)."
   },
   "msgReasoningDepthMedium": {
-    "message": "Medium",
+    "message": "中",
     "description": "Reasoning depth option label (models.dev effort value: medium)."
   },
   "msgReasoningDepthMinimal": {
-    "message": "Minimal",
+    "message": "最小",
     "description": "Reasoning depth option label (models.dev effort value: minimal)."
   },
   "msgReasoningDepthNone": {
-    "message": "None",
+    "message": "なし",
     "description": "Reasoning depth option label (models.dev effort value: none)."
   },
   "msgReasoningDepthProviderDefault": {
-    "message": "Default (provider)",
+    "message": "デフォルト (プロバイダー)",
     "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
   },
   "msgReasoningDepthXHigh": {
-    "message": "XHigh",
+    "message": "最高",
     "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
@@ -738,7 +738,7 @@
     "message": "選択したテキストを翻訳"
   },
   "msgTranslateWithAi": {
-    "message": "Translate with AI to $LANGUAGE_NAME$",
+    "message": "AIで$LANGUAGE_NAME$に翻訳",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -747,7 +747,7 @@
     }
   },
   "msgTranslateWithGoogle": {
-    "message": "Translate with Google to $LANGUAGE_NAME$",
+    "message": "Googleで$LANGUAGE_NAME$に翻訳",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -756,11 +756,11 @@
     }
   },
   "msgTranslationError": {
-    "message": "translation error",
+    "message": "翻訳エラー",
     "description": "aria-label suffix on the error icon of the block translation indicator"
   },
   "msgTranslationInProgress": {
-    "message": "translation in progress",
+    "message": "翻訳中",
     "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
@@ -818,7 +818,7 @@
     "message": "ファイルから復元"
   },
   "serviceGoogleTranslate": {
-    "message": "Google Translate"
+    "message": "Google 翻訳"
   },
   "serviceMicrosoftTranslate": {
     "message": "Microsoft Translator"
@@ -842,39 +842,39 @@
     "message": "アドレスバーのボタンで即座にページを翻訳（ポップアップを表示するには右クリック）"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "When to display the paragraph button group",
+    "message": "段落ボタングループを表示するタイミング",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {
-    "message": "Show on hover or click",
+    "message": "ホバーまたはクリック時に表示",
     "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
   },
   "blockBtnGroupDisplayAlways": {
-    "message": "Always show",
+    "message": "常に表示",
     "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
   },
   "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Always-visible style",
+    "message": "常時表示のスタイル",
     "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
   },
   "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Small badge (click to expand)",
+    "message": "小さなバッジ (クリックで展開)",
     "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
   },
   "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Three buttons shown directly",
+    "message": "3つのボタンを直接表示",
     "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
   },
   "lblBlockBtnGroupShowOnHover": {
-    "message": "Show the paragraph button group when hovering over a paragraph",
+    "message": "段落にカーソルを合わせたときに段落ボタングループを表示する",
     "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblBlockBtnGroupShowOnClick": {
-    "message": "Show the paragraph button group when clicking a paragraph",
+    "message": "段落をクリックしたときに段落ボタングループを表示する",
     "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
   },
   "blockBtnGroupBadgeTooltip": {
-    "message": "Paragraph translation options",
+    "message": "段落の翻訳オプション",
     "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

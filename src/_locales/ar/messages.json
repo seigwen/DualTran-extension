@@ -69,11 +69,11 @@
     "message": "النسخ الاحتياطي إلى الملف"
   },
   "btnAddCustomModelTooltip": {
-    "message": "Add a custom model",
+    "message": "إضافة نموذج مخصص",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
   },
   "btnAddCustomProviderTooltip": {
-    "message": "Add a custom provider not in the list",
+    "message": "إضافة مزوّد مخصص غير موجود في القائمة",
     "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
   },
   "btnAlwaysTranslate": {
@@ -104,14 +104,14 @@
     "message": "يتقدم"
   },
   "btnChangeLanguages": {
-    "message": "Change languages",
+    "message": "تغيير اللغات",
     "description": "Popup/mobile menu row: open the change-languages view"
   },
   "btnFeedbackCopyDiagnostics": {
-    "message": "Copy diagnostic info"
+    "message": "نسخ معلومات التشخيص"
   },
   "btnFeedbackOpenGitHub": {
-    "message": "Open GitHub issue form"
+    "message": "فتح نموذج بلاغ على GitHub"
   },
   "btnListen": {
     "message": "استمع"
@@ -123,7 +123,7 @@
     "message": "تمت الترجمة"
   },
   "btnMoreLanguages": {
-    "message": "More languages",
+    "message": "المزيد من اللغات",
     "description": "Panels' '+' button tooltip: open the full target-language list"
   },
   "btnMoreOptions": {
@@ -139,7 +139,7 @@
     "message": "خيارات"
   },
   "btnOriginal": {
-    "message": "Original",
+    "message": "الأصل",
     "description": "Floating + hover button group: the 'show original' engine button label"
   },
   "btnReplace": {
@@ -161,7 +161,7 @@
     "message": "ترجم"
   },
   "btnTryAgain": {
-    "message": "Try Again",
+    "message": "إعادة المحاولة",
     "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
@@ -204,10 +204,10 @@
     "message": "أدخل الاختصار"
   },
   "errorAiNoResponse": {
-    "message": "No response from AI provider. Please verify your API key and model name."
+    "message": "لا يوجد رد من مزوّد AI. يرجى التحقق من مفتاح API واسم النموذج."
   },
   "errorAiResponseNoTranslationTags": {
-    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+    "message": "لم يتضمن رد AI وسوم الترجمة المتوقعة. قد يكون النموذج قد أعاد نصًا بتنسيق غير متوقع."
   },
   "errorApiKeyNotFound": {
     "message": "لم يتم العثور على مفتاح API!"
@@ -219,11 +219,11 @@
     "message": "فشل في نسخ النص. ربما لأن بروتوكول رابط الصفحة غير آمن HTTP وليس HTTPS."
   },
   "errorTranslationFailed": {
-    "message": "Translation failed",
+    "message": "فشلت الترجمة",
     "description": "Toast + in-box error text when a text translation request fails"
   },
   "errorTranslationTimeout": {
-    "message": "Translation request timed out",
+    "message": "انتهت مهلة طلب الترجمة",
     "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
@@ -248,13 +248,13 @@
     "message": "يبدو أن الملف تالف"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "Show AI translation"
+    "message": "عرض ترجمة AI"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "Show Google translation"
+    "message": "عرض ترجمة Google"
   },
   "floatingButtonOriginalTooltip": {
-    "message": "Show original text"
+    "message": "عرض النص الأصلي"
   },
   "hideOriginalText": {
     "message": "إخفاء النص الأصلي"
@@ -269,7 +269,7 @@
     "message": "اكتب حرف"
   },
   "lblActivateTheExtension": {
-    "message": "Activate the extension",
+    "message": "تفعيل الإضافة",
     "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
   },
   "lblAdd": {
@@ -283,11 +283,11 @@
     "message": "مزود الذكاء الاصطناعي"
   },
   "lblAiReasoningDepth": {
-    "message": "Reasoning depth",
+    "message": "عمق الاستدلال",
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
-    "message": "Color of AI translated text "
+    "message": "لون النص المترجم بـ AI"
   },
   "lblAlwaysTranslate": {
     "message": "ترجم دائمًا من $LANGUAGE_NAME$",
@@ -314,7 +314,7 @@
     "message": "الوضع المظلم"
   },
   "lblEnableAiTranslationCache": {
-    "message": "Enable AI translation cache",
+    "message": "تفعيل ذاكرة التخزين المؤقت لترجمة AI",
     "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
@@ -336,22 +336,22 @@
     }
   },
   "lblFeedbackIntro": {
-    "message": "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser and system already filled in."
+    "message": "أبلغ عن الأخطاء أو اقترح ميزات على GitHub Issues — يفتح النموذج مع تعبئة إصدار الإضافة والمتصفح والنظام مسبقًا."
   },
   "lblFeedbackNoGithub": {
-    "message": "No GitHub account? You can still reach us:"
+    "message": "ليس لديك حساب GitHub؟ يمكنك التواصل معنا رغم ذلك:"
   },
   "lblFeedbackStoreSupport": {
-    "message": "Chrome Web Store support section"
+    "message": "قسم الدعم في Chrome Web Store"
   },
   "lblFreeTranslationEngine": {
-    "message": "Free translation engine"
+    "message": "محرك ترجمة مجاني"
   },
   "lblHotTranslatedSelectedText": {
     "message": "استبدل النص المحدد بالنص المترجم على الفور"
   },
   "lblHowToGetProviderApiKey": {
-    "message": "How to get $PROVIDER_NAME$ API Key?",
+    "message": "كيف تحصل على مفتاح API الخاص بـ $PROVIDER_NAME$؟",
     "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -385,7 +385,7 @@
     "message": "الإعدادات الشخصية"
   },
   "lblProviderApiEndpoint": {
-    "message": "$PROVIDER_NAME$ API Endpoint URL",
+    "message": "عنوان URL لنقطة نهاية API الخاصة بـ $PROVIDER_NAME$",
     "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -395,7 +395,7 @@
     }
   },
   "lblProviderApiKey": {
-    "message": "$PROVIDER_NAME$ API Key",
+    "message": "مفتاح API الخاص بـ $PROVIDER_NAME$",
     "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -405,7 +405,7 @@
     }
   },
   "lblProviderDocumentation": {
-    "message": "$PROVIDER_NAME$ Documentation",
+    "message": "وثائق $PROVIDER_NAME$",
     "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -415,7 +415,7 @@
     }
   },
   "lblProviderModel": {
-    "message": "$PROVIDER_NAME$ Model",
+    "message": "طراز $PROVIDER_NAME$",
     "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -425,7 +425,7 @@
     }
   },
   "lblProviderReasoningDepth": {
-    "message": "$PROVIDER_NAME$ Reasoning Depth",
+    "message": "عمق الاستدلال في $PROVIDER_NAME$",
     "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -456,7 +456,7 @@
     "message": "إظهار النص الأصلي عند تحويله"
   },
   "lblShowOriginalTextWhenHoveringNote": {
-    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+    "message": "لا يسري هذا إلا عندما يكون \"مكان عرض النص المترجم\" مضبوطًا على \"استبدال النص الأصلي بالنص المترجم\"."
   },
   "lblShowTranslateSelectedButton": {
     "message": "أظهر الزر لترجمة النص المحدد"
@@ -583,49 +583,49 @@
     "message": "تلقائي"
   },
   "msgCannotLoadGoogleGeminiModels": {
-    "message": "Unable to load Google Gemini models",
+    "message": "تعذّر تحميل طرازات Google Gemini",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
   },
   "msgDefault": {
-    "message": "Default",
+    "message": "افتراضي",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgEnterDictionaryKeyword": {
-    "message": "Enter the keyword, minimum two letters",
+    "message": "أدخل الكلمة المفتاحية، بحد أدنى حرفان",
     "description": "prompt() dialog: custom dictionary keyword"
   },
   "msgEnterDictionaryValue": {
-    "message": "(Optional)\nYou can enter a value to replace it, or fill in nothing.",
+    "message": "(اختياري)\nيمكنك إدخال قيمة لاستبدالها، أو ترك الحقل فارغًا.",
     "description": "prompt() dialog: custom dictionary replacement value (optional)"
   },
   "msgEnterModelName": {
-    "message": "Enter model name/ID:",
+    "message": "أدخل اسم/معرّف الطراز:",
     "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
   },
   "msgEnterProviderApiBase": {
-    "message": "Enter API Endpoint URL (optional, press OK to skip):",
+    "message": "أدخل عنوان URL لنقطة نهاية API (اختياري، اضغط موافق للتخطي):",
     "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
   },
   "msgEnterProviderName": {
-    "message": "Enter provider name:",
+    "message": "أدخل اسم المزوّد:",
     "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
   },
   "msgEnterSiteHostname": {
-    "message": "Enter the site hostname",
+    "message": "أدخل اسم مضيف الموقع",
     "description": "prompt() dialog for adding a site (always/never/hover lists)"
   },
   "msgErrorDownloadingDocument": {
     "message": "خطأ في تنزيل المستند"
   },
   "msgErrorLoadingModels": {
-    "message": "Error loading models",
+    "message": "خطأ في تحميل النماذج",
     "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "اللغات المفضلة"
   },
   "msgFeedbackCopied": {
-    "message": "Copied"
+    "message": "تم النسخ"
   },
   "msgFileLargerThan": {
     "message": "هذه الخدمة لا تدعم ملفات أكبر من $FILE_SIZE$",
@@ -652,7 +652,7 @@
     "message": "جار التحميل..."
   },
   "msgModelListFetchFailed": {
-    "message": "Failed to fetch model list with API key. Available models:"
+    "message": "فشل جلب قائمة النماذج باستخدام مفتاح API. النماذج المتاحة:"
   },
   "msgNo": {
     "message": "لا"
@@ -673,35 +673,35 @@
     "message": "الرجاء الإنتظار..."
   },
   "msgReasoningDepthHigh": {
-    "message": "High",
+    "message": "عالٍ",
     "description": "Reasoning depth option label (models.dev effort value: high)."
   },
   "msgReasoningDepthLow": {
-    "message": "Low",
+    "message": "منخفض",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
   "msgReasoningDepthMax": {
-    "message": "Max",
+    "message": "الأقصى",
     "description": "Reasoning depth option label (models.dev effort value: max)."
   },
   "msgReasoningDepthMedium": {
-    "message": "Medium",
+    "message": "متوسط",
     "description": "Reasoning depth option label (models.dev effort value: medium)."
   },
   "msgReasoningDepthMinimal": {
-    "message": "Minimal",
+    "message": "أدنى حد",
     "description": "Reasoning depth option label (models.dev effort value: minimal)."
   },
   "msgReasoningDepthNone": {
-    "message": "None",
+    "message": "بلا",
     "description": "Reasoning depth option label (models.dev effort value: none)."
   },
   "msgReasoningDepthProviderDefault": {
-    "message": "Default (provider)",
+    "message": "الافتراضي (المزوّد)",
     "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
   },
   "msgReasoningDepthXHigh": {
-    "message": "XHigh",
+    "message": "مرتفع جدًا",
     "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
@@ -738,7 +738,7 @@
     "message": "ترجمة النص المحدد"
   },
   "msgTranslateWithAi": {
-    "message": "Translate with AI to $LANGUAGE_NAME$",
+    "message": "ترجم باستخدام AI إلى $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -747,7 +747,7 @@
     }
   },
   "msgTranslateWithGoogle": {
-    "message": "Translate with Google to $LANGUAGE_NAME$",
+    "message": "ترجم باستخدام Google إلى $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -756,11 +756,11 @@
     }
   },
   "msgTranslationError": {
-    "message": "translation error",
+    "message": "خطأ في الترجمة",
     "description": "aria-label suffix on the error icon of the block translation indicator"
   },
   "msgTranslationInProgress": {
-    "message": "translation in progress",
+    "message": "الترجمة قيد التنفيذ",
     "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
@@ -818,10 +818,10 @@
     "message": "استعادة من ملف"
   },
   "serviceGoogleTranslate": {
-    "message": "Google Translate"
+    "message": "ترجمة Google"
   },
   "serviceMicrosoftTranslate": {
-    "message": "Microsoft Translator"
+    "message": "مترجم Microsoft"
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
@@ -842,39 +842,39 @@
     "message": "ترجمة الصفحة بالنقر مرة واحدة على الزر في شريط العنوان. (لرؤية النوافذ، انقر بزر اليمين)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "When to display the paragraph button group",
+    "message": "متى يتم عرض مجموعة أزرار الفقرة",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {
-    "message": "Show on hover or click",
+    "message": "العرض عند التمرير أو النقر",
     "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
   },
   "blockBtnGroupDisplayAlways": {
-    "message": "Always show",
+    "message": "العرض دائمًا",
     "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
   },
   "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Always-visible style",
+    "message": "نمط العرض الدائم",
     "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
   },
   "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Small badge (click to expand)",
+    "message": "شارة صغيرة (انقر للتوسيع)",
     "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
   },
   "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Three buttons shown directly",
+    "message": "ثلاثة أزرار تظهر مباشرة",
     "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
   },
   "lblBlockBtnGroupShowOnHover": {
-    "message": "Show the paragraph button group when hovering over a paragraph",
+    "message": "إظهار مجموعة أزرار الفقرة عند تمرير المؤشر فوق الفقرة",
     "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblBlockBtnGroupShowOnClick": {
-    "message": "Show the paragraph button group when clicking a paragraph",
+    "message": "إظهار مجموعة أزرار الفقرة عند النقر على الفقرة",
     "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
   },
   "blockBtnGroupBadgeTooltip": {
-    "message": "Paragraph translation options",
+    "message": "خيارات ترجمة الفقرة",
     "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

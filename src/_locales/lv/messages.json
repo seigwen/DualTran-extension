@@ -63,17 +63,17 @@
     "message": "Zhipu AI (GLM)"
   },
   "alertSpecifyTargetLanguage": {
-    "message": "Please specify target language first."
+    "message": "Lūdzu, vispirms norādiet mērķa valodu."
   },
   "backupToFile": {
     "message": "Dublēt failā"
   },
   "btnAddCustomModelTooltip": {
-    "message": "Add a custom model",
+    "message": "Pievienot pielāgotu modeli",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
   },
   "btnAddCustomProviderTooltip": {
-    "message": "Add a custom provider not in the list",
+    "message": "Pievienot pielāgotu pakalpojumu sniedzēju, kas nav sarakstā",
     "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
   },
   "btnAlwaysTranslate": {
@@ -104,14 +104,14 @@
     "message": "Apstiprināt"
   },
   "btnChangeLanguages": {
-    "message": "Change languages",
+    "message": "Mainīt valodas",
     "description": "Popup/mobile menu row: open the change-languages view"
   },
   "btnFeedbackCopyDiagnostics": {
-    "message": "Copy diagnostic info"
+    "message": "Kopēt diagnostikas informāciju"
   },
   "btnFeedbackOpenGitHub": {
-    "message": "Open GitHub issue form"
+    "message": "Atvērt GitHub problēmas veidlapu"
   },
   "btnListen": {
     "message": "Klausīties"
@@ -123,7 +123,7 @@
     "message": "Tulkojums"
   },
   "btnMoreLanguages": {
-    "message": "More languages",
+    "message": "Vairāk valodu",
     "description": "Panels' '+' button tooltip: open the full target-language list"
   },
   "btnMoreOptions": {
@@ -139,7 +139,7 @@
     "message": "Iespējas"
   },
   "btnOriginal": {
-    "message": "Original",
+    "message": "Oriģināls",
     "description": "Floating + hover button group: the 'show original' engine button label"
   },
   "btnReplace": {
@@ -161,7 +161,7 @@
     "message": "Tulkot"
   },
   "btnTryAgain": {
-    "message": "Try Again",
+    "message": "Mēģināt vēlreiz",
     "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
@@ -204,13 +204,13 @@
     "message": "Ievadiet īsinājumtaustiņa kombināciju"
   },
   "errorAiNoResponse": {
-    "message": "No response from AI provider. Please verify your API key and model name."
+    "message": "Nav atbildes no AI pakalpojumu sniedzēja. Lūdzu, pārbaudiet savu API atslēgu un modeļa nosaukumu."
   },
   "errorAiResponseNoTranslationTags": {
-    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+    "message": "AI atbildē nebija paredzēto tulkošanas tagu. Iespējams, modelis atgrieza tekstu neparedzētā formātā."
   },
   "errorApiKeyNotFound": {
-    "message": "API key not found!"
+    "message": "API atslēga nav atrasta!"
   },
   "errorCopyFailed": {
     "message": "Kopēšana neizdevās."
@@ -219,11 +219,11 @@
     "message": "Teksta kopēšana neizdevās. Iespējams, tāpēc, ka lapas URL protokols ir nedrošs HTTP, nevis HTTPS."
   },
   "errorTranslationFailed": {
-    "message": "Translation failed",
+    "message": "Tulkošana neizdevās",
     "description": "Toast + in-box error text when a text translation request fails"
   },
   "errorTranslationTimeout": {
-    "message": "Translation request timed out",
+    "message": "Tulkošanas pieprasījuma noildze",
     "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
@@ -248,13 +248,13 @@
     "message": "Fails ir bojāts"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "Show AI translation"
+    "message": "Rādīt AI tulkojumu"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "Show Google translation"
+    "message": "Rādīt Google tulkojumu"
   },
   "floatingButtonOriginalTooltip": {
-    "message": "Show original text"
+    "message": "Rādīt oriģinālo tekstu"
   },
   "hideOriginalText": {
     "message": "Slēpt oriģinālo tekstu"
@@ -269,7 +269,7 @@
     "message": "Ievadiet burtu"
   },
   "lblActivateTheExtension": {
-    "message": "Activate the extension",
+    "message": "Aktivizēt paplašinājumu",
     "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
   },
   "lblAdd": {
@@ -283,11 +283,11 @@
     "message": "AI pakalpojumu sniedzējs"
   },
   "lblAiReasoningDepth": {
-    "message": "Reasoning depth",
+    "message": "Spriešanas dziļums",
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
-    "message": "Color of AI translated text "
+    "message": "AI tulkotā teksta krāsa"
   },
   "lblAlwaysTranslate": {
     "message": "Vienmēr tulkot no $LANGUAGE_NAME$",
@@ -314,14 +314,14 @@
     "message": "Tumšais režīms"
   },
   "lblEnableAiTranslationCache": {
-    "message": "Enable AI translation cache",
+    "message": "Iespējot AI tulkošanas kešatmiņu",
     "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
     "message": "Iespējot DeepL kā teksta tulkošanas pakalpojumu"
   },
   "lblEnterApiKey": {
-    "message": "Enter API key"
+    "message": "Ievadiet API atslēgu"
   },
   "lblError": {
     "message": "Šo lapu nevarēja iztulkot"
@@ -336,22 +336,22 @@
     }
   },
   "lblFeedbackIntro": {
-    "message": "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser and system already filled in."
+    "message": "Ziņojiet par kļūdām vai ierosiniet funkcijas GitHub Issues — veidlapa tiek atvērta ar jau aizpildītu paplašinājuma versiju, pārlūku un sistēmu."
   },
   "lblFeedbackNoGithub": {
-    "message": "No GitHub account? You can still reach us:"
+    "message": "Nav GitHub konta? Joprojām varat ar mums sazināties:"
   },
   "lblFeedbackStoreSupport": {
-    "message": "Chrome Web Store support section"
+    "message": "Chrome Web Store atbalsta sadaļa"
   },
   "lblFreeTranslationEngine": {
-    "message": "Free translation engine"
+    "message": "Bezmaksas tulkošanas dzinējs"
   },
   "lblHotTranslatedSelectedText": {
     "message": "Nekavējoties nomainiet atlasīto tekstu ar tulkoto tekstu"
   },
   "lblHowToGetProviderApiKey": {
-    "message": "How to get $PROVIDER_NAME$ API Key?",
+    "message": "Kā iegūt $PROVIDER_NAME$ API atslēgu?",
     "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -385,7 +385,7 @@
     "message": "Personiskie iestatījumi"
   },
   "lblProviderApiEndpoint": {
-    "message": "$PROVIDER_NAME$ API Endpoint URL",
+    "message": "$PROVIDER_NAME$ API galapunkta URL",
     "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -395,7 +395,7 @@
     }
   },
   "lblProviderApiKey": {
-    "message": "$PROVIDER_NAME$ API Key",
+    "message": "$PROVIDER_NAME$ API atslēga",
     "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -405,7 +405,7 @@
     }
   },
   "lblProviderDocumentation": {
-    "message": "$PROVIDER_NAME$ Documentation",
+    "message": "$PROVIDER_NAME$ dokumentācija",
     "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -415,7 +415,7 @@
     }
   },
   "lblProviderModel": {
-    "message": "$PROVIDER_NAME$ Model",
+    "message": "$PROVIDER_NAME$ modelis",
     "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -425,7 +425,7 @@
     }
   },
   "lblProviderReasoningDepth": {
-    "message": "$PROVIDER_NAME$ Reasoning Depth",
+    "message": "$PROVIDER_NAME$ spriešanas dziļums",
     "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -456,7 +456,7 @@
     "message": "Rādīt oriģinālo tekstu, virzot peles kursoru"
   },
   "lblShowOriginalTextWhenHoveringNote": {
-    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+    "message": "Darbojas tikai tad, ja \"Kur rādīt tulkoto tekstu\" ir iestatīts uz \"Aizstāt oriģinālo tekstu ar tulkoto tekstu\"."
   },
   "lblShowTranslateSelectedButton": {
     "message": "Rādīt pogu, lai tulkotu atlasīto tekstu"
@@ -583,49 +583,49 @@
     "message": "Automātiski"
   },
   "msgCannotLoadGoogleGeminiModels": {
-    "message": "Unable to load Google Gemini models",
+    "message": "Nevar ielādēt Google Gemini modeļus",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
   },
   "msgDefault": {
-    "message": "Default",
+    "message": "Noklusējums",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgEnterDictionaryKeyword": {
-    "message": "Enter the keyword, minimum two letters",
+    "message": "Ievadiet atslēgvārdu, vismaz divus burtus",
     "description": "prompt() dialog: custom dictionary keyword"
   },
   "msgEnterDictionaryValue": {
-    "message": "(Optional)\nYou can enter a value to replace it, or fill in nothing.",
+    "message": "(Neobligāti)\nVarat ievadīt aizstājējvērtību vai atstāt tukšu.",
     "description": "prompt() dialog: custom dictionary replacement value (optional)"
   },
   "msgEnterModelName": {
-    "message": "Enter model name/ID:",
+    "message": "Ievadiet modeļa nosaukumu/ID:",
     "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
   },
   "msgEnterProviderApiBase": {
-    "message": "Enter API Endpoint URL (optional, press OK to skip):",
+    "message": "Ievadiet API galapunkta URL (neobligāti, nospiediet OK, lai izlaistu):",
     "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
   },
   "msgEnterProviderName": {
-    "message": "Enter provider name:",
+    "message": "Ievadiet nodrošinātāja nosaukumu:",
     "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
   },
   "msgEnterSiteHostname": {
-    "message": "Enter the site hostname",
+    "message": "Ievadiet vietnes resursdatora nosaukumu",
     "description": "prompt() dialog for adding a site (always/never/hover lists)"
   },
   "msgErrorDownloadingDocument": {
     "message": "Kļūda, lejupielādējot dokumentu"
   },
   "msgErrorLoadingModels": {
-    "message": "Error loading models",
+    "message": "Kļūda, ielādējot modeļus",
     "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "Mīļākās valodas"
   },
   "msgFeedbackCopied": {
-    "message": "Copied"
+    "message": "Kopēts"
   },
   "msgFileLargerThan": {
     "message": "Šis pakalpojums neatbalsta failus, kas ir lielāki par $FILE_SIZE$",
@@ -652,7 +652,7 @@
     "message": "Notiek ielāde..."
   },
   "msgModelListFetchFailed": {
-    "message": "Failed to fetch model list with API key. Available models:"
+    "message": "Neizdevās iegūt modeļu sarakstu ar API atslēgu. Pieejamie modeļi:"
   },
   "msgNo": {
     "message": "Nē"
@@ -673,35 +673,35 @@
     "message": "Lūdzu, uzgaidiet..."
   },
   "msgReasoningDepthHigh": {
-    "message": "High",
+    "message": "Augsta",
     "description": "Reasoning depth option label (models.dev effort value: high)."
   },
   "msgReasoningDepthLow": {
-    "message": "Low",
+    "message": "Zema",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
   "msgReasoningDepthMax": {
-    "message": "Max",
+    "message": "Maksimāla",
     "description": "Reasoning depth option label (models.dev effort value: max)."
   },
   "msgReasoningDepthMedium": {
-    "message": "Medium",
+    "message": "Vidēja",
     "description": "Reasoning depth option label (models.dev effort value: medium)."
   },
   "msgReasoningDepthMinimal": {
-    "message": "Minimal",
+    "message": "Minimāla",
     "description": "Reasoning depth option label (models.dev effort value: minimal)."
   },
   "msgReasoningDepthNone": {
-    "message": "None",
+    "message": "Nav",
     "description": "Reasoning depth option label (models.dev effort value: none)."
   },
   "msgReasoningDepthProviderDefault": {
-    "message": "Default (provider)",
+    "message": "Noklusējums (nodrošinātājs)",
     "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
   },
   "msgReasoningDepthXHigh": {
-    "message": "XHigh",
+    "message": "Ļoti augsta",
     "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
@@ -738,7 +738,7 @@
     "message": "Tulkot atlasīto tekstu"
   },
   "msgTranslateWithAi": {
-    "message": "Translate with AI to $LANGUAGE_NAME$",
+    "message": "Tulkot ar AI uz $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -747,7 +747,7 @@
     }
   },
   "msgTranslateWithGoogle": {
-    "message": "Translate with Google to $LANGUAGE_NAME$",
+    "message": "Tulkot ar Google uz $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -756,11 +756,11 @@
     }
   },
   "msgTranslationError": {
-    "message": "translation error",
+    "message": "tulkošanas kļūda",
     "description": "aria-label suffix on the error icon of the block translation indicator"
   },
   "msgTranslationInProgress": {
-    "message": "translation in progress",
+    "message": "notiek tulkošana",
     "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
@@ -803,7 +803,7 @@
     "message": "Kad vietne ir iztulkota, iekrāsojiet uznirstošā loga ikonu zilā krāsā"
   },
   "promptInputOpenAIKey": {
-    "message": "Please input your OpenAI API Key:"
+    "message": "Lūdzu, ievadiet savu OpenAI API atslēgu:"
   },
   "promptInputOpenRouterKey": {
     "message": "Lūdzu, ievadiet savu OpenRouter API atslēgu:"
@@ -842,39 +842,39 @@
     "message": "Tulkot lapu, vienreiz nospiežot pogu adreses joslā. (Lai redzētu uznirstošo logu, noklikšķiniet ar peles labo pogu)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "When to display the paragraph button group",
+    "message": "Kad rādīt rindkopas pogu grupu",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {
-    "message": "Show on hover or click",
+    "message": "Rādīt uzvirzot vai noklikšķinot",
     "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
   },
   "blockBtnGroupDisplayAlways": {
-    "message": "Always show",
+    "message": "Vienmēr rādīt",
     "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
   },
   "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Always-visible style",
+    "message": "Vienmēr redzamais stils",
     "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
   },
   "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Small badge (click to expand)",
+    "message": "Maza emblēma (noklikšķiniet, lai izvērstu)",
     "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
   },
   "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Three buttons shown directly",
+    "message": "Trīs pogas redzamas tieši",
     "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
   },
   "lblBlockBtnGroupShowOnHover": {
-    "message": "Show the paragraph button group when hovering over a paragraph",
+    "message": "Rādīt rindkopas pogu grupu, uzvirzot uz rindkopas",
     "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblBlockBtnGroupShowOnClick": {
-    "message": "Show the paragraph button group when clicking a paragraph",
+    "message": "Rādīt rindkopas pogu grupu, noklikšķinot uz rindkopas",
     "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
   },
   "blockBtnGroupBadgeTooltip": {
-    "message": "Paragraph translation options",
+    "message": "Rindkopas tulkošanas opcijas",
     "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

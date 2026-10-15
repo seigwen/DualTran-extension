@@ -767,7 +767,7 @@
     "message": "在页面显示浮动的翻译按键"
   },
   "optionPopupConfig": {
-    "message": "Show the mobile popup"
+    "message": "显示移动端弹出窗口"
   },
   "optionPopupThreeFingers": {
     "message": "当我三指轻触屏幕时"
