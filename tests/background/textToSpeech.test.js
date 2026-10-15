@@ -115,6 +115,9 @@ describe("textToSpeech – message listeners", () => {
   });
 
   it("handles 'stopAudio' message", () => {
+    // Offscreen backend present: the stop message still goes out. The
+    // without-offscreen fallback case is covered in the firefox describe below.
+    chrome.offscreen = { Reason: { AUDIO_PLAYBACK: "AUDIO_PLAYBACK" } };
     const sendResponse = vi.fn();
     for (const listener of messageListeners) {
       listener({ action: "stopAudio" }, {}, sendResponse);
@@ -147,7 +150,7 @@ describe("textToSpeech – message listeners", () => {
     await textToSpeech.google.textToSpeech("cached audio", "en");
 
     expect(makeRequestSpy).not.toHaveBeenCalled();
-    expect(playSpy).toHaveBeenCalledWith(["data:audio/mock;base64,AAA="]);
+    expect(playSpy).toHaveBeenCalledWith(["data:audio/mock;base64,AAA="], {});
   });
 
   it("ensureOffscreen skips creation when a document already exists", async () => {
@@ -183,6 +186,7 @@ describe("textToSpeech – message listeners", () => {
   });
 
   it("setAudioSpeed stores the new speed and notifies offscreen playback", () => {
+    chrome.offscreen = { Reason: { AUDIO_PLAYBACK: "AUDIO_PLAYBACK" } };
     textToSpeech.google.setAudioSpeed(1.75);
 
     expect(textToSpeech.google.audioSpeed).toBe(1.75);
@@ -193,6 +197,7 @@ describe("textToSpeech – message listeners", () => {
   });
 
   it("resolves play after the offscreen completion listener receives matching requestId", async () => {
+    chrome.offscreen = { Reason: { AUDIO_PLAYBACK: "AUDIO_PLAYBACK" } };
     vi.spyOn(textToSpeech.google, "ensureOffscreen").mockResolvedValueOnce();
 
     const playPromise = textToSpeech.google.play(["data:audio/mock;base64,AAA="]);
@@ -251,6 +256,7 @@ describe("textToSpeech – config listener", () => {
   });
 
   it("updates audio speed when ttsSpeed config changes", () => {
+    chrome.offscreen = { Reason: { AUDIO_PLAYBACK: "AUDIO_PLAYBACK" } };
     expect(configCallbacks.length).toBeGreaterThan(0);
     const cb = configCallbacks[configCallbacks.length - 1];
     cb("ttsSpeed", 1.5);
@@ -268,5 +274,104 @@ describe("textToSpeech – config listener", () => {
       (c) => c[0]?.action === "offscreenSetSpeed"
     );
     expect(speedCalls).toHaveLength(0);
+  });
+});
+
+
+describe("textToSpeech – firefox fallback (no chrome.offscreen)", () => {
+  let messageListeners;
+  let textToSpeech;
+  let audioInstances;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    messageListeners = [];
+    audioInstances = [];
+    globalThis.chrome = {
+      runtime: {
+        onMessage: {
+          addListener: vi.fn((cb) => messageListeners.push(cb)),
+        },
+        sendMessage: vi.fn(),
+        getURL: vi.fn((p) => `chrome-extension://id${p}`),
+      },
+      offscreen: undefined,
+      tabs: { connect: vi.fn(() => ({ disconnect: vi.fn() })) },
+    };
+    globalThis.Audio = vi.fn((src) => {
+      const audio = {
+        src,
+        playbackRate: 1.0,
+        currentTime: 0,
+        pause: vi.fn(),
+        play: vi.fn(() => Promise.resolve()),
+        _handlers: {},
+        addEventListener: vi.fn((event, handler) => {
+          audio._handlers[event] = handler;
+        }),
+        removeEventListener: vi.fn((event) => {
+          delete audio._handlers[event];
+        }),
+      };
+      audioInstances.push(audio);
+      return audio;
+    });
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const mod = await import("../../src/background/textToSpeech.js");
+    textToSpeech = mod.default;
+  });
+
+  function offscreenCalls() {
+    return chrome.runtime.sendMessage.mock.calls.filter((c) =>
+      String(c[0]?.action || "").startsWith("offscreen")
+    );
+  }
+
+  it("plays through background audio instead of the offscreen bridge", async () => {
+    const playPromise = textToSpeech.google.play(["data:audio/x;base64,AAA="]);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(audioInstances).toHaveLength(1);
+    expect(audioInstances[0].src).toBe("data:audio/x;base64,AAA=");
+    expect(audioInstances[0].play).toHaveBeenCalledTimes(1);
+    expect(offscreenCalls()).toHaveLength(0);
+
+    audioInstances[0]._handlers.ended();
+    await expect(playPromise).resolves.toBeUndefined();
+  });
+
+  it("holds a keepalive port for the requesting tab while playing and releases it on completion", async () => {
+    const playPromise = textToSpeech.google.play(["src-a"], { keepaliveTabId: 42 });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(chrome.tabs.connect).toHaveBeenCalledWith(42, { name: "tts-keepalive" });
+    const port = chrome.tabs.connect.mock.results[0].value;
+
+    audioInstances[0]._handlers.ended();
+    await expect(playPromise).resolves.toBeUndefined();
+    expect(port.disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips keepalive when no requesting tab is known (popup-originated playback)", async () => {
+    const playPromise = textToSpeech.google.play(["src-b"]);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(chrome.tabs.connect).not.toHaveBeenCalled();
+
+    audioInstances[0]._handlers.ended();
+    await expect(playPromise).resolves.toBeUndefined();
+  });
+
+  it("stopAudio cancels local playback without messaging the offscreen backend", () => {
+    textToSpeech.google.play(["src-c"]);
+    const sendResponse = vi.fn();
+    for (const listener of messageListeners) {
+      listener({ action: "stopAudio" }, {}, sendResponse);
+    }
+
+    expect(audioInstances[0].pause).toHaveBeenCalled();
+    expect(offscreenCalls()).toHaveLength(0);
   });
 });

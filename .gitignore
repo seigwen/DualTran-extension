@@ -15,3 +15,5 @@ result
 .tmp-*
 .tmp-*.mjs
 .tmp-*.sh
+# Firefox smoke toolchain (scripts/fetch-firefox-tools.mjs output)
+tools/
