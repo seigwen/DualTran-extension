@@ -842,7 +842,7 @@
     "message": "Traduzir a página, clicando uma vez no botão na barra de endereço. (Para ver o popup, clique com o botão direito)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "Display of the paragraph button group",
+    "message": "When to display the paragraph button group",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {

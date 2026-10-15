@@ -830,7 +830,7 @@
     "message": "點一下網址列中的按鈕來翻譯網頁。（要顯示彈出視窗則點擊右鍵）"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "段落按鈕組的顯示方式",
+    "message": "段落按鈕組的顯示時機",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {

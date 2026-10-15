@@ -842,7 +842,7 @@
     "message": "Oversett siden ved å klikke én gang på knappen i adressefeltet. (Høyreklikk for å se popup-vinduet)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "Display of the paragraph button group",
+    "message": "When to display the paragraph button group",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {

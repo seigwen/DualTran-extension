@@ -12,9 +12,10 @@
  *      intent 高亮翻转为激活（单一意图渲染源）。
  *   S4（运行时切换）：storage 改写 display → 控件即时增删（无需刷新）；
  *      切回触发模式后悬停不再弹出（入口策略即时生效）。
- *   S5（options 页修订，#171 2026-10-12）：依赖组的显示/隐藏双向翻转
- *      （triggered → 常驻组隐藏、触发组可见；always → 反之），组为
- *      **隐藏而非 disabled**，且 "Always-visible style" label 文案落地。
+ *   S5（options 页修订，#171 2026-10-12；label 文案 2026-10-15）：依赖组的
+ *      显示/隐藏双向翻转（triggered → 常驻组隐藏、触发组可见；always → 反之），
+ *      组为 **隐藏而非 disabled**，且两处 label 文案落地（"Always-visible
+ *      style" / "When to display the paragraph button group"）。
  *
  * touch 模拟：Playwright CDP session → Emulation.setTouchEmulationEnabled +
  * Input.dispatchTouchEvent（真实输入管线：pointer 事件 + 点击合成由浏览器产生）。
@@ -484,6 +485,7 @@ async function sceneOptionsVisibility(scope) {
         always: probe("#blockBtnGroupAlwaysOptions"),
         trigger: probe("#blockBtnGroupTriggerOptions"),
         styleLabel: (document.querySelector('b[data-i18n="lblBlockBtnGroupAlwaysStyle"]')?.textContent || "").trim(),
+        displayLabel: (document.querySelector('b[data-i18n="lblBlockBtnGroupDisplay"]')?.textContent || "").trim(),
       };
     });
 
@@ -506,6 +508,10 @@ async function sceneOptionsVisibility(scope) {
     "[S5] revision: the groups must be hidden, not disabled (grey-out dropped)"
   );
   assert(v.styleLabel === "Always-visible style", `[S5] label text mismatch: ${v.styleLabel}`);
+  assert(
+    v.displayLabel === "When to display the paragraph button group",
+    `[S5] display label text mismatch: ${v.displayLabel}`
+  );
 
   // 页内切换 triggered → always：可见性立即翻转
   await page.selectOption("#blockBtnGroupDisplay", "always");
