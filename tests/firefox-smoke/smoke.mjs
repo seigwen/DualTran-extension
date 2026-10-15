@@ -11,12 +11,12 @@
  * SKIP-ENV applies only to the network premise: if the browser itself cannot
  * reach translate.googleapis.com, translation cannot be asserted on.
  *
- * Known-issue priming step (see known-issues.md → "FF first-translation"):
- * on a FRESH profile the very first page translation of a session is silently
- * dropped by Firefox event-page lifecycle behaviour; opening any extension
- * page (here: the floating button's options shortcut) and retrying translates
- * reliably, including after event-page unload + refresh. Until the root cause
- * is fixed, the smoke uses that deterministic recipe.
+ * Headless visibility note: headless Firefox reports the initial tab as
+ * visibilityState "hidden" until a tab activation happens, and pageTranslator
+ * intentionally skips dynamic (batch) translation while the page is hidden —
+ * a real user translates from a foreground tab, which is "visible" from the
+ * start. The smoke performs a tab-activation normalization (spare tab
+ * open/close) and reloads so the content script starts on a visible page.
  *
  * Prerequisites: `npm run build:firefox` and `node scripts/fetch-firefox-tools.mjs`.
  */
@@ -113,20 +113,13 @@ try {
       "return [...document.querySelectorAll('translated')].filter(function (e) { return e.textContent.trim().length > 0; }).length"
     );
 
-  // ── priming step (known-issue recipe, see header) ──
-  await waitForFloatingHost();
-  await driver.executeScript(`
-    document.getElementById('dualtran-floating-btn-host')
-      .shadowRoot.getElementById('btnOptionsShortcut').click();
-  `);
-  await driver.sleep(2500);
+  // ── headless visibility normalization (see header) ──
   const fixtureHandle = await driver.getWindowHandle();
-  for (const handle of await driver.getAllWindowHandles()) {
-    if (handle === fixtureHandle) continue;
-    await driver.switchTo().window(handle);
-    await driver.close();
-  }
+  await driver.switchTo().newWindow("tab");
+  await driver.sleep(800);
+  await driver.close(); // focus is on the spare tab; this returns us to the fixture
   await driver.switchTo().window(fixtureHandle);
+  await driver.sleep(800);
   await driver.navigate().refresh();
   await driver.sleep(2000);
 
