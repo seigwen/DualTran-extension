@@ -63,17 +63,17 @@
     "message": "Zhipu AI (GLM)"
   },
   "alertSpecifyTargetLanguage": {
-    "message": "Please specify target language first."
+    "message": "ئاۋۋال نىشان تىلنى بەلگىلەڭ."
   },
   "backupToFile": {
     "message": "ھۆججەتكە زاپاسلاش"
   },
   "btnAddCustomModelTooltip": {
-    "message": "Add a custom model",
+    "message": "ئۆزىڭىزنىڭ مودېلىنى قوشۇڭ",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
   },
   "btnAddCustomProviderTooltip": {
-    "message": "Add a custom provider not in the list",
+    "message": "تىزىمدە يوق ئۆزىڭىزنىڭ تەمىنلىگۈچىسىنى قوشۇڭ",
     "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
   },
   "btnAlwaysTranslate": {
@@ -104,14 +104,14 @@
     "message": "ئىلتىماس قىلىڭ"
   },
   "btnChangeLanguages": {
-    "message": "Change languages",
+    "message": "تىلنى ئۆزگەرتىش",
     "description": "Popup/mobile menu row: open the change-languages view"
   },
   "btnFeedbackCopyDiagnostics": {
-    "message": "Copy diagnostic info"
+    "message": "دىئاگنوستىكا ئۇچۇرىنى كۆچۈرۈش"
   },
   "btnFeedbackOpenGitHub": {
-    "message": "Open GitHub issue form"
+    "message": "GitHub مەسىلە جەدۋىلىنى ئېچىش"
   },
   "btnListen": {
     "message": "ئاڭلاڭ"
@@ -123,7 +123,7 @@
     "message": "تەرجىمە قىلىندى"
   },
   "btnMoreLanguages": {
-    "message": "More languages",
+    "message": "تېخىمۇ كۆپ تىل",
     "description": "Panels' '+' button tooltip: open the full target-language list"
   },
   "btnMoreOptions": {
@@ -139,7 +139,7 @@
     "message": "تاللانما"
   },
   "btnOriginal": {
-    "message": "Original",
+    "message": "ئەسلى",
     "description": "Floating + hover button group: the 'show original' engine button label"
   },
   "btnReplace": {
@@ -161,7 +161,7 @@
     "message": "تەرجىمە"
   },
   "btnTryAgain": {
-    "message": "Try Again",
+    "message": "قايتا سىناڭ",
     "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
@@ -204,13 +204,13 @@
     "message": "تېزلەتمە كىرگۈزۈڭ"
   },
   "errorAiNoResponse": {
-    "message": "No response from AI provider. Please verify your API key and model name."
+    "message": "AI تەمىنلىگۈچىدىن جاۋاب يوق. API ئاچقۇچىڭىز ۋە مودېل ئىسمىنى تەكشۈرۈڭ."
   },
   "errorAiResponseNoTranslationTags": {
-    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+    "message": "AI جاۋابىدا كۈتۈلگەن تەرجىمە بەلگىلىرى يوق. مودېل كۈتۈلمىگەن فورماتتا تېكىست قايتۇرغان بولۇشى مۇمكىن."
   },
   "errorApiKeyNotFound": {
-    "message": "API key not found!"
+    "message": "API ئاچقۇچى تېپىلمىدى!"
   },
   "errorCopyFailed": {
     "message": "كۆچۈرۈش مەغلۇپ بولدى."
@@ -219,11 +219,11 @@
     "message": "تېكىست كۆچۈرۈش مەغلۇپ بولدى. بەلكىم بەت URL ئۇسۇلى بىخەتەر بولمىغان HTTP بولۇپ، HTTPS ئەمەس."
   },
   "errorTranslationFailed": {
-    "message": "Translation failed",
+    "message": "تەرجىمە مەغلۇپ بولدى",
     "description": "Toast + in-box error text when a text translation request fails"
   },
   "errorTranslationTimeout": {
-    "message": "Translation request timed out",
+    "message": "تەرجىمە تەلەپ قىلىش ۋاقتى ئۆتۈپ كەتتى",
     "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
@@ -248,13 +248,13 @@
     "message": "بۇ ھۆججەت بۇزۇلغاندەك قىلىدۇ"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "Show AI translation"
+    "message": "AI تەرجىمىسىنى كۆرسىتىش"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "Show Google translation"
+    "message": "Google تەرجىمىسىنى كۆرسىتىش"
   },
   "floatingButtonOriginalTooltip": {
-    "message": "Show original text"
+    "message": "ئەسلى تېكىستنى كۆرسىتىش"
   },
   "hideOriginalText": {
     "message": "ئەسلى تېكىستنى يوشۇرۇش"
@@ -269,7 +269,7 @@
     "message": "خەت يېزىڭ"
   },
   "lblActivateTheExtension": {
-    "message": "Activate the extension",
+    "message": "كېڭەيتىشنى قوزغىتىش",
     "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
   },
   "lblAdd": {
@@ -283,11 +283,11 @@
     "message": "AI تەمىنلىگۈچىسى"
   },
   "lblAiReasoningDepth": {
-    "message": "Reasoning depth",
+    "message": "پىكىر يۈرگۈزۈش چوڭقۇرلۇقى",
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
-    "message": "Color of AI translated text "
+    "message": "AI تەرجىمە قىلغان تېكىستنىڭ رەڭگى"
   },
   "lblAlwaysTranslate": {
     "message": "ھەمىشە $LANGUAGE_NAME$دىن تەرجىمە قىلىڭ",
@@ -314,14 +314,14 @@
     "message": "قاراڭغۇ ھالەت"
   },
   "lblEnableAiTranslationCache": {
-    "message": "Enable AI translation cache",
+    "message": "AI تەرجىمە غەملىكىنى قوزغىتىش",
     "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
     "message": "DeepL نى تېكىست تەرجىمە مۇلازىمىتى سۈپىتىدە قوزغىتىڭ"
   },
   "lblEnterApiKey": {
-    "message": "Enter API key"
+    "message": "API ئاچقۇچىنى كىرگۈزۈڭ"
   },
   "lblError": {
     "message": "بۇ بەتنى تەرجىمە قىلىشقا بولمىدى"
@@ -336,22 +336,22 @@
     }
   },
   "lblFeedbackIntro": {
-    "message": "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser and system already filled in."
+    "message": "GitHub Issues دا خاتالىقلارنى مەلۇم قىلىڭ ياكى ئىقتىدار تەۋسىيە قىلىڭ — جەدۋەل كېڭەيتىش نەشرى، توركۆرگۈ ۋە سىستېمىڭىز تولدۇرۇلغان ھالدا ئېچىلىدۇ."
   },
   "lblFeedbackNoGithub": {
-    "message": "No GitHub account? You can still reach us:"
+    "message": "GitHub ھېساباتىڭىز يوقمۇ؟ بىزگە يەنىلا ئۇلىنىشىڭىز مۇمكىن:"
   },
   "lblFeedbackStoreSupport": {
-    "message": "Chrome Web Store support section"
+    "message": "Chrome Web Store قوللاش بۆلىكى"
   },
   "lblFreeTranslationEngine": {
-    "message": "Free translation engine"
+    "message": "ھەقسىز تەرجىمە ماتورى"
   },
   "lblHotTranslatedSelectedText": {
     "message": "تاللانغان تېكىستنى تەرجىمە تېكىست بىلەن دەرھال ئالماشتۇرۇڭ"
   },
   "lblHowToGetProviderApiKey": {
-    "message": "How to get $PROVIDER_NAME$ API Key?",
+    "message": "$PROVIDER_NAME$ API ئاچقۇچىنى قانداق ئېلىش كېرەك؟",
     "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -385,7 +385,7 @@
     "message": "شەخسىي تەڭشەكلەر"
   },
   "lblProviderApiEndpoint": {
-    "message": "$PROVIDER_NAME$ API Endpoint URL",
+    "message": "$PROVIDER_NAME$ API ئاخىرلاش نۇقتىسى URL",
     "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -395,7 +395,7 @@
     }
   },
   "lblProviderApiKey": {
-    "message": "$PROVIDER_NAME$ API Key",
+    "message": "$PROVIDER_NAME$ API ئاچقۇچى",
     "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -405,7 +405,7 @@
     }
   },
   "lblProviderDocumentation": {
-    "message": "$PROVIDER_NAME$ Documentation",
+    "message": "$PROVIDER_NAME$ قوللانمىسى",
     "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -415,7 +415,7 @@
     }
   },
   "lblProviderModel": {
-    "message": "$PROVIDER_NAME$ Model",
+    "message": "$PROVIDER_NAME$ مودېلى",
     "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -425,7 +425,7 @@
     }
   },
   "lblProviderReasoningDepth": {
-    "message": "$PROVIDER_NAME$ Reasoning Depth",
+    "message": "$PROVIDER_NAME$ پىكىر قىلىش چوڭقۇرلۇقى",
     "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -456,7 +456,7 @@
     "message": "يۆتكىگەندە ئەسلى تېكىستنى كۆرسىتىڭ"
   },
   "lblShowOriginalTextWhenHoveringNote": {
-    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+    "message": "پەقەت «تەرجىمە قىلىنغان تېكىستنى قەيەردە كۆرسىتىش» تاللانمىسى «ئەسلى تېكىستنى تەرجىمە قىلىنغان تېكىست بىلەن ئالماشتۇرۇش» قىلىپ تەڭشەلگەندە ئىشلەيدۇ."
   },
   "lblShowTranslateSelectedButton": {
     "message": "تاللانغان تېكىستنى تەرجىمە قىلىش ئۈچۈن كۇنۇپكىنى كۆرسىتىڭ"
@@ -583,49 +583,49 @@
     "message": "ئاپتوماتىك"
   },
   "msgCannotLoadGoogleGeminiModels": {
-    "message": "Unable to load Google Gemini models",
+    "message": "Google Gemini مودېللىرىنى يۈكلىيەلمىدى",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
   },
   "msgDefault": {
-    "message": "Default",
+    "message": "سۈكۈتتىكى",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgEnterDictionaryKeyword": {
-    "message": "Enter the keyword, minimum two letters",
+    "message": "ئاچقۇچلۇق سۆزنى كىرگۈزۈڭ، ئەڭ ئاز ئىككى ھەرپ",
     "description": "prompt() dialog: custom dictionary keyword"
   },
   "msgEnterDictionaryValue": {
-    "message": "(Optional)\nYou can enter a value to replace it, or fill in nothing.",
+    "message": "(ئىختىيارىي)\nئۇنىڭ ئورنىغا قويىدىغان قىممەت كىرگۈزسىڭىز بولىدۇ، ياكى ھېچنېمە كىرگۈزمىسىڭىزمۇ بولىدۇ.",
     "description": "prompt() dialog: custom dictionary replacement value (optional)"
   },
   "msgEnterModelName": {
-    "message": "Enter model name/ID:",
+    "message": "مودېل نامى/ID نى كىرگۈزۈڭ:",
     "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
   },
   "msgEnterProviderApiBase": {
-    "message": "Enter API Endpoint URL (optional, press OK to skip):",
+    "message": "API ئۇلىنىش نۇقتىسى URL نى كىرگۈزۈڭ (ئىختىيارىي، ئاتلاش ئۈچۈن OK نى بېسىڭ):",
     "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
   },
   "msgEnterProviderName": {
-    "message": "Enter provider name:",
+    "message": "تەمىنلىگۈچى نامىنى كىرگۈزۈڭ:",
     "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
   },
   "msgEnterSiteHostname": {
-    "message": "Enter the site hostname",
+    "message": "تور بەك ئىسىمىنى كىرگۈزۈڭ",
     "description": "prompt() dialog for adding a site (always/never/hover lists)"
   },
   "msgErrorDownloadingDocument": {
     "message": "ھۆججەت چۈشۈرۈشتە خاتالىق"
   },
   "msgErrorLoadingModels": {
-    "message": "Error loading models",
+    "message": "مودېللارنى يۈكلەشتە خاتالىق",
     "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "ياقتۇرىدىغان تىللار"
   },
   "msgFeedbackCopied": {
-    "message": "Copied"
+    "message": "كۆچۈرۈلدى"
   },
   "msgFileLargerThan": {
     "message": "بۇ مۇلازىمەت $FILE_SIZE$دىن چوڭ ھۆججەتلەرنى قوللىمايدۇ",
@@ -637,7 +637,7 @@
     }
   },
   "msgHotkeys": {
-    "message": "Hotkeys"
+    "message": "قىسقا كۇنۇپكىلار"
   },
   "msgInterfaceComplex": {
     "message": "ئالىي"
@@ -652,7 +652,7 @@
     "message": "يۈكلىنىۋاتىدۇ..."
   },
   "msgModelListFetchFailed": {
-    "message": "Failed to fetch model list with API key. Available models:"
+    "message": "API ئاچقۇچى بىلەن مودېل تىزىملىكىنى ئېلىش مەغلۇپ بولدى. ئىشلەتكىلى بولىدىغان مودېللار:"
   },
   "msgNo": {
     "message": "ياق"
@@ -673,35 +673,35 @@
     "message": "ساقلاپ تۇرۇڭ ..."
   },
   "msgReasoningDepthHigh": {
-    "message": "High",
+    "message": "يۇقىرى",
     "description": "Reasoning depth option label (models.dev effort value: high)."
   },
   "msgReasoningDepthLow": {
-    "message": "Low",
+    "message": "تۆۋەن",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
   "msgReasoningDepthMax": {
-    "message": "Max",
+    "message": "ئەڭ يۇقىرى",
     "description": "Reasoning depth option label (models.dev effort value: max)."
   },
   "msgReasoningDepthMedium": {
-    "message": "Medium",
+    "message": "ئوتتۇرا",
     "description": "Reasoning depth option label (models.dev effort value: medium)."
   },
   "msgReasoningDepthMinimal": {
-    "message": "Minimal",
+    "message": "ئەڭ ئاز",
     "description": "Reasoning depth option label (models.dev effort value: minimal)."
   },
   "msgReasoningDepthNone": {
-    "message": "None",
+    "message": "يوق",
     "description": "Reasoning depth option label (models.dev effort value: none)."
   },
   "msgReasoningDepthProviderDefault": {
-    "message": "Default (provider)",
+    "message": "سۈكۈتتىكى (تەمىنلىگۈچى)",
     "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
   },
   "msgReasoningDepthXHigh": {
-    "message": "XHigh",
+    "message": "ئىنتايىن يۇقىرى",
     "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
@@ -738,7 +738,7 @@
     "message": "تاللانغان تېكىستنى تەرجىمە قىلىڭ"
   },
   "msgTranslateWithAi": {
-    "message": "Translate with AI to $LANGUAGE_NAME$",
+    "message": "AI بىلەن $LANGUAGE_NAME$ غا تەرجىمە قىلىڭ",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -747,7 +747,7 @@
     }
   },
   "msgTranslateWithGoogle": {
-    "message": "Translate with Google to $LANGUAGE_NAME$",
+    "message": "Google بىلەن $LANGUAGE_NAME$ غا تەرجىمە قىلىڭ",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -756,11 +756,11 @@
     }
   },
   "msgTranslationError": {
-    "message": "translation error",
+    "message": "تەرجىمە خاتالىقى",
     "description": "aria-label suffix on the error icon of the block translation indicator"
   },
   "msgTranslationInProgress": {
-    "message": "translation in progress",
+    "message": "تەرجىمە قىلىنىۋاتىدۇ",
     "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
@@ -803,7 +803,7 @@
     "message": "تور بېكەت تەرجىمە قىلىنغاندا سەكرىمە سىنبەلگىنى كۆك قىلىڭ"
   },
   "promptInputOpenAIKey": {
-    "message": "Please input your OpenAI API Key:"
+    "message": "OpenAI API ئاچقۇچىڭىزنى كىرگۈزۈڭ:"
   },
   "promptInputOpenRouterKey": {
     "message": "OpenRouter API ئاچقۇچىسىنى كىرگۈزۈڭ:"
@@ -842,39 +842,39 @@
     "message": "ئادرېس ستونىدىكى كۇنۇپكىنى بىر قېتىم چېكىپ بەتنى تەرجىمە قىلىڭ. (سەكرىمە كۆزنەكنى كۆرۈش ئۈچۈن ئوڭ تەرەپنى چېكىڭ)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "When to display the paragraph button group",
+    "message": "ئابزاس كۇنۇپكا گۇرۇپپىسىنى قاچان كۆرسىتىش",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {
-    "message": "Show on hover or click",
+    "message": "چاشقىنەك ئۈستىگە كەلگەندە ياكى چېكىلگەندە كۆرسىتىش",
     "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
   },
   "blockBtnGroupDisplayAlways": {
-    "message": "Always show",
+    "message": "ھەمىشە كۆرسىتىش",
     "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
   },
   "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Always-visible style",
+    "message": "ھەمىشە كۆرۈنىدىغان ئۇسلۇب",
     "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
   },
   "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Small badge (click to expand)",
+    "message": "كىچىك بەلگە (چېكىپ كەڭەيتىش)",
     "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
   },
   "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Three buttons shown directly",
+    "message": "ئۈچ كۇنۇپكا بىۋاسىتە كۆرسىتىلىدۇ",
     "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
   },
   "lblBlockBtnGroupShowOnHover": {
-    "message": "Show the paragraph button group when hovering over a paragraph",
+    "message": "ئابزاس ئۈستىگە چاشقىنەك كەلگەندە ئابزاس كۇنۇپكا گۇرۇپپىسىنى كۆرسىتىش",
     "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblBlockBtnGroupShowOnClick": {
-    "message": "Show the paragraph button group when clicking a paragraph",
+    "message": "ئابزاسنى چەككەندە ئابزاس كۇنۇپكا گۇرۇپپىسىنى كۆرسىتىش",
     "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
   },
   "blockBtnGroupBadgeTooltip": {
-    "message": "Paragraph translation options",
+    "message": "ئابزاس تەرجىمە تاللانمىلىرى",
     "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

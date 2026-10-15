@@ -63,17 +63,17 @@
     "message": "Zhipu AI (GLM)"
   },
   "alertSpecifyTargetLanguage": {
-    "message": "Please specify target language first."
+    "message": "Παρακαλώ καθορίστε πρώτα τη γλώσσα-στόχο."
   },
   "backupToFile": {
     "message": "Αντίγραφο σε αρχείο"
   },
   "btnAddCustomModelTooltip": {
-    "message": "Add a custom model",
+    "message": "Προσθήκη προσαρμοσμένου μοντέλου",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
   },
   "btnAddCustomProviderTooltip": {
-    "message": "Add a custom provider not in the list",
+    "message": "Προσθήκη προσαρμοσμένου παρόχου που δεν υπάρχει στη λίστα",
     "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
   },
   "btnAlwaysTranslate": {
@@ -104,14 +104,14 @@
     "message": "Εφαρμογή"
   },
   "btnChangeLanguages": {
-    "message": "Change languages",
+    "message": "Αλλαγή γλωσσών",
     "description": "Popup/mobile menu row: open the change-languages view"
   },
   "btnFeedbackCopyDiagnostics": {
-    "message": "Copy diagnostic info"
+    "message": "Αντιγραφή διαγνωστικών πληροφοριών"
   },
   "btnFeedbackOpenGitHub": {
-    "message": "Open GitHub issue form"
+    "message": "Άνοιγμα φόρμας αναφοράς στο GitHub"
   },
   "btnListen": {
     "message": "Ακρόαση"
@@ -123,7 +123,7 @@
     "message": "Μεταφράστηκε"
   },
   "btnMoreLanguages": {
-    "message": "More languages",
+    "message": "Περισσότερες γλώσσες",
     "description": "Panels' '+' button tooltip: open the full target-language list"
   },
   "btnMoreOptions": {
@@ -139,7 +139,7 @@
     "message": "Επιλογές"
   },
   "btnOriginal": {
-    "message": "Original",
+    "message": "Πρωτότυπο",
     "description": "Floating + hover button group: the 'show original' engine button label"
   },
   "btnReplace": {
@@ -161,7 +161,7 @@
     "message": "Μετάφραση"
   },
   "btnTryAgain": {
-    "message": "Try Again",
+    "message": "Δοκιμάστε ξανά",
     "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
@@ -204,13 +204,13 @@
     "message": "Πληκτρολογήστε μια συντόμευση"
   },
   "errorAiNoResponse": {
-    "message": "No response from AI provider. Please verify your API key and model name."
+    "message": "Καμία απάντηση από τον πάροχο AI. Επαληθεύστε το κλειδί API και το όνομα του μοντέλου σας."
   },
   "errorAiResponseNoTranslationTags": {
-    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+    "message": "Η απάντηση του AI δεν περιείχε τις αναμενόμενες ετικέτες μετάφρασης. Το μοντέλο ενδέχεται να επέστρεψε κείμενο σε μη αναμενόμενη μορφή."
   },
   "errorApiKeyNotFound": {
-    "message": "API key not found!"
+    "message": "Το κλειδί API δεν βρέθηκε!"
   },
   "errorCopyFailed": {
     "message": "Αποτυχία αντιγραφής."
@@ -219,11 +219,11 @@
     "message": "Αποτυχία αντιγραφής κειμένου. Πιθανώς επειδή το πρωτόκολλο URL της σελίδας είναι μη ασφαλές HTTP, όχι HTTPS."
   },
   "errorTranslationFailed": {
-    "message": "Translation failed",
+    "message": "Η μετάφραση απέτυχε",
     "description": "Toast + in-box error text when a text translation request fails"
   },
   "errorTranslationTimeout": {
-    "message": "Translation request timed out",
+    "message": "Το αίτημα μετάφρασης έληξε",
     "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
@@ -248,13 +248,13 @@
     "message": "Το αρχείο φαίνεται να είναι κατεστραμμένο"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "Show AI translation"
+    "message": "Εμφάνιση μετάφρασης AI"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "Show Google translation"
+    "message": "Εμφάνιση μετάφρασης Google"
   },
   "floatingButtonOriginalTooltip": {
-    "message": "Show original text"
+    "message": "Εμφάνιση αρχικού κειμένου"
   },
   "hideOriginalText": {
     "message": "Απόκρυψη αρχικού κειμένου"
@@ -269,7 +269,7 @@
     "message": "Πληκτρολογήστε ένα γράμμα"
   },
   "lblActivateTheExtension": {
-    "message": "Activate the extension",
+    "message": "Ενεργοποίηση της επέκτασης",
     "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
   },
   "lblAdd": {
@@ -283,11 +283,11 @@
     "message": "Πάροχος τεχνητής νοημοσύνης"
   },
   "lblAiReasoningDepth": {
-    "message": "Reasoning depth",
+    "message": "Βάθος συλλογισμού",
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
-    "message": "Color of AI translated text "
+    "message": "Χρώμα μεταφρασμένου κειμένου AI"
   },
   "lblAlwaysTranslate": {
     "message": "Πάντα μετάφραση από $LANGUAGE_NAME$",
@@ -314,14 +314,14 @@
     "message": "Σκοτεινή Λειτουργία"
   },
   "lblEnableAiTranslationCache": {
-    "message": "Enable AI translation cache",
+    "message": "Ενεργοποίηση προσωρινής μνήμης μετάφρασης AI",
     "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
     "message": "Ενεργοποίηση DeepL ως υπηρεσία μετάφρασης κειμένου"
   },
   "lblEnterApiKey": {
-    "message": "Enter API key"
+    "message": "Εισαγάγετε κλειδί API"
   },
   "lblError": {
     "message": "Αυτή η σελίδα δεν μπόρεσε να μεταφραστεί"
@@ -336,22 +336,22 @@
     }
   },
   "lblFeedbackIntro": {
-    "message": "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser and system already filled in."
+    "message": "Αναφέρετε σφάλματα ή προτείνετε λειτουργίες στο GitHub Issues — η φόρμα ανοίγει με την έκδοση της επέκτασης, το πρόγραμμα περιήγησης και το σύστημά σας ήδη συμπληρωμένα."
   },
   "lblFeedbackNoGithub": {
-    "message": "No GitHub account? You can still reach us:"
+    "message": "Δεν έχετε λογαριασμό GitHub; Μπορείτε να επικοινωνήσετε μαζί μας:"
   },
   "lblFeedbackStoreSupport": {
-    "message": "Chrome Web Store support section"
+    "message": "Ενότητα υποστήριξης του Chrome Web Store"
   },
   "lblFreeTranslationEngine": {
-    "message": "Free translation engine"
+    "message": "Δωρεάν μηχανή μετάφρασης"
   },
   "lblHotTranslatedSelectedText": {
     "message": "Αντικατάσταση επιλεγμένου κειμένου με το μεταφρασμένο άμεσα"
   },
   "lblHowToGetProviderApiKey": {
-    "message": "How to get $PROVIDER_NAME$ API Key?",
+    "message": "Πώς να αποκτήσετε το κλειδί API του $PROVIDER_NAME$;",
     "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -385,7 +385,7 @@
     "message": "Προσωπικές ρυθμίσεις"
   },
   "lblProviderApiEndpoint": {
-    "message": "$PROVIDER_NAME$ API Endpoint URL",
+    "message": "URL τελικού σημείου API του $PROVIDER_NAME$",
     "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -395,7 +395,7 @@
     }
   },
   "lblProviderApiKey": {
-    "message": "$PROVIDER_NAME$ API Key",
+    "message": "Κλειδί API του $PROVIDER_NAME$",
     "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -405,7 +405,7 @@
     }
   },
   "lblProviderDocumentation": {
-    "message": "$PROVIDER_NAME$ Documentation",
+    "message": "Τεκμηρίωση του $PROVIDER_NAME$",
     "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -415,7 +415,7 @@
     }
   },
   "lblProviderModel": {
-    "message": "$PROVIDER_NAME$ Model",
+    "message": "Μοντέλο $PROVIDER_NAME$",
     "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -425,7 +425,7 @@
     }
   },
   "lblProviderReasoningDepth": {
-    "message": "$PROVIDER_NAME$ Reasoning Depth",
+    "message": "Βάθος συλλογισμού του $PROVIDER_NAME$",
     "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -456,7 +456,7 @@
     "message": "Εμφάνιση αρχικού κειμένου όταν αιωρείται το ποντίκι"
   },
   "lblShowOriginalTextWhenHoveringNote": {
-    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+    "message": "Ισχύει μόνο όταν η επιλογή \"Πού να εμφανίζεται το μεταφρασμένο κείμενο\" έχει οριστεί σε \"Αντικατάσταση του αρχικού κειμένου με το μεταφρασμένο κείμενο\"."
   },
   "lblShowTranslateSelectedButton": {
     "message": "Εμφάνιση κουμπιού μετάφρασης επιλεγμένου κειμένου"
@@ -583,49 +583,49 @@
     "message": "Αυτόματα"
   },
   "msgCannotLoadGoogleGeminiModels": {
-    "message": "Unable to load Google Gemini models",
+    "message": "Δεν είναι δυνατή η φόρτωση των μοντέλων Google Gemini",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
   },
   "msgDefault": {
-    "message": "Default",
+    "message": "Προεπιλογή",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgEnterDictionaryKeyword": {
-    "message": "Enter the keyword, minimum two letters",
+    "message": "Εισαγάγετε τη λέξη-κλειδί, τουλάχιστον δύο γράμματα",
     "description": "prompt() dialog: custom dictionary keyword"
   },
   "msgEnterDictionaryValue": {
-    "message": "(Optional)\nYou can enter a value to replace it, or fill in nothing.",
+    "message": "(Προαιρετικό)\nΜπορείτε να εισαγάγετε μια τιμή για αντικατάσταση ή να μην συμπληρώσετε τίποτα.",
     "description": "prompt() dialog: custom dictionary replacement value (optional)"
   },
   "msgEnterModelName": {
-    "message": "Enter model name/ID:",
+    "message": "Εισαγάγετε όνομα/ID μοντέλου:",
     "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
   },
   "msgEnterProviderApiBase": {
-    "message": "Enter API Endpoint URL (optional, press OK to skip):",
+    "message": "Εισαγάγετε URL τελικού σημείου API (προαιρετικό, πατήστε OK για παράλειψη):",
     "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
   },
   "msgEnterProviderName": {
-    "message": "Enter provider name:",
+    "message": "Εισαγάγετε όνομα παρόχου:",
     "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
   },
   "msgEnterSiteHostname": {
-    "message": "Enter the site hostname",
+    "message": "Εισαγάγετε το όνομα κεντρικού υπολογιστή της ιστοσελίδας",
     "description": "prompt() dialog for adding a site (always/never/hover lists)"
   },
   "msgErrorDownloadingDocument": {
     "message": "Σφάλμα λήψης εγγράφου"
   },
   "msgErrorLoadingModels": {
-    "message": "Error loading models",
+    "message": "Σφάλμα φόρτωσης μοντέλων",
     "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "Αγαπημένες γλώσσες"
   },
   "msgFeedbackCopied": {
-    "message": "Copied"
+    "message": "Αντιγράφηκε"
   },
   "msgFileLargerThan": {
     "message": "Η υπηρεσία δεν υποστηρίζει αρχεία μεγαλύτερα από $FILE_SIZE$",
@@ -652,7 +652,7 @@
     "message": "Φόρτωση..."
   },
   "msgModelListFetchFailed": {
-    "message": "Failed to fetch model list with API key. Available models:"
+    "message": "Αποτυχία λήψης λίστας μοντέλων με κλειδί API. Διαθέσιμα μοντέλα:"
   },
   "msgNo": {
     "message": "Όχι"
@@ -673,35 +673,35 @@
     "message": "Παρακαλώ περιμένετε..."
   },
   "msgReasoningDepthHigh": {
-    "message": "High",
+    "message": "Υψηλή",
     "description": "Reasoning depth option label (models.dev effort value: high)."
   },
   "msgReasoningDepthLow": {
-    "message": "Low",
+    "message": "Χαμηλή",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
   "msgReasoningDepthMax": {
-    "message": "Max",
+    "message": "Μέγιστη",
     "description": "Reasoning depth option label (models.dev effort value: max)."
   },
   "msgReasoningDepthMedium": {
-    "message": "Medium",
+    "message": "Μεσαία",
     "description": "Reasoning depth option label (models.dev effort value: medium)."
   },
   "msgReasoningDepthMinimal": {
-    "message": "Minimal",
+    "message": "Ελάχιστο",
     "description": "Reasoning depth option label (models.dev effort value: minimal)."
   },
   "msgReasoningDepthNone": {
-    "message": "None",
+    "message": "Κανένα",
     "description": "Reasoning depth option label (models.dev effort value: none)."
   },
   "msgReasoningDepthProviderDefault": {
-    "message": "Default (provider)",
+    "message": "Προεπιλογή (πάροχος)",
     "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
   },
   "msgReasoningDepthXHigh": {
-    "message": "XHigh",
+    "message": "Πολύ υψηλό",
     "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
@@ -738,7 +738,7 @@
     "message": "Μετάφραση επιλεγμένου κειμένου"
   },
   "msgTranslateWithAi": {
-    "message": "Translate with AI to $LANGUAGE_NAME$",
+    "message": "Μετάφραση με AI στα $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -747,7 +747,7 @@
     }
   },
   "msgTranslateWithGoogle": {
-    "message": "Translate with Google to $LANGUAGE_NAME$",
+    "message": "Μετάφραση με Google στα $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -756,11 +756,11 @@
     }
   },
   "msgTranslationError": {
-    "message": "translation error",
+    "message": "σφάλμα μετάφρασης",
     "description": "aria-label suffix on the error icon of the block translation indicator"
   },
   "msgTranslationInProgress": {
-    "message": "translation in progress",
+    "message": "μετάφραση σε εξέλιξη",
     "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
@@ -803,7 +803,7 @@
     "message": "Κάντε το αναδυόμενο εικονίδιο μπλε όταν μεταφράζεται η ιστοσελίδα"
   },
   "promptInputOpenAIKey": {
-    "message": "Please input your OpenAI API Key:"
+    "message": "Εισαγάγετε το κλειδί API του OpenAI:"
   },
   "promptInputOpenRouterKey": {
     "message": "Παρακαλούμε εισαγάγετε το κλειδί OpenRouter API σας:"
@@ -842,39 +842,39 @@
     "message": "Μεταφράστε τη σελίδα κάνοντας κλικ μία φορά στο κουμπί στη γραμμή διευθύνσεων. (Για να δείτε το αναδυόμενο παράθυρο, κάντε δεξί κλικ)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "When to display the paragraph button group",
+    "message": "Πότε να εμφανίζεται η ομάδα κουμπιών παραγράφου",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {
-    "message": "Show on hover or click",
+    "message": "Εμφάνιση με hover ή κλικ",
     "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
   },
   "blockBtnGroupDisplayAlways": {
-    "message": "Always show",
+    "message": "Πάντα εμφάνιση",
     "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
   },
   "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Always-visible style",
+    "message": "Στυλ πάντα ορατού",
     "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
   },
   "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Small badge (click to expand)",
+    "message": "Μικρό σήμα (κλικ για ανάπτυξη)",
     "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
   },
   "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Three buttons shown directly",
+    "message": "Τρία κουμπιά άμεσα ορατά",
     "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
   },
   "lblBlockBtnGroupShowOnHover": {
-    "message": "Show the paragraph button group when hovering over a paragraph",
+    "message": "Εμφάνιση της ομάδας κουμπιών παραγράφου με hover πάνω σε μια παράγραφο",
     "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblBlockBtnGroupShowOnClick": {
-    "message": "Show the paragraph button group when clicking a paragraph",
+    "message": "Εμφάνιση της ομάδας κουμπιών παραγράφου με κλικ σε μια παράγραφο",
     "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
   },
   "blockBtnGroupBadgeTooltip": {
-    "message": "Paragraph translation options",
+    "message": "Επιλογές μετάφρασης παραγράφου",
     "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

@@ -5,6 +5,7 @@
  *   I1: 中文 locale → 验证中文文本渲染
  *   I2: 英文 locale → 验证英文文本渲染
  *   I3: 不存在的 locale → 验证 fallback 到英文
+ *   I4: 德语 locale → 第三语言真翻译抽查（DOM == _locales/de 值 且 值 ≠ en；plan 65）
  *
  * 技术方案：
  *   Chrome 的 UI 语言由 --lang 启动参数控制，
@@ -27,9 +28,26 @@ export const smoke = false;
 
 // ─── 从 setup.mjs 导入共享工具函数 ─────────────────────────────
 
+import { readFileSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import {
   runWithIsolatedExtensionContext,
 } from "./setup.mjs";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+/**
+ * de/en locale files — I4 (plan 65) asserts the RUNTIME DOM equals the
+ * German values and that those values are not English (a real translation).
+ */
+const DE_MESSAGES = JSON.parse(
+  readFileSync(resolve(__dirname, "../../src/_locales/de/messages.json"), "utf8")
+);
+const EN_MESSAGES = JSON.parse(
+  readFileSync(resolve(__dirname, "../../src/_locales/en/messages.json"), "utf8")
+);
 
 // ─── 期望值常量 ──────────────────────────────────────────────────
 
@@ -302,11 +320,82 @@ async function i3FallbackLocale(scope) {
 }
 
 // ═════════════════════════════════════════════════════════════════
+// I4: 德语 locale → 真翻译抽查（plan 65）
+// ═════════════════════════════════════════════════════════════════
+
+/**
+ * [I4] 使用 --lang=de 启动隔离浏览器上下文，断言运行时 DOM 等于
+ * `src/_locales/de/messages.json` 的真实译文，且该译文不等于英文原文。
+ * 这是「38 语言真翻译」保证（plan 65）在运行时层的抽查面：静态门禁保证
+ * 值是真翻译，本格保证这些值真的进了构建、被 runtime 选中并渲染。
+ *
+ * @param {Object} scope - 完整的测试 scope 对象
+ * @returns {Promise<void>}
+ * @throws {Error} 德语真翻译前提被破坏（值 == en）或渲染不一致时抛出
+ */
+async function i4RealTranslationLocale(scope) {
+  console.log("[I4] 德语 locale 真翻译抽查...");
+
+  const deSettings = DE_MESSAGES.lblSettings.message;
+  const deAiProvider = DE_MESSAGES.lblAiProvider.message;
+
+  // 前提：德语值必须是真翻译（≠ en）——否则本格自身失去意义。
+  if (deSettings === EN_MESSAGES.lblSettings.message) {
+    throw new Error(`[I4] 真翻译前提被破坏: de lblSettings == en ("${deSettings}")`);
+  }
+  if (deAiProvider === EN_MESSAGES.lblAiProvider.message) {
+    throw new Error(`[I4] 真翻译前提被破坏: de lblAiProvider == en ("${deAiProvider}")`);
+  }
+
+  await runWithIsolatedExtensionContext(async ({ page, extensionId }) => {
+    await page.goto(`chrome-extension://${extensionId}/options/options.html#ai`, { waitUntil: "load" });
+    await page.waitForTimeout(2000);
+
+    const settingsText = await page.evaluate(() => {
+      const el = document.querySelector('[data-i18n="lblSettings"]');
+      return el ? el.textContent : null;
+    });
+    const aiProviderText = await page.evaluate(() => {
+      const el = document.querySelector('[data-i18n="lblAiProvider"]');
+      return el ? el.textContent : null;
+    });
+
+    console.log(`  [I4] lblSettings = "${settingsText}" (期望: "${deSettings}")`);
+    console.log(`  [I4] lblAiProvider = "${aiProviderText}" (期望: "${deAiProvider}")`);
+
+    if (settingsText !== deSettings) {
+      throw new Error(`[I4] lblSettings 应为 "${deSettings}"，实际为 "${settingsText}"`);
+    }
+    console.log(`  [I4] lblSettings 德语正确 ✓`);
+
+    if (aiProviderText !== deAiProvider) {
+      throw new Error(`[I4] lblAiProvider 应为 "${deAiProvider}"，实际为 "${aiProviderText}"`);
+    }
+    console.log(`  [I4] lblAiProvider 德语正确 ✓`);
+
+    // AI 面板动态文案（$PROVIDER_NAME$ 替换后的两个 label）同样必须为德语真翻译。
+    await waitForAiPanelReady(page);
+    const aiPanelTexts = await readAiPanelTexts(page);
+    const providerName = "OpenAI";
+    assertAiPanelTexts(
+      aiPanelTexts,
+      {
+        apiKeyLabel: DE_MESSAGES.lblProviderApiKey.message.replace("$PROVIDER_NAME$", providerName),
+        modelLabel: DE_MESSAGES.lblProviderModel.message.replace("$PROVIDER_NAME$", providerName),
+      },
+      "[I4]"
+    );
+  }, scope.collector, { locale: "de" });
+
+  console.log("[I4] 通过 ✓\n");
+}
+
+// ═════════════════════════════════════════════════════════════════
 // run(scope) — 测试主入口
 // ═════════════════════════════════════════════════════════════════
 
 /**
- * 执行 i18n 国际化 E2E 测试场景的全部 3 个步骤。
+ * 执行 i18n 国际化 E2E 测试场景的全部 4 个步骤。
  *
  * 每个步骤使用独立的隔离浏览器上下文（不同的 --lang 参数），
  * 确保各 locale 测试之间互不干扰。
@@ -328,6 +417,9 @@ export async function run(scope) {
 
   // ── I3: 不存在的 locale → fallback ──
   await i3FallbackLocale(scope);
+
+  // ── I4: 德语 locale → 真翻译抽查（plan 65）──
+  await i4RealTranslationLocale(scope);
 
   console.log(`=== 场景 "${name}" 全部通过 ===\n`);
 }

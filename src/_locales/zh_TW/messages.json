@@ -134,7 +134,7 @@
     "message": "永不翻譯此語言"
   },
   "btnOptions": {
-    "message": "Options"
+    "message": "選項"
   },
   "btnOriginal": {
     "message": "原文"
@@ -143,10 +143,10 @@
     "message": "取代"
   },
   "btnReset": {
-    "message": "Reset"
+    "message": "重設"
   },
   "btnRestore": {
-    "message": "Show original"
+    "message": "顯示原文"
   },
   "btnShowPopup": {
     "message": "顯示彈出式視窗"
@@ -200,13 +200,13 @@
     "message": "輸入快捷鍵"
   },
   "errorAiNoResponse": {
-    "message": "No response from AI provider. Please verify your API key and model name."
+    "message": "AI 服務未回應，請檢查 API 金鑰和模型名稱是否正確。"
   },
   "errorAiResponseNoTranslationTags": {
-    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+    "message": "AI 回應未包含預期的翻譯標籤，模型可能傳回了非預期的文字格式。"
   },
   "errorApiKeyNotFound": {
-    "message": "API key not found!"
+    "message": "找不到 API 金鑰！"
   },
   "errorCopyFailed": {
     "message": "複製失敗。"
@@ -263,7 +263,7 @@
     "message": "請輸入字母"
   },
   "lblActivateTheExtension": {
-    "message": "Activate the extension",
+    "message": "啟用擴充功能",
     "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
   },
   "lblAdd": {
@@ -281,7 +281,7 @@
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
-    "message": "Color of AI translated text "
+    "message": "AI 譯文顏色"
   },
   "lblAlwaysTranslate": {
     "message": "始終翻譯$LANGUAGE_NAME$",
@@ -791,7 +791,7 @@
     "message": "當網站翻譯完成時讓彈出圖示變為藍色"
   },
   "promptInputOpenAIKey": {
-    "message": "Please input your OpenAI API Key:"
+    "message": "請輸入您的 OpenAI API 金鑰："
   },
   "promptInputOpenRouterKey": {
     "message": "請輸入您的 OpenRouter API 金鑰："

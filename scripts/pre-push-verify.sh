@@ -2,7 +2,7 @@
 # pre-push verify (L3): 一键本地校验，push 前必须运行。
 #
 # 覆盖：
-#   1. 19 个 lint 脚本（断言强度 / 模式对称 / 规则对称 / i18n / i18n 写点 / UI 状态初始化 / observer 挂载 / mock 忠实度（E2E）/ vitest mock 保真度 / 基础设施假设 / 状态可达性 / 宿主三态断言 / 视觉检查点 / 平台形态矩阵 / 内容更新通道一致性 / 通告通道一致性 / i18n 通道一致性 / 意图读取点登记 / core 边界（plan 59））
+#   1. 20 个 lint 脚本（断言强度 / 模式对称 / 规则对称 / i18n / i18n 写点 / UI 状态初始化 / observer 挂载 / mock 忠实度（E2E）/ vitest mock 保真度 / 基础设施假设 / 状态可达性 / 宿主三态断言 / 视觉检查点 / 平台形态矩阵 / 内容更新通道一致性 / 通告通道一致性 / i18n 通道一致性 / i18n 真翻译（plan 65）/ 意图读取点登记 / core 边界（plan 59））
 #   2. 全量 vitest
 #   3. 构建（webpack：chrome + firefox 双目标）+ web-ext lint 门禁（firefox 警告白名单）
 #
@@ -33,6 +33,7 @@ node scripts/check-platform-probes.js
 node scripts/check-content-update-channels.js
 node scripts/check-announcement-channels.js
 node scripts/check-i18n-channels.js
+node scripts/check-i18n-translations.js
 node scripts/check-intent-gates.js
 node scripts/check-core-boundary.js
 npm run i18n:check

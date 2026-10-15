@@ -69,11 +69,11 @@
     "message": "สำรองข้อมูลไปยังไฟล์"
   },
   "btnAddCustomModelTooltip": {
-    "message": "Add a custom model",
+    "message": "เพิ่มโมเดลกำหนดเอง",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
   },
   "btnAddCustomProviderTooltip": {
-    "message": "Add a custom provider not in the list",
+    "message": "เพิ่มผู้ให้บริการกำหนดเองที่ไม่อยู่ในรายการ",
     "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
   },
   "btnAlwaysTranslate": {
@@ -104,14 +104,14 @@
     "message": "นำมาใช้"
   },
   "btnChangeLanguages": {
-    "message": "Change languages",
+    "message": "เปลี่ยนภาษา",
     "description": "Popup/mobile menu row: open the change-languages view"
   },
   "btnFeedbackCopyDiagnostics": {
-    "message": "Copy diagnostic info"
+    "message": "คัดลอกข้อมูลการวินิจฉัย"
   },
   "btnFeedbackOpenGitHub": {
-    "message": "Open GitHub issue form"
+    "message": "เปิดแบบฟอร์มแจ้งปัญหาบน GitHub"
   },
   "btnListen": {
     "message": "ฟัง"
@@ -123,7 +123,7 @@
     "message": "แปลแล้ว"
   },
   "btnMoreLanguages": {
-    "message": "More languages",
+    "message": "ภาษาเพิ่มเติม",
     "description": "Panels' '+' button tooltip: open the full target-language list"
   },
   "btnMoreOptions": {
@@ -139,7 +139,7 @@
     "message": "การตั้งค่า"
   },
   "btnOriginal": {
-    "message": "Original",
+    "message": "ต้นฉบับ",
     "description": "Floating + hover button group: the 'show original' engine button label"
   },
   "btnReplace": {
@@ -161,7 +161,7 @@
     "message": "แปลภาษา"
   },
   "btnTryAgain": {
-    "message": "Try Again",
+    "message": "ลองอีกครั้ง",
     "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
@@ -204,10 +204,10 @@
     "message": "พิมพ์ทางลัด"
   },
   "errorAiNoResponse": {
-    "message": "No response from AI provider. Please verify your API key and model name."
+    "message": "ไม่มีการตอบกลับจากผู้ให้บริการ AI โปรดตรวจสอบคีย์ API และชื่อโมเดลของคุณ"
   },
   "errorAiResponseNoTranslationTags": {
-    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+    "message": "การตอบกลับจาก AI ไม่มีแท็กการแปลที่คาดไว้ โมเดลอาจส่งข้อความในรูปแบบที่ไม่คาดคิด"
   },
   "errorApiKeyNotFound": {
     "message": "ไม่พบคีย์ API!"
@@ -219,11 +219,11 @@
     "message": "การคัดลอกข้อความล้มเหลว อาจเป็นเพราะโปรโตคอล URL ของหน้าเป็น HTTP ที่ไม่ปลอดภัย ไม่ใช่ HTTPS"
   },
   "errorTranslationFailed": {
-    "message": "Translation failed",
+    "message": "การแปลล้มเหลว",
     "description": "Toast + in-box error text when a text translation request fails"
   },
   "errorTranslationTimeout": {
-    "message": "Translation request timed out",
+    "message": "คำขอแปลหมดเวลา",
     "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
@@ -248,13 +248,13 @@
     "message": "ดูเหมือนว่าไฟล์จะเสียหาย"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "Show AI translation"
+    "message": "แสดงคำแปล AI"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "Show Google translation"
+    "message": "แสดงคำแปล Google"
   },
   "floatingButtonOriginalTooltip": {
-    "message": "Show original text"
+    "message": "แสดงข้อความต้นฉบับ"
   },
   "hideOriginalText": {
     "message": "ซ่อนข้อความต้นฉบับ"
@@ -269,7 +269,7 @@
     "message": "พิมพ์ตัวอักษร"
   },
   "lblActivateTheExtension": {
-    "message": "Activate the extension",
+    "message": "เปิดใช้งานส่วนขยาย",
     "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
   },
   "lblAdd": {
@@ -283,11 +283,11 @@
     "message": "ผู้ให้บริการ AI"
   },
   "lblAiReasoningDepth": {
-    "message": "Reasoning depth",
+    "message": "ความลึกของการวิเคราะห์",
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
-    "message": "Color of AI translated text "
+    "message": "สีของข้อความที่แปลด้วย AI"
   },
   "lblAlwaysTranslate": {
     "message": "แปลจาก $LANGUAGE_NAME$เสมอ",
@@ -314,14 +314,14 @@
     "message": "โหมดมืด"
   },
   "lblEnableAiTranslationCache": {
-    "message": "Enable AI translation cache",
+    "message": "เปิดใช้งานแคชการแปล AI",
     "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
     "message": "เปิดใช้งาน DeepL เป็นบริการแปลข้อความ"
   },
   "lblEnterApiKey": {
-    "message": "Enter API key"
+    "message": "ป้อนคีย์ API"
   },
   "lblError": {
     "message": "ไม่สามารถแปลหน้านี้"
@@ -336,22 +336,22 @@
     }
   },
   "lblFeedbackIntro": {
-    "message": "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser and system already filled in."
+    "message": "รายงานข้อบกพร่องหรือเสนอแนะฟีเจอร์ได้ที่ GitHub Issues — ฟอร์มจะเปิดพร้อมข้อมูลเวอร์ชันส่วนขยาย เบราว์เซอร์ และระบบของคุณที่กรอกไว้แล้ว"
   },
   "lblFeedbackNoGithub": {
-    "message": "No GitHub account? You can still reach us:"
+    "message": "ไม่มีบัญชี GitHub? คุณยังติดต่อเราได้ที่:"
   },
   "lblFeedbackStoreSupport": {
-    "message": "Chrome Web Store support section"
+    "message": "ส่วนสนับสนุนของ Chrome Web Store"
   },
   "lblFreeTranslationEngine": {
-    "message": "Free translation engine"
+    "message": "เครื่องมือแปลฟรี"
   },
   "lblHotTranslatedSelectedText": {
     "message": "แทนที่ข้อความที่เลือกด้วยข้อความที่แปลทันที"
   },
   "lblHowToGetProviderApiKey": {
-    "message": "How to get $PROVIDER_NAME$ API Key?",
+    "message": "วิธีรับคีย์ API ของ $PROVIDER_NAME$?",
     "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -385,7 +385,7 @@
     "message": "การตั้งค่าส่วนบุคคล"
   },
   "lblProviderApiEndpoint": {
-    "message": "$PROVIDER_NAME$ API Endpoint URL",
+    "message": "URL ปลายทาง API ของ $PROVIDER_NAME$",
     "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -395,7 +395,7 @@
     }
   },
   "lblProviderApiKey": {
-    "message": "$PROVIDER_NAME$ API Key",
+    "message": "คีย์ API ของ $PROVIDER_NAME$",
     "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -405,7 +405,7 @@
     }
   },
   "lblProviderDocumentation": {
-    "message": "$PROVIDER_NAME$ Documentation",
+    "message": "เอกสารประกอบของ $PROVIDER_NAME$",
     "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -415,7 +415,7 @@
     }
   },
   "lblProviderModel": {
-    "message": "$PROVIDER_NAME$ Model",
+    "message": "โมเดลของ $PROVIDER_NAME$",
     "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -425,7 +425,7 @@
     }
   },
   "lblProviderReasoningDepth": {
-    "message": "$PROVIDER_NAME$ Reasoning Depth",
+    "message": "ระดับความลึกในการคิดวิเคราะห์ของ $PROVIDER_NAME$",
     "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -456,7 +456,7 @@
     "message": "แสดงข้อความต้นฉบับเมื่อวางเมาส์เหนือ"
   },
   "lblShowOriginalTextWhenHoveringNote": {
-    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+    "message": "มีผลเฉพาะเมื่อ \"ตำแหน่งที่จะแสดงข้อความที่แปล\" ถูกตั้งเป็น \"แทนที่ข้อความต้นฉบับด้วยข้อความที่แปล\""
   },
   "lblShowTranslateSelectedButton": {
     "message": "แสดงปุ่มเพื่อแปลข้อความที่เลือก"
@@ -583,49 +583,49 @@
     "message": "อัตโนมัติ"
   },
   "msgCannotLoadGoogleGeminiModels": {
-    "message": "Unable to load Google Gemini models",
+    "message": "ไม่สามารถโหลดโมเดล Google Gemini ได้",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
   },
   "msgDefault": {
-    "message": "Default",
+    "message": "ค่าเริ่มต้น",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgEnterDictionaryKeyword": {
-    "message": "Enter the keyword, minimum two letters",
+    "message": "ป้อนคำสำคัญ อย่างน้อยสองตัวอักษร",
     "description": "prompt() dialog: custom dictionary keyword"
   },
   "msgEnterDictionaryValue": {
-    "message": "(Optional)\nYou can enter a value to replace it, or fill in nothing.",
+    "message": "(ไม่บังคับ)\nคุณสามารถป้อนค่าเพื่อแทนที่ได้ หรือเว้นว่างไว้ก็ได้",
     "description": "prompt() dialog: custom dictionary replacement value (optional)"
   },
   "msgEnterModelName": {
-    "message": "Enter model name/ID:",
+    "message": "ป้อนชื่อ/ID ของโมเดล:",
     "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
   },
   "msgEnterProviderApiBase": {
-    "message": "Enter API Endpoint URL (optional, press OK to skip):",
+    "message": "ป้อน URL ปลายทาง API (ไม่บังคับ กด OK เพื่อข้าม):",
     "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
   },
   "msgEnterProviderName": {
-    "message": "Enter provider name:",
+    "message": "ป้อนชื่อผู้ให้บริการ:",
     "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
   },
   "msgEnterSiteHostname": {
-    "message": "Enter the site hostname",
+    "message": "ป้อนชื่อโฮสต์ของไซต์",
     "description": "prompt() dialog for adding a site (always/never/hover lists)"
   },
   "msgErrorDownloadingDocument": {
     "message": "เกิดข้อผิดพลาดในการดาวน์โหลดเอกสาร"
   },
   "msgErrorLoadingModels": {
-    "message": "Error loading models",
+    "message": "เกิดข้อผิดพลาดในการโหลดโมเดล",
     "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "ภาษาที่ชอบ"
   },
   "msgFeedbackCopied": {
-    "message": "Copied"
+    "message": "คัดลอกแล้ว"
   },
   "msgFileLargerThan": {
     "message": "บริการนี้ไม่รองรับไฟล์ที่มีขนาดใหญ่กว่า $FILE_SIZE$",
@@ -652,7 +652,7 @@
     "message": "กำลังโหลด..."
   },
   "msgModelListFetchFailed": {
-    "message": "Failed to fetch model list with API key. Available models:"
+    "message": "ไม่สามารถดึงรายการโมเดลด้วยคีย์ API ได้ โมเดลที่ใช้ได้:"
   },
   "msgNo": {
     "message": "ไม่"
@@ -673,35 +673,35 @@
     "message": "โปรดรอ..."
   },
   "msgReasoningDepthHigh": {
-    "message": "High",
+    "message": "สูง",
     "description": "Reasoning depth option label (models.dev effort value: high)."
   },
   "msgReasoningDepthLow": {
-    "message": "Low",
+    "message": "ต่ำ",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
   "msgReasoningDepthMax": {
-    "message": "Max",
+    "message": "สูงสุด",
     "description": "Reasoning depth option label (models.dev effort value: max)."
   },
   "msgReasoningDepthMedium": {
-    "message": "Medium",
+    "message": "ปานกลาง",
     "description": "Reasoning depth option label (models.dev effort value: medium)."
   },
   "msgReasoningDepthMinimal": {
-    "message": "Minimal",
+    "message": "น้อยที่สุด",
     "description": "Reasoning depth option label (models.dev effort value: minimal)."
   },
   "msgReasoningDepthNone": {
-    "message": "None",
+    "message": "ไม่มี",
     "description": "Reasoning depth option label (models.dev effort value: none)."
   },
   "msgReasoningDepthProviderDefault": {
-    "message": "Default (provider)",
+    "message": "ค่าเริ่มต้น (ผู้ให้บริการ)",
     "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
   },
   "msgReasoningDepthXHigh": {
-    "message": "XHigh",
+    "message": "สูงมาก",
     "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
@@ -738,7 +738,7 @@
     "message": "แปลข้อความที่เลือก"
   },
   "msgTranslateWithAi": {
-    "message": "Translate with AI to $LANGUAGE_NAME$",
+    "message": "แปลด้วย AI เป็น $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -747,7 +747,7 @@
     }
   },
   "msgTranslateWithGoogle": {
-    "message": "Translate with Google to $LANGUAGE_NAME$",
+    "message": "แปลด้วย Google เป็น $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -756,11 +756,11 @@
     }
   },
   "msgTranslationError": {
-    "message": "translation error",
+    "message": "เกิดข้อผิดพลาดในการแปล",
     "description": "aria-label suffix on the error icon of the block translation indicator"
   },
   "msgTranslationInProgress": {
-    "message": "translation in progress",
+    "message": "กำลังแปล",
     "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
@@ -842,39 +842,39 @@
     "message": "แปลหน้าโดยคลิกหนึ่งครั้งที่ปุ่มในแถบที่อยู่ (หากต้องการดูป๊อปอัป ให้คลิกขวา)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "When to display the paragraph button group",
+    "message": "เวลาแสดงกลุ่มปุ่มของย่อหน้า",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {
-    "message": "Show on hover or click",
+    "message": "แสดงเมื่อวางเมาส์หรือคลิก",
     "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
   },
   "blockBtnGroupDisplayAlways": {
-    "message": "Always show",
+    "message": "แสดงเสมอ",
     "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
   },
   "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Always-visible style",
+    "message": "สไตล์การแสดงเสมอ",
     "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
   },
   "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Small badge (click to expand)",
+    "message": "ป้ายเล็ก (คลิกเพื่อขยาย)",
     "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
   },
   "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Three buttons shown directly",
+    "message": "แสดงปุ่มสามปุ่มโดยตรง",
     "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
   },
   "lblBlockBtnGroupShowOnHover": {
-    "message": "Show the paragraph button group when hovering over a paragraph",
+    "message": "แสดงกลุ่มปุ่มของย่อหน้าเมื่อวางเมาส์เหนือย่อหน้า",
     "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblBlockBtnGroupShowOnClick": {
-    "message": "Show the paragraph button group when clicking a paragraph",
+    "message": "แสดงกลุ่มปุ่มของย่อหน้าเมื่อคลิกย่อหน้า",
     "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
   },
   "blockBtnGroupBadgeTooltip": {
-    "message": "Paragraph translation options",
+    "message": "ตัวเลือกการแปลย่อหน้า",
     "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

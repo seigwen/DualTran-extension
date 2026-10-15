@@ -333,10 +333,18 @@ Content Script (fetchSSE.js)
 **RULE: i18n 产出规则（i18n output rule, spec 47 / #157）—— 一切用户可见字符串必须经 `_locales` 机制产出：**
 
 - **症状/机制：** 用户可见文案的三类逃逸史：① 代码层拼接写死（#155：options AI 面板 15 处英文 label 全语言可见）；② 引用不存在/拼错的键（静默回退英文：`getMessage("loading")`、toast 键、`btnChangeLanguages` —— 五类全语言英文存量）；③ 静态/平台面写死（#121 GitHub 模板中文；manifest description 多年英文）。单点人工修复追不上新代码——必须由守卫默认拦截。
-- **裁决：** 新增任何用户可见字符串（JS 写点 / HTML 绑定 / manifest 可本地化字段）必须经 `_locales`：键入 en（带 `description`）→ `npm run i18n:sync` → zh_CN/zh_TW 手译。英文回退只允许出现在「i18n runtime 缺失」的最后兜底位（`||` 右侧 / helper 兜底参数）；动态前缀（provider 名 / 语言名 / 快捷键）必须走 `$NAME$` 占位符族。
+- **裁决：** 新增任何用户可见字符串（JS 写点 / HTML 绑定 / manifest 可本地化字段）必须经 `_locales`：键入 en（带 `description`）→ `npm run i18n:translate` 落地全部 37 个目标语言**真翻译**（账本盖章）→ 静态门禁全绿（禁英文镜像，见下条 RULE）。英文回退只允许出现在「i18n runtime 缺失」的最后兜底位（`||` 右侧 / helper 兜底参数）；动态前缀（provider 名 / 语言名 / 快捷键）必须走 `$NAME$` 占位符族。
 - **实现点清单（规则对称性）：** `getMessageWithFallback`、`i18nOrDefault`、`auditPlaceholders`、`auditDescriptions`、`I18N_CHANNELS`、`classifyItems`（六个标识符；宿主文件与职责见 `tests/scripts/checkI18nChannels.test.js` 的 Implementation-point map）。
 - **测试：** `tests/static/i18nWrites.test.js`（L1 双向校准：干净绿 / 脏必红）、`tests/shared/i18nSentinelRules.test.js`（分类器 11 格自测）、`tests/static/i18nCompleteness.test.js`（占位符全枚举 + 删 token 负例）、`tests/static/i18nDescriptions.test.js`（冻结三负例 + 真树演示）、`tests/scripts/checkI18nChannels.test.js`（channels lint 七格 fixtures）。E2E：`tests/browser-e2e/i18n-sentinel.mjs`（五面运行时全称检查，CI E2E 套件内）。
-- **门禁纪律：** ① 文案改动先 red 后绿（先写断言复现缺失/回退，再补键/修写点）；② 新 en 键必带 `description`（冻结清单只缩不加）；③ content-script 写点一律 `getMessageWithFallback`、options 一律 `i18nOrDefault`——**禁止自写 `typeof chrome` / `chrome &&` 守卫**（platform-probe lint 硬失败）；④ 豁免仅 `// i18n-exempt: <category> — <理由>`，`legacy` 类计数必须保持 0；⑤ 改动守卫自身或管线接线后必须跑 `node scripts/check-i18n-channels.js` 与 `npm run i18n:check`。
+- **门禁纪律：** ① 文案改动先 red 后绿（先写断言复现缺失/回退，再补键/修写点）；② 新 en 键必带 `description`（冻结清单只缩不加）；③ content-script 写点一律 `getMessageWithFallback`、options 一律 `i18nOrDefault`——**禁止自写 `typeof chrome` / `chrome &&` 守卫**（platform-probe lint 硬失败）；④ 豁免仅 `// i18n-exempt: <category> — <理由>`，`legacy` 类计数必须保持 0；⑤ 改动守卫自身或管线接线后必须跑 `node scripts/check-i18n-channels.js`、`npm run i18n:check` 与 `node scripts/check-i18n-translations.js`。
+
+**RULE: i18n 真翻译规则（real-translation rule, plan 65）—— 38 个 locale 的每个非豁免值都必须是真翻译，且锚定当前 en 版本：**
+
+- **症状/机制：** 六条既有 i18n 通道（写点/哨兵/完整性/描述/同步/manifest）只保证「键齐、占位符、写点合规」——没有任何一条检查「值是不是真翻译」。fork 后受管翻译工具链不可用，新键经 `i18n:sync` 以英文深拷贝填充，逐次累积成 2,345 对英文镜面（#171/#173/#177 均照此惯例落盘），用户明确要求「扩展界面的 38 种语言都必须是真翻译」。
+- **裁决：** ① 非 en 语言值不得等于 en 文本（空白/大小写归一化比较；品牌与合法同形仅经 allowlist 登记，每条带理由，悬空/失效即红）；② 每个值必须锚定**当前** en 文本——账本 `tests/shared/i18n-translation-ledger.json` 记录每 (语言,键) 翻译所依据的 en 短哈希，en 文案一改全部失配 → 必须重译（`npm run i18n:translate`）或复核后 `restamp`；③ 手工直接修改任意语言译文不受限（哈希只锚 en）；④ 新键/改文案的标准工序 = en 定稿 → `i18n:translate` 全 37 语言真翻译 → 门禁绿。
+- **实现点清单（规则对称性）：** `auditTranslations`、`I18N_TRANSLATION_ALLOWLIST`、`checkI18nTranslations`、`translateLocales`（宿主文件与职责见 `tests/scripts/checkI18nChannels.test.js` 的 Implementation-point map）。
+- **测试：** `tests/static/i18nTranslations.test.js`（18 格：每个检测器证明可红、工具流端到端、真树锁）、E2E `i18n-behavior` I4（德语运行时真翻译抽查：DOM == `_locales/de` 值 且值 ≠ en）。
+- **门禁纪律：** ① 门禁入 pre-push（第 20 lint）与 CI i18n job 硬失败；② `i18n:sync` 英文填充仅限 allowlist 品牌键——其余缺键硬失败并指引 `i18n:translate`；③ 改动门禁/工具/allowlist/账本后跑 `node scripts/check-i18n-translations.js` + `node scripts/check-i18n-channels.js`；④ en 文案改动 = 全语言重译义务（工具报 stale；`restamp` 仅用于复核后的无义改动）。
 
 **RULE: core 边界规则（core boundary rule, plan 59 / plan 61）—— 引擎层（src/core/）必须 host-free：宿主能力一律经注入，shim 禁止夹带逻辑：**
 

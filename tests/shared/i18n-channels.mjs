@@ -4,12 +4,14 @@
  * Every mechanism that guarantees user-visible strings flow through
  * `src/_locales/` is registered here exactly once:
  *
- *   l1-write-sites        static write-site lint (hardcoded literals at JS writes)
- *   l3-sentinel           runtime completeness under a sentinel locale (5 surfaces)
- *   static-completeness   locale ⊇ en parity + full placeholder integrity
- *   description-freeze    new en keys must carry a translator description
- *   sync-pipeline         en→locales sync + dry check (missing/extra keys)
- *   manifest-msg          manifest localizable fields resolve through __MSG_
+ *   l1-write-sites         static write-site lint (hardcoded literals at JS writes)
+ *   l3-sentinel            runtime completeness under a sentinel locale (5 surfaces)
+ *   static-completeness    locale ⊇ en parity + full placeholder integrity
+ *   description-freeze     new en keys must carry a translator description
+ *   sync-pipeline          en→locales sync + dry check (missing/extra keys)
+ *   translation-integrity  real translations: no en mirrors, fresh ledger,
+ *                          exact allowlist (plan 65)
+ *   manifest-msg           manifest localizable fields resolve through __MSG_
  *
  * The channels meta-lint (`scripts/check-i18n-channels.js`, the 17th
  * architecture lint) three-way checks each entry: the guard script exists, its
@@ -80,6 +82,18 @@ export const I18N_CHANNELS = [
       { file: "package.json", needle: "i18n:check" },
       { file: "scripts/pre-push-verify.sh", needle: "i18n:check" },
       { file: ".github/workflows/ci.yml", needle: "i18n:check" },
+    ],
+  },
+  {
+    id: "translation-integrity",
+    name: "real-translation gate (no English mirrors, fresh ledger, exact allowlist)",
+    kind: "hard",
+    guard: { script: "scripts/check-i18n-translations.js" },
+    testAnchor: { file: "tests/static/i18nTranslations.test.js", marker: "translation-integrity" },
+    wiring: [
+      { file: "scripts/pre-push-verify.sh", needle: "check-i18n-translations.js" },
+      { file: ".github/workflows/ci.yml", needle: "check-i18n-translations.js" },
+      { file: "package.json", needle: "i18n:translate" },
     ],
   },
   {

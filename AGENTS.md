@@ -25,18 +25,19 @@
 ## 代码铁律
 
 1. **精确补丁**：只用 patch 工具 + 精确上下文。禁止 sed/awk 批量替换（历史上有 3 次事故）。
-2. **i18n**：`src/` 下所有字符串必须走 i18n（`_locales/`），注释必须纯英文（CI hard failure）。
+2. **i18n**：`src/` 下所有字符串必须走 i18n（`_locales/`），且每个 locale 值必须是真翻译（非英文镜面 + 账本锚定当前 en；plan 65），注释必须纯英文（CI hard failure）。
 3. **规则落档**：任何新规则/新教训必须写入根 `CLAUDE.md`  和 AGENTS.md 或 `tests/CLAUDE.md` 或 dualtran-extension skill，禁止只存在口头/临时记忆中。
 
-## i18n 机制表（spec 47 —— 写文案前查这 6 通道）
+## i18n 机制表（spec 47 + plan 65 —— 写文案前查这 7 通道）
 
 | 通道 | 守卫 | 正确姿势 | 陷阱 |
 |---|---|---|---|
 | 写点（JS） | `check-i18n-writes.js`（CI + pre-push） | 写点经 `getMessageWithFallback`（content-script）/ `i18nOrDefault`（options） | 自写 `typeof chrome` / `chrome &&` 守卫会挂 platform-probe lint 硬失败；`||` 右侧英文仅限「runtime 缺失」最后兜底 |
 | 运行时 | `i18n-sentinel.mjs`（E2E 五面哨兵） | 新面接入哨兵；放行三层：自动派生 > `data-i18n-exempt` > register | register 条目必须命中且带理由（stale 报告点名）；跑 E2E 前必 `npm run build` |
-| 静态完整性 | `i18nCompleteness.test.js` | 新键 `npm run i18n:sync` + zh 手译 | 占位符 token 按名对齐（顺序自由）、映射镜像 en；legacy 字面值样式被冻结 |
+| 静态完整性 | `i18nCompleteness.test.js` | 新键与 en 键集平行（i18n:check） | 占位符 token 按名对齐（顺序自由）、映射镜像 en；legacy 字面值样式被冻结 |
 | 译者描述 | `i18nDescriptions.test.js` | 新 en 键必带 `description` | 冻结清单只缩：键补了描述必须从清单摘除 |
-| 同步管线 | `sync-locales.js`（`i18n:sync` / `i18n:check`） | 改 en 后 sync；check 已挂 CI + pre-push | 旧 `i18n:apply` / `i18n:verify` 已删（依赖从未存在的文件） |
+| 同步管线 | `sync-locales.js`（`i18n:sync` / `i18n:check`） | 缺键英文填充仅限 allowlist 品牌键；其余缺键硬失败 → `i18n:translate` | 旧 `i18n:apply` / `i18n:verify` 已删（依赖从未存在的文件） |
+| 真翻译（L4） | `check-i18n-translations.js`（pre-push + CI 硬失败） | 写文案后的落地：`npm run i18n:translate` 全 37 语言真翻译；改 en → 工具报 stale → 重译或复核 restamp | 品牌/合法同形走 allowlist（带理由，失效即红）；手工改任意语言译文不受限；账本 `i18n-translation-ledger.json` 锚定 en 版本 |
 | manifest | `manifestValidation.test.js` | 可本地化头字段走 `__MSG_` | description 变更影响 chrome://extensions 卡片文案 |
 
 ## 诊断铁律（状态 bug）

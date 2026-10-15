@@ -63,17 +63,17 @@
     "message": "Zhipu AI (GLM)"
   },
   "alertSpecifyTargetLanguage": {
-    "message": "Please specify target language first."
+    "message": "Especifica primer l'idioma de destinació."
   },
   "backupToFile": {
     "message": "Fes una còpia de seguretat"
   },
   "btnAddCustomModelTooltip": {
-    "message": "Add a custom model",
+    "message": "Afegeix un model personalitzat",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
   },
   "btnAddCustomProviderTooltip": {
-    "message": "Add a custom provider not in the list",
+    "message": "Afegeix un proveïdor personalitzat que no sigui a la llista",
     "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
   },
   "btnAlwaysTranslate": {
@@ -104,14 +104,14 @@
     "message": "Aplica"
   },
   "btnChangeLanguages": {
-    "message": "Change languages",
+    "message": "Canvia d'idiomes",
     "description": "Popup/mobile menu row: open the change-languages view"
   },
   "btnFeedbackCopyDiagnostics": {
-    "message": "Copy diagnostic info"
+    "message": "Copia la informació de diagnòstic"
   },
   "btnFeedbackOpenGitHub": {
-    "message": "Open GitHub issue form"
+    "message": "Obre el formulari d'incidències del GitHub"
   },
   "btnListen": {
     "message": "Llegeix"
@@ -123,7 +123,7 @@
     "message": "Pàgina traduïda"
   },
   "btnMoreLanguages": {
-    "message": "More languages",
+    "message": "Més idiomes",
     "description": "Panels' '+' button tooltip: open the full target-language list"
   },
   "btnMoreOptions": {
@@ -161,7 +161,7 @@
     "message": "Tradueix"
   },
   "btnTryAgain": {
-    "message": "Try Again",
+    "message": "Torna-ho a provar",
     "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
@@ -204,13 +204,13 @@
     "message": "Escriviu una drecera"
   },
   "errorAiNoResponse": {
-    "message": "No response from AI provider. Please verify your API key and model name."
+    "message": "No hi ha resposta del proveïdor d'AI. Verifica la clau API i el nom del model."
   },
   "errorAiResponseNoTranslationTags": {
-    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+    "message": "La resposta de l'AI no contenia les etiquetes de traducció esperades. Pot ser que el model hagi retornat text en un format inesperat."
   },
   "errorApiKeyNotFound": {
-    "message": "API key not found!"
+    "message": "No s'ha trobat la clau API!"
   },
   "errorCopyFailed": {
     "message": "Error en copiar."
@@ -219,11 +219,11 @@
     "message": "Error en copiar el text. Probablement perquè el protocol de l'URL de la pàgina és HTTP insegur, no HTTPS."
   },
   "errorTranslationFailed": {
-    "message": "Translation failed",
+    "message": "La traducció ha fallat",
     "description": "Toast + in-box error text when a text translation request fails"
   },
   "errorTranslationTimeout": {
-    "message": "Translation request timed out",
+    "message": "S'ha esgotat el temps d'espera de la sol·licitud de traducció",
     "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
@@ -248,13 +248,13 @@
     "message": "Sembla que el fitxer està malmès"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "Show AI translation"
+    "message": "Mostra la traducció amb AI"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "Show Google translation"
+    "message": "Mostra la traducció de Google"
   },
   "floatingButtonOriginalTooltip": {
-    "message": "Show original text"
+    "message": "Mostra el text original"
   },
   "hideOriginalText": {
     "message": "Amaga el text original"
@@ -269,7 +269,7 @@
     "message": "Escriviu una lletra"
   },
   "lblActivateTheExtension": {
-    "message": "Activate the extension",
+    "message": "Activa l'extensió",
     "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
   },
   "lblAdd": {
@@ -283,11 +283,11 @@
     "message": "Proveïdor d'IA"
   },
   "lblAiReasoningDepth": {
-    "message": "Reasoning depth",
+    "message": "Profunditat de raonament",
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
-    "message": "Color of AI translated text "
+    "message": "Color del text traduït amb AI"
   },
   "lblAlwaysTranslate": {
     "message": "Tradueix sempre l'idioma $LANGUAGE_NAME$",
@@ -314,14 +314,14 @@
     "message": "Mode fosc"
   },
   "lblEnableAiTranslationCache": {
-    "message": "Enable AI translation cache",
+    "message": "Activa la memòria cau de traducció amb AI",
     "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
     "message": "Activa el servei de traducció de texts DeepL"
   },
   "lblEnterApiKey": {
-    "message": "Enter API key"
+    "message": "Introdueix la clau API"
   },
   "lblError": {
     "message": "No s'ha pogut traduir aquesta pàgina"
@@ -336,22 +336,22 @@
     }
   },
   "lblFeedbackIntro": {
-    "message": "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser and system already filled in."
+    "message": "Informa d'errors o suggereix funcions a GitHub Issues — el formulari s'obre amb la versió de l'extensió, el navegador i el sistema ja emplenats."
   },
   "lblFeedbackNoGithub": {
-    "message": "No GitHub account? You can still reach us:"
+    "message": "No tens compte de GitHub? També ens pots contactar:"
   },
   "lblFeedbackStoreSupport": {
-    "message": "Chrome Web Store support section"
+    "message": "Secció d'assistència de Chrome Web Store"
   },
   "lblFreeTranslationEngine": {
-    "message": "Free translation engine"
+    "message": "Motor de traducció gratuït"
   },
   "lblHotTranslatedSelectedText": {
     "message": "Substitueix el text seleccionat pel text traduït a l'instant"
   },
   "lblHowToGetProviderApiKey": {
-    "message": "How to get $PROVIDER_NAME$ API Key?",
+    "message": "Com obtenir la clau API de $PROVIDER_NAME$?",
     "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -385,7 +385,7 @@
     "message": "Paràmetres personals"
   },
   "lblProviderApiEndpoint": {
-    "message": "$PROVIDER_NAME$ API Endpoint URL",
+    "message": "URL del punt final de l'API de $PROVIDER_NAME$",
     "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -395,7 +395,7 @@
     }
   },
   "lblProviderApiKey": {
-    "message": "$PROVIDER_NAME$ API Key",
+    "message": "Clau API de $PROVIDER_NAME$",
     "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -405,7 +405,7 @@
     }
   },
   "lblProviderDocumentation": {
-    "message": "$PROVIDER_NAME$ Documentation",
+    "message": "Documentació de $PROVIDER_NAME$",
     "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -415,7 +415,7 @@
     }
   },
   "lblProviderModel": {
-    "message": "$PROVIDER_NAME$ Model",
+    "message": "Model de $PROVIDER_NAME$",
     "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -425,7 +425,7 @@
     }
   },
   "lblProviderReasoningDepth": {
-    "message": "$PROVIDER_NAME$ Reasoning Depth",
+    "message": "Profunditat de raonament de $PROVIDER_NAME$",
     "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -444,7 +444,7 @@
     "message": "Restaura la pàgina original"
   },
   "lblSelectPopupInterfaceStyle": {
-    "message": "Select popup interface style"
+    "message": "Selecciona l'estil de la interfície emergent"
   },
   "lblSettings": {
     "message": "Paràmetres"
@@ -456,7 +456,7 @@
     "message": "Mostra el text original en passar el cursor"
   },
   "lblShowOriginalTextWhenHoveringNote": {
-    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+    "message": "Només té efecte quan \"On mostrar el text traduït\" està definit com a \"Substitueix el text original pel text traduït\"."
   },
   "lblShowTranslateSelectedButton": {
     "message": "Mostra el botó per traduir el text seleccionat"
@@ -583,49 +583,49 @@
     "message": "Automàtic"
   },
   "msgCannotLoadGoogleGeminiModels": {
-    "message": "Unable to load Google Gemini models",
+    "message": "No es poden carregar els models de Google Gemini",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
   },
   "msgDefault": {
-    "message": "Default",
+    "message": "Predeterminat",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgEnterDictionaryKeyword": {
-    "message": "Enter the keyword, minimum two letters",
+    "message": "Introdueix la paraula clau, mínim dues lletres",
     "description": "prompt() dialog: custom dictionary keyword"
   },
   "msgEnterDictionaryValue": {
-    "message": "(Optional)\nYou can enter a value to replace it, or fill in nothing.",
+    "message": "(Opcional)\nPots introduir un valor per substituir-la, o no omplir res.",
     "description": "prompt() dialog: custom dictionary replacement value (optional)"
   },
   "msgEnterModelName": {
-    "message": "Enter model name/ID:",
+    "message": "Introdueix el nom/ID del model:",
     "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
   },
   "msgEnterProviderApiBase": {
-    "message": "Enter API Endpoint URL (optional, press OK to skip):",
+    "message": "Introdueix l'URL de l'endpoint de l'API (opcional, prem D'acord per ometre-ho):",
     "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
   },
   "msgEnterProviderName": {
-    "message": "Enter provider name:",
+    "message": "Introdueix el nom del proveïdor:",
     "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
   },
   "msgEnterSiteHostname": {
-    "message": "Enter the site hostname",
+    "message": "Introdueix el nom d'amfitrió del lloc",
     "description": "prompt() dialog for adding a site (always/never/hover lists)"
   },
   "msgErrorDownloadingDocument": {
     "message": "S'ha produït un error en baixar el document"
   },
   "msgErrorLoadingModels": {
-    "message": "Error loading models",
+    "message": "Error en carregar els models",
     "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "Idiomes preferits"
   },
   "msgFeedbackCopied": {
-    "message": "Copied"
+    "message": "Copiat"
   },
   "msgFileLargerThan": {
     "message": "Aquest servei no admet fitxers més grans de $FILE_SIZE$",
@@ -652,7 +652,7 @@
     "message": "S’està carregant..."
   },
   "msgModelListFetchFailed": {
-    "message": "Failed to fetch model list with API key. Available models:"
+    "message": "No s'ha pogut obtenir la llista de models amb la clau API. Models disponibles:"
   },
   "msgNo": {
     "message": "No"
@@ -673,35 +673,35 @@
     "message": "Espereu..."
   },
   "msgReasoningDepthHigh": {
-    "message": "High",
+    "message": "Alt",
     "description": "Reasoning depth option label (models.dev effort value: high)."
   },
   "msgReasoningDepthLow": {
-    "message": "Low",
+    "message": "Baix",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
   "msgReasoningDepthMax": {
-    "message": "Max",
+    "message": "Màxim",
     "description": "Reasoning depth option label (models.dev effort value: max)."
   },
   "msgReasoningDepthMedium": {
-    "message": "Medium",
+    "message": "Mitjà",
     "description": "Reasoning depth option label (models.dev effort value: medium)."
   },
   "msgReasoningDepthMinimal": {
-    "message": "Minimal",
+    "message": "Mínim",
     "description": "Reasoning depth option label (models.dev effort value: minimal)."
   },
   "msgReasoningDepthNone": {
-    "message": "None",
+    "message": "Cap",
     "description": "Reasoning depth option label (models.dev effort value: none)."
   },
   "msgReasoningDepthProviderDefault": {
-    "message": "Default (provider)",
+    "message": "Predeterminat (proveïdor)",
     "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
   },
   "msgReasoningDepthXHigh": {
-    "message": "XHigh",
+    "message": "Molt alt",
     "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
@@ -738,7 +738,7 @@
     "message": "Tradueix el text selecionat"
   },
   "msgTranslateWithAi": {
-    "message": "Translate with AI to $LANGUAGE_NAME$",
+    "message": "Tradueix amb AI a $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -747,7 +747,7 @@
     }
   },
   "msgTranslateWithGoogle": {
-    "message": "Translate with Google to $LANGUAGE_NAME$",
+    "message": "Tradueix amb Google a $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -756,11 +756,11 @@
     }
   },
   "msgTranslationError": {
-    "message": "translation error",
+    "message": "error de traducció",
     "description": "aria-label suffix on the error icon of the block translation indicator"
   },
   "msgTranslationInProgress": {
-    "message": "translation in progress",
+    "message": "traducció en curs",
     "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
@@ -803,7 +803,7 @@
     "message": "Fes que la icona emergent sigui blava en traduir el lloc"
   },
   "promptInputOpenAIKey": {
-    "message": "Please input your OpenAI API Key:"
+    "message": "Introdueix la teva clau API d'OpenAI:"
   },
   "promptInputOpenRouterKey": {
     "message": "Introdueix la teva clau API d'OpenRouter:"
@@ -842,39 +842,39 @@
     "message": "Tradueix la pàgina fent clic al botó de la barra d'adreces (per veure la finestra emergent, feu clic amb el botó dret)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "When to display the paragraph button group",
+    "message": "Quan mostrar el grup de botons del paràgraf",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {
-    "message": "Show on hover or click",
+    "message": "Mostra en passar el cursor o fer clic",
     "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
   },
   "blockBtnGroupDisplayAlways": {
-    "message": "Always show",
+    "message": "Mostra sempre",
     "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
   },
   "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Always-visible style",
+    "message": "Estil de visualització permanent",
     "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
   },
   "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Small badge (click to expand)",
+    "message": "Insígnia petita (fes clic per ampliar)",
     "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
   },
   "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Three buttons shown directly",
+    "message": "Tres botons mostrats directament",
     "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
   },
   "lblBlockBtnGroupShowOnHover": {
-    "message": "Show the paragraph button group when hovering over a paragraph",
+    "message": "Mostra el grup de botons del paràgraf en passar el cursor per sobre d'un paràgraf",
     "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblBlockBtnGroupShowOnClick": {
-    "message": "Show the paragraph button group when clicking a paragraph",
+    "message": "Mostra el grup de botons del paràgraf en fer clic en un paràgraf",
     "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
   },
   "blockBtnGroupBadgeTooltip": {
-    "message": "Paragraph translation options",
+    "message": "Opcions de traducció del paràgraf",
     "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

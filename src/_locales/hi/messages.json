@@ -69,11 +69,11 @@
     "message": "फाइल करने के लिए बैकअप"
   },
   "btnAddCustomModelTooltip": {
-    "message": "Add a custom model",
+    "message": "कस्टम मॉडल जोड़ें",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
   },
   "btnAddCustomProviderTooltip": {
-    "message": "Add a custom provider not in the list",
+    "message": "सूची में न होने वाला कस्टम प्रदाता जोड़ें",
     "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
   },
   "btnAlwaysTranslate": {
@@ -104,14 +104,14 @@
     "message": "लागू"
   },
   "btnChangeLanguages": {
-    "message": "Change languages",
+    "message": "भाषाएँ बदलें",
     "description": "Popup/mobile menu row: open the change-languages view"
   },
   "btnFeedbackCopyDiagnostics": {
-    "message": "Copy diagnostic info"
+    "message": "डायग्नोस्टिक जानकारी कॉपी करें"
   },
   "btnFeedbackOpenGitHub": {
-    "message": "Open GitHub issue form"
+    "message": "GitHub समस्या फ़ॉर्म खोलें"
   },
   "btnListen": {
     "message": "बात सुनो"
@@ -123,7 +123,7 @@
     "message": "अनूदित"
   },
   "btnMoreLanguages": {
-    "message": "More languages",
+    "message": "अधिक भाषाएँ",
     "description": "Panels' '+' button tooltip: open the full target-language list"
   },
   "btnMoreOptions": {
@@ -139,7 +139,7 @@
     "message": "विकल्प"
   },
   "btnOriginal": {
-    "message": "Original",
+    "message": "मूल",
     "description": "Floating + hover button group: the 'show original' engine button label"
   },
   "btnReplace": {
@@ -161,7 +161,7 @@
     "message": "अनुवाद करना"
   },
   "btnTryAgain": {
-    "message": "Try Again",
+    "message": "फिर से प्रयास करें",
     "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
@@ -204,10 +204,10 @@
     "message": "शॉर्टकट टाइप करें"
   },
   "errorAiNoResponse": {
-    "message": "No response from AI provider. Please verify your API key and model name."
+    "message": "AI प्रदाता से कोई प्रतिक्रिया नहीं मिली। कृपया अपनी API कुंजी और मॉडल नाम सत्यापित करें।"
   },
   "errorAiResponseNoTranslationTags": {
-    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+    "message": "AI प्रतिक्रिया में अपेक्षित अनुवाद टैग नहीं थे। मॉडल ने अप्रत्याशित प्रारूप में टेक्स्ट लौटाया हो सकता है।"
   },
   "errorApiKeyNotFound": {
     "message": "API कुंजी नहीं मिली!"
@@ -219,11 +219,11 @@
     "message": "टेक्स्ट कॉपी करना असफल। संभवतः इसलिए कि पृष्ठ का URL प्रोटोकॉल असुरक्षित HTTP है, HTTPS नहीं।"
   },
   "errorTranslationFailed": {
-    "message": "Translation failed",
+    "message": "अनुवाद विफल रहा",
     "description": "Toast + in-box error text when a text translation request fails"
   },
   "errorTranslationTimeout": {
-    "message": "Translation request timed out",
+    "message": "अनुवाद अनुरोध का समय समाप्त हो गया",
     "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
@@ -248,16 +248,16 @@
     "message": "फ़ाइल दूषित प्रतीत होती है"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "Show AI translation"
+    "message": "AI अनुवाद दिखाएँ"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "Show Google translation"
+    "message": "Google अनुवाद दिखाएँ"
   },
   "floatingButtonOriginalTooltip": {
-    "message": "Show original text"
+    "message": "मूल टेक्स्ट दिखाएँ"
   },
   "hideOriginalText": {
-    "message": "Hide original text"
+    "message": "मूल टेक्स्ट छिपाएँ"
   },
   "hotkeyError_ctrlOrAlt": {
     "message": "Ctrl या Alt शामिल करें"
@@ -269,7 +269,7 @@
     "message": "एक पत्र लिखें"
   },
   "lblActivateTheExtension": {
-    "message": "Activate the extension",
+    "message": "एक्सटेंशन सक्रिय करें",
     "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
   },
   "lblAdd": {
@@ -283,11 +283,11 @@
     "message": "एआई प्रदाता"
   },
   "lblAiReasoningDepth": {
-    "message": "Reasoning depth",
+    "message": "तर्क की गहराई",
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
-    "message": "Color of AI translated text "
+    "message": "AI अनुवादित टेक्स्ट का रंग"
   },
   "lblAlwaysTranslate": {
     "message": "हमेशा $LANGUAGE_NAME$ से अनुवाद करें",
@@ -314,14 +314,14 @@
     "message": "अंधेरा मोड"
   },
   "lblEnableAiTranslationCache": {
-    "message": "Enable AI translation cache",
+    "message": "AI अनुवाद कैश सक्षम करें",
     "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
     "message": "डीपएल को टेक्स्ट अनुवाद सेवा के रूप में सक्षम करें"
   },
   "lblEnterApiKey": {
-    "message": "Enter API key"
+    "message": "API कुंजी दर्ज करें"
   },
   "lblError": {
     "message": "इस पृष्ठ का अनुवाद नहीं किया जा सका"
@@ -336,22 +336,22 @@
     }
   },
   "lblFeedbackIntro": {
-    "message": "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser and system already filled in."
+    "message": "GitHub Issues पर बग रिपोर्ट करें या सुविधाओं का सुझाव दें — फ़ॉर्म आपके एक्सटेंशन संस्करण, ब्राउज़र और सिस्टम के साथ पहले से भरा हुआ खुलता है।"
   },
   "lblFeedbackNoGithub": {
-    "message": "No GitHub account? You can still reach us:"
+    "message": "GitHub खाता नहीं है? आप फिर भी हमसे संपर्क कर सकते हैं:"
   },
   "lblFeedbackStoreSupport": {
-    "message": "Chrome Web Store support section"
+    "message": "Chrome Web Store सहायता अनुभाग"
   },
   "lblFreeTranslationEngine": {
-    "message": "Free translation engine"
+    "message": "निःशुल्क अनुवाद इंजन"
   },
   "lblHotTranslatedSelectedText": {
     "message": "चयनित टेक्स्ट को तुरंत अनुवादित टेक्स्ट से बदलें"
   },
   "lblHowToGetProviderApiKey": {
-    "message": "How to get $PROVIDER_NAME$ API Key?",
+    "message": "$PROVIDER_NAME$ API कुंजी कैसे प्राप्त करें?",
     "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -385,7 +385,7 @@
     "message": "व्यक्तिगत सेटिंग"
   },
   "lblProviderApiEndpoint": {
-    "message": "$PROVIDER_NAME$ API Endpoint URL",
+    "message": "$PROVIDER_NAME$ API एंडपॉइंट URL",
     "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -395,7 +395,7 @@
     }
   },
   "lblProviderApiKey": {
-    "message": "$PROVIDER_NAME$ API Key",
+    "message": "$PROVIDER_NAME$ API कुंजी",
     "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -405,7 +405,7 @@
     }
   },
   "lblProviderDocumentation": {
-    "message": "$PROVIDER_NAME$ Documentation",
+    "message": "$PROVIDER_NAME$ दस्तावेज़",
     "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -415,7 +415,7 @@
     }
   },
   "lblProviderModel": {
-    "message": "$PROVIDER_NAME$ Model",
+    "message": "$PROVIDER_NAME$ मॉडल",
     "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -425,7 +425,7 @@
     }
   },
   "lblProviderReasoningDepth": {
-    "message": "$PROVIDER_NAME$ Reasoning Depth",
+    "message": "$PROVIDER_NAME$ तर्क गहराई",
     "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -456,7 +456,7 @@
     "message": "मँडराते समय मूल पाठ दिखाएँ"
   },
   "lblShowOriginalTextWhenHoveringNote": {
-    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+    "message": "यह केवल तब प्रभावी होता है जब \"अनुवादित पाठ कहाँ प्रदर्शित करें\" को \"मूल पाठ को अनुवादित पाठ से बदलें\" पर सेट किया गया हो।"
   },
   "lblShowTranslateSelectedButton": {
     "message": "चयनित पाठ का अनुवाद करने के लिए बटन दिखाएं"
@@ -583,49 +583,49 @@
     "message": "स्वचालित"
   },
   "msgCannotLoadGoogleGeminiModels": {
-    "message": "Unable to load Google Gemini models",
+    "message": "Google Gemini मॉडल लोड नहीं किए जा सके",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
   },
   "msgDefault": {
-    "message": "Default",
+    "message": "डिफ़ॉल्ट",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgEnterDictionaryKeyword": {
-    "message": "Enter the keyword, minimum two letters",
+    "message": "कीवर्ड दर्ज करें, कम से कम दो अक्षर",
     "description": "prompt() dialog: custom dictionary keyword"
   },
   "msgEnterDictionaryValue": {
-    "message": "(Optional)\nYou can enter a value to replace it, or fill in nothing.",
+    "message": "(वैकल्पिक)\nआप इसे बदलने के लिए कोई मान दर्ज कर सकते हैं, या कुछ भी न भरें।",
     "description": "prompt() dialog: custom dictionary replacement value (optional)"
   },
   "msgEnterModelName": {
-    "message": "Enter model name/ID:",
+    "message": "मॉडल नाम/आईडी दर्ज करें:",
     "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
   },
   "msgEnterProviderApiBase": {
-    "message": "Enter API Endpoint URL (optional, press OK to skip):",
+    "message": "API एंडपॉइंट URL दर्ज करें (वैकल्पिक, छोड़ने के लिए OK दबाएँ):",
     "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
   },
   "msgEnterProviderName": {
-    "message": "Enter provider name:",
+    "message": "प्रदाता का नाम दर्ज करें:",
     "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
   },
   "msgEnterSiteHostname": {
-    "message": "Enter the site hostname",
+    "message": "साइट का होस्टनाम दर्ज करें",
     "description": "prompt() dialog for adding a site (always/never/hover lists)"
   },
   "msgErrorDownloadingDocument": {
     "message": "दस्तावेज़ डाउनलोड करने में त्रुटि"
   },
   "msgErrorLoadingModels": {
-    "message": "Error loading models",
+    "message": "मॉडल लोड करने में त्रुटि",
     "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "पसंदीदा भाषाएँ"
   },
   "msgFeedbackCopied": {
-    "message": "Copied"
+    "message": "कॉपी किया गया"
   },
   "msgFileLargerThan": {
     "message": "यह सेवा $FILE_SIZE$से बड़ी फ़ाइलों का समर्थन नहीं करती है",
@@ -652,7 +652,7 @@
     "message": "लोड हो रहा है..."
   },
   "msgModelListFetchFailed": {
-    "message": "Failed to fetch model list with API key. Available models:"
+    "message": "API कुंजी के साथ मॉडल सूची प्राप्त करने में विफल। उपलब्ध मॉडल:"
   },
   "msgNo": {
     "message": "नहीं"
@@ -673,35 +673,35 @@
     "message": "कृपया प्रतीक्षा करें..."
   },
   "msgReasoningDepthHigh": {
-    "message": "High",
+    "message": "उच्च",
     "description": "Reasoning depth option label (models.dev effort value: high)."
   },
   "msgReasoningDepthLow": {
-    "message": "Low",
+    "message": "निम्न",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
   "msgReasoningDepthMax": {
-    "message": "Max",
+    "message": "अधिकतम",
     "description": "Reasoning depth option label (models.dev effort value: max)."
   },
   "msgReasoningDepthMedium": {
-    "message": "Medium",
+    "message": "मध्यम",
     "description": "Reasoning depth option label (models.dev effort value: medium)."
   },
   "msgReasoningDepthMinimal": {
-    "message": "Minimal",
+    "message": "न्यूनतम",
     "description": "Reasoning depth option label (models.dev effort value: minimal)."
   },
   "msgReasoningDepthNone": {
-    "message": "None",
+    "message": "कोई नहीं",
     "description": "Reasoning depth option label (models.dev effort value: none)."
   },
   "msgReasoningDepthProviderDefault": {
-    "message": "Default (provider)",
+    "message": "डिफ़ॉल्ट (प्रदाता)",
     "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
   },
   "msgReasoningDepthXHigh": {
-    "message": "XHigh",
+    "message": "अति उच्च",
     "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
@@ -738,7 +738,7 @@
     "message": "चयनित विषय को अनूदित करें"
   },
   "msgTranslateWithAi": {
-    "message": "Translate with AI to $LANGUAGE_NAME$",
+    "message": "AI से $LANGUAGE_NAME$ में अनुवाद करें",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -747,7 +747,7 @@
     }
   },
   "msgTranslateWithGoogle": {
-    "message": "Translate with Google to $LANGUAGE_NAME$",
+    "message": "Google से $LANGUAGE_NAME$ में अनुवाद करें",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -756,11 +756,11 @@
     }
   },
   "msgTranslationError": {
-    "message": "translation error",
+    "message": "अनुवाद त्रुटि",
     "description": "aria-label suffix on the error icon of the block translation indicator"
   },
   "msgTranslationInProgress": {
-    "message": "translation in progress",
+    "message": "अनुवाद जारी है",
     "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
@@ -818,16 +818,16 @@
     "message": "फ़ाइल से पुनर्स्थापित करें"
   },
   "serviceGoogleTranslate": {
-    "message": "Google Translate"
+    "message": "Google अनुवाद"
   },
   "serviceMicrosoftTranslate": {
-    "message": "Microsoft Translator"
+    "message": "Microsoft अनुवादक"
   },
   "serviceTranslateWebPages": {
     "message": "DualTran"
   },
   "showOriginalText": {
-    "message": "Show original text"
+    "message": "मूल पाठ दिखाएँ"
   },
   "swapPopup": {
     "message": "सरल और उन्नत इंटरफ़ेस के बीच स्विच करें"
@@ -842,39 +842,39 @@
     "message": "पता बार में बटन पर एक बार क्लिक करके पृष्ठ का अनुवाद करें। (पॉपअप देखने के लिए राइट-क्लिक करें)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "When to display the paragraph button group",
+    "message": "पैराग्राफ बटन समूह कब दिखाएँ",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {
-    "message": "Show on hover or click",
+    "message": "हॉवर या क्लिक पर दिखाएँ",
     "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
   },
   "blockBtnGroupDisplayAlways": {
-    "message": "Always show",
+    "message": "हमेशा दिखाएँ",
     "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
   },
   "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Always-visible style",
+    "message": "हमेशा-दृश्यमान शैली",
     "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
   },
   "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Small badge (click to expand)",
+    "message": "छोटा बैज (विस्तार के लिए क्लिक करें)",
     "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
   },
   "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Three buttons shown directly",
+    "message": "तीन बटन सीधे दिखाएँ",
     "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
   },
   "lblBlockBtnGroupShowOnHover": {
-    "message": "Show the paragraph button group when hovering over a paragraph",
+    "message": "पैराग्राफ पर होवर करने पर पैराग्राफ बटन समूह दिखाएँ",
     "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblBlockBtnGroupShowOnClick": {
-    "message": "Show the paragraph button group when clicking a paragraph",
+    "message": "पैराग्राफ पर क्लिक करने पर पैराग्राफ बटन समूह दिखाएँ",
     "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
   },
   "blockBtnGroupBadgeTooltip": {
-    "message": "Paragraph translation options",
+    "message": "पैराग्राफ अनुवाद विकल्प",
     "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

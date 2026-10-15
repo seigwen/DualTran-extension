@@ -63,17 +63,17 @@
     "message": "Zhipu AI (GLM)"
   },
   "alertSpecifyTargetLanguage": {
-    "message": "Please specify target language first."
+    "message": "Especifique primeiro o idioma de destino."
   },
   "backupToFile": {
     "message": "Backup para arquivo"
   },
   "btnAddCustomModelTooltip": {
-    "message": "Add a custom model",
+    "message": "Adicionar um modelo personalizado",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
   },
   "btnAddCustomProviderTooltip": {
-    "message": "Add a custom provider not in the list",
+    "message": "Adicionar um fornecedor personalizado que não consta da lista",
     "description": "Tooltip of the + button next to the AI provider dropdown in the options AI panel (adds a provider that is not in the list)."
   },
   "btnAlwaysTranslate": {
@@ -104,14 +104,14 @@
     "message": "Aplicar"
   },
   "btnChangeLanguages": {
-    "message": "Change languages",
+    "message": "Alterar idiomas",
     "description": "Popup/mobile menu row: open the change-languages view"
   },
   "btnFeedbackCopyDiagnostics": {
-    "message": "Copy diagnostic info"
+    "message": "Copiar informações de diagnóstico"
   },
   "btnFeedbackOpenGitHub": {
-    "message": "Open GitHub issue form"
+    "message": "Abrir formulário de problema no GitHub"
   },
   "btnListen": {
     "message": "Ouvir"
@@ -123,7 +123,7 @@
     "message": "Traduzido"
   },
   "btnMoreLanguages": {
-    "message": "More languages",
+    "message": "Mais idiomas",
     "description": "Panels' '+' button tooltip: open the full target-language list"
   },
   "btnMoreOptions": {
@@ -161,7 +161,7 @@
     "message": "Traduzir"
   },
   "btnTryAgain": {
-    "message": "Try Again",
+    "message": "Tentar novamente",
     "description": "Old popup error view: retry the failed action"
   },
   "btncopy": {
@@ -204,13 +204,13 @@
     "message": "Digite um atalho"
   },
   "errorAiNoResponse": {
-    "message": "No response from AI provider. Please verify your API key and model name."
+    "message": "Sem resposta do fornecedor de AI. Verifique a sua chave API e o nome do modelo."
   },
   "errorAiResponseNoTranslationTags": {
-    "message": "AI response did not contain expected translation tags. The model may have returned text in an unexpected format."
+    "message": "A resposta da AI não continha as etiquetas de tradução esperadas. É possível que o modelo tenha devolvido texto num formato inesperado."
   },
   "errorApiKeyNotFound": {
-    "message": "API key not found!"
+    "message": "Chave API não encontrada!"
   },
   "errorCopyFailed": {
     "message": "Falha ao copiar."
@@ -219,11 +219,11 @@
     "message": "Falha ao copiar texto. Provavelmente porque o protocolo do URL da página é HTTP inseguro, não HTTPS."
   },
   "errorTranslationFailed": {
-    "message": "Translation failed",
+    "message": "Falha na tradução",
     "description": "Toast + in-box error text when a text translation request fails"
   },
   "errorTranslationTimeout": {
-    "message": "Translation request timed out",
+    "message": "O pedido de tradução excedeu o tempo limite",
     "description": "Toast + in-box error text when a text translation request times out"
   },
   "errorTranslationUnknown": {
@@ -248,13 +248,13 @@
     "message": "O arquivo parece estar corrompido"
   },
   "floatingButtonAiTranslateTooltip": {
-    "message": "Show AI translation"
+    "message": "Mostrar tradução AI"
   },
   "floatingButtonGoogleTranslateTooltip": {
-    "message": "Show Google translation"
+    "message": "Mostrar tradução Google"
   },
   "floatingButtonOriginalTooltip": {
-    "message": "Show original text"
+    "message": "Mostrar texto original"
   },
   "hideOriginalText": {
     "message": "Ocultar texto original"
@@ -269,7 +269,7 @@
     "message": "Digite uma letra"
   },
   "lblActivateTheExtension": {
-    "message": "Activate the extension",
+    "message": "Ativar a extensão",
     "description": "Fallback label for the browser's reserved action command (_execute_action) in the keyboard shortcuts list, which the browser reports with an empty description."
   },
   "lblAdd": {
@@ -283,11 +283,11 @@
     "message": "Fornecedor de IA"
   },
   "lblAiReasoningDepth": {
-    "message": "Reasoning depth",
+    "message": "Profundidade de raciocínio",
     "description": "Label for the reasoning effort selector in the AI settings panel (values come from the model's declared reasoning options)"
   },
   "lblAiTranslatedStyle": {
-    "message": "Color of AI translated text "
+    "message": "Cor do texto traduzido por AI"
   },
   "lblAlwaysTranslate": {
     "message": "Traduzir sempre do $LANGUAGE_NAME$",
@@ -314,7 +314,7 @@
     "message": "Modo escuro"
   },
   "lblEnableAiTranslationCache": {
-    "message": "Enable AI translation cache",
+    "message": "Ativar cache de tradução AI",
     "description": "When enabled, AI translations are cached to IndexedDB and reused on page reload or revisit, saving API costs. Cache expires after 30 days."
   },
   "lblEnableDeepL": {
@@ -336,22 +336,22 @@
     }
   },
   "lblFeedbackIntro": {
-    "message": "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser and system already filled in."
+    "message": "Comunique erros ou sugira funcionalidades no GitHub Issues — o formulário abre com a versão da sua extensão, o navegador e o sistema já preenchidos."
   },
   "lblFeedbackNoGithub": {
-    "message": "No GitHub account? You can still reach us:"
+    "message": "Não tem conta GitHub? Ainda pode contactar-nos:"
   },
   "lblFeedbackStoreSupport": {
-    "message": "Chrome Web Store support section"
+    "message": "Secção de suporte da Chrome Web Store"
   },
   "lblFreeTranslationEngine": {
-    "message": "Free translation engine"
+    "message": "Motor de tradução gratuito"
   },
   "lblHotTranslatedSelectedText": {
     "message": "Substitua o texto selecionado pelo texto traduzido instantaneamente"
   },
   "lblHowToGetProviderApiKey": {
-    "message": "How to get $PROVIDER_NAME$ API Key?",
+    "message": "Como obter a chave API da $PROVIDER_NAME$?",
     "description": "Link text under the API key field in the options AI panel; $PROVIDER_NAME$ is the provider display name (e.g. OpenAI).",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -385,7 +385,7 @@
     "message": "Configurações pessoais"
   },
   "lblProviderApiEndpoint": {
-    "message": "$PROVIDER_NAME$ API Endpoint URL",
+    "message": "URL do endpoint da API da $PROVIDER_NAME$",
     "description": "Label above the API endpoint input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -395,7 +395,7 @@
     }
   },
   "lblProviderApiKey": {
-    "message": "$PROVIDER_NAME$ API Key",
+    "message": "Chave API da $PROVIDER_NAME$",
     "description": "Label above the API key input in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -405,7 +405,7 @@
     }
   },
   "lblProviderDocumentation": {
-    "message": "$PROVIDER_NAME$ Documentation",
+    "message": "Documentação da $PROVIDER_NAME$",
     "description": "Help link text under the API key field (fallback when the provider has no API-key help URL); $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -415,7 +415,7 @@
     }
   },
   "lblProviderModel": {
-    "message": "$PROVIDER_NAME$ Model",
+    "message": "Modelo da $PROVIDER_NAME$",
     "description": "Label above the model dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -425,7 +425,7 @@
     }
   },
   "lblProviderReasoningDepth": {
-    "message": "$PROVIDER_NAME$ Reasoning Depth",
+    "message": "Profundidade de raciocínio da $PROVIDER_NAME$",
     "description": "Label above the reasoning-depth dropdown in the options AI panel; $PROVIDER_NAME$ is the provider display name.",
     "placeholders": {
       "PROVIDER_NAME": {
@@ -456,7 +456,7 @@
     "message": "Mostrar o texto original ao passar o mouse"
   },
   "lblShowOriginalTextWhenHoveringNote": {
-    "message": "Only takes effect when \"Where to display the translated text\" is set to \"Replace original text with translated text\"."
+    "message": "Só tem efeito quando \"Onde apresentar o texto traduzido\" está definido como \"Substituir o texto original pelo texto traduzido\"."
   },
   "lblShowTranslateSelectedButton": {
     "message": "Mostrar o botão para traduzir o texto selecionado"
@@ -583,49 +583,49 @@
     "message": "Automático"
   },
   "msgCannotLoadGoogleGeminiModels": {
-    "message": "Unable to load Google Gemini models",
+    "message": "Não foi possível carregar os modelos Google Gemini",
     "description": "Model dropdown notice when the Gemini model list cannot be fetched"
   },
   "msgDefault": {
-    "message": "Default",
+    "message": "Predefinido",
     "description": "The 'no explicit value chosen / use the provider default' option (e.g. reasoning depth)"
   },
   "msgEnterDictionaryKeyword": {
-    "message": "Enter the keyword, minimum two letters",
+    "message": "Introduza a palavra-chave, mínimo de duas letras",
     "description": "prompt() dialog: custom dictionary keyword"
   },
   "msgEnterDictionaryValue": {
-    "message": "(Optional)\nYou can enter a value to replace it, or fill in nothing.",
+    "message": "(Opcional)\nPode introduzir um valor para o substituir, ou não preencher nada.",
     "description": "prompt() dialog: custom dictionary replacement value (optional)"
   },
   "msgEnterModelName": {
-    "message": "Enter model name/ID:",
+    "message": "Introduza o nome/ID do modelo:",
     "description": "Prompt dialog text when clicking the + button next to the model dropdown to add a custom model id."
   },
   "msgEnterProviderApiBase": {
-    "message": "Enter API Endpoint URL (optional, press OK to skip):",
+    "message": "Introduza o URL do endpoint da API (opcional, prima OK para ignorar):",
     "description": "Second prompt dialog text after a custom provider name was entered (the endpoint is optional)."
   },
   "msgEnterProviderName": {
-    "message": "Enter provider name:",
+    "message": "Introduza o nome do fornecedor:",
     "description": "Prompt dialog text when clicking the + button next to the AI provider dropdown."
   },
   "msgEnterSiteHostname": {
-    "message": "Enter the site hostname",
+    "message": "Introduza o nome do anfitrião do site",
     "description": "prompt() dialog for adding a site (always/never/hover lists)"
   },
   "msgErrorDownloadingDocument": {
     "message": "Erro ao baixar o documento"
   },
   "msgErrorLoadingModels": {
-    "message": "Error loading models",
+    "message": "Erro ao carregar os modelos",
     "description": "Model dropdown row when the model list cannot be loaded at all."
   },
   "msgFavoriteLanguages": {
     "message": "idiomas favoritos"
   },
   "msgFeedbackCopied": {
-    "message": "Copied"
+    "message": "Copiado"
   },
   "msgFileLargerThan": {
     "message": "Este serviço não oferece suporte a arquivos maiores que $FILE_SIZE$",
@@ -652,7 +652,7 @@
     "message": "A carregar..."
   },
   "msgModelListFetchFailed": {
-    "message": "Failed to fetch model list with API key. Available models:"
+    "message": "Falha ao obter a lista de modelos com a chave API. Modelos disponíveis:"
   },
   "msgNo": {
     "message": "Não"
@@ -673,35 +673,35 @@
     "message": "Por favor, aguarde..."
   },
   "msgReasoningDepthHigh": {
-    "message": "High",
+    "message": "Alto",
     "description": "Reasoning depth option label (models.dev effort value: high)."
   },
   "msgReasoningDepthLow": {
-    "message": "Low",
+    "message": "Baixo",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
   "msgReasoningDepthMax": {
-    "message": "Max",
+    "message": "Máximo",
     "description": "Reasoning depth option label (models.dev effort value: max)."
   },
   "msgReasoningDepthMedium": {
-    "message": "Medium",
+    "message": "Médio",
     "description": "Reasoning depth option label (models.dev effort value: medium)."
   },
   "msgReasoningDepthMinimal": {
-    "message": "Minimal",
+    "message": "Mínimo",
     "description": "Reasoning depth option label (models.dev effort value: minimal)."
   },
   "msgReasoningDepthNone": {
-    "message": "None",
+    "message": "Nenhum",
     "description": "Reasoning depth option label (models.dev effort value: none)."
   },
   "msgReasoningDepthProviderDefault": {
-    "message": "Default (provider)",
+    "message": "Predefinido (fornecedor)",
     "description": "Reasoning depth option label for the model-declared default (models.dev effort value: default), distinct from the generic Default option."
   },
   "msgReasoningDepthXHigh": {
-    "message": "XHigh",
+    "message": "Muito alto",
     "description": "Reasoning depth option label (models.dev effort value: xhigh)."
   },
   "msgRecents": {
@@ -738,7 +738,7 @@
     "message": "Traduzir o Texto Selecionado"
   },
   "msgTranslateWithAi": {
-    "message": "Translate with AI to $LANGUAGE_NAME$",
+    "message": "Traduzir com AI para $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -747,7 +747,7 @@
     }
   },
   "msgTranslateWithGoogle": {
-    "message": "Translate with Google to $LANGUAGE_NAME$",
+    "message": "Traduzir com o Google para $LANGUAGE_NAME$",
     "placeholders": {
       "LANGUAGE_NAME": {
         "content": "$1",
@@ -756,11 +756,11 @@
     }
   },
   "msgTranslationError": {
-    "message": "translation error",
+    "message": "erro de tradução",
     "description": "aria-label suffix on the error icon of the block translation indicator"
   },
   "msgTranslationInProgress": {
-    "message": "translation in progress",
+    "message": "tradução em curso",
     "description": "aria-label suffix on the loading spinner of the block translation indicator"
   },
   "msgTranslations": {
@@ -803,7 +803,7 @@
     "message": "Deixe o ícone pop-up azul quando o site for traduzido"
   },
   "promptInputOpenAIKey": {
-    "message": "Please input your OpenAI API Key:"
+    "message": "Introduza a sua chave API da OpenAI:"
   },
   "promptInputOpenRouterKey": {
     "message": "Introduz a tua chave API do OpenRouter:"
@@ -842,39 +842,39 @@
     "message": "Traduzir a página, clicando uma vez no botão na barra de endereço. (Para ver o popup, clique com o botão direito)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "When to display the paragraph button group",
+    "message": "Quando mostrar o grupo de botões do parágrafo",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {
-    "message": "Show on hover or click",
+    "message": "Mostrar ao passar o cursor ou ao clicar",
     "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
   },
   "blockBtnGroupDisplayAlways": {
-    "message": "Always show",
+    "message": "Mostrar sempre",
     "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
   },
   "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Always-visible style",
+    "message": "Estilo sempre visível",
     "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
   },
   "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Small badge (click to expand)",
+    "message": "Pequeno distintivo (clicar para expandir)",
     "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
   },
   "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Three buttons shown directly",
+    "message": "Três botões mostrados diretamente",
     "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
   },
   "lblBlockBtnGroupShowOnHover": {
-    "message": "Show the paragraph button group when hovering over a paragraph",
+    "message": "Mostrar o grupo de botões do parágrafo ao passar o cursor sobre um parágrafo",
     "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblBlockBtnGroupShowOnClick": {
-    "message": "Show the paragraph button group when clicking a paragraph",
+    "message": "Mostrar o grupo de botões do parágrafo ao clicar num parágrafo",
     "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
   },
   "blockBtnGroupBadgeTooltip": {
-    "message": "Paragraph translation options",
+    "message": "Opções de tradução do parágrafo",
     "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }
