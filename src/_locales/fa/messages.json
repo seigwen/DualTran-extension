@@ -842,7 +842,7 @@
     "message": "با یک بار کلیک کردن روی دکمه در نوار آدرس، صفحه را ترجمه کنید.  (برای دیدن پاپ آپ کلیک راست کنید)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "Display of the paragraph button group",
+    "message": "When to display the paragraph button group",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {

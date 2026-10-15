@@ -842,7 +842,7 @@
     "message": "Prevedite stran tako, da enkrat kliknete gumb v naslovni vrstici. (Za ogled pojavnega okna kliknite z desno miškino tipko)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "Display of the paragraph button group",
+    "message": "When to display the paragraph button group",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {

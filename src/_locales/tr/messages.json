@@ -842,7 +842,7 @@
     "message": "Sayfayı çevirmek için adres çubuğundaki düğmeye bir kez tıklayın. (Açılır pencereyi görmek için sağ tıklayın)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "Display of the paragraph button group",
+    "message": "When to display the paragraph button group",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {

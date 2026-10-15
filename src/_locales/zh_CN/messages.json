@@ -830,7 +830,7 @@
     "message": "鼠标左击地址栏中按钮，一键翻译页面。(右击可看到弹出窗口)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "段落按钮组的显示方式",
+    "message": "段落按钮组的显示时机",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {

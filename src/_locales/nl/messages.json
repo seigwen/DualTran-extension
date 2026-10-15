@@ -842,7 +842,7 @@
     "message": "Vertaal de pagina door eenmaal op de knop in de adresbalk te klikken. (Klik met de rechtermuisknop om de pop-up te zien)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "Display of the paragraph button group",
+    "message": "When to display the paragraph button group",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {

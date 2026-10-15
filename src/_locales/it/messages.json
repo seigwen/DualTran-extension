@@ -842,7 +842,7 @@
     "message": "Traduci la pagina facendo clic una volta sul pulsante nella barra degli indirizzi. (Per vedere le opzioni, fare clic con il tasto destro)"
   },
   "lblBlockBtnGroupDisplay": {
-    "message": "Display of the paragraph button group",
+    "message": "When to display the paragraph button group",
     "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
   },
   "blockBtnGroupDisplayTriggered": {
