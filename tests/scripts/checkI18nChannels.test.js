@@ -173,3 +173,11 @@ describe("check-i18n-channels lint", () => {
 //   auditDescriptions     — description freeze audit (i18nDescriptions.test.js)
 //   I18N_CHANNELS         — six-channel SSOT (tests/shared/i18n-channels.mjs)
 //   classifyItems         — sentinel classifier (tests/shared/i18n-sentinel-rules.mjs)
+
+// ── Implementation-point map (CLAUDE.md RULE 20: i18n real-translation rule, plan 65) ──
+// check-rule-symmetry resolves each identifier below to test coverage:
+//   auditTranslations          — the single gate implementation (scripts/i18n-translate.mjs;
+//                                exercised directly in tests/static/i18nTranslations.test.js)
+//   I18N_TRANSLATION_ALLOWLIST — legal-identity register (tests/shared/i18n-translation-allowlist.mjs)
+//   checkI18nTranslations      — the 20th architecture lint (scripts/check-i18n-translations.js)
+//   translateLocales           — the translation engine entry (scripts/i18n-translate.mjs)

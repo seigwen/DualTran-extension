@@ -22,7 +22,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from "nod
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { enHash } from "../../scripts/i18n-translate.mjs";
+import { auditTranslations, enHash } from "../../scripts/i18n-translate.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, "../..");
@@ -289,6 +289,17 @@ describe("real-translation gate (check-i18n-translations)", () => {
     expect(sync.status, sync.out).toBe(0);
     const de = JSON.parse(readFileSync(join(root, "src/_locales/de/messages.json"), "utf8"));
     expect(de.openaiLabel.message).toBe("OpenAI");
+  });
+
+  it("exposes the audit engine directly (single implementation shared with the lint)", async () => {
+    const root = buildFixture({
+      en: EN,
+      locals: { de: DE_OK },
+      ledger: stamped("de", EN, ["greet", "save"]),
+    });
+    const report = await auditTranslations(root);
+    expect(report.violations).toEqual([]);
+    expect(report.locales).toBe(2);
   });
 
   it("passes on the real tree (the permanent lock)", () => {

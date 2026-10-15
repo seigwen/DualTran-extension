@@ -56,15 +56,15 @@ function formatViolation(violation) {
   }
 }
 
-async function main() {
-  let audit;
+async function checkI18nTranslations() {
+  let auditTranslations;
   try {
-    ({ audit } = await import(pathToFileURL(path.join(SCRIPT_DIR, "i18n-translate.mjs")).href));
+    ({ auditTranslations } = await import(pathToFileURL(path.join(SCRIPT_DIR, "i18n-translate.mjs")).href));
   } catch (error) {
     console.error(`⚠️  Cannot load scripts/i18n-translate.mjs: ${error.message}`);
     process.exit(1);
   }
-  const report = await audit(SCAN_ROOT);
+  const report = await auditTranslations(SCAN_ROOT);
 
   if (asJson) {
     console.log(JSON.stringify(report, null, 2));
@@ -95,7 +95,11 @@ async function main() {
   process.exit(1);
 }
 
-main().catch((error) => {
-  console.error(error && error.stack ? error.stack : error);
-  process.exit(1);
-});
+module.exports = { checkI18nTranslations };
+
+if (require.main === module) {
+  checkI18nTranslations().catch((error) => {
+    console.error(error && error.stack ? error.stack : error);
+    process.exit(1);
+  });
+}

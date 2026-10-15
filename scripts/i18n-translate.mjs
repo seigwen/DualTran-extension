@@ -38,8 +38,8 @@
  *                             OpenAI-compatible chat endpoint (defaults via
  *                             env I18N_TRANSLATE_BASE_URL / _MODEL / _API_KEY)
  *
- * Single implementation: the lint delegates to audit() here so the gate and
- * the tooling can never drift apart.
+ * Single implementation: the lint delegates to auditTranslations() here so the
+ * gate and the tooling can never drift apart.
  */
 import { readFileSync, writeFileSync, readdirSync, existsSync, renameSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -187,7 +187,7 @@ export function validatePair(allow, en, locale, key, value) {
  * @param {string} root — tree to audit (repo root, or a test fixture root).
  * @returns {Promise<{violations: Array, counts: Object, locales: number}>}
  */
-export async function audit(root) {
+export async function auditTranslations(root) {
   const { locales, messages, raw } = loadLocales(root);
   const en = messages.en;
   if (!en) throw new Error(`en locale not found under ${localesDir(root)}`);
@@ -460,10 +460,11 @@ function buildSystemPrompt(locale) {
     `Rules:`,
     `- Output ONLY one strict JSON object: {"<key>": "<translation>"} covering exactly the provided keys. Keep the JSON keys EXACTLY as given (never translate the keys). No markdown fences, no commentary, no extra keys.`,
     `- Keep placeholders such as $PROVIDER_NAME$ / $LANGUAGE_NAME$ exactly as-is.`,
-    `- Keep product and brand names untranslated: DualTran, OpenAI, Google Gemini, DeepL, GitHub, Chrome Web Store, Microsoft, API, URL, AI.`,
+    `- Keep ONLY these product/brand tokens untranslated: DualTran, OpenAI, Google, Microsoft, Chrome Web Store, GitHub, API, URL, AI, and model product names (Gemini, DeepSeek, Claude...).`,
+    `- Everything else must be ${name}: never copy an English word merely because it is understood — use the standard localized software term (e.g. German "API-Schlüssel" / "API-Endpunkt", French "clé API"). When in doubt, translate.`,
+    `- Reasoning-depth values (None / Minimal / Low / Medium / High / XHigh / Max / Default) map to the language's natural severity words.`,
     `- Concise UI register: short labels stay short; sentences stay natural; keep the trailing punctuation style of the English source.`,
     `- Use the terminology established in the reference translations below.`,
-    `- Never leave the English wording unless it is a brand name or a token.`,
   ].join("\n");
 }
 
@@ -482,7 +483,7 @@ function buildUser(referenceBlock, locale, payload) {
  * key-by-key) and `flagged` (valid-looking but rejected pairs — e.g. a
  * translator output identical to en that should be allowlisted or retried).
  */
-export async function run(root, opts = {}) {
+export async function translateLocales(root, opts = {}) {
   const base = opts.base || process.env.I18N_TRANSLATE_BASE_URL || "";
   const model = opts.model || process.env.I18N_TRANSLATE_MODEL || "";
   const apiKey = opts.key || process.env.I18N_TRANSLATE_API_KEY || "not-needed";
@@ -520,6 +521,9 @@ export async function run(root, opts = {}) {
   const flagged = [];
   const translations = {};
   let planned = 0;
+  let totalApplied = 0;
+  const appliedErrors = [];
+  const appliedNotes = [];
 
   for (const [locale, keys] of Object.entries(targetsByLocale)) {
     // Reference pairs: earlier real translations of this locale (style memory).
@@ -597,6 +601,17 @@ export async function run(root, opts = {}) {
       }
       if (pauseMs > 0) await sleep(pauseMs);
     }
+
+    // Apply this locale immediately — incremental progress survives a
+    // timeout/crash, and the working tree advances locale by locale.
+    if (!opts.dry && translations[locale] && Object.keys(translations[locale]).length > 0) {
+      const appliedNow = await applyTranslations(root, { [locale]: translations[locale] }, {});
+      if (!appliedNow.ok) appliedErrors.push(...appliedNow.errors);
+      totalApplied += appliedNow.applied;
+      appliedNotes.push(...appliedNow.notes);
+      console.log(`  [run] ${locale}: applied ${appliedNow.applied}`);
+      delete translations[locale];
+    }
   }
 
   if (planned === 0) {
@@ -605,13 +620,12 @@ export async function run(root, opts = {}) {
   if (opts.dry) {
     return { ok: true, dry: true, planned, failures, flagged, translations };
   }
-  const applied = await applyTranslations(root, translations, {});
   return {
-    ok: applied.ok && failures.length === 0,
+    ok: appliedErrors.length === 0 && failures.length === 0,
     planned,
-    applied: applied.applied,
-    errors: applied.errors,
-    notes: applied.notes,
+    applied: totalApplied,
+    errors: appliedErrors,
+    notes: appliedNotes,
     failures,
     flagged,
   };
@@ -647,7 +661,7 @@ async function main() {
   const keys = typeof args.keys === "string" ? args.keys.split(",").filter(Boolean) : null;
 
   if (command === "check") {
-    const report = await audit(root);
+    const report = await auditTranslations(root);
     if (args.json) {
       console.log(JSON.stringify(report, null, 2));
     } else {
@@ -705,7 +719,7 @@ async function main() {
   }
 
   if (command === "run") {
-    const result = await run(root, {
+    const result = await translateLocales(root, {
       base: typeof args.base === "string" ? args.base : undefined,
       model: typeof args.model === "string" ? args.model : undefined,
       key: typeof args.key === "string" ? args.key : undefined,
