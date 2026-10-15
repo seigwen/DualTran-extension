@@ -90,10 +90,30 @@ jobs:
         cd dist/chrome
         zip -r ../../DualTran-${{ github.ref_name }}.zip .
 
+    - name: Build extension (firefox)
+      run: npm run build:firefox
+
+    - name: Create firefox ZIP archive
+      run: |
+        cd dist/firefox
+        zip -r ../../DualTran-firefox-${{ github.ref_name }}.zip .
+
+    - name: Create AMO source archive
+      # AMO requires human-readable source for bundled extensions. BUILD-src.md
+      # explains how to reproduce dist/firefox from this archive. The
+      # package-lock.json is the resolved dependency snapshot of this build
+      # (the repository intentionally does not track a lockfile).
+      run: |
+        git archive --format=zip -o DualTran-firefox-${{ github.ref_name }}-src.zip HEAD
+        zip -j DualTran-firefox-${{ github.ref_name }}-src.zip package-lock.json docs/store/amo/BUILD-src.md
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        files: DualTran-${{ github.ref_name }}.zip
+        files: |
+          DualTran-${{ github.ref_name }}.zip
+          DualTran-firefox-${{ github.ref_name }}.zip
+          DualTran-firefox-${{ github.ref_name }}-src.zip
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
