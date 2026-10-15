@@ -178,6 +178,9 @@ jobs:
     - name: Locale sync check (missing/extra keys, JSON shape, spec 47 L2)
       run: npm run i18n:check
 
+    - name: Real-translation gate (no English mirrors / fresh ledger / exact allowlist, plan 65)
+      run: node scripts/check-i18n-translations.js
+
   test-architecture-check:
     name: Test Architecture Checks (hard failure)
     runs-on: ubuntu-latest

@@ -54,6 +54,8 @@
     "mock:llm:aimock": "node tests/mock-server/mock-llm-server-aimock.js",
     "i18n:check": "node scripts/sync-locales.js --dry --fail-on-extra",
     "i18n:sync": "node scripts/sync-locales.js --prune-extras",
+    "i18n:translate": "node scripts/i18n-translate.mjs",
+    "i18n:translations": "node scripts/check-i18n-translations.js",
     "map": "npm merge-source-maps --inline-sources --inline-source-map all.min.js",
     "cert": "node scripts/cert-run.mjs",
     "verify": "bash scripts/pre-push-verify.sh"
