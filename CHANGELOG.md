@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-16
+
 ### Fixed
 - **Cold external-op AI translation could land in a ghost span and never display — and poisoned the AI cache while doing it** (plan 51 P3 / Q5 root-cause; docs 57). Repro: a fresh session in `replaceOriginal` mode — translate with Google, switch away, restore, re-translate, then trigger AI from the context menu: the batch dispatched, the engine reported success, but the page never showed AI (button AI / content unchanged — the desync family's signature). Two defects, both fixed: (1) after `restorePage` removed the `.dualtran-aitranslatedtext-replacemode` spans, the block registry could keep a DETACHED reference — the AI result was written into the ghost while the live DOM stayed empty (`applyAiResult` now heals via `ensureLiveAiTextTarget`: re-resolve the live span under the block element or re-create it, and repair the registry ref); (2) a display-discarded arrival read its cache value back from the (empty) span and cached `""` — every later AI request for the same text was served an empty translation from cache (empty `aiCache` hit → empty apply → nothing shows); the stream path now falls back to the parsed result text and never writes an empty translation to either cache. Deterministic RED→GREEN calibration: the isolated `replaceOriginal` leg failed at step 7 in 9/9 pre-fix runs and passes post-fix — locked as a nightly step in `nightly-explorer.yml` plus unit cells in `aiUiState.split.test.js`.
 
