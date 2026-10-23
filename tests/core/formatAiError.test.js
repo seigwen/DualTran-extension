@@ -30,4 +30,19 @@ describe("formatAiError", () => {
     const result = formatAiError({ statusCode: 429 });
     expect(result.message).toBe("Rate limit exceeded");
   });
+
+  it("appends the request URL so a wrong endpoint is visible in the report", () => {
+    const result = formatAiError({
+      statusCode: 200,
+      message: "Failed to process successful response",
+      url: "https://ollama.com/chat/completions",
+      cause: new SyntaxError("Unexpected token '<', \"<!doctype \"... is not valid JSON"),
+    });
+    expect(result.message).toContain("https://ollama.com/chat/completions");
+  });
+
+  it("omits the URL when the error carries none", () => {
+    const result = formatAiError({ statusCode: 500, message: "Server error" });
+    expect(result.message).not.toContain("[");
+  });
 });

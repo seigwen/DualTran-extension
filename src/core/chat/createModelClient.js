@@ -24,6 +24,16 @@ export async function createModelClient({ provider, apiKey, model, extra = {}, g
   const rawApi = providerData?.api || "";
   const apiBase = extra.baseURL || (rawApi && !rawApi.includes("${") ? rawApi : "") || lookupKnownApiBase(provider) || undefined;
 
+  // A base URL without a scheme (or a bare path) makes the AI SDK build a relative
+  // request. Firefox resolves that against the extension origin and answers
+  // 200 + a non-JSON body, which surfaces as the useless
+  // "HTTP 200: Failed to process successful response" — fail loudly instead.
+  if (apiBase && !/^https?:\/\//i.test(apiBase)) {
+    throw new Error(
+      `Invalid API base URL "${apiBase}" for provider "${provider}" — it must start with http:// or https://`
+    );
+  }
+
   // Azure special handling
   if (provider === "azure" || provider === "azure-openai") {
     const resourceName = extra.resourceName || "";

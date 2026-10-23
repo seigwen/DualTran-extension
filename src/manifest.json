@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "default_locale": "en",
   "name": "DualTran",
-	"version": "2.2.2",
+	"version": "2.2.4",
 	"description": "__MSG_extensionDescription__",
   // Register default keyboard shortcuts. Docs: https://developer.chrome.com/docs/extensions/mv3/declare_commands/
   "commands": {
@@ -107,8 +107,11 @@
   ],
 
   // Similar to host_permissions, but the browser does not prompt upfront. Use chrome.permissions.request in business logic instead.
-  // "optional_host_permissions": [
-  // ],
+  // Requested when the user saves a custom AI endpoint (provider APIs rarely send CORS headers).
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
   
   // Web-accessible resources are extension files accessible by web pages or other extensions.
   // Making resources public (as in Manifest V2 defaults) allows websites/attackers to detect the extension, enabling fingerprinting.

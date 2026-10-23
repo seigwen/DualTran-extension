@@ -238,6 +238,35 @@ describe("createModelClient apiBase priority chain", () => {
     ).rejects.toThrow(/Unknown AI provider/);
   });
 
+  // ── C4.4: openai-compatible 且没有 apiBase → 必须报错，不能发相对 URL ──
+  //
+  // 相对 URL 在 Firefox 里会被解析成 moz-extension://<uuid>/chat/completions，
+  // Firefox 对该路径返回 200 + 非 JSON 正文，AI SDK 于是报
+  // "HTTP 200: Failed to process successful response"（真实用户报错）。
+  // 必须在这里拦住，并给出可操作的提示。
+
+  it("C4.4: refuses a schemeless apiBase instead of sending a relative request", async () => {
+    mockStorage["modelsdev:providers"] = {
+      data: buildModelsDevCache({
+        ollama: { npm: "@ai-sdk/openai-compatible", api: "ollama.com/v1" },
+      }),
+      ts: Date.now(),
+    };
+
+    const createModelClient = await loadModule();
+
+    await expect(
+      createModelClient({
+        provider: "ollama",
+        apiKey: "test-key",
+        model: "deepseek-v4.1-flash-1017",
+        extra: {},
+      })
+    ).rejects.toThrow(/http/i);
+
+    expect($.createOpenAICompatible).not.toHaveBeenCalled();
+  });
+
   // ── C5: 内部 ID → models.dev ID 别名映射（issue #88）──────────────
   //
   // models.dev 数据以其自身 ID 为键（google / xai / togetherai …），内部

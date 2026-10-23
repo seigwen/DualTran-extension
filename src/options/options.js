@@ -423,6 +423,7 @@ import { createProviderRegistry, BUILT_IN_PROVIDERS, mergeRegistries, lookupKnow
 import { migrateProviderConfig } from "../lib/ai/providerMigration.js";
 import { buildReasoningDepthOptions } from "../lib/ai/reasoningDepth.js";
 import { sortProvidersByLabel } from "./aiProviderUI.js";
+import { endpointOriginPattern } from "../lib/ai/endpointPermission.js";
 import { buildIssueUrl, buildMailtoUrl, formatDiagnosticsBlock, resolveProviderDisplayName } from "../lib/feedbackLink.js";
 import 'toolcool-color-picker'; // Import third-party color picker component (custom element)
 
@@ -2605,8 +2606,23 @@ twpConfig.onReady(function () {
       const providerId = _aiProviderDropdown.value;
       _loadGenericProviderConfig(providerId); // reload models on blur with new key
     });
+    /**
+     * Ask for host access to the configured endpoint. Providers rarely send CORS headers,
+     * so without this the request is blocked (Firefox reports a network error).
+     * @param {string} apiBase
+     */
+    function _ensureEndpointPermission(apiBase) {
+      const pattern = endpointOriginPattern(apiBase);
+      if (!pattern || !chrome.permissions?.request) return;
+      chrome.permissions.contains({ origins: [pattern] }, (granted) => {
+        if (granted || chrome.runtime.lastError) return;
+        chrome.permissions.request({ origins: [pattern] }, () => { void chrome.runtime.lastError; });
+      });
+    }
+
     document.querySelector("#genericApiBase")?.addEventListener("change", () => {
       _saveGenericProviderConfig(_aiProviderDropdown.value);
+      _ensureEndpointPermission(document.querySelector("#genericApiBase")?.value || "");
     });
     document.querySelector("#genericModel")?.addEventListener("change", () => {
       _saveGenericProviderConfig(_aiProviderDropdown.value);
