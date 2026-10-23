@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "default_locale": "en",
   "name": "DualTran",
-	"version": "2.2.1",
+	"version": "2.2.2",
 	"description": "__MSG_extensionDescription__",
   // Register default keyboard shortcuts. Docs: https://developer.chrome.com/docs/extensions/mv3/declare_commands/
   "commands": {
@@ -43,9 +43,11 @@
   },
 
   "icons": {
-    "32": "/icons/icon-32.png",
-    "64": "/icons/icon-64.png",
-    "128": "/icons/icon-128.png"
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "64": "icons/icon-64.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png"
   },
 
   // https://developer.chrome.com/docs/extensions/reference/permissions/#manifest
