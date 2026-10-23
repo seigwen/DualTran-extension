@@ -188,7 +188,7 @@
       {
         "id": "dualtran_rules",
         "enabled": true,
-        "path": "/rules/request_modifier_rule.json"
+        "path": "rules/request_modifier_rule.json"
       }
     ]
   }
