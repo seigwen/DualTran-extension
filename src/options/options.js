@@ -422,6 +422,7 @@ import { loadPreviewModels } from "../lib/ai/providerModelPreview.js";
 import { createProviderRegistry, BUILT_IN_PROVIDERS, mergeRegistries, lookupKnownApiBase, resolveModelsDevId } from "../lib/ai/providerRegistry.js";
 import { migrateProviderConfig } from "../lib/ai/providerMigration.js";
 import { buildReasoningDepthOptions } from "../lib/ai/reasoningDepth.js";
+import { sortProvidersByLabel } from "./aiProviderUI.js";
 import { buildIssueUrl, buildMailtoUrl, formatDiagnosticsBlock, resolveProviderDisplayName } from "../lib/feedbackLink.js";
 import 'toolcool-color-picker'; // Import third-party color picker component (custom element)
 
@@ -2189,7 +2190,12 @@ twpConfig.onReady(function () {
         existingIds.add(providerId);
       }
       _aiProviderDropdown.innerHTML = "";
-      for (const p of mergedProviders) {
+      // Alphabetical by the visible (localized) label; custom providers sort in with the rest.
+      const orderedProviders = sortProvidersByLabel(
+        mergedProviders,
+        (provider) => _getProviderLocalizedName(provider.id, provider.name)
+      );
+      for (const p of orderedProviders) {
         const opt = document.createElement("option");
         opt.value = p.id;
         // Use i18n localized name; fall back to original name if no translation exists

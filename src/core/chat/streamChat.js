@@ -27,6 +27,23 @@ export function formatAiError(err) {
   const statusCode = err?.statusCode || err?.status || "";
   const sdkMsg = err?.message || "";
 
+  // The AI SDK wraps parse failures as "Failed to process successful response" and keeps the
+  // real reason (bad JSON, wrong shape) in `cause`, so surface it instead of swallowing it.
+  const causeMsg = String(err?.cause?.message || "").replace(/\s+/g, " ").trim().slice(0, 180);
+  const rawBody = err?.responseBody;
+  /** @type {string} */
+  let bodySnippet = "";
+  if (typeof rawBody === "string") {
+    bodySnippet = rawBody.replace(/\s+/g, " ").trim().slice(0, 160);
+  } else if (rawBody && typeof rawBody === "object") {
+    try {
+      bodySnippet = JSON.stringify(rawBody).slice(0, 160);
+    } catch {
+      bodySnippet = "";
+    }
+  }
+  const looksLikeHtml = /^\s*</.test(bodySnippet);
+
   let message = "";
   if (apiMsg) {
     message = apiMsg;
@@ -39,6 +56,14 @@ export function formatAiError(err) {
     message = sdkMsg;
   } else {
     message = String(err || "Unknown error");
+  }
+
+  const detail = causeMsg || (looksLikeHtml ? "" : bodySnippet);
+  if (detail && !message.includes(detail)) {
+    message += ` (${detail})`;
+  }
+  if (looksLikeHtml && !/HTML/i.test(message)) {
+    message += " — the endpoint returned an HTML page instead of JSON; check the API base URL";
   }
   return { message };
 }
