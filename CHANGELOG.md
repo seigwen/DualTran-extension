@@ -7,11 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.2.3] - 2026-10-23
+## [2.2.4] - 2026-10-23
 
 ### Fixed
 - **AI provider dropdown listed providers in registry order** — it now sorts by the label the user actually sees (localized names, custom providers included) so the list reads alphabetically instead of looking shuffled.
 - **A 200 response that failed to parse reported only `Failed to process successful response`** — the AI error path now surfaces the SDK `cause`, includes a short body snippet, and calls out an HTML body explicitly ("check the API base URL"), which is what a wrong or redirected endpoint returns.
+- **A schemeless endpoint produced `HTTP 200: Failed to process successful response` on Firefox** — a base URL like `ollama.com/v1` made the AI SDK build a *relative* request; Firefox resolves that against the extension origin and answers 200 with a non-JSON body. Such a base URL is now rejected with a clear message before any request is made.
+- **Custom AI endpoints now ask for host access** — provider APIs rarely send CORS headers (`ollama.com` sends none), so an extension request is blocked unless it holds a host permission for that origin. Saving an endpoint now requests that origin (`optional_host_permissions`), which is what makes a BYOK endpoint work in Firefox.
 - **AI errors now name the URL that was called** — the report carries the request URL, because a 200 that fails to parse is almost always a wrong or redirected endpoint.
 - **AMO showed the default placeholder icon** — the manifest now declares its icons with root-relative paths (no leading slash, which the add-on icon extractor could not resolve inside the package) and adds the 48 and 96 px sizes AMO asks for.
 
