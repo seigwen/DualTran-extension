@@ -65,6 +65,12 @@ export function formatAiError(err) {
   if (looksLikeHtml && !/HTML/i.test(message)) {
     message += " — the endpoint returned an HTML page instead of JSON; check the API base URL";
   }
+  // A wrong base URL is the most common cause of a 200 that cannot be parsed, so show where
+  // the request actually went — it is the first thing worth knowing when this gets reported.
+  const requestUrl = typeof err?.url === "string" ? err.url : "";
+  if (requestUrl && !message.includes(requestUrl)) {
+    message += ` [${requestUrl}]`;
+  }
   return { message };
 }
 
