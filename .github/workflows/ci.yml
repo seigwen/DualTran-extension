@@ -29,6 +29,14 @@ jobs:
     - name: Run unit tests
       run: npm test
 
+    - name: Bug ledger (fix without a regression test is not allowed — plan 83)
+      if: github.event_name == 'pull_request'
+      env:
+        GITHUB_BASE_REF: ${{ github.base_ref }}
+      run: |
+        git fetch origin "$GITHUB_BASE_REF" --depth=1 || true
+        node scripts/check-bug-ledger.mjs
+
     - name: Run build
       run: npm run build
 

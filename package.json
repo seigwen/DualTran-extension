@@ -23,6 +23,8 @@
     "test": "vitest run",
     "check:visual-fidelity": "node scripts/check-visual-fidelity.mjs --dir /tmp/e2e-shots",
     "lint:i18n-writes": "node scripts/check-i18n-writes.js",
+    "lint:bug-ledger": "node scripts/check-bug-ledger.mjs",
+    "release:check": "node scripts/release-check.mjs",
     "lint:core-boundary": "node scripts/check-core-boundary.js",
     "lint:firefox": "node scripts/lint-firefox.mjs",
     "test:watch": "vitest",
