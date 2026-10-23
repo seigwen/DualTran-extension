@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-10-23
+
+### Fixed
+- **AI provider dropdown listed providers in registry order** — it now sorts by the label the user actually sees (localized names, custom providers included) so the list reads alphabetically instead of looking shuffled.
+- **A 200 response that failed to parse reported only `Failed to process successful response`** — the AI error path now surfaces the SDK `cause`, includes a short body snippet, and calls out an HTML body explicitly ("check the API base URL"), which is what a wrong or redirected endpoint returns.
+- **AMO showed the default placeholder icon** — the manifest now declares its icons with root-relative paths (no leading slash, which the add-on icon extractor could not resolve inside the package) and adds the 48 and 96 px sizes AMO asks for.
+
 ## [2.2.0] - 2026-10-16
 
 ### Fixed
