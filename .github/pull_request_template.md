@@ -20,6 +20,12 @@
 - [ ] Does it affect the state-machine legality table?
       → If yes: are the legal/illegal transitions updated? (Illegal transitions must throw during development/testing)
 
+## Bug ledger (required when this PR fixes a user-visible defect — plan 83)
+
+- [ ] This PR fixes `BUG-___` (see `docs/bugs/ledger.json`) **and** touches its `regressionTests`
+      file(s). `npm run lint:bug-ledger` enforces this: a fix without a regression test cannot merge.
+- [ ] Or: this PR fixes no tracked bug.
+
 ## i18n Impact (required — spec 47 RULE 19 + plan 65 RULE 20)
 
 - [ ] No user-visible strings added/changed, **or** new strings went through `_locales` with **real translations in all 38 locales**: key in en (+`description`), `npm run i18n:translate` (ledger stamped; English mirrors only via the reasoned allowlist)

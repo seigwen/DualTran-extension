@@ -17,3 +17,6 @@ result
 .tmp-*.sh
 # Firefox smoke toolchain (scripts/fetch-firefox-tools.mjs output)
 tools/
+
+# Release evidence bundle (plan 83) — regenerated per release, recorded by hash in the tag
+release-evidence.json
