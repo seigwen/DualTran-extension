@@ -22,20 +22,43 @@
       "addonId": 3098160,
       "apply": [
         "summary",
-        "description"
+        "description",
+        "previews"
       ],
       "verify": [
         "version",
         "description",
-        "icon"
-      ]
+        "icon",
+        "previews",
+        "previewCaptions"
+      ],
+      "previews": [
+        "1-bilingual.png",
+        "2-ai-settings.png",
+        "3-settings.png"
+      ],
+      "previewCaptions": {
+        "1-bilingual.png": {
+          "zh-CN": "译文放在原文下面，随时对照",
+          "en-US": "Translation under each paragraph, original kept"
+        },
+        "2-ai-settings.png": {
+          "zh-CN": "接入 20+ 家 AI 服务商（自带 Key）",
+          "en-US": "20+ AI providers with your own key"
+        },
+        "3-settings.png": {
+          "zh-CN": "目标语言与显示方式可调",
+          "en-US": "Choose the target language and display mode"
+        }
+      }
     },
     "chrome": {
-      "itemId": "REPLACE_WITH_CHROME_ITEM_ID",
+      "itemId": "ihbcniigknaeillehompenjaacaocpnp",
       "apply": [],
       "verify": [
         "publicPage"
-      ]
+      ],
+      "manualApply": "Listing text and screenshots are set in the developer console; the API only supports package upload."
     },
     "edge": {
       "productId": "9cacc2ca-523f-4554-af62-02d194d72da8",
