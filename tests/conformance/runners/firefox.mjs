@@ -39,29 +39,15 @@ export function buildSeededExtension(sourceDir, config = {}) {
   fs.cpSync(sourceDir, target, { recursive: true });
   if (!config.aiProvider) return target;
 
-  // The default config is bundled into every entry point (background, content script,
-  // popup, options), so patch every bundle that carries the marker.
-  const marker = 'aiProvider:"openai"';
-  const injected = { aiProvider: config.aiProvider, ...(config.providerConfigs ? { providerConfigs: config.providerConfigs } : {}) };
-  const patch = `${marker},${JSON.stringify(injected).slice(1, -1)}`;
-  let patched = 0;
-  const walk = (dir) => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const full = path.join(dir, entry.name);
-      if (entry.isDirectory()) walk(full);
-      else if (entry.name.endsWith(".js")) {
-        const code = fs.readFileSync(full, "utf8");
-        if (code.includes(marker)) {
-          fs.writeFileSync(full, code.split(marker).join(patch));
-          patched += 1;
-        }
-      }
-    }
-  };
-  walk(target);
-  if (patched === 0) {
-    throw new Error("cannot seed config: default-config marker not found in any bundle");
-  }
+  // The extension applies this overlay only when manifest.version_name === "conformance";
+  // production builds never set it. See src/lib/config.js#applyConformanceOverrides.
+  const manifestPath = path.join(target, "manifest.json");
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  manifest.version_name = "conformance";
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+
+  const overrides = { ...config };
+  fs.writeFileSync(path.join(target, "conformance.json"), `${JSON.stringify(overrides, null, 2)}\n`);
   return target;
 }
 
