@@ -38,6 +38,20 @@ export async function launch({ extensionDir, artifactsDir }) {
 
     async setConfig(config) {
       await worker.evaluate((cfg) => chrome.storage.local.set(cfg), config);
+      // Wait until the write is observable from the extension itself: a scenario that starts
+      // before the service worker sees the config looks exactly like a broken AI path.
+      // Use the promise form inside the worker: the callback form could stall while the
+      // service worker was still starting, which read as "config not applied".
+      const applied = await worker.evaluate(async (expected) => {
+        for (let attempt = 0; attempt < 20; attempt += 1) {
+          await chrome.storage.local.set(expected);
+          const got = await chrome.storage.local.get("aiProvider");
+          if (got.aiProvider === expected.aiProvider) return true;
+          await new Promise((r) => setTimeout(r, 150));
+        }
+        return false;
+      }, config);
+      if (!applied) throw new Error("extension storage did not accept the scenario config");
       // Visiting the options page makes the extension's config observers fire, which is how
       // browser-e2e has always applied storage changes.
       await page.goto(`chrome-extension://${extensionId}/options/options.html`);

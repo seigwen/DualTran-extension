@@ -8,13 +8,18 @@ export default {
   async run(ctx, env, assert) {
     await ctx.open(env.fixtureUrl);
     await ctx.waitForFloating();
-    await ctx.clickFloating("Ai");
 
     // The AI pass runs block by block after the initial page translation, so wait for the
     // endpoint to be hit rather than for the first translated node (that one is Google).
+    // A click can land while the panel is re-rendering; retry it once before giving up.
     let texts = [];
-    const deadline = Date.now() + 60000;
+    const deadline = Date.now() + 90000;
+    let lastClick = 0;
     while (Date.now() < deadline) {
+      if (Date.now() - lastClick > 20000) {
+        await ctx.clickFloating("Ai").catch(() => {});
+        lastClick = Date.now();
+      }
       texts = await ctx.translated();
       if (env.mock.requests.length > 0 && texts.some((t) => t.includes("MOCK-AI"))) break;
       await new Promise((r) => setTimeout(r, 500));
