@@ -10,12 +10,12 @@
       "symptom": "商店页图标不是扩展真实图标（icon_url 指向 static-server/img/addon-icons/default-64.png）",
       "rootCause": "manifest icons 使用前导斜杠路径，AMO 图标提取器按包内相对路径读取失败；且未声明 48/96 尺寸",
       "regressionTests": [
-        "tests/store/amoIcon.test.mjs"
+        "tests/store/amoIcon.test.js"
       ],
-      "guarded": false,
+      "guarded": true,
       "fixedIn": "2.2.4",
       "createdAt": "2026-10-23",
-      "note": "图标已在 2.2.4 包内（5 档齐全，canary 校验通过）；AMO 仍未生成 listing 图标，需要 AMO 后台/人工跟进"
+      "note": "图标已在 2.2.4 包内；AMO listing 图标于 2026-10-26 通过 API 上传，实测 icon_url 指向 user-media/addon_icons/3098/3098160-64.png。回归测试锁定 manifest icons 的形态（相对路径、含 48/96/128）。"
     },
     {
       "id": "BUG-002",
