@@ -55,6 +55,7 @@ async function applyAmo(dryRun) {
 
   if (changes.length === 0) {
     console.log("[store:apply] amo — no changes");
+    await applyAmoPreviews(token, dryRun);
     return 0;
   }
   console.log(`[store:apply] amo — ${dryRun ? "would update" : "updating"}: ${changes.join(", ")}`);
@@ -70,7 +71,53 @@ async function applyAmo(dryRun) {
     return 1;
   }
   console.log("[store:apply] amo — updated");
+  await applyAmoPreviews(token, dryRun);
   return 0;
+}
+
+/**
+ * Upload the listing gallery when the live add-on has fewer previews than the repo.
+ * Idempotent: three or more previews means nothing to do. AMO throttles writes hard
+ * (roughly one add-on PATCH per hour, previews a few per minute), so a 429 is reported
+ * rather than retried in a loop.
+ */
+async function applyAmoPreviews(token, dryRun) {
+  const slug = LISTING.channels.amo.slug;
+  const base = `https://addons.mozilla.org/api/v5/addons/addon/${slug}/`;
+  const gallery = (LISTING.channels.amo.previews || []).map((name) => path.join(ROOT, "docs", "assets", "store", name));
+  if (!gallery.length) return;
+
+  const live = await (await fetch(base, { headers: { Authorization: `JWT ${token}` } })).json();
+  const count = (live.previews || []).length;
+  if (count >= gallery.length) {
+    console.log(`[store:apply] amo previews — ${count} live, nothing to do`);
+    return;
+  }
+  console.log(`[store:apply] amo previews — ${dryRun ? "would upload" : "uploading"} ${gallery.length - count}`);
+  if (dryRun) return;
+
+  for (let index = count; index < gallery.length; index += 1) {
+    const file = gallery[index];
+    const form = new FormData();
+    form.append("image", new Blob([fs.readFileSync(file)], { type: "image/png" }), path.basename(file));
+    form.append("position", String(index + 1));
+    const caption = LISTING.channels.amo.previewCaptions?.[path.basename(file)];
+    for (const [locale, text] of Object.entries(caption || {})) {
+      form.append(`caption[${locale}]`, text);
+    }
+    const response = await fetch(`${base}previews/`, {
+      method: "POST",
+      headers: { Authorization: `JWT ${amoToken()}` },
+      body: form,
+    });
+    if (!response.ok) {
+      const detail = (await response.text()).slice(0, 200);
+      console.error(`[store:apply] amo previews — ${path.basename(file)} HTTP ${response.status}: ${detail}`);
+      return;
+    }
+    console.log(`[store:apply] amo previews — uploaded ${path.basename(file)}`);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+  }
 }
 
 const dryRun = process.argv.includes("--dry-run");
