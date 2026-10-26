@@ -9,7 +9,7 @@ paragraph instead of replacing it. Google Translate works out of the box; bring 
 [![Edge](https://img.shields.io/badge/Edge-Install-0078d7?logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/9cacc2ca-523f-4554-af62-02d194d72da8)
 [![Obsidian](https://img.shields.io/badge/Obsidian-Install-7c3aed?logo=obsidian&logoColor=white)](https://community.obsidian.md/plugins/dualtran-translate)
 
-[Website](https://seigwen.github.io/DualTran-extension/) · [中文说明](#中文) · [English](#features)
+[Website](https://seigwen.github.io/DualTran-extension/) · [English](#features)
 
 ![DualTran translating an article with the Chinese text under each paragraph](docs/assets/shot-bilingual.png)
 
