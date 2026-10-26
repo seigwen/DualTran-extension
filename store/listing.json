@@ -65,7 +65,10 @@
       "apply": [],
       "verify": [
         "publicPage"
-      ]
+      ],
+      "crxId": "jlgcpdcmakcfidfndifanijipfchnjoc",
+      "slug": "dualtran",
+      "publicUrl": "https://microsoftedge.microsoft.com/addons/detail/dualtran/jlgcpdcmakcfidfndifanijipfchnjoc"
     },
     "opera": {
       "packageId": 307699,

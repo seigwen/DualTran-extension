@@ -253,9 +253,9 @@ async function main() {
   // answers 404 even for a live listing (verified in the Partner Center dashboard).
   await checkPublicPage(
     "edge",
-    `https://microsoftedge.microsoft.com/addons/detail/${listing.channels.edge.productId}`,
+    listing.channels.edge.publicUrl || `https://microsoftedge.microsoft.com/addons/detail/${listing.channels.edge.productId}`,
     results,
-    { optional: true, note: "check from the home node / Partner Center" }
+    { optional: true, note: "check from the home node / Partner Center" },
   );
   await checkPublicPage("opera", "https://addons.opera.com/en/extensions/details/dualtran/", results);
   await checkPublicPage("vscode", `https://github.com/${listing.channels.vscode.repo}/releases/latest`, results);
