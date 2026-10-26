@@ -94,9 +94,15 @@ function main(argv) {
   checks.push(run("build-firefox", "npm", ["run", "build:firefox"], { timeout: 900000 }));
 
   const conformance = path.join(ROOT, "tests", "conformance", "run.mjs");
+  // Both engines run headed (extensions need a real window), so a display is required.
+  const needsDisplay = !process.env.DISPLAY;
+  const conformanceCommand = needsDisplay ? "xvfb-run" : "node";
+  const conformanceArgs = needsDisplay
+    ? ["-a", "--server-args=-screen 0 1280x900x24", "node", "tests/conformance/run.mjs", "--engine=all"]
+    : ["tests/conformance/run.mjs", "--engine=all"];
   checks.push(
     fs.existsSync(conformance)
-      ? run("conformance", "node", ["tests/conformance/run.mjs", "--engine=all"], { timeout: 1200000 })
+      ? run("conformance", conformanceCommand, conformanceArgs, { timeout: 1200000 })
       : { name: "conformance", status: "skipped", detail: "tests/conformance not implemented yet (P1)" }
   );
 
