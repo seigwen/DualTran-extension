@@ -130,6 +130,31 @@ async function checkAmo(listing, results) {
     status: iconOk ? "pass" : "fail",
     detail: isDefault ? "default placeholder icon" : `rmse ${distance === null ? "unavailable" : distance.toFixed(3)}`,
   });
+
+  // A listing with no screenshots converts badly, and nothing used to check for it: the
+  // add-on was live for weeks with an empty gallery while every other gate was green.
+  const previews = Array.isArray(data.previews) ? data.previews : [];
+  const tooSmall = previews.filter((p) => {
+    const [width] = p.image_size || [];
+    return !width || width < 1000;
+  });
+  const previewProblems = [];
+  if (previews.length < 3) previewProblems.push(`only ${previews.length} preview(s), need 3`);
+  if (tooSmall.length) previewProblems.push(`${tooSmall.length} preview(s) narrower than 1000px`);
+  results.push({
+    channel: "amo",
+    check: "previews",
+    status: previewProblems.length ? "fail" : "pass",
+    detail: previewProblems.length ? previewProblems.join("; ") : `${previews.length} preview(s)`,
+  });
+
+  const uncaptioned = previews.filter((p) => !(p.caption?.["zh-CN"] || "").trim());
+  results.push({
+    channel: "amo",
+    check: "previewCaptions",
+    status: uncaptioned.length ? "warn" : "pass",
+    detail: uncaptioned.length ? `${uncaptioned.length} preview(s) without a zh-CN caption` : "all captioned",
+  });
 }
 
 /* ── Other channels ──────────────────────────────────── */
