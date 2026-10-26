@@ -1,6 +1,17 @@
 # DualTran
 
-[English](#features) | [中文](#features)
+**Bilingual translation that keeps the original on the page** — the translation sits under each
+paragraph instead of replacing it. Google Translate works out of the box; bring your own key for
+20+ AI providers.
+
+[![Chrome](https://img.shields.io/badge/Chrome-Install-3b82f6?logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/dualtran/ihbcniigknaeillehompenjaacaocpnp)
+[![Firefox](https://img.shields.io/badge/Firefox-Install-ff7139?logo=firefoxbrowser&logoColor=white)](https://addons.mozilla.org/zh-CN/firefox/addon/dualtran/)
+[![Edge](https://img.shields.io/badge/Edge-Install-0078d7?logo=microsoftedge&logoColor=white)](https://microsoftedge.microsoft.com/addons/detail/9cacc2ca-523f-4554-af62-02d194d72da8)
+[![Obsidian](https://img.shields.io/badge/Obsidian-Install-7c3aed?logo=obsidian&logoColor=white)](https://community.obsidian.md/plugins/dualtran-translate)
+
+[Website](https://seigwen.github.io/DualTran-extension/) · [中文说明](#中文) · [English](#features)
+
+![DualTran translating an article with the Chinese text under each paragraph](docs/assets/shot-bilingual.png)
 
 AI-powered browser extension that translates web pages and displays the translated text alongside the original text in the same page.
 
