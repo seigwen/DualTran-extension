@@ -1,0 +1,8 @@
+{
+  "channel": "outlook",
+  "version": "1.0.0",
+  "state": "sideload-only",
+  "verifiedBy": "manifest sideload in Outlook on the web",
+  "notes": "AppSource listing needs a verified Microsoft 365 tenant plus Partner Center verification; the add-in itself runs sideloaded.",
+  "checkedAt": "2026-10-26"
+}

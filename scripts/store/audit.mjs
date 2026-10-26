@@ -230,14 +230,17 @@ async function checkPublicPage(channelName, url, results, { optional = false, no
 }
 
 function checkManual(channelName, results) {
-  const expected = localVersion();
-  const file = path.join(EVIDENCE_DIR, `${channelName}-${expected}.json`);
+  // Host channels carry their own version (uTools 0.1.3, Outlook 1.0.0); only the browser
+  // builds track the extension version. Keying evidence off localVersion() made these two
+  // permanently red, and a permanently red audit is one people stop reading.
+  const channelVersion = LISTING.channels[channelName]?.version || localVersion();
+  const file = path.join(EVIDENCE_DIR, `${channelName}-${channelVersion}.json`);
   const ok = fs.existsSync(file);
   results.push({
     channel: channelName,
     check: "manual",
     status: ok ? "pass" : "fail",
-    detail: ok ? `evidence ${path.relative(ROOT, file)}` : `missing store/evidence/${channelName}-${expected}.json`,
+    detail: ok ? `evidence ${path.relative(ROOT, file)}` : `missing store/evidence/${channelName}-${channelVersion}.json`,
   });
 }
 

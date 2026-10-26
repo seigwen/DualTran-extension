@@ -108,13 +108,15 @@
       "apply": [],
       "verify": [
         "manual"
-      ]
+      ],
+      "version": "0.1.3"
     },
     "outlook": {
       "apply": [],
       "verify": [
         "manual"
-      ]
+      ],
+      "version": "1.0.0"
     }
   }
 }
