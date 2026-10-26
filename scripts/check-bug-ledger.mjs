@@ -103,7 +103,9 @@ function changedFilesFromGit() {
     const out = execFileSync("git", ["diff", "--name-only", `origin/${base}...HEAD`], { cwd: ROOT, encoding: "utf8" });
     return out.split("\n").map((line) => line.trim()).filter(Boolean);
   } catch {
-    return [];
+    // A shallow clone has no merge base; returning [] here would blame every BUG reference
+    // instead of the actual problem, so say what happened.
+    return null;
   }
 }
 
@@ -128,6 +130,12 @@ function main(argv) {
   const changedFiles =
     filesIndex !== -1 && argv[filesIndex + 1] ? argv[filesIndex + 1].split(",").map((f) => f.trim()) : changedFilesFromGit();
 
+  if (changedFiles === null && parseBugIds(readBody(argv)).length > 0) {
+    console.error(`[bug-ledger] cannot compute changed files (no merge base with origin/${process.env.GITHUB_BASE_REF || "master"}).`);
+    console.error("[bug-ledger] in CI, check out with fetch-depth: 0 so the base branch is available.");
+    return 2;
+  }
+
   let ledger;
   try {
     ledger = JSON.parse(fs.readFileSync(LEDGER_PATH, "utf8"));
@@ -136,7 +144,7 @@ function main(argv) {
     return 2;
   }
 
-  const result = checkPullRequest({ ledger, body: readBody(argv), changedFiles, release });
+  const result = checkPullRequest({ ledger, body: readBody(argv), changedFiles: changedFiles || [], release });
   for (const warning of result.warnings) console.warn(`[bug-ledger] warning: ${warning}`);
   for (const error of result.errors) console.error(`[bug-ledger] error: ${error}`);
 

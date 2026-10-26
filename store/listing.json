@@ -1,0 +1,94 @@
+{
+  "$comment": "Single source of truth for store listings (plan 85, P2). Copy changes go through a PR here, then `npm run store:apply -- amo`.",
+  "shared": {
+    "homepage": "https://github.com/seigwen/DualTran-extension",
+    "supportEmail": "seigwen@gmail.com",
+    "privacy": "https://github.com/seigwen/DualTran-extension/blob/master/docs/store/privacy.md",
+    "iconSource": "src/icons/icon-256.png"
+  },
+  "locales": {
+    "zh-CN": {
+      "summary": "双语对照翻译：Google 与自有 AI 模型同屏显示，原文译文并排阅读。",
+      "description": "DualTran 是「双语对照」翻译：原文和译文同时留在页面上，而不是把原文替换掉。\n\n主要特点\n• 双引擎同屏 —— Google 翻译与任意 AI 模型可以同时运行，两种译文并排显示，方便互相对照\n• 支持 20+ AI 服务商 —— OpenAI、Anthropic、Google Gemini、DeepSeek、Moonshot、智谱 GLM、通义千问、Groq、OpenRouter、Ollama、LM Studio 等，用你自己的 API Key；密钥只保存在本机浏览器\n• 划词翻译与整页翻译 —— 选中段落即时翻译，也可以一键翻译整页\n• 只处理正文 —— 跳过代码块、公式与导航，尽量不破坏页面布局\n• 隐私优先 —— 无需账号、没有统计、没有中转服务器；文本只发送给你选择的翻译服务\n\n适合阅读外文文档、论文、GitHub issue、Reddit 与 X 的帖子，需要中英对照时尤其好用。\n\n开源项目（MPL-2.0）：<a href=\"https://prod.outgoing.prod.webservices.mozgcp.net/v1/27d527eb78700a9c863e006fd99ddadc817440d38ff3df65ee85e0fdbb068da7/https%3A//github.com/seigwen/DualTran-extension\" rel=\"nofollow\">https://github.com/seigwen/DualTran-extension</a>\n问题反馈：<a href=\"https://prod.outgoing.prod.webservices.mozgcp.net/v1/a862f44b2bab75518d6a8bb8cdaae86b2444a6175c7e1dc01ef844af41900783/https%3A//github.com/seigwen/DualTran-extension/issues\" rel=\"nofollow\">https://github.com/seigwen/DualTran-extension/issues</a>"
+    },
+    "en-US": {
+      "summary": "Bilingual translation: Google and your own AI model side by side, original and translation together.",
+      "description": "DualTran keeps the original text on the page and puts the translation next to it, instead of replacing what you are reading.\n\nHighlights\n• Two engines at once — Google Translate and any AI model can run together, and both translations are shown side by side for comparison\n• 20+ AI providers — OpenAI, Anthropic, Google Gemini, DeepSeek, Moonshot, Zhipu GLM, Qwen, Groq, OpenRouter, Ollama, LM Studio and more, with your own API key; the key stays in your browser\n• Selection and full-page translation — translate a selected paragraph instantly, or the whole page in one click\n• Text only — code blocks, formulas and navigation are skipped so the layout stays intact\n• Privacy first — no account, no analytics, no relay server; text goes only to the translation service you choose\n\nBuilt for reading foreign-language documentation, papers, GitHub issues, and Reddit or X threads where you want the original and the translation together.\n\nSource (MPL-2.0): <a href=\"https://prod.outgoing.prod.webservices.mozgcp.net/v1/27d527eb78700a9c863e006fd99ddadc817440d38ff3df65ee85e0fdbb068da7/https%3A//github.com/seigwen/DualTran-extension\" rel=\"nofollow\">https://github.com/seigwen/DualTran-extension</a>\nIssues: <a href=\"https://prod.outgoing.prod.webservices.mozgcp.net/v1/a862f44b2bab75518d6a8bb8cdaae86b2444a6175c7e1dc01ef844af41900783/https%3A//github.com/seigwen/DualTran-extension/issues\" rel=\"nofollow\">https://github.com/seigwen/DualTran-extension/issues</a>"
+    }
+  },
+  "channels": {
+    "amo": {
+      "slug": "dualtran",
+      "addonId": 3098160,
+      "apply": [
+        "summary",
+        "description"
+      ],
+      "verify": [
+        "version",
+        "description",
+        "icon"
+      ]
+    },
+    "chrome": {
+      "itemId": "REPLACE_WITH_CHROME_ITEM_ID",
+      "apply": [],
+      "verify": [
+        "publicPage"
+      ]
+    },
+    "edge": {
+      "productId": "9cacc2ca-523f-4554-af62-02d194d72da8",
+      "apply": [],
+      "verify": [
+        "publicPage"
+      ]
+    },
+    "opera": {
+      "packageId": 307699,
+      "apply": [],
+      "verify": [
+        "publicPage"
+      ]
+    },
+    "obsidian": {
+      "listingId": "dualtran-translate",
+      "repo": "seigwen/dualtran-obsidian",
+      "apply": [],
+      "verify": [
+        "communityListing",
+        "repoManifest"
+      ]
+    },
+    "npm": {
+      "packages": [
+        "dualtran",
+        "dualtran-mcp",
+        "n8n-nodes-dualtran"
+      ],
+      "apply": [],
+      "verify": [
+        "registry"
+      ]
+    },
+    "vscode": {
+      "repo": "seigwen/dualtran-vscode",
+      "apply": [],
+      "verify": [
+        "releaseAsset"
+      ]
+    },
+    "utools": {
+      "apply": [],
+      "verify": [
+        "manual"
+      ]
+    },
+    "outlook": {
+      "apply": [],
+      "verify": [
+        "manual"
+      ]
+    }
+  }
+}

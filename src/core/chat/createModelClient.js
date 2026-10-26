@@ -13,6 +13,7 @@ import { createAzure } from "@ai-sdk/azure";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { SDK_MAP } from "./sdkMap.js";
 import { lookupKnownApiBase, resolveModelsDevId } from "../providers/registry.js";
+import { normalizeEndpoint } from "./endpoint.js";
 
 export async function createModelClient({ provider, apiKey, model, extra = {}, getProvidersData = null }) {
   const data = getProvidersData ? await getProvidersData() : null;
@@ -24,26 +25,30 @@ export async function createModelClient({ provider, apiKey, model, extra = {}, g
   const rawApi = providerData?.api || "";
   const apiBase = extra.baseURL || (rawApi && !rawApi.includes("${") ? rawApi : "") || lookupKnownApiBase(provider) || undefined;
 
-  // A base URL without a scheme (or a bare path) makes the AI SDK build a relative
-  // request. Firefox resolves that against the extension origin and answers
-  // 200 + a non-JSON body, which surfaces as the useless
-  // "HTTP 200: Failed to process successful response" — fail loudly instead.
-  if (apiBase && !/^https?:\/\//i.test(apiBase)) {
-    throw new Error(
-      `Invalid API base URL "${apiBase}" for provider "${provider}" — it must start with http:// or https://`
-    );
+  // One validator for every entry point (plan 86): a base URL without a scheme, with a
+  // pasted request path, or with a template variable would otherwise reach the request
+  // builder. Firefox then resolves a relative URL against the extension origin and answers
+  // 200 + a non-JSON body — the "HTTP 200: Failed to process successful response" symptom.
+  let resolvedBase = apiBase;
+  if (apiBase) {
+    const normalized = normalizeEndpoint(apiBase);
+    if (!normalized.ok) {
+      const hint = normalized.suggestion ? ` — did you mean ${normalized.suggestion}?` : "";
+      throw new Error(`Invalid API base URL "${apiBase}" for provider "${provider}" (${normalized.problem})${hint}`);
+    }
+    resolvedBase = normalized.url;
   }
 
   // Azure special handling
   if (provider === "azure" || provider === "azure-openai") {
     const resourceName = extra.resourceName || "";
-    return createAzure({ apiKey, resourceName, baseURL: apiBase })(model);
+    return createAzure({ apiKey, resourceName, baseURL: resolvedBase })(model);
   }
 
   // Lookup SDK mapping
   if (npm && SDK_MAP[npm]) {
     try {
-      return SDK_MAP[npm]({ apiKey, baseURL: apiBase })(model);
+      return SDK_MAP[npm]({ apiKey, baseURL: resolvedBase })(model);
     } catch (_) {}
   }
 
@@ -54,6 +59,6 @@ export async function createModelClient({ provider, apiKey, model, extra = {}, g
   return createOpenAICompatible({
     name: providerData?.name || provider,
     apiKey,
-    baseURL: apiBase,
+    baseURL: resolvedBase,
   })(model);
 }
