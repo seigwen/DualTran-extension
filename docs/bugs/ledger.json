@@ -9,11 +9,13 @@
       "detectedBy": "user",
       "symptom": "商店页图标不是扩展真实图标（icon_url 指向 static-server/img/addon-icons/default-64.png）",
       "rootCause": "manifest icons 使用前导斜杠路径，AMO 图标提取器按包内相对路径读取失败；且未声明 48/96 尺寸",
-      "regressionTests": ["tests/store/amoIcon.test.mjs"],
+      "regressionTests": [
+        "tests/store/amoIcon.test.mjs"
+      ],
       "guarded": false,
       "fixedIn": "2.2.4",
       "createdAt": "2026-10-23",
-      "note": "回归测试随 P2（listing as code）落地；图标是否生效需 2.2.4 审核通过后确认"
+      "note": "图标已在 2.2.4 包内（5 档齐全，canary 校验通过）；AMO 仍未生成 listing 图标，需要 AMO 后台/人工跟进"
     },
     {
       "id": "BUG-002",
@@ -22,8 +24,10 @@
       "detectedBy": "user",
       "symptom": "中文简介只有「使用 Google 或 OpenAI 实时翻译您的页面。」，description 字段为空",
       "rootCause": "docs/store/amo/listing.md 是草稿，从未被脚本写入 AMO；商店文案不在任何自动校验范围内",
-      "regressionTests": ["tests/store/amoListing.test.mjs"],
-      "guarded": false,
+      "regressionTests": [
+        "tests/store/listing.test.js"
+      ],
+      "guarded": true,
       "fixedIn": "2.2.4",
       "createdAt": "2026-10-23",
       "note": "回归测试随 P2 落地"
@@ -35,7 +39,9 @@
       "detectedBy": "user",
       "symptom": "Firefox 选项页 AI 提供商列表顺序混乱",
       "rootCause": "_renderProviderDropdown 按注册表顺序（内置 → models.dev → 自定义）append，从未排序",
-      "regressionTests": ["tests/options/providerSort.test.js"],
+      "regressionTests": [
+        "tests/options/providerSort.test.js"
+      ],
       "guarded": true,
       "fixedIn": "2.2.2",
       "createdAt": "2026-10-23"
@@ -63,7 +69,9 @@
       "detectedBy": "reviewer",
       "symptom": "审核拒绝：进入插件后立即退出",
       "rootCause": "preload 中同步调用 utools.dbStorage / setExpendHeight 杀死渲染进程；@dualtran/core 动态 import 卡死窗口",
-      "regressionTests": ["tests/conformance/scenarios/utools-boot.mjs"],
+      "regressionTests": [
+        "tests/conformance/scenarios/utools-boot.mjs"
+      ],
       "guarded": false,
       "fixedIn": "0.1.3",
       "createdAt": "2026-10-23",
@@ -76,7 +84,9 @@
       "detectedBy": "ci",
       "symptom": "监控脚本把「页面未加载完」误判为 NOT_FOUND",
       "rootCause": "正则只匹配 'DualTran <status> --'，且未等待页面渲染完成",
-      "regressionTests": ["tests/scripts/edgeStatusParse.test.mjs"],
+      "regressionTests": [
+        "tests/scripts/edgeStatusParse.test.mjs"
+      ],
       "guarded": false,
       "fixedIn": "monitor",
       "createdAt": "2026-10-23"
