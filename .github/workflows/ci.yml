@@ -17,6 +17,10 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        # The bug-ledger check diffs against the base branch; a shallow clone has no merge
+        # base, which silently empties the changed-file list and fails every BUG reference.
+        fetch-depth: 0
 
     - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
