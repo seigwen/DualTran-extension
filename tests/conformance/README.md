@@ -22,28 +22,23 @@ skips hidden pages.
 | Scenario | Chromium | Firefox | Locks |
 |---|---|---|---|
 | `page-translate` | ✅ | ✅ | content script + Google path on both engines |
-| `ai-translate` | ✅ | — | full AI path against a tagged SSE mock |
-| `ai-endpoint-invalid` | ✅ | — | a schemeless endpoint never produces a request |
+| `ai-translate` | ✅ | ✅ | full AI path against a tagged SSE mock |
+| `ai-endpoint-invalid` | ✅ | ✅ | a schemeless endpoint never produces a request |
 | `ai-html-200` (experimental) | — | — | 200 + HTML must not look like success |
 
 Every run writes `DualTran-manage/visual-evidence/conformance/report.json` plus failure
 screenshots.
 
-## Firefox limitation (open)
+## How Firefox gets an AI provider
 
-AI scenarios are Chromium-only for now: a temporary add-on's storage is extension-private,
-so a test process cannot seed `aiProvider`/`providerConfigs`, and Selenium refuses to script
-privileged (`moz-extension://`) pages — "The command does not support browsing contexts in
-privileged scope". Patching the bundled defaults was attempted and did not take effect,
-because the content script keeps its own config instance.
+A temporary add-on's storage is extension-private and Selenium refuses to script privileged
+(`moz-extension://`) pages, so the runner ships a throwaway build with
+`manifest.version_name = "conformance"` plus a `conformance.json` overlay. `src/lib/config.js`
+applies that overlay only when `version_name === "conformance"`; production builds never set
+it and never include the file, so the hook is inert in the store.
 
-Options for the follow-up, in order of preference:
-
-1. Add a test-only import path to the extension (e.g. honour `?conformance=<json>` on the
-   options page) — small, explicit, inert in production.
-2. Drive the options page with `xdotool` clicks/typing — no production change, but brittle.
-3. Keep AI coverage on Chromium and rely on the unit contracts (`formatAiError`,
-   `createModelClient`, `endpointPermission`) for the engine-independent parts.
+This is the same build the matrix runs; nothing is stubbed — the extension really calls the
+mock endpoint and really parses its `<译泽>` reply.
 
 ## Mock server
 

@@ -110,6 +110,29 @@ const twpConfig = (function () {
   /**
    * Called when config has finished loading from storage.local
    */
+  /**
+   * Conformance builds carry a config overlay (`version_name === "conformance"`).
+   *
+   * Firefox temporary add-ons cannot have their storage written by a test process, so the
+   * dual-engine matrix ships a throwaway build with this flag and a `conformance.json`
+   * beside the manifest. Production builds never set `version_name` and never include the
+   * file, so this is inert in the store.
+   */
+  function applyConformanceOverrides() {
+    try {
+      if (chrome.runtime.getManifest().version_name !== "conformance") return;
+      fetch(chrome.runtime.getURL("conformance.json"))
+        .then((response) => (response.ok ? response.json() : {}))
+        .then((overrides) => {
+          Object.assign(config, overrides);
+          chrome.storage.local.set(overrides);
+        })
+        .catch(() => {});
+    } catch (_) {
+      /* getManifest is unavailable in some contexts; nothing to do */
+    }
+  }
+
   function readyConfig() {
     configIsReady = true;
     onReadyObservers.forEach((callback) => callback());
@@ -382,6 +405,8 @@ const twpConfig = (function () {
       }
 
       // try to save de keyboard shortcuts in the config
+      applyConformanceOverrides();
+
       if (typeof chrome.commands !== "undefined") {
         chrome.commands.getAll((results) => {
           try {

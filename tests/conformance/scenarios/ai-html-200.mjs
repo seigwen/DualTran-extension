@@ -13,7 +13,7 @@ export default {
   // scenario is excluded from the default matrix (`--all` runs it). The message contract it
   // targets is covered by tests/core/formatAiError.test.js.
   experimental: true,
-  engines: ["chromium"],
+  engines: ["chromium", "firefox"],
   needsMock: "html-200",
   config: (env) => aiConfig(env.mock.url),
   async run(ctx, env, assert) {

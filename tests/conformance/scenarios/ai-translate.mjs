@@ -2,10 +2,7 @@ import { aiConfig, hasCjk } from "./_shared.mjs";
 
 export default {
   id: "ai-translate",
-  // Firefox is excluded: seeding an AI provider into a temporary add-on is not possible
-  // from the test process (storage is extension-private, and the options page is
-  // privileged scope that Selenium refuses to script). Tracked as the P1 follow-up.
-  engines: ["chromium"],
+  engines: ["chromium", "firefox"],
   needsMock: "sse-ok",
   config: (env) => aiConfig(env.mock.url),
   async run(ctx, env, assert) {
