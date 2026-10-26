@@ -36,6 +36,42 @@ export function changelogVersion() {
   return match ? match[1] : "";
 }
 
+/** Tags pointing at HEAD (empty when the release has not been tagged yet). */
+export function tagsAtHead() {
+  try {
+    return execFileSync("git", ["tag", "--points-at", "HEAD"], { cwd: ROOT, encoding: "utf8" })
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * The version in the manifest must agree with the tag on HEAD.
+ *
+ * A store can serve a version that the repository never tagged — that is how 2.2.1–2.2.4
+ * shipped without a traceable release. Untagged HEAD is a warning during development and a
+ * failure when `--require-tag` is passed (release pipeline).
+ *
+ * @param {string[]} tags
+ * @param {{requireTag?: boolean, version?: string}} [options]
+ */
+export function checkTag(tags, { requireTag = false, version = manifestVersion() } = {}) {
+  const expected = `v${version}`;
+  if (!tags.length) {
+    return {
+      status: requireTag ? "fail" : "warn",
+      detail: requireTag ? `HEAD is not tagged ${expected}` : "HEAD is not tagged (fine before a release)",
+    };
+  }
+  if (!tags.includes(expected)) {
+    return { status: "fail", detail: `HEAD is tagged ${tags.join(",")} but the manifest says ${version}` };
+  }
+  return { status: "pass", detail: expected };
+}
+
 export function checkVersions() {
   const manifest = manifestVersion();
   const changelog = changelogVersion();
@@ -84,6 +120,7 @@ function main(argv) {
   const checks = [];
 
   checks.push({ name: "versions", ...checkVersions() });
+  checks.push({ name: "tag", ...checkTag(tagsAtHead(), { requireTag: argv.includes("--require-tag") }) });
   checks.push(run("unit-tests", "npx", ["vitest", "run"], { timeout: 1800000 }));
 
   const ledger = run("bug-ledger", "node", ["scripts/check-bug-ledger.mjs", "--release"], { timeout: 60000 });
