@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-27
+
+### Added
+- **The provider dropdown is grouped, not one long alphabetical list** — curated providers come first (registry order), then a disabled `──── More ────` divider, then everything models.dev lists, sorted by the label the user sees. models.dev twins of a built-in (`google` ↔ `google-gemini`, `moonshotai` ↔ `moonshot`, `grok` ↔ `xai`) no longer appear twice, custom providers keep their own group at the end, and a stored id the fresh list no longer knows stays selectable instead of silently switching the user to another provider. The same shape ships in every DualTran host (Obsidian, uTools, VS Code, Outlook, Thunderbird, Raycast).
+
+### Changed
+- **Reasoning depth now defaults to "Lowest (default)"** for a provider that was never configured. The stored value is the intent, not a level: it is resolved per request against the model's declared `reasoning_options` (`none` → `minimal` → `low`), so switching to a model that does not accept the previously stored level keeps working instead of sending a parameter it rejects. Models that declare no levels send no parameter at all; "Default" (provider decides) remains available explicitly.
+
 ## [2.2.4] - 2026-10-23
 
 ### Fixed
