@@ -2201,11 +2201,16 @@ twpConfig.onReady(function () {
       const orderedBuiltIns = builtInProviders
         .map((provider) => byId.get(provider.id))
         .filter(Boolean);
-      const catalogueProviders = sortProvidersByLabel(
-        mergedProviders.filter(
-          (provider) => !builtInIds.has(provider.id) && !builtInDevIds.has(provider.id)
-        ),
-        (provider) => _getProviderLocalizedName(provider.id, provider.name)
+      const isCatalogueProvider = (provider) =>
+        !builtInIds.has(provider.id) &&
+        !builtInDevIds.has(provider.id) &&
+        !String(provider.id || "").startsWith("_custom_");
+      const sortByLabel = (list) =>
+        sortProvidersByLabel(list, (provider) => _getProviderLocalizedName(provider.id, provider.name));
+      const catalogueProviders = sortByLabel(mergedProviders.filter(isCatalogueProvider));
+      // User-defined providers keep their own group at the very end.
+      const customProviders = sortByLabel(
+        mergedProviders.filter((provider) => String(provider.id || "").startsWith("_custom_"))
       );
 
       const appendOption = (provider) => {
@@ -2226,6 +2231,7 @@ twpConfig.onReady(function () {
         _aiProviderDropdown.appendChild(divider);
         catalogueProviders.forEach(appendOption);
       }
+      customProviders.forEach(appendOption);
 
       // A stored id the fresh list no longer knows (renamed/removed upstream) stays
       // selectable instead of silently switching the user to another provider.
