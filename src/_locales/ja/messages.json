@@ -68,6 +68,26 @@
   "backupToFile": {
     "message": "ファイルにバックアップ"
   },
+  "blockBtnGroupAlwaysStyleBadge": {
+    "message": "小さなバッジ (クリックで展開)",
+    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
+  },
+  "blockBtnGroupAlwaysStyleButtons": {
+    "message": "3つのボタンを直接表示",
+    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
+  },
+  "blockBtnGroupBadgeTooltip": {
+    "message": "段落の翻訳オプション",
+    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
+  },
+  "blockBtnGroupDisplayAlways": {
+    "message": "常に表示",
+    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
+  },
+  "blockBtnGroupDisplayTriggered": {
+    "message": "ホバーまたはクリック時に表示",
+    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
+  },
   "btnAddCustomModelTooltip": {
     "message": "カスタムモデルを追加",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
@@ -306,6 +326,22 @@
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "同じドメイン内でページを移動したとき、移動先のページも自動的に翻訳"
+  },
+  "lblBlockBtnGroupAlwaysStyle": {
+    "message": "常時表示のスタイル",
+    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
+  },
+  "lblBlockBtnGroupDisplay": {
+    "message": "段落ボタングループを表示するタイミング",
+    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
+  },
+  "lblBlockBtnGroupShowOnClick": {
+    "message": "段落をクリックしたときに段落ボタングループを表示する",
+    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
+  },
+  "lblBlockBtnGroupShowOnHover": {
+    "message": "段落にカーソルを合わせたときに段落ボタングループを表示する",
+    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblButtonInTheAddressBar": {
     "message": "アドレスバーにボタンを表示"
@@ -680,6 +716,10 @@
     "message": "低",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
+  "msgReasoningDepthLowest": {
+    "message": "最低 (デフォルト)",
+    "description": "Reasoning depth option: the lowest level the selected model accepts"
+  },
   "msgReasoningDepthMax": {
     "message": "最大",
     "description": "Reasoning depth option label (models.dev effort value: max)."
@@ -840,41 +880,5 @@
   },
   "translateClickingOnce": {
     "message": "アドレスバーのボタンで即座にページを翻訳（ポップアップを表示するには右クリック）"
-  },
-  "lblBlockBtnGroupDisplay": {
-    "message": "段落ボタングループを表示するタイミング",
-    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
-  },
-  "blockBtnGroupDisplayTriggered": {
-    "message": "ホバーまたはクリック時に表示",
-    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
-  },
-  "blockBtnGroupDisplayAlways": {
-    "message": "常に表示",
-    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
-  },
-  "lblBlockBtnGroupAlwaysStyle": {
-    "message": "常時表示のスタイル",
-    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
-  },
-  "blockBtnGroupAlwaysStyleBadge": {
-    "message": "小さなバッジ (クリックで展開)",
-    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
-  },
-  "blockBtnGroupAlwaysStyleButtons": {
-    "message": "3つのボタンを直接表示",
-    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
-  },
-  "lblBlockBtnGroupShowOnHover": {
-    "message": "段落にカーソルを合わせたときに段落ボタングループを表示する",
-    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
-  },
-  "lblBlockBtnGroupShowOnClick": {
-    "message": "段落をクリックしたときに段落ボタングループを表示する",
-    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
-  },
-  "blockBtnGroupBadgeTooltip": {
-    "message": "段落の翻訳オプション",
-    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

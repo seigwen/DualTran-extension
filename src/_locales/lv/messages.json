@@ -68,6 +68,26 @@
   "backupToFile": {
     "message": "Dublēt failā"
   },
+  "blockBtnGroupAlwaysStyleBadge": {
+    "message": "Maza emblēma (noklikšķiniet, lai izvērstu)",
+    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
+  },
+  "blockBtnGroupAlwaysStyleButtons": {
+    "message": "Trīs pogas redzamas tieši",
+    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
+  },
+  "blockBtnGroupBadgeTooltip": {
+    "message": "Rindkopas tulkošanas opcijas",
+    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
+  },
+  "blockBtnGroupDisplayAlways": {
+    "message": "Vienmēr rādīt",
+    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
+  },
+  "blockBtnGroupDisplayTriggered": {
+    "message": "Rādīt uzvirzot vai noklikšķinot",
+    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
+  },
   "btnAddCustomModelTooltip": {
     "message": "Pievienot pielāgotu modeli",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
@@ -306,6 +326,22 @@
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Automātiski tulkot, noklikšķinot uz saiti, kas novirza uz to pašu domēnu, kurā atrodas pašreizējā vietne"
+  },
+  "lblBlockBtnGroupAlwaysStyle": {
+    "message": "Vienmēr redzamais stils",
+    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
+  },
+  "lblBlockBtnGroupDisplay": {
+    "message": "Kad rādīt rindkopas pogu grupu",
+    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
+  },
+  "lblBlockBtnGroupShowOnClick": {
+    "message": "Rādīt rindkopas pogu grupu, noklikšķinot uz rindkopas",
+    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
+  },
+  "lblBlockBtnGroupShowOnHover": {
+    "message": "Rādīt rindkopas pogu grupu, uzvirzot uz rindkopas",
+    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblButtonInTheAddressBar": {
     "message": "Rādīt ikonu adreses joslā"
@@ -680,6 +716,10 @@
     "message": "Zema",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
+  "msgReasoningDepthLowest": {
+    "message": "Zemākais (noklusējums)",
+    "description": "Reasoning depth option: the lowest level the selected model accepts"
+  },
   "msgReasoningDepthMax": {
     "message": "Maksimāla",
     "description": "Reasoning depth option label (models.dev effort value: max)."
@@ -840,41 +880,5 @@
   },
   "translateClickingOnce": {
     "message": "Tulkot lapu, vienreiz nospiežot pogu adreses joslā. (Lai redzētu uznirstošo logu, noklikšķiniet ar peles labo pogu)"
-  },
-  "lblBlockBtnGroupDisplay": {
-    "message": "Kad rādīt rindkopas pogu grupu",
-    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
-  },
-  "blockBtnGroupDisplayTriggered": {
-    "message": "Rādīt uzvirzot vai noklikšķinot",
-    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
-  },
-  "blockBtnGroupDisplayAlways": {
-    "message": "Vienmēr rādīt",
-    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
-  },
-  "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Vienmēr redzamais stils",
-    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
-  },
-  "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Maza emblēma (noklikšķiniet, lai izvērstu)",
-    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
-  },
-  "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Trīs pogas redzamas tieši",
-    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
-  },
-  "lblBlockBtnGroupShowOnHover": {
-    "message": "Rādīt rindkopas pogu grupu, uzvirzot uz rindkopas",
-    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
-  },
-  "lblBlockBtnGroupShowOnClick": {
-    "message": "Rādīt rindkopas pogu grupu, noklikšķinot uz rindkopas",
-    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
-  },
-  "blockBtnGroupBadgeTooltip": {
-    "message": "Rindkopas tulkošanas opcijas",
-    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

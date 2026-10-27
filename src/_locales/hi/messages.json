@@ -68,6 +68,26 @@
   "backupToFile": {
     "message": "फाइल करने के लिए बैकअप"
   },
+  "blockBtnGroupAlwaysStyleBadge": {
+    "message": "छोटा बैज (विस्तार के लिए क्लिक करें)",
+    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
+  },
+  "blockBtnGroupAlwaysStyleButtons": {
+    "message": "तीन बटन सीधे दिखाएँ",
+    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
+  },
+  "blockBtnGroupBadgeTooltip": {
+    "message": "पैराग्राफ अनुवाद विकल्प",
+    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
+  },
+  "blockBtnGroupDisplayAlways": {
+    "message": "हमेशा दिखाएँ",
+    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
+  },
+  "blockBtnGroupDisplayTriggered": {
+    "message": "हॉवर या क्लिक पर दिखाएँ",
+    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
+  },
   "btnAddCustomModelTooltip": {
     "message": "कस्टम मॉडल जोड़ें",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
@@ -306,6 +326,22 @@
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "किसी ऐसे लिंक पर क्लिक करने पर स्वचालित रूप से अनुवाद करें जो आपको वर्तमान साइट के समान डोमेन पर ले जाता है"
+  },
+  "lblBlockBtnGroupAlwaysStyle": {
+    "message": "हमेशा-दृश्यमान शैली",
+    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
+  },
+  "lblBlockBtnGroupDisplay": {
+    "message": "पैराग्राफ बटन समूह कब दिखाएँ",
+    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
+  },
+  "lblBlockBtnGroupShowOnClick": {
+    "message": "पैराग्राफ पर क्लिक करने पर पैराग्राफ बटन समूह दिखाएँ",
+    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
+  },
+  "lblBlockBtnGroupShowOnHover": {
+    "message": "पैराग्राफ पर होवर करने पर पैराग्राफ बटन समूह दिखाएँ",
+    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblButtonInTheAddressBar": {
     "message": "एड्रेस बार में शो बटन"
@@ -680,6 +716,10 @@
     "message": "निम्न",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
+  "msgReasoningDepthLowest": {
+    "message": "न्यूनतम (डिफ़ॉल्ट)",
+    "description": "Reasoning depth option: the lowest level the selected model accepts"
+  },
   "msgReasoningDepthMax": {
     "message": "अधिकतम",
     "description": "Reasoning depth option label (models.dev effort value: max)."
@@ -840,41 +880,5 @@
   },
   "translateClickingOnce": {
     "message": "पता बार में बटन पर एक बार क्लिक करके पृष्ठ का अनुवाद करें। (पॉपअप देखने के लिए राइट-क्लिक करें)"
-  },
-  "lblBlockBtnGroupDisplay": {
-    "message": "पैराग्राफ बटन समूह कब दिखाएँ",
-    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
-  },
-  "blockBtnGroupDisplayTriggered": {
-    "message": "हॉवर या क्लिक पर दिखाएँ",
-    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
-  },
-  "blockBtnGroupDisplayAlways": {
-    "message": "हमेशा दिखाएँ",
-    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
-  },
-  "lblBlockBtnGroupAlwaysStyle": {
-    "message": "हमेशा-दृश्यमान शैली",
-    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
-  },
-  "blockBtnGroupAlwaysStyleBadge": {
-    "message": "छोटा बैज (विस्तार के लिए क्लिक करें)",
-    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
-  },
-  "blockBtnGroupAlwaysStyleButtons": {
-    "message": "तीन बटन सीधे दिखाएँ",
-    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
-  },
-  "lblBlockBtnGroupShowOnHover": {
-    "message": "पैराग्राफ पर होवर करने पर पैराग्राफ बटन समूह दिखाएँ",
-    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
-  },
-  "lblBlockBtnGroupShowOnClick": {
-    "message": "पैराग्राफ पर क्लिक करने पर पैराग्राफ बटन समूह दिखाएँ",
-    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
-  },
-  "blockBtnGroupBadgeTooltip": {
-    "message": "पैराग्राफ अनुवाद विकल्प",
-    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

@@ -68,6 +68,26 @@
   "backupToFile": {
     "message": "Zapisz kopię zapasową do pliku"
   },
+  "blockBtnGroupAlwaysStyleBadge": {
+    "message": "Mała plakietka (kliknij, aby rozwinąć)",
+    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
+  },
+  "blockBtnGroupAlwaysStyleButtons": {
+    "message": "Trzy przyciski widoczne bezpośrednio",
+    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
+  },
+  "blockBtnGroupBadgeTooltip": {
+    "message": "Opcje tłumaczenia akapitu",
+    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
+  },
+  "blockBtnGroupDisplayAlways": {
+    "message": "Zawsze pokazuj",
+    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
+  },
+  "blockBtnGroupDisplayTriggered": {
+    "message": "Pokaż po najechaniu lub kliknięciu",
+    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
+  },
   "btnAddCustomModelTooltip": {
     "message": "Dodaj model niestandardowy",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
@@ -306,6 +326,22 @@
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Tłumacz automatycznie po kliknięciu na link, który prowadzi do tej samej domeny co bieżąca strona"
+  },
+  "lblBlockBtnGroupAlwaysStyle": {
+    "message": "Styl stale widocznej grupy",
+    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
+  },
+  "lblBlockBtnGroupDisplay": {
+    "message": "Kiedy wyświetlać grupę przycisków akapitu",
+    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
+  },
+  "lblBlockBtnGroupShowOnClick": {
+    "message": "Pokaż grupę przycisków akapitu po kliknięciu akapitu",
+    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
+  },
+  "lblBlockBtnGroupShowOnHover": {
+    "message": "Pokaż grupę przycisków akapitu po najechaniu na akapit",
+    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblButtonInTheAddressBar": {
     "message": "Pokaż przycisk na pasku adresu"
@@ -680,6 +716,10 @@
     "message": "Niska",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
+  "msgReasoningDepthLowest": {
+    "message": "Najniższy (domyślnie)",
+    "description": "Reasoning depth option: the lowest level the selected model accepts"
+  },
   "msgReasoningDepthMax": {
     "message": "Maksymalna",
     "description": "Reasoning depth option label (models.dev effort value: max)."
@@ -840,41 +880,5 @@
   },
   "translateClickingOnce": {
     "message": "Przetłumacz stronę, klikając przycisk na pasku adresu. (Aby wyświetlić wyskakujące okienko, kliknij prawym przyciskiem myszy)"
-  },
-  "lblBlockBtnGroupDisplay": {
-    "message": "Kiedy wyświetlać grupę przycisków akapitu",
-    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
-  },
-  "blockBtnGroupDisplayTriggered": {
-    "message": "Pokaż po najechaniu lub kliknięciu",
-    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
-  },
-  "blockBtnGroupDisplayAlways": {
-    "message": "Zawsze pokazuj",
-    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
-  },
-  "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Styl stale widocznej grupy",
-    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
-  },
-  "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Mała plakietka (kliknij, aby rozwinąć)",
-    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
-  },
-  "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Trzy przyciski widoczne bezpośrednio",
-    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
-  },
-  "lblBlockBtnGroupShowOnHover": {
-    "message": "Pokaż grupę przycisków akapitu po najechaniu na akapit",
-    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
-  },
-  "lblBlockBtnGroupShowOnClick": {
-    "message": "Pokaż grupę przycisków akapitu po kliknięciu akapitu",
-    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
-  },
-  "blockBtnGroupBadgeTooltip": {
-    "message": "Opcje tłumaczenia akapitu",
-    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

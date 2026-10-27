@@ -68,6 +68,26 @@
   "backupToFile": {
     "message": "Back-up naar bestand"
   },
+  "blockBtnGroupAlwaysStyleBadge": {
+    "message": "Kleine badge (klik om uit te klappen)",
+    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
+  },
+  "blockBtnGroupAlwaysStyleButtons": {
+    "message": "Drie knoppen direct weergegeven",
+    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
+  },
+  "blockBtnGroupBadgeTooltip": {
+    "message": "Vertaalopties voor alinea",
+    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
+  },
+  "blockBtnGroupDisplayAlways": {
+    "message": "Altijd weergeven",
+    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
+  },
+  "blockBtnGroupDisplayTriggered": {
+    "message": "Toon bij aanwijzen of klikken",
+    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
+  },
   "btnAddCustomModelTooltip": {
     "message": "Een aangepast model toevoegen",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
@@ -306,6 +326,22 @@
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Automatisch vertalen wanneer u op een link klikt die u naar hetzelfde domein brengt als de huidige site"
+  },
+  "lblBlockBtnGroupAlwaysStyle": {
+    "message": "Altijd zichtbare stijl",
+    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
+  },
+  "lblBlockBtnGroupDisplay": {
+    "message": "Wanneer de knopgroep per alinea wordt weergegeven",
+    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
+  },
+  "lblBlockBtnGroupShowOnClick": {
+    "message": "Toon de alineaknopgroep bij klikken op een alinea",
+    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
+  },
+  "lblBlockBtnGroupShowOnHover": {
+    "message": "Toon de alineaknopgroep bij zweven over een alinea",
+    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblButtonInTheAddressBar": {
     "message": "Toon knop in de adresbalk"
@@ -680,6 +716,10 @@
     "message": "Laag",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
+  "msgReasoningDepthLowest": {
+    "message": "Laagste (standaard)",
+    "description": "Reasoning depth option: the lowest level the selected model accepts"
+  },
   "msgReasoningDepthMax": {
     "message": "Max",
     "description": "Reasoning depth option label (models.dev effort value: max)."
@@ -840,41 +880,5 @@
   },
   "translateClickingOnce": {
     "message": "Vertaal de pagina door eenmaal op de knop in de adresbalk te klikken. (Klik met de rechtermuisknop om de pop-up te zien)"
-  },
-  "lblBlockBtnGroupDisplay": {
-    "message": "Wanneer de knopgroep per alinea wordt weergegeven",
-    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
-  },
-  "blockBtnGroupDisplayTriggered": {
-    "message": "Toon bij aanwijzen of klikken",
-    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
-  },
-  "blockBtnGroupDisplayAlways": {
-    "message": "Altijd weergeven",
-    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
-  },
-  "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Altijd zichtbare stijl",
-    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
-  },
-  "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Kleine badge (klik om uit te klappen)",
-    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
-  },
-  "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Drie knoppen direct weergegeven",
-    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
-  },
-  "lblBlockBtnGroupShowOnHover": {
-    "message": "Toon de alineaknopgroep bij zweven over een alinea",
-    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
-  },
-  "lblBlockBtnGroupShowOnClick": {
-    "message": "Toon de alineaknopgroep bij klikken op een alinea",
-    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
-  },
-  "blockBtnGroupBadgeTooltip": {
-    "message": "Vertaalopties voor alinea",
-    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }

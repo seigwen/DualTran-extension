@@ -16,8 +16,35 @@
 import { createModelsDevStore } from "../core/chat/modelsDev.js";
 import { createModelClient as createModelClientCore } from "../core/chat/createModelClient.js";
 import { streamChat, formatAiError } from "../core/chat/streamChat.js";
+import {
+  LOWEST_REASONING,
+  buildReasoningDepthOptions,
+  resolveReasoningDepth,
+} from "../core/providers/reasoningDepth.js";
+import { resolveModelsDevId } from "../core/providers/registry.js";
 
 const AI_PORT_NAME = "ai-sse";
+
+/**
+ * Resolve the stored reasoning setting into the value that may be sent.
+ * `LOWEST_REASONING` is model-dependent, so it is expanded against the model's
+ * declared (and dialect-clipped) options here, right before the request.
+ */
+async function resolveDepthForRequest({ provider, model, reasoningDepth }) {
+  if (reasoningDepth !== LOWEST_REASONING) return reasoningDepth || "";
+  try {
+    const data = await modelsDevStore.getProvidersData();
+    const def = data?.[resolveModelsDevId(provider)];
+    const options = buildReasoningDepthOptions({
+      provider,
+      npm: def?.npm,
+      reasoningOptions: def?.models?.[model]?.reasoning_options,
+    });
+    return resolveReasoningDepth({ setting: LOWEST_REASONING, options });
+  } catch (_) {
+    return "";
+  }
+}
 
 // ── models.dev data store (chrome.storage.local-backed) ──────────────────
 
@@ -79,6 +106,7 @@ chrome.runtime.onConnect.addListener((port) => {
         const controller = new AbortController();
         inflight.set(id, { controller, port });
         try {
+          const resolvedDepth = await resolveDepthForRequest({ provider, model, reasoningDepth });
           const { totalChunks, streamError } = await streamChat({
             provider,
             apiKey,
@@ -86,7 +114,7 @@ chrome.runtime.onConnect.addListener((port) => {
             messages,
             temperature,
             topP,
-            reasoningDepth,
+            reasoningDepth: resolvedDepth,
             extra,
             store: modelsDevStore,
             signal: controller.signal,

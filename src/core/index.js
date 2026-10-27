@@ -29,6 +29,8 @@ export {
 } from "./providers/modelPreview.js";
 export {
   REASONING_DEFAULT,
+  LOWEST_REASONING,
+  resolveReasoningDepth,
   DIALECT_SDK_NPM_PACKAGES,
   resolveDialect,
   buildReasoningDepthOptions,

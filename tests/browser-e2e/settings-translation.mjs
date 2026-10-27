@@ -1526,21 +1526,27 @@ async function s12Body(page, extensionId, serviceWorker) {
       "[S12] #genericReasoningDepth 未在超时内长出声明的 effort 值。诊断: " + JSON.stringify(diag)
     );
   }
-  console.log(`  [S12] 推理深度选项: ${options.map((o) => o.value || "(Default)").join(", ")}`);
-  if (options[0].value !== "") {
-    throw new Error(`[S12] 第一个选项必须是 Default（value=""），实际 "${options[0].value}"`);
+  console.log(
+    `  [S12] 推理深度选项: ${options.map((o) => o.value || "(Default)").join(", ")}`
+  );
+  // 产品规则：首项是 Lowest 哨兵，第二项才是 Default（空值 = 不发送）。
+  if (options[0].value !== "__lowest__") {
+    throw new Error(`[S12] 第一个选项必须是 Lowest（value="__lowest__"），实际 "${options[0].value}"`);
+  }
+  if (options[1]?.value !== "") {
+    throw new Error(`[S12] 第二个选项必须是 Default（value=""），实际 "${options[1]?.value}"`);
   }
 
   // 种子声明了 effort:["low","medium","high"] → 下拉框必须真的长出这些选项。
-  // 只有 Default 说明「声明驱动」这条链路断了（比「没测」更危险，故硬失败）。
-  const targetDepth = options.find((o) => o.value)?.value || "";
+  // 只有 Lowest + Default 说明「声明驱动」这条链路断了（比「没测」更危险，故硬失败）。
+  const targetDepth = options.find((o) => o.value && o.value !== "__lowest__")?.value || "";
   if (!targetDepth) {
     throw new Error(
       "[S12] 已注入 reasoning_options 声明，但下拉框仍只有 Default —— 声明驱动的选项生成链路断裂"
     );
   }
   const expected = ["low", "medium", "high"];
-  const actual = options.filter((o) => o.value).map((o) => o.value);
+  const actual = options.filter((o) => o.value && o.value !== "__lowest__").map((o) => o.value);
   const missing = expected.filter((v) => !actual.includes(v));
   if (missing.length > 0) {
     throw new Error(`[S12] 声明的 effort 值未出现在下拉框中，缺少 [${missing.join(", ")}]，实际 [${actual.join(", ")}]`);

@@ -421,7 +421,7 @@ import { refreshAiModelSelect } from "./aiModelRefresh.js";
 import { loadPreviewModels } from "../lib/ai/providerModelPreview.js";
 import { createProviderRegistry, BUILT_IN_PROVIDERS, mergeRegistries, lookupKnownApiBase, resolveModelsDevId } from "../lib/ai/providerRegistry.js";
 import { migrateProviderConfig } from "../lib/ai/providerMigration.js";
-import { buildReasoningDepthOptions } from "../lib/ai/reasoningDepth.js";
+import { buildReasoningDepthOptions, LOWEST_REASONING } from "../lib/ai/reasoningDepth.js";
 import { sortProvidersByLabel } from "./aiProviderUI.js";
 import { endpointOriginPattern } from "../lib/ai/endpointPermission.js";
 import { buildIssueUrl, buildMailtoUrl, formatDiagnosticsBlock, resolveProviderDisplayName } from "../lib/feedbackLink.js";
@@ -2191,18 +2191,56 @@ twpConfig.onReady(function () {
         existingIds.add(providerId);
       }
       _aiProviderDropdown.innerHTML = "";
-      // Alphabetical by the visible (localized) label; custom providers sort in with the rest.
-      const orderedProviders = sortProvidersByLabel(
-        mergedProviders,
-        (provider) => _getProviderLocalizedName(provider.id, provider.name)
+      // Two groups, like the other DualTran hosts: the curated registry first, then
+      // everything models.dev knows about behind a plain "More" divider. models.dev
+      // twins of a built-in (google ↔ google-gemini, xai ↔ grok …) stay out of the
+      // second group, otherwise the same service appears twice.
+      const builtInIds = new Set(builtInProviders.map((provider) => provider.id));
+      const builtInDevIds = new Set(builtInProviders.map((provider) => resolveModelsDevId(provider.id)));
+      const byId = new Map(mergedProviders.map((provider) => [provider.id, provider]));
+      const orderedBuiltIns = builtInProviders
+        .map((provider) => byId.get(provider.id))
+        .filter(Boolean);
+      const isCatalogueProvider = (provider) =>
+        !builtInIds.has(provider.id) &&
+        !builtInDevIds.has(provider.id) &&
+        !String(provider.id || "").startsWith("_custom_");
+      const sortByLabel = (list) =>
+        sortProvidersByLabel(list, (provider) => _getProviderLocalizedName(provider.id, provider.name));
+      const catalogueProviders = sortByLabel(mergedProviders.filter(isCatalogueProvider));
+      // User-defined providers keep their own group at the very end.
+      const customProviders = sortByLabel(
+        mergedProviders.filter((provider) => String(provider.id || "").startsWith("_custom_"))
       );
-      for (const p of orderedProviders) {
+
+      const appendOption = (provider) => {
         const opt = document.createElement("option");
-        opt.value = p.id;
+        opt.value = provider.id;
         // Use i18n localized name; fall back to original name if no translation exists
-        opt.textContent = _getProviderLocalizedName(p.id, p.name);
-        if (p.id === activeId) opt.selected = true;
+        opt.textContent = _getProviderLocalizedName(provider.id, provider.name);
+        if (provider.id === activeId) opt.selected = true;
         _aiProviderDropdown.appendChild(opt);
+      };
+
+      orderedBuiltIns.forEach(appendOption);
+      if (catalogueProviders.length) {
+        const divider = document.createElement("option");
+        divider.disabled = true;
+        divider.value = "__more__";
+        divider.textContent = "──── " + i18nOrDefault("more", "More") + " ────";
+        _aiProviderDropdown.appendChild(divider);
+        catalogueProviders.forEach(appendOption);
+      }
+      customProviders.forEach(appendOption);
+
+      // A stored id the fresh list no longer knows (renamed/removed upstream) stays
+      // selectable instead of silently switching the user to another provider.
+      const stillThere = Array.prototype.some.call(
+        _aiProviderDropdown.options,
+        (option) => option.value === activeId
+      );
+      if (!stillThere && activeId) {
+        appendOption({ id: activeId, name: _getProviderLocalizedName(activeId, activeId) });
       }
     }
 
@@ -2526,7 +2564,10 @@ twpConfig.onReady(function () {
       const select = document.querySelector("#genericReasoningDepth");
       if (!select || select._isMissingElement) return;
       const stored = (twpConfig.get("providerConfigs") || {})[providerId] || {};
-      const storedDepth = stored.reasoningDepth || "";
+      // undefined = the user never touched it → the lowest-effort default;
+      // "" is an explicit "Provider default" (send no reasoning parameter).
+      const storedDepth =
+        stored.reasoningDepth === undefined ? LOWEST_REASONING : String(stored.reasoningDepth || "");
 
       const applyOptions = (def) => {
         const options = buildReasoningDepthOptions({
@@ -2536,6 +2577,10 @@ twpConfig.onReady(function () {
           translate: i18nOrDefault,
         });
         select.innerHTML = "";
+        const lowestOpt = document.createElement("option");
+        lowestOpt.value = LOWEST_REASONING;
+        lowestOpt.textContent = i18nOrDefault("msgReasoningDepthLowest", "Lowest (automatic)");
+        select.appendChild(lowestOpt);
         const defaultOpt = document.createElement("option");
         defaultOpt.value = "";
         defaultOpt.textContent = i18nOrDefault("msgDefault", "Default");
@@ -2549,13 +2594,17 @@ twpConfig.onReady(function () {
         }
         // Preserve a stored value that the new model does not offer — silently
         // dropping it would make the user's setting disappear on a model switch.
-        if (storedDepth && !options.some((o) => o.value === storedDepth)) {
+        if (
+          storedDepth &&
+          storedDepth !== LOWEST_REASONING &&
+          !options.some((o) => o.value === storedDepth)
+        ) {
           const el = document.createElement("option");
           el.value = storedDepth;
           el.textContent = storedDepth;
           select.appendChild(el);
         }
-        select.value = storedDepth || "";
+        select.value = storedDepth;
         select.disabled = false;
       };
 

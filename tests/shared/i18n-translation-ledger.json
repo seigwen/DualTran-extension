@@ -208,7 +208,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "ar": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -420,7 +421,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "ca": {
       "backupToFile": "d8c6b60067ff",
@@ -626,7 +628,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "cs": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -836,7 +839,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "da": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -1042,7 +1046,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "de": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -1249,7 +1254,8 @@
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
       "lblProviderApiEndpoint": "3b3b17708eb6",
       "lblProviderApiKey": "af4aa8eebd61",
-      "msgReasoningDepthXHigh": "0704c8f37934"
+      "msgReasoningDepthXHigh": "0704c8f37934",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "el": {
       "backupToFile": "d8c6b60067ff",
@@ -1459,7 +1465,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "es": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -1666,7 +1673,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "fa": {
       "backupToFile": "d8c6b60067ff",
@@ -1876,7 +1884,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "fi": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -2086,7 +2095,8 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthXHigh": "0704c8f37934"
+      "msgReasoningDepthXHigh": "0704c8f37934",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "fr": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -2290,7 +2300,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "he": {
       "backupToFile": "d8c6b60067ff",
@@ -2500,7 +2511,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "hi": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -2712,7 +2724,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "hr": {
       "backupToFile": "d8c6b60067ff",
@@ -2921,7 +2934,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "hu": {
       "backupToFile": "d8c6b60067ff",
@@ -3132,7 +3146,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "is": {
       "backupToFile": "d8c6b60067ff",
@@ -3342,7 +3357,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "it": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -3551,7 +3567,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "ja": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -3762,7 +3779,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "ko": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -3974,7 +3992,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "lv": {
       "backupToFile": "d8c6b60067ff",
@@ -4184,7 +4203,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "nl": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -4391,7 +4411,8 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthXHigh": "0704c8f37934"
+      "msgReasoningDepthXHigh": "0704c8f37934",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "no": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -4599,7 +4620,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "pl": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -4810,7 +4832,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "pt_BR": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -5017,7 +5040,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "pt_PT": {
       "backupToFile": "d8c6b60067ff",
@@ -5224,7 +5248,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "ro": {
       "backupToFile": "d8c6b60067ff",
@@ -5433,7 +5458,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "ru": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -5644,7 +5670,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "sl": {
       "backupToFile": "d8c6b60067ff",
@@ -5855,7 +5882,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "sr": {
       "backupToFile": "d8c6b60067ff",
@@ -6067,7 +6095,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "sv": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -6273,7 +6302,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "th": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -6483,7 +6513,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "tr": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -6695,7 +6726,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "ug": {
       "backupToFile": "d8c6b60067ff",
@@ -6905,7 +6937,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "uk": {
       "backupToFile": "d8c6b60067ff",
@@ -7115,7 +7148,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "vi": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -7326,7 +7360,8 @@
       "blockBtnGroupAlwaysStyleButtons": "385cbf6e07eb",
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
-      "blockBtnGroupBadgeTooltip": "2c8611bcfbba"
+      "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "zh_CN": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -7538,7 +7573,8 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "optionPopupConfig": "bec17178d24f"
+      "optionPopupConfig": "bec17178d24f",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     },
     "zh_TW": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -7750,7 +7786,8 @@
       "errorApiKeyNotFound": "fde13a6b4257",
       "lblActivateTheExtension": "943a63c2d1e9",
       "lblAiTranslatedStyle": "69cda401b76c",
-      "promptInputOpenAIKey": "67bd5632b9e9"
+      "promptInputOpenAIKey": "67bd5632b9e9",
+      "msgReasoningDepthLowest": "5d3a4c52bf3f"
     }
   }
 }
