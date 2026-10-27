@@ -101,6 +101,8 @@ function _extractAiTextDelta(part) {
  * @param {string} [opts.reasoningDepth=""]
  * @param {Object} [opts.extra={}] — baseURL / resourceName ...
  * @param {Object|null} [opts.store=null] — models.dev store (createModelsDevStore)
+ * @param {Function} [opts.fetch] — host transport (renderers need a CORS-free fetch);
+ *   defaults to the SDK's global fetch when omitted
  * @param {AbortSignal} [opts.signal]
  * @param {(text: string) => void} [opts.onChunk]
  * @returns {Promise<{ totalChunks: number, streamError: * }>}
@@ -115,12 +117,13 @@ export async function streamChat({
   reasoningDepth = "",
   extra = {},
   store = null,
+  fetch: fetchImpl = undefined,
   signal = undefined,
   onChunk = () => {},
 }) {
   const getProvidersData = store ? () => store.getProvidersData() : null;
 
-  const languageModel = await createModelClient({ provider, apiKey, model, extra, getProvidersData });
+  const languageModel = await createModelClient({ provider, apiKey, model, extra, getProvidersData, fetch: fetchImpl });
 
   // Reasoning depth → providerOptions. The dialect is resolved from the
   // same models.dev npm field that selected the SDK above, so the

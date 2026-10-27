@@ -11,6 +11,13 @@ describe("normalizeEndpoint", () => {
     expect(normalizeEndpoint("https://api.example.com/v1/chat/completions")).toMatchObject({ ok: true, url: "https://api.example.com/v1" });
   });
 
+  it("strips provider-specific endpoint suffixes so SDK clients do not double the path", () => {
+    // Built-in providers whose apiBase is a full endpoint: the SDK appends
+    // /messages (anthropic) or /chat (cohere) itself.
+    expect(normalizeEndpoint("https://api.anthropic.com/v1/messages")).toMatchObject({ ok: true, url: "https://api.anthropic.com/v1" });
+    expect(normalizeEndpoint("https://api.cohere.com/v2/chat")).toMatchObject({ ok: true, url: "https://api.cohere.com/v2" });
+  });
+
   it("flags a bare host and suggests the https form instead of guessing", () => {
     const result = normalizeEndpoint("ollama.com/v1");
     expect(result.ok).toBe(false);

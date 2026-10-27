@@ -47,7 +47,9 @@ export function normalizeEndpoint(raw) {
 
   // Users often paste the full request URL; the client appends the path itself.
   let pathname = url.pathname.replace(/\/+$/, "");
-  pathname = pathname.replace(/\/(chat\/completions|completions)$/i, "");
+  pathname = pathname.replace(/\/(chat\/completions|completions|messages)$/i, "");
+  // Anthropic's SDK appends /messages, Cohere's appends /chat.
+  pathname = pathname.replace(/\/chat$/i, "");
   const normalized = `${url.origin}${pathname}`;
   return { ok: true, url: normalized, origin: url.origin };
 }
