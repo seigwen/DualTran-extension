@@ -15,7 +15,7 @@ import { SDK_MAP } from "./sdkMap.js";
 import { lookupKnownApiBase, resolveModelsDevId } from "../providers/registry.js";
 import { normalizeEndpoint } from "./endpoint.js";
 
-export async function createModelClient({ provider, apiKey, model, extra = {}, getProvidersData = null }) {
+export async function createModelClient({ provider, apiKey, model, extra = {}, getProvidersData = null, fetch: fetchImpl = undefined }) {
   const data = getProvidersData ? await getProvidersData() : null;
   // models.dev keys its data by its own IDs — resolve the internal → models.dev
   // alias first (e.g. google-gemini → google), otherwise npm never resolves and
@@ -42,13 +42,13 @@ export async function createModelClient({ provider, apiKey, model, extra = {}, g
   // Azure special handling
   if (provider === "azure" || provider === "azure-openai") {
     const resourceName = extra.resourceName || "";
-    return createAzure({ apiKey, resourceName, baseURL: resolvedBase })(model);
+    return createAzure({ apiKey, resourceName, baseURL: resolvedBase, fetch: fetchImpl })(model);
   }
 
   // Lookup SDK mapping
   if (npm && SDK_MAP[npm]) {
     try {
-      return SDK_MAP[npm]({ apiKey, baseURL: resolvedBase })(model);
+      return SDK_MAP[npm]({ apiKey, baseURL: resolvedBase, fetch: fetchImpl })(model);
     } catch (_) {}
   }
 
@@ -60,5 +60,6 @@ export async function createModelClient({ provider, apiKey, model, extra = {}, g
     name: providerData?.name || provider,
     apiKey,
     baseURL: resolvedBase,
+    fetch: fetchImpl,
   })(model);
 }
