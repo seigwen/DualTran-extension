@@ -352,7 +352,8 @@ async function assertSitesTabListsHaveLabels(page) {
  *   - #genericReasoningDepth 存在且是 <select>
  *   - 至少有一个选项（Default），且**每一行文本非空**——空白行在视觉上与
  *     渲染故障无法区分（#85 同族：行存在但无标签）
- *   - 第一行必须是 Default（value=""）——深度的空值语义是「不发送」
+ *   - 第一行必须是 Lowest（value="__lowest__"），第二行是 Default（value=""）
+ *     ——产品规则：默认「最低档」，空值语义仍是「不发送」
  *
  * 重建发生在模型列表加载之后（provider+model → models.dev 声明），
  * 因此这里做有界轮询等待其落定；超时仍空白则失败。
@@ -378,6 +379,7 @@ async function assertReasoningDepthSelectShape(page) {
       count: opts.length,
       values: opts.map((o) => o.value),
       firstValue: opts[0]?.value ?? null,
+      secondValue: opts[1]?.value ?? null,
       blankTexts: opts.filter((o) => (o.textContent ?? "").trim() === "").length,
     };
   });
@@ -385,14 +387,17 @@ async function assertReasoningDepthSelectShape(page) {
   if (r.missing) {
     throw new Error("[options-ai] #genericReasoningDepth 推理深度下拉框缺失（结构被破坏）");
   }
-  if (r.count === 0) {
-    throw new Error("[options-ai] #genericReasoningDepth 无任何选项（连 Default 都未渲染）");
+  if (r.count < 2) {
+    throw new Error("[options-ai] #genericReasoningDepth 至少要有 Lowest + Default 两项");
   }
   if (r.blankTexts > 0) {
     throw new Error(`[options-ai] #genericReasoningDepth 有 ${r.blankTexts}/${r.count} 行文本为空（#85 同族）`);
   }
-  if (r.firstValue !== "") {
-    throw new Error(`[options-ai] #genericReasoningDepth 首行必须是 Default（value=""），实际 "${r.firstValue}"`);
+  if (r.firstValue !== "__lowest__") {
+    throw new Error(`[options-ai] #genericReasoningDepth 首行必须是 Lowest（value="__lowest__"），实际 "${r.firstValue}"`);
+  }
+  if (r.secondValue !== "") {
+    throw new Error(`[options-ai] #genericReasoningDepth 第二行必须是 Default（value=""），实际 "${r.secondValue}"`);
   }
 }
 
