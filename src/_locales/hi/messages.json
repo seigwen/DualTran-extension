@@ -717,7 +717,7 @@
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
   "msgReasoningDepthLowest": {
-    "message": "न्यूनतम (स्वतः)",
+    "message": "न्यूनतम (डिफ़ॉल्ट)",
     "description": "Reasoning depth option: the lowest level the selected model accepts"
   },
   "msgReasoningDepthMax": {
