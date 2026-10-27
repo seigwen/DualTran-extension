@@ -1313,8 +1313,8 @@ describe("options/options", () => {
 
     const select = document.querySelector("#genericReasoningDepth");
     expect(select).not.toBeNull();
-    // 选项已按声明生成（Default + low + high）
-    expect(Array.from(select.options).map((o) => o.value)).toEqual(["", "low", "high"]);
+    // 选项已按声明生成（Lowest 哨兵 + Default + low + high）
+    expect(Array.from(select.options).map((o) => o.value)).toEqual(["__lowest__", "", "low", "high"]);
 
     // 直接驱动 change 事件路径（控件用 addEventListener 绑定）
     select.value = "high";
@@ -1334,7 +1334,7 @@ describe("options/options", () => {
 
     const select = document.querySelector("#genericReasoningDepth");
     expect(select).not.toBeNull();
-    expect(Array.from(select.options).map((o) => o.value)).toEqual([""]);
+    expect(Array.from(select.options).map((o) => o.value)).toEqual(["__lowest__", ""]);
   });
 
   // ── AI 面板文案 i18n（plan 45）─────────────────────────────────────────
@@ -1418,6 +1418,44 @@ describe("options/options", () => {
     expect(globalThis.prompt).toHaveBeenCalledWith("请输入模型名称/ID：");
   });
 
+  it("groups built-in providers before the models.dev catalogue behind a More divider", async () => {
+    await loadOptionsModule(
+      {},
+      {
+        modelsDevProviders: {
+          openai: { npm: "@ai-sdk/openai", models: {} },
+          google: { name: "Google", api: "https://generativelanguage.googleapis.com/v1beta", models: {} },
+          moonshotai: { name: "Moonshot AI", api: "https://api.moonshot.ai/v1", models: {} },
+          // the store only trusts a payload with >10 providers
+          ...Object.fromEntries(
+            Array.from({ length: 12 }, (_, index) => [
+              `pad${index}`,
+              { name: `Pad ${index}`, api: `https://pad${index}.example/v1`, models: {} },
+            ])
+          ),
+        },
+      }
+    );
+    await flushAsyncWork();
+
+    const select = document.querySelector("#aiProvider");
+    expect(select).not.toBeNull();
+    const options = Array.from(select.options);
+    const dividerIndex = options.findIndex((option) => option.disabled && /More/i.test(option.textContent));
+    expect(dividerIndex, "a disabled More divider separates the two groups").toBeGreaterThan(0);
+
+    // Everything before the divider is a curated built-in; openai leads the registry.
+    expect(options[0].value).toBe("openai");
+    // models.dev twins of a built-in never repeat in the catalogue group (#88 family):
+    // google ↔ google-gemini and moonshotai ↔ moonshot are aliases, so only the pads remain.
+    const catalogueIds = options.slice(dividerIndex + 1).map((option) => option.value);
+    expect(catalogueIds).toContain("pad0");
+    expect(catalogueIds).toHaveLength(12);
+    expect(catalogueIds).not.toContain("google");
+    expect(catalogueIds).not.toContain("moonshotai");
+    expect(catalogueIds).not.toContain("openai");
+  });
+
   it("localizes the reasoning-depth option labels through the translate hook", async () => {
     await loadOptionsModule(
       { providerConfigs: { openai: { apiKey: "k", model: "m" } } },
@@ -1427,6 +1465,7 @@ describe("options/options", () => {
           models: { m: { reasoning_options: [{ type: "effort", values: ["low", "high"] }] } },
         }),
         messageOverrides: {
+          msgReasoningDepthLowest: "最低（自动）",
           msgDefault: "默认",
           msgReasoningDepthLow: "低",
           msgReasoningDepthHigh: "高",
@@ -1437,7 +1476,12 @@ describe("options/options", () => {
 
     const select = document.querySelector("#genericReasoningDepth");
     expect(select).not.toBeNull();
-    expect(Array.from(select.options).map((o) => o.textContent)).toEqual(["默认", "低", "高"]);
+    expect(Array.from(select.options).map((o) => o.textContent)).toEqual([
+      "最低（自动）",
+      "默认",
+      "低",
+      "高",
+    ]);
   });
 });
 

@@ -101,9 +101,12 @@ describe("aiProxy — reasoning depth → streamText providerOptions", () => {
     model: "some-model",
   };
 
-  async function runStart(extraMsg, npm) {
+  async function runStart(extraMsg, npm, providerOverrides) {
     mockStorage["modelsdev:providers"] = {
-      data: buildModelsDevCache(npm ? { [extraMsg.provider]: { npm } } : {}),
+      data: buildModelsDevCache({
+        ...(npm ? { [extraMsg.provider]: { npm } } : {}),
+        ...(providerOverrides || {}),
+      }),
       ts: Date.now(),
     };
     const { onConnect } = await loadWithListener();
@@ -135,6 +138,29 @@ describe("aiProxy — reasoning depth → streamText providerOptions", () => {
   it("maps openai depth to { openai: { reasoningEffort } }", async () => {
     const args = await runStart({ provider: "openai", reasoningDepth: "high" }, "@ai-sdk/openai");
     expect(args.providerOptions).toEqual({ openai: { reasoningEffort: "high" } });
+  });
+
+  it("resolves the lowest sentinel against the model's declared levels", async () => {
+    const args = await runStart(
+      { provider: "openai", reasoningDepth: "__lowest__", model: "some-model" },
+      null,
+      {
+        openai: {
+          npm: "@ai-sdk/openai",
+          models: { "some-model": { reasoning_options: [{ type: "effort", values: ["minimal", "low", "medium"] }] } },
+        },
+      }
+    );
+    expect(args.providerOptions).toEqual({ openai: { reasoningEffort: "minimal" } });
+  });
+
+  it("sends nothing for the sentinel when the model declares no reasoning levels", async () => {
+    const args = await runStart(
+      { provider: "openai", reasoningDepth: "__lowest__", model: "some-model" },
+      null,
+      { openai: { npm: "@ai-sdk/openai", models: { "some-model": {} } } }
+    );
+    expect(args).not.toHaveProperty("providerOptions");
   });
 
   it("maps anthropic depth to { anthropic: { effort } } via the models.dev npm", async () => {

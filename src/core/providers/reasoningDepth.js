@@ -30,6 +30,36 @@
 /** Value meaning "do not send any reasoning parameter" (keeps the old behavior). */
 export const REASONING_DEFAULT = "";
 
+/**
+ * Persisted value meaning "use the lowest level this model accepts".
+ * Never sent to a provider: hosts resolve it with `resolveReasoningDepth()`.
+ */
+export const LOWEST_REASONING = "__lowest__";
+
+/**
+ * Turn a stored setting into the value that may be sent to the provider.
+ *
+ *  - `LOWEST_REASONING` → the smallest explicit level the (already clipped)
+ *    options offer: `none` → `minimal` → `low`. A toggle-only model has no
+ *    explicit "off" (its only value is the ON switch), so it resolves to "".
+ *  - `""` → "" (provider default, no parameter).
+ *  - any other value → passed through; `buildProviderOptions` drops it when the
+ *    dialect rejects it.
+ *
+ * @param {{ setting?: string, options?: Array<{ value: string }> }} params
+ * @returns {string}
+ */
+export function resolveReasoningDepth({ setting, options } = {}) {
+  if (setting !== LOWEST_REASONING) return setting || "";
+  const values = (Array.isArray(options) ? options : [])
+    .map((option) => option?.value)
+    .filter((value) => typeof value === "string");
+  for (const candidate of ["none", "minimal", "low"]) {
+    if (values.includes(candidate)) return candidate;
+  }
+  return "";
+}
+
 /** Canonical display order for known effort values. */
 const EFFORT_ORDER = ["none", "minimal", "low", "medium", "high", "xhigh", "max", "default"];
 

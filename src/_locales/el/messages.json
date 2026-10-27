@@ -68,6 +68,26 @@
   "backupToFile": {
     "message": "Αντίγραφο σε αρχείο"
   },
+  "blockBtnGroupAlwaysStyleBadge": {
+    "message": "Μικρό σήμα (κλικ για ανάπτυξη)",
+    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
+  },
+  "blockBtnGroupAlwaysStyleButtons": {
+    "message": "Τρία κουμπιά άμεσα ορατά",
+    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
+  },
+  "blockBtnGroupBadgeTooltip": {
+    "message": "Επιλογές μετάφρασης παραγράφου",
+    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
+  },
+  "blockBtnGroupDisplayAlways": {
+    "message": "Πάντα εμφάνιση",
+    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
+  },
+  "blockBtnGroupDisplayTriggered": {
+    "message": "Εμφάνιση με hover ή κλικ",
+    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
+  },
   "btnAddCustomModelTooltip": {
     "message": "Προσθήκη προσαρμοσμένου μοντέλου",
     "description": "Tooltip of the + button next to the Model label in the options AI panel (adds a model id that is not in the list)."
@@ -306,6 +326,22 @@
   },
   "lblAutoTranslateWhenClickingALink": {
     "message": "Αυτόματη μετάφραση όταν κάνετε κλικ σε έναν σύνδεσμο που σας μεταφέρει στον ίδιο τομέα με τον τρέχοντα ιστότοπο"
+  },
+  "lblBlockBtnGroupAlwaysStyle": {
+    "message": "Στυλ πάντα ορατού",
+    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
+  },
+  "lblBlockBtnGroupDisplay": {
+    "message": "Πότε να εμφανίζεται η ομάδα κουμπιών παραγράφου",
+    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
+  },
+  "lblBlockBtnGroupShowOnClick": {
+    "message": "Εμφάνιση της ομάδας κουμπιών παραγράφου με κλικ σε μια παράγραφο",
+    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
+  },
+  "lblBlockBtnGroupShowOnHover": {
+    "message": "Εμφάνιση της ομάδας κουμπιών παραγράφου με hover πάνω σε μια παράγραφο",
+    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
   },
   "lblButtonInTheAddressBar": {
     "message": "Εμφάνιση κουμπιού στη γραμμή διευθύνσεων"
@@ -680,6 +716,10 @@
     "message": "Χαμηλή",
     "description": "Reasoning depth option label (models.dev effort value: low)."
   },
+  "msgReasoningDepthLowest": {
+    "message": "Χαμηλότερο (αυτόματο)",
+    "description": "Reasoning depth option: the lowest level the selected model accepts"
+  },
   "msgReasoningDepthMax": {
     "message": "Μέγιστη",
     "description": "Reasoning depth option label (models.dev effort value: max)."
@@ -840,41 +880,5 @@
   },
   "translateClickingOnce": {
     "message": "Μεταφράστε τη σελίδα κάνοντας κλικ μία φορά στο κουμπί στη γραμμή διευθύνσεων. (Για να δείτε το αναδυόμενο παράθυρο, κάντε δεξί κλικ)"
-  },
-  "lblBlockBtnGroupDisplay": {
-    "message": "Πότε να εμφανίζεται η ομάδα κουμπιών παραγράφου",
-    "description": "Options label: controls whether the per-paragraph button group (Original/Google/AI) is always visible or shown on hover/click"
-  },
-  "blockBtnGroupDisplayTriggered": {
-    "message": "Εμφάνιση με hover ή κλικ",
-    "description": "Options value: the paragraph button group appears when hovering or clicking a paragraph"
-  },
-  "blockBtnGroupDisplayAlways": {
-    "message": "Πάντα εμφάνιση",
-    "description": "Options value: the paragraph button group is always visible at the end of each paragraph"
-  },
-  "lblBlockBtnGroupAlwaysStyle": {
-    "message": "Στυλ πάντα ορατού",
-    "description": "Options label: style of the always-visible paragraph button group (badge vs three buttons); active only when 'Always show' is selected"
-  },
-  "blockBtnGroupAlwaysStyleBadge": {
-    "message": "Μικρό σήμα (κλικ για ανάπτυξη)",
-    "description": "Options value: always-visible mode shows a small badge at the end of each paragraph that expands to the three buttons"
-  },
-  "blockBtnGroupAlwaysStyleButtons": {
-    "message": "Τρία κουμπιά άμεσα ορατά",
-    "description": "Options value: always-visible mode shows the three engine buttons directly at the end of each paragraph"
-  },
-  "lblBlockBtnGroupShowOnHover": {
-    "message": "Εμφάνιση της ομάδας κουμπιών παραγράφου με hover πάνω σε μια παράγραφο",
-    "description": "Options label: whether hovering a paragraph shows the button group; active only in triggered display mode"
-  },
-  "lblBlockBtnGroupShowOnClick": {
-    "message": "Εμφάνιση της ομάδας κουμπιών παραγράφου με κλικ σε μια παράγραφο",
-    "description": "Options label: whether tapping/clicking a paragraph shows the button group. Default is yes on mobile/tablet, no on desktop. Active only in triggered display mode"
-  },
-  "blockBtnGroupBadgeTooltip": {
-    "message": "Επιλογές μετάφρασης παραγράφου",
-    "description": "Always-visible mode: tooltip/aria-label of the small badge that opens the paragraph's translation engine options"
   }
 }
