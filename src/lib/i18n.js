@@ -68,7 +68,23 @@ void (function () {
     translateAttributes(root, "title");
     translateAttributes(root, "placeholder");
     translateAttributes(root, "label");
+    applyTextDirection(root);
   };
+
+  /**
+   * Right-to-left layout. The direction comes from the catalogue itself
+   * (`uiDirection`), not from `getUILanguage()`: the two disagree in headless
+   * test browsers, and the catalogue is the same source `getMessage` used.
+   */
+  function applyTextDirection(root) {
+    if (!root || !root.documentElement) return;
+    const direction = getMessage("uiDirection");
+    if (direction === "rtl") {
+      root.documentElement.setAttribute("dir", "rtl");
+    } else {
+      root.documentElement.removeAttribute("dir");
+    }
+  }
 
   // detects if this script is not a contentScript and then call i18n.translateDocument
   if (typeof chrome.tabs !== "undefined") {

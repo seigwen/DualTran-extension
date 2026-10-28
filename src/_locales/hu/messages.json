@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Oldal fordítása az eszköztáron levő ikonra kattintva. (felugró ablak megjelenítéséhez nyomjon jobb klikket)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Prevedite stran tako, da enkrat kliknete gumb v naslovni vrstici. (Za ogled pojavnega okna kliknite z desno miškino tipko)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

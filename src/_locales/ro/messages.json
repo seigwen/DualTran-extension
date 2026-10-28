@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Tradu pagina dacă se face clic o dată pe simbolul extensiei. (Pentru a vedea fereastra cu opțiuni, clic-dreapta)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

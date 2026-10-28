@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Vertaal de pagina door eenmaal op de knop in de adresbalk te klikken. (Klik met de rechtermuisknop om de pop-up te zien)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

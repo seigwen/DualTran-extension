@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Prevedite stranicu tako da jednom kliknete na gumb u adresnoj traci. (Da biste vidjeli skočni prozor, kliknite desnom tipkom miša)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

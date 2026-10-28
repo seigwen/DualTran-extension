@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Käännä sivu napsauttamalla kerran osoitepalkin painiketta. (Näet ponnahdusikkunan napsauttamalla hiiren kakkospainikkeella)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

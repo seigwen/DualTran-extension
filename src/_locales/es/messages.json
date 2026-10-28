@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Traducir la página pulsando una vez en el botón de la barra de direcciones. (Para ver la ventana emergente, haga clic derecho)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

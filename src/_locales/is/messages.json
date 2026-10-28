@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Þýða síðuna með því að smella einu sinni á hnappinn á veffangastikunni. (Til að sjá sprettigluggann skaltu hægrismella)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

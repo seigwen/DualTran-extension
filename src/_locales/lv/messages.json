@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Tulkot lapu, vienreiz nospiežot pogu adreses joslā. (Lai redzētu uznirstošo logu, noklikšķiniet ar peles labo pogu)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

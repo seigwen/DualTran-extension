@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Traduza a página clicando uma vez sobre o botão na barra de endereço. (Para ver o pop-up, clique com o botão direito)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

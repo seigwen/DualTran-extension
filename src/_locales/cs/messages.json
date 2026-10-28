@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Stránku přeložíte jedním kliknutím na tlačítko v adresním řádku. (Chcete-li zobrazit vyskakovací okno, klikněte pravým tlačítkem myši)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

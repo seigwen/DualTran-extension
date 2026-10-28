@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Die Seite übersetzen, wenn einmal auf den Button in der Adressleiste geklickt wird. (Um das Popup zu sehen, rechts-klicken)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }
