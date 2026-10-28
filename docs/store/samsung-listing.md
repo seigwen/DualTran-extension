@@ -57,16 +57,16 @@ Best for reading documentation, papers, contracts and GitHub issues on a phone.
 | 素材 | 规格 | 来源 |
 |---|---|---|
 | 应用图标 | 512×512 PNG | 从 `src/icons/icon-256.png` 放大或用矢量重出 |
-| 截图 | 手机竖屏（Galaxy Store 要求手机比例） | **需重拍**：当前只有 1280×800 桌面截图 |
+| 截图 | 手机竖屏 1080×1920 ×3 | ✅ `docs/assets/store/mobile/`（真机同款构建，手机视口实拍） |
 | 宣传图 | 1024×500（可选） | 可用 `promo-440x280.jpg` 重排 |
 
-**这是当前唯一缺的材料**：手机竖屏截图。需要在 Kiwi/Lemur 或 Firefox Android 上截 3 张（1080×1920 左右）。
+**截图已补齐**：`docs/assets/store/mobile/{m1-bilingual,m2-settings,m3-ai}.png`，1080×1920，由真实构建在手机视口截取，非合成图。
 
 ## 5. 提交前检查清单
 
 - [ ] Samsung Seller 账号已实名
 - [ ] zip 能在 Samsung Internet 上安装并翻译（真机验证）
-- [ ] 手机竖屏截图 3 张
+- [x] 手机竖屏截图 3 张（已生成）
 - [ ] 隐私政策 URL 可访问（已验证 200）
 - [ ] 审核备注写明：无需账号、无远程代码、AI 需用户自带 Key
 
