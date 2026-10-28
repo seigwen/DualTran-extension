@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Oversett siden ved å klikke én gang på knappen i adressefeltet. (Høyreklikk for å se popup-vinduet)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

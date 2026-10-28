@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Tradueix la pàgina fent clic al botó de la barra d'adreces (per veure la finestra emergent, feu clic amb el botó dret)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

@@ -390,6 +390,86 @@ async function i4RealTranslationLocale(scope) {
   console.log("[I4] 通过 ✓\n");
 }
 
+
+// ═════════════════════════════════════════════════════════════════
+// I5: 多语言抽样 + RTL —— 全部期望值来自 _locales/<code>
+// ═════════════════════════════════════════════════════════════════
+
+/** 抽样语言：拉丁/中日/西里尔/阿拉伯/繁体/葡语，覆盖脚本与 RTL。 */
+const I5_LOCALES = ["ja", "ru", "tr", "ar", "zh_TW", "pt_BR"];
+
+/**
+ * [I5] 用真实 locale 启动扩展，断言选项页文案等于该 locale 的 messages.json，
+ * 除 RTL 语言外不得出现 dir=rtl，且不得渲染原始 key。
+ *
+ * 期望值全部读目录文件——机翻更新后测试不需要跟着改。
+ */
+async function i5LocaleSweep(scope) {
+  console.log("[I5] 多语言抽样 + RTL 验证...");
+
+  for (const code of I5_LOCALES) {
+    const chromeLocale = code.replace("_", "-");
+    const catalogue = JSON.parse(
+      readFileSync(resolve(__dirname, `../../src/_locales/${code}/messages.json`), "utf8")
+    );
+    const expectedSettings = catalogue.lblSettings.message;
+    const expectedProvider = catalogue.lblAiProvider.message;
+
+    await runWithIsolatedExtensionContext(async ({ page, extensionId }) => {
+      await page.goto(`chrome-extension://${extensionId}/options/options.html#ai`, { waitUntil: "load" });
+      await page.waitForTimeout(1500);
+
+      const state = await page.evaluate(() => {
+        const read = (key) => {
+          const node = document.querySelector(`[data-i18n="${key}"]`);
+          return node ? node.textContent : null;
+        };
+        const leaks = Array.from(document.querySelectorAll("[data-i18n]"))
+          .filter((node) => {
+            const key = node.getAttribute("data-i18n");
+            const text = (node.textContent || "").trim();
+            return text === key || text === "";
+          })
+          .map((node) => node.getAttribute("data-i18n"));
+        return {
+          settings: read("lblSettings"),
+          provider: read("lblAiProvider"),
+          leaks,
+          dir: document.documentElement.getAttribute("dir"),
+          uiLang: chrome.i18n.getUILanguage(),
+          hasTranslateDocument: typeof chrome.i18n.translateDocument,
+        };
+      });
+
+      if (state.settings !== expectedSettings) {
+        throw new Error(`[I5:${code}] lblSettings 应为 "${expectedSettings}"，实际为 "${state.settings}"`);
+      }
+      if (state.provider !== expectedProvider) {
+        throw new Error(`[I5:${code}] lblAiProvider 应为 "${expectedProvider}"，实际为 "${state.provider}"`);
+      }
+      if (state.leaks.length > 0) {
+        throw new Error(`[I5:${code}] 未翻译的 key: ${state.leaks.join(", ")}`);
+      }
+      const wantsRtl = ["ar", "fa", "he", "ug"].includes(code);
+      if (wantsRtl && state.dir !== "rtl") {
+        throw new Error(
+          `[I5:${code}] RTL 语言必须设置 dir=rtl，实际为 "${state.dir}" (uiLang=${state.uiLang}, translateDocument=${state.hasTranslateDocument})`
+        );
+      }
+      if (!wantsRtl && state.dir === "rtl") {
+        throw new Error(`[I5:${code}] 非 RTL 语言不应设置 dir=rtl`);
+      }
+      if (expectedSettings === EN_MESSAGES.lblSettings.message && code !== "en") {
+        throw new Error(`[I5:${code}] 目录仍是英文原文，翻译没有生效`);
+      }
+    }, scope.collector, { locale: chromeLocale });
+
+    console.log(`  [I5:${code}] ✓`);
+  }
+
+  console.log("[I5] 通过 ✓\n");
+}
+
 // ═════════════════════════════════════════════════════════════════
 // run(scope) — 测试主入口
 // ═════════════════════════════════════════════════════════════════
@@ -420,6 +500,9 @@ export async function run(scope) {
 
   // ── I4: 德语 locale → 真翻译抽查（plan 65）──
   await i4RealTranslationLocale(scope);
+
+  // ── I5: 多语言抽样 + RTL ──
+  await i5LocaleSweep(scope);
 
   console.log(`=== 场景 "${name}" 全部通过 ===\n`);
 }

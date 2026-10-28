@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Sayfayı çevirmek için adres çubuğundaki düğmeye bir kez tıklayın. (Açılır pencereyi görmek için sağ tıklayın)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

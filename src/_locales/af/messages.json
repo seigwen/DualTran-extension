@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Vertaal die bladsy deur een keer op die knoppie in die adresbalk te klik. (Om die opspringer te sien, regskliek)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

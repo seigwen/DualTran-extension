@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Przetłumacz stronę, klikając przycisk na pasku adresu. (Aby wyświetlić wyskakujące okienko, kliknij prawym przyciskiem myszy)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

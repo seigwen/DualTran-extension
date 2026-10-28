@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Oversæt siden ved at klikke en gang på knappen i adresselinjen. (For at se popup, højreklik)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

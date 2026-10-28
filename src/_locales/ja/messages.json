@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "アドレスバーのボタンで即座にページを翻訳（ポップアップを表示するには右クリック）"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

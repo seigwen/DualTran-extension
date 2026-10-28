@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Dịch trang web bằng cách nhấp một lần vào nút trên thanh địa chỉ. (Để xem cửa sổ bật lên, nhấp chuột phải)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

@@ -868,5 +868,8 @@
   },
   "translateClickingOnce": {
     "message": "點一下網址列中的按鈕來翻譯網頁。（要顯示彈出視窗則點擊右鍵）"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

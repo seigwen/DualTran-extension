@@ -20,6 +20,11 @@
  */
 
 export const I18N_TRANSLATION_ALLOWLIST = [
+  // ── Technical enum — same value in every locale ──
+  {
+    key: "uiDirection",
+    reason: "LTR/RTL enum consumed by the layout; the ltr value is correct in every left-to-right locale",
+  },
   // ── Brand / provider tokens — always kept in Latin script ──
   { key: "aiProviderAnthropic", reason: "Provider brand name — always kept in Latin script" },
   { key: "aiProviderAzureOpenAI", reason: "Provider brand name — always kept in Latin script" },

@@ -868,5 +868,8 @@
   },
   "translateClickingOnce": {
     "message": "鼠标左击地址栏中按钮，一键翻译页面。(右击可看到弹出窗口)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

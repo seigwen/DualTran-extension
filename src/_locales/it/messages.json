@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "Traduci la pagina facendo clic una volta sul pulsante nella barra degli indirizzi. (Per vedere le opzioni, fare clic con il tasto destro)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }

@@ -880,5 +880,8 @@
   },
   "translateClickingOnce": {
     "message": "주소 표시줄의 버튼을 한 번 클릭하여 페이지를 번역 (팝업을 보려면, 마우스 오른쪽 버튼을 클릭)"
+  },
+  "uiDirection": {
+    "message": "ltr"
   }
 }
