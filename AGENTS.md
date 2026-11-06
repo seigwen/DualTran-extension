@@ -46,6 +46,14 @@
 2. 对照 skill「状态同步失败模式清单」（M1-M5）定位模式。
 3. 修复后补：生命周期矩阵测试 + 一致性断言 + 防呆 lint。
 
+## 平台铁律（Windows / Linux 双宿主机）
+
+1. **E2E 必须在交互会话里跑**：SSH 会话没有窗口站，有头 Chrome 直接以 `0x80000003` 退出（`Invalid file descriptor to ICU data`）。Windows 上用计划任务投递：`schtasks /Create /TN … /IT` + `schtasks /Run`，跑完删除。
+2. **E2E 前必须 `npm run build`**：`dist/chrome` 不存在时全部场景 fatal（ENOENT）。
+3. **Playwright 浏览器版本必须与 `node_modules/playwright` 对齐**：错位报 `Executable doesn't exist at …chromium-NNNN`，跑 `npx playwright install chromium`。
+4. **clone 后立刻 `git config core.autocrlf false` 再重置索引**：默认 CRLF 会让锚串类测试（`certCases` / `checkIntentGates` / `mockFidelity`）全红——不是代码问题。
+5. **断言不得依赖界面语言**：UI 有 38 个 locale，写死英文词的正则在 zh-CN 机器上必然假红。就绪信号用属性标记（如 `data-dualtran-popup-ready`），语言名用 i18n 模板（`chrome.i18n.getMessage(key)` 不传参时占位符为空）比较，不要 grep 英文。
+
 ## 违反后果
 
 - 违反状态架构铁律 → 状态 bug 复发（5 次历史事故的温床）
