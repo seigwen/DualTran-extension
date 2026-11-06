@@ -11,7 +11,7 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { startMockServer } from "./mock-llm.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -56,7 +56,7 @@ async function loadScenarios() {
     .sort();
   const scenarios = [];
   for (const file of files) {
-    const mod = await import(path.join(dir, file));
+    const mod = await import(pathToFileURL(path.join(dir, file)).href);
     if (mod.default) scenarios.push(mod.default);
   }
   return scenarios;

@@ -13,9 +13,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../../..");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const { Builder } = require(path.join(ROOT, "node_modules", "selenium-webdriver"));
 const firefox = require(path.join(ROOT, "node_modules", "selenium-webdriver", "firefox"));
 
@@ -59,7 +60,7 @@ export async function launch({ extensionDir, artifactsDir, config = {} }) {
   const seededDir = buildSeededExtension(extensionDir, config);
 
   const options = new firefox.Options();
-  options.setBinary(path.join(ROOT, "tools", "firefox", "firefox"));
+  options.setBinary(process.env.DT_FIREFOX || path.join(ROOT, "tools", "firefox", "firefox"));
   options.enableBidi();
   // A fresh profile makes the extension pick its target language from the browser locale,
   // so pin it to Chinese — otherwise "translate" returns the English source unchanged.
@@ -72,7 +73,7 @@ export async function launch({ extensionDir, artifactsDir, config = {} }) {
     .setFirefoxService(service)
     .build();
 
-  await driver.installWebExtension(seededDir);
+  await driver.installWebExtension(seededDir, { permanent: false });
   await driver.sleep(1500);
 
   const runInPage = (script, ...args) => driver.executeScript(script, ...args);

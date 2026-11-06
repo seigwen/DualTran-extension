@@ -6,6 +6,7 @@
  * simplest of the two.
  */
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { chromium } from "playwright";
 
@@ -16,9 +17,10 @@ export const engine = "chromium";
  */
 export async function launch({ extensionDir, artifactsDir }) {
   fs.mkdirSync(artifactsDir, { recursive: true });
-  const userDataDir = fs.mkdtempSync("/tmp/dualtran-conf-cr-");
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "dualtran-conf-cr-"));
   const context = await chromium.launchPersistentContext(userDataDir, {
     headless: false,
+    executablePath: process.env.DT_CHROME || undefined,
     viewport: { width: 1280, height: 800 },
     args: [`--disable-extensions-except=${extensionDir}`, `--load-extension=${extensionDir}`, "--no-first-run"],
   });
