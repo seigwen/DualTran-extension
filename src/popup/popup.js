@@ -144,6 +144,10 @@ twpConfig.onReady(function () {
             }
             updateAlwaysTranslateLanguageRowLabels(originalTabLanguage);
             updateInterface()
+            // Locale-independent readiness signal for the E2E harness. The label text cannot be
+            // used: the UI ships 38 locales, so a test that greps for an English word passes on
+            // an en-US runner and times out on a zh-CN one.
+            document.documentElement.dataset.dualtranPopupReady = "1";
           }
         }
       );
