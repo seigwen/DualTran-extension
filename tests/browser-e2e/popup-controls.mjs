@@ -78,13 +78,14 @@ const CHECKBOX_CONFIGS = [
  * @returns {Promise<void>}
  */
 async function waitForPopupReady(page) {
-  await page.waitForFunction(() => {
-    const lbl = document.getElementById("lblShowTranslatedWhenHoveringThisLang");
-    if (!lbl) return false;
-    const txt = (lbl.textContent || "").trim();
-    // 必须已出现「in <语言名>」且语言名不是未替换的 $LANGUAGE_NAME$ 占位符
-    return /\bin\s+[^\s$]/.test(txt);
-  }, null, { timeout: 10000 });
+  // The readiness marker is set by popup.js once listeners are registered and the tab language
+  // is resolved. Do not sniff the label text: it is localised, so an English-word regex passes
+  // on an en-US runner and times out on a zh-CN one.
+  await page.waitForFunction(
+    () => document.documentElement.dataset.dualtranPopupReady === "1",
+    null,
+    { timeout: 15000 }
+  );
 }
 
 /**
@@ -706,18 +707,34 @@ async function p8LanguageRowLabelsNameTheLanguage(page, extensionId, serviceWork
     return {
       google: read("lblAlwaysTranslateThisLanguage"),
       ai: read("lblAlwaysTranslateThisLanguageWithAi"),
+      // The untranslated templates: i18n resolves $LANGUAGE_NAME$ to an empty string when no
+      // substitution is passed, so "label longer than template" means "a language name was
+      // appended". This keeps the assertion independent of the UI locale (38 of them) without
+      // hardcoding an English language name. Note the key prefix: the DOM ids are
+      // lblAlwaysTranslateThisLanguage*, the message keys are btnAlwaysTranslateThisLanguage*.
+      // Each row has its own template — comparing AI against the Google template fails on
+      // locales where the two strings differ in length (zh-CN: "总是使用 AI …" < "总是使用 Google …").
+      templates: {
+        google: chrome.i18n.getMessage("btnAlwaysTranslateThisLanguage"),
+        ai: chrome.i18n.getMessage("btnAlwaysTranslateThisLanguageWithAi"),
+      },
     };
   });
 
   for (const [row, text] of Object.entries(labels)) {
+    if (row === "templates") continue;
     const label = row === "google" ? "lblAlwaysTranslateThisLanguage" : "lblAlwaysTranslateThisLanguageWithAi";
+    const template = (labels.templates[row] || "").trim();
+    if (!template) {
+      throw new Error(`[P8] 取不到 i18n 模板（${row}）`);
+    }
     if (!text || text.trim() === "") {
       throw new Error(`[P8] #${label} 为空（i18n 或语言名注入未执行）`);
     }
-    // 语言名解析后必须出现（英语环境为 "English"；断言不锁分隔符格式）
-    if (!/English/.test(text)) {
+    // 语言名解析后必须出现（断言不锁分隔符格式，也不锁语言）
+    if (text.trim().length < template.length + 2) {
       throw new Error(
-        `[P8] #${label} 未包含语言名 "English"（issue #149 复现）: ${JSON.stringify(text)}`
+        `[P8] #${label} 未包含语言名（issue #149 复现）: ${JSON.stringify(text)}，模板 ${JSON.stringify(template)}`
       );
     }
     // 占位符必须已被替换（不得残留 $LANGUAGE_NAME$）
