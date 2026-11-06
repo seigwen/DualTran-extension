@@ -28,7 +28,14 @@ let txCli;
 
 beforeAll(async () => {
   // Build the artifact under test — the CLI loads dist-core/index.mjs.
-  execFileSync("npm", ["run", "build:core"], { cwd: ROOT, stdio: "pipe" });
+  // npm is a .cmd shim on Windows, and execFileSync does not go through the shell.
+  // npm is a .cmd shim on Windows; Node refuses to spawn .cmd files without a shell (EINVAL).
+  const npm = process.platform === "win32" ? "npm.cmd" : "npm";
+  execFileSync(npm, ["run", "build:core"], {
+    cwd: ROOT,
+    stdio: "pipe",
+    shell: process.platform === "win32",
+  });
   txCli = await import("../../scripts/tx-cli.mjs");
 }, 60_000);
 

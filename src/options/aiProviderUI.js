@@ -16,7 +16,10 @@ export const AI_PROVIDER_SETTING_IDS = {};
  */
 export function sortProvidersByLabel(providers, getLabel) {
   const list = Array.isArray(providers) ? providers.slice() : [];
-  const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+  // Pin the locale: the default collator follows the OS locale, so the same extension would
+  // order the list differently on a zh-CN and an en-US machine (and the tests would disagree
+  // with production). A fixed locale keeps the dropdown stable everywhere.
+  const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
   const labelOf = typeof getLabel === "function" ? getLabel : (provider) => provider?.name;
   // Entries without a label fall to the bottom rather than leading the list.
   const rank = (provider) => (String(labelOf(provider) ?? "").trim() ? 0 : 1);
