@@ -13,7 +13,7 @@
 | 语言 | 中文（简体）、English |
 | 官网 | https://seigwen.github.io/DualTran-extension/ |
 | 支持邮箱 | seigwen@gmail.com |
-| 隐私政策 | https://github.com/seigwen/DualTran-extension/blob/master/docs/store/privacy.md |
+| 隐私政策 | https://seigwen.github.io/DualTran-extension/privacy.html |
 
 ## 简短说明（≤132 字符）
 

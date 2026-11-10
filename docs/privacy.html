@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — DualTran</title>
+<meta name="description" content="DualTran privacy policy: no analytics, no telemetry, no crash reporting, no account system and no developer server. See exactly what leaves your device when you translate and what stays on it.">
+<meta name="robots" content="index,follow">
+<meta property="og:title" content="Privacy Policy — DualTran">
+<meta property="og:description" content="No analytics, no telemetry, no account. Only the text you choose to translate is sent, and only to the translation service you picked.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://seigwen.github.io/DualTran-extension/privacy.html">
+<link rel="icon" href="assets/icon-128.png">
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#12161b; --line:#222a33; --text:#e8edf3; --muted:#93a1b1;
+    --accent:#3b82f6; --accent-soft:#1e3a5f;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    overflow-wrap:break-word;
+  }
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px}
+  .top{border-bottom:1px solid var(--line)}
+  .top .inner{max-width:860px;margin:0 auto;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .brand{font-weight:700;letter-spacing:.2px}
+  .brand a{color:var(--text)}
+  .top nav a{color:var(--muted);font-size:14px;margin-left:16px}
+  .top nav a:hover{color:var(--text)}
+  main{max-width:860px;margin:0 auto;padding:40px 20px 64px}
+  h1{font-size:34px;line-height:1.25;letter-spacing:-.4px;margin:0 0 10px}
+  .updated{color:var(--muted);font-size:14px;margin:0 0 28px}
+  .lead{color:var(--muted);font-size:17px;margin:0 0 8px}
+  h2{font-size:22px;line-height:1.3;letter-spacing:-.2px;margin:40px 0 12px;scroll-margin-top:24px}
+  h3{font-size:17px;margin:24px 0 8px}
+  p{margin:0 0 14px}
+  ul{margin:0 0 14px;padding-left:22px}
+  li{margin:0 0 8px}
+  li:last-child{margin-bottom:0}
+  strong{color:#fff;font-weight:600}
+  code{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:14px;
+       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:16px 0 20px}
+  .card h2{margin:0 0 10px;font-size:20px}
+  .card p:last-child,.card ul:last-child{margin-bottom:0}
+  .toc{border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:0 0 8px}
+  .toc p{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+  .toc ul{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:8px 18px}
+  .toc li{margin:0}
+  .toc a{font-size:14.5px}
+  .note{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;padding:12px 16px;margin:16px 0 20px;color:#cfe1ff}
+  .note p{margin:0}
+  footer{border-top:1px solid var(--line);color:var(--muted);font-size:13.5px}
+  footer .inner{max-width:860px;margin:0 auto;padding:24px 20px 40px}
+  footer p{margin:0 0 6px}
+  @media (max-width:600px){
+    main{padding:28px 18px 56px}
+    h1{font-size:27px}
+    h2{font-size:20px;margin-top:32px}
+    .lead{font-size:16px}
+    body{font-size:15.5px}
+    .top nav a{margin-left:0;margin-right:14px}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="inner">
+    <div class="brand"><a href="./">DualTran</a></div>
+    <nav>
+      <a href="./">Home</a>
+      <a href="https://github.com/seigwen/DualTran-extension">GitHub</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: 2026-11-10</p>
+
+  <p class="lead">DualTran is a browser extension that translates web pages and selected text. This page describes exactly what leaves your device, what stays on it, and who can see it.</p>
+
+  <nav class="toc" aria-label="Sections">
+    <p>On this page</p>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#collect">What the developer collects</a></li>
+      <li><a href="#leaves">What leaves your device</a></li>
+      <li><a href="#stored">What is stored</a></li>
+      <li><a href="#third-parties">Third parties</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <section aria-labelledby="overview-heading">
+    <h2 id="overview">Overview</h2>
+    <p>DualTran keeps the original text on the page and shows the translation underneath it. There is no account, no sign-in, and no server operated by the developer. The extension talks to one kind of service only: the translation provider you have chosen, and only after you ask it to translate something.</p>
+    <div class="note">
+      <p><strong>In one sentence:</strong> nothing is collected about you, nothing is sent anywhere until you translate, and the only text that is sent is the text you chose to translate — going to the translation service you picked.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="collect-heading">
+    <h2 id="collect">What the developer collects</h2>
+    <p><strong>Nothing.</strong></p>
+    <ul>
+      <li>No analytics. No page views, feature counters, or usage events are recorded.</li>
+      <li>No telemetry. The extension does not report how it is used, which sites you visit, or which languages you translate.</li>
+      <li>No crash reports. Errors stay in your browser's own console and are never uploaded.</li>
+      <li>No account system. There is nothing to register for and no user identifier to link data to.</li>
+      <li>No developer server. The developer does not operate any backend, relay, or proxy that receives your data. There is no endpoint the extension could report to.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="leaves-heading">
+    <h2 id="leaves">What leaves your device</h2>
+    <p>Data leaves your device in exactly one situation: you trigger a translation — by translating a selection, or by translating the page. When that happens:</p>
+    <ul>
+      <li><strong>Page text or selected text is sent to the translation service you selected.</strong> Only the segments being translated are sent — not your browsing history, not the whole page when you only translated a selection.</li>
+      <li><strong>By default that service is Google Translate.</strong> Requests go to <code>translate.googleapis.com</code>, the public translation endpoint used by Google Translate, with no developer server in between.</li>
+      <li><strong>If you configure an AI provider, the text is sent directly to that provider.</strong> OpenAI, Anthropic, Google Gemini, DeepSeek, Moonshot, Zhipu GLM, Qwen, Groq, OpenRouter, Ollama, LM Studio and 20+ other providers are supported. The request goes from your browser straight to the provider's API using <strong>your own API key</strong> — the key is never sent to the developer.</li>
+    </ul>
+    <p>Nothing else is transmitted. The extension makes no other network requests: no background beacon, no usage ping, no remote configuration fetch, no advertising, and no tracking pixels.</p>
+  </section>
+
+  <section aria-labelledby="stored-heading">
+    <h2 id="stored">What is stored</h2>
+    <p>Everything the extension keeps stays on your machine, in your browser's extension storage. The developer has no copy of any of it.</p>
+    <ul>
+      <li><strong>Settings and translation preferences</strong> — target language, which engines are enabled, display mode, and per-site options.</li>
+      <li><strong>Optional translation cache</strong> — if you turn caching on, recent translations are kept locally so repeated text does not have to be translated twice.</li>
+      <li><strong>API keys</strong> — stored only in your browser's extension storage, and sent only to the provider they belong to, at the moment you translate with that provider.</li>
+    </ul>
+    <p><strong>Uninstalling the extension removes all of it.</strong> Nothing survives in a developer database, because there is no developer database.</p>
+  </section>
+
+  <section aria-labelledby="third-parties-heading">
+    <h2 id="third-parties">Third parties</h2>
+    <p>There is exactly one category of third party: the translation provider you chose.</p>
+    <ul>
+      <li>That provider receives <strong>only the text you chose to translate</strong>, only at the moment you translate it.</li>
+      <li>It receives no account details from DualTran — there is no account. For AI providers it receives your own API key, which you supplied.</li>
+      <li><strong>The provider's own privacy policy applies</strong> to that text and to how it is retained. For Google Translate that is Google's privacy policy; for an AI provider, the policy of that provider. Please read it before translating sensitive content.</li>
+      <li>No data is sold, rented, or shared with advertisers, data brokers, or any other party.</li>
+      <li>There are no other network requests, so there are no other third parties to disclose.</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="contact-heading">
+    <h2 id="contact">Contact</h2>
+    <div class="card">
+      <p>Questions about this policy, or a privacy concern about the extension:</p>
+      <ul>
+        <li>Email: <a href="mailto:seigwen@gmail.com">seigwen@gmail.com</a></li>
+        <li>GitHub issues: <a href="https://github.com/seigwen/DualTran-extension/issues" rel="noopener">github.com/seigwen/DualTran-extension/issues</a></li>
+      </ul>
+      <p>DualTran is open source (MPL-2.0). The source code is public at <a href="https://github.com/seigwen/DualTran-extension" rel="noopener">github.com/seigwen/DualTran-extension</a>, so every statement on this page can be checked against the code.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="inner">
+    <p>DualTran — Privacy Policy · Last updated: 2026-11-10</p>
+    <p>Contact: <a href="mailto:seigwen@gmail.com">seigwen@gmail.com</a></p>
+  </div>
+</footer>
+</body>
+</html>
