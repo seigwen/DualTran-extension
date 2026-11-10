@@ -50,7 +50,7 @@ Best for reading documentation, papers, contracts and GitHub issues on a phone.
 ```
 
 **Category**：Productivity / Tools
-**Privacy policy**：https://github.com/seigwen/DualTran-extension/blob/master/docs/store/privacy.md
+**Privacy policy**：https://seigwen.github.io/DualTran-extension/privacy.html
 
 ## 4. 素材
 

@@ -3,7 +3,7 @@
   "shared": {
     "homepage": "https://github.com/seigwen/DualTran-extension",
     "supportEmail": "seigwen@gmail.com",
-    "privacy": "https://github.com/seigwen/DualTran-extension/blob/master/docs/store/privacy.md",
+    "privacy": "https://seigwen.github.io/DualTran-extension/privacy.html",
     "iconSource": "src/icons/icon-256.png"
   },
   "locales": {
