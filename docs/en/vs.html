@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DualTran vs Immersive Translate — side-by-side or replacement?</title>
+<meta name="description" content="Looking for an Immersive Translate alternative? The difference is not who is stronger but how you read: DualTran keeps the original under the translation, Immersive Translate replaces it by default.">
+<link rel="canonical" href="https://seigwen.github.io/DualTran-extension/en/vs.html">
+<link rel="alternate" hreflang="en" href="./vs.html">
+<link rel="alternate" hreflang="zh-CN" href="../vs.html">
+<link rel="alternate" hreflang="x-default" href="./vs.html">
+<meta property="og:title" content="DualTran vs Immersive Translate — side-by-side or replacement?">
+<meta property="og:description" content="Not about who is stronger, but whether the original stays on the page after translation.">
+<meta property="og:image" content="https://seigwen.github.io/DualTran-extension/assets/shot-bilingual.png">
+<meta property="og:type" content="article">
+<link rel="icon" href="../assets/icon-128.png">
+<style>
+:root{--bg:#fff;--fg:#16181d;--muted:#5b6270;--line:#e6e8ec;--brand:#2563eb;--soft:#f6f8fb}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1116;--fg:#e8eaee;--muted:#9aa3b2;--line:#232a35;--soft:#151a22}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:56px 22px 80px}
+a{color:var(--brand);text-decoration:none}
+a:hover{text-decoration:underline}
+h1{font-size:31px;line-height:1.3;margin:0 0 10px;letter-spacing:-.3px}
+h2{font-size:21px;margin:38px 0 10px}
+.sub{color:var(--muted);margin:0 0 30px}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:15px}
+th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:var(--soft);font-weight:600}
+.note{background:var(--soft);border-left:3px solid var(--brand);padding:12px 16px;margin:22px 0;font-size:15px;color:var(--muted)}
+code{font-size:13.5px}
+footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<p><a href="../index.html">← DualTran</a></p>
+<h1>Side-by-side vs replacement</h1>
+<p class="sub">DualTran and Immersive Translate are not two implementations of the same tool. They are two ways of reading.</p>
+
+<p>Both translate a full web page, both support several translation services, both translate a selected word. The real difference is one sentence long: <strong>once the page is translated, is the original text still there?</strong></p>
+
+<h2>The whole difference in one table</h2>
+<table>
+<thead><tr><th>Dimension</th><th>DualTran</th><th>Immersive Translate</th></tr></thead>
+<tbody>
+<tr><td>Default display</td><td>Translation under the original (bilingual)</td><td>Switchable: replacement / bilingual / hover</td></tr>
+<tr><td>Free engine</td><td>Google Translate, no setup</td><td>Several free engines, quotas limited by the provider</td></tr>
+<tr><td>AI translation</td><td>Your own key, 20+ providers</td><td>Your own key, plus official membership quota</td></tr>
+<tr><td>Two engines on one page</td><td>Supported (Google and AI side by side)</td><td>Mainly one engine at a time</td></tr>
+<tr><td>Account</td><td>Not required</td><td>Required for membership features</td></tr>
+<tr><td>Analytics / relay</td><td>No analytics, no relay server</td><td>Some features go through an official service</td></tr>
+<tr><td>Open source</td><td>MPL-2.0, all code public</td><td>Closed source</td></tr>
+<tr><td>Platforms</td><td>Chrome / Firefox / Edge / Obsidian</td><td>Browsers, mobile, PDF and more — broader coverage</td></tr>
+<tr><td>Maturity</td><td>Early project, small user base</td><td>Immersive Translate is more mature; wider feature set and ecosystem</td></tr>
+</tbody>
+</table>
+
+<div class="note">This table is not meant to prove DualTran is better. Immersive Translate is clearly more mature in breadth of features, PDF support and mobile support; if what you want is “install once, everything works”, it is the better fit. DualTran solves one problem: <strong>reading material whose original you need to check again and again</strong>.</div>
+
+<h2>When side-by-side is better</h2>
+<ul>
+<li><strong>Papers and technical documentation</strong>: a dropped <code>not</code> or a mistranslated term leaves you with no way to verify it when the source is gone.</li>
+<li><strong>Contracts, policies, medical information</strong>: you need the exact wording of the original sentence.</li>
+<li><strong>Learning a foreign language</strong>: original on top, translation below — a bilingual reader built into the page.</li>
+<li><strong>Checking AI translation quality</strong>: run Google and an AI on the same page and compare, paragraph by paragraph, which one is closer.</li>
+</ul>
+
+<h2>When replacement is better</h2>
+<ul>
+<li>You just want to skim headlines and summaries of the news and do not care about the exact wording.</li>
+<li>The screen is small (phone, narrow window) and bilingual text would double the page length.</li>
+<li>You need PDF, e-books, subtitles or other formats that DualTran does not cover today.</li>
+</ul>
+
+<h2>Can I use both?</h2>
+<p>Yes — but two extensions both injecting translations into the page interfere with each other. The practical approach is to split the work by site: use DualTran on the sites where you need to verify the source, and your usual translator everywhere else.</p>
+
+<h2>Try it</h2>
+<p>Chrome: <a href="https://chromewebstore.google.com/detail/dualtran/ihbcniigknaeillehompenjaacaocpnp">Chrome Web Store</a> ·
+Firefox: <a href="https://addons.mozilla.org/firefox/addon/dualtran/">AMO</a> ·
+Edge: <a href="https://microsoftedge.microsoft.com/addons/detail/dualtran/jlgcpdcmakcfidfndifanijipfchnjoc">Edge Add-ons</a> ·
+Obsidian: <a href="https://community.obsidian.md/plugins/dualtran-translate">Community plugins</a> ·
+Source: <a href="https://github.com/seigwen/DualTran-extension">GitHub</a></p>
+
+<footer>
+<p>DualTran · MPL-2.0 · No account, no analytics, no relay server</p>
+<p><a href="../index.html">Home</a> · <a href="../privacy.html">Privacy</a> · <a href="https://github.com/seigwen/DualTran-extension">GitHub</a> · <a href="../vs.html">Read in Chinese</a></p>
+</footer>
+</div>
+</body>
+</html>

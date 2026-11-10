@@ -39,9 +39,18 @@ describe("public site pages", () => {
     expect(en).toContain("Read foreign pages. Keep the original.");
     expect(en).toContain('href="../index.html"');
     expect(en).toContain('href="../privacy.html"');
+    expect(en).toContain('href="./vs.html"');
 
     const zh = read("docs/index.html");
     expect(zh).toContain('href="./en/"');
     expect(zh).toContain('href="./privacy.html"');
+  });
+
+  it("ships an English comparison page that names the competitor honestly", () => {
+    const en = read("docs/en/vs.html");
+    expect(en).toContain("Immersive Translate alternative");
+    // The comparison must stay fair: claiming DualTran is more mature would be false.
+    expect(en.toLowerCase()).toContain("more mature");
+    expect(read("docs/vs.html")).toContain('href="./en/vs.html"');
   });
 });
