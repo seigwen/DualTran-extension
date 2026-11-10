@@ -87,7 +87,9 @@ jobs:
       run: node scripts/fetch-firefox-tools.mjs
 
     - name: Firefox smoke (real Firefox, temporary install, google translation)
-      run: npm run test:firefox-smoke
+      # Exit 2 is the script's typed SKIP-ENV (Google 429 / unreachable); treat
+      # only that code as success so CI is not red on external rate limiting.
+      run: npm run test:firefox-smoke || [ $? -eq 2 ]
 
   e2e:
     name: Browser E2E (xvfb, 1 retry)

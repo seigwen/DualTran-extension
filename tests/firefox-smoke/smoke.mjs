@@ -9,7 +9,10 @@
  *
  * Exit codes: 0 PASS, 1 FAIL, 2 SKIP-ENV (objective environment premise).
  * SKIP-ENV applies only to the network premise: if the browser itself cannot
- * reach translate.googleapis.com, translation cannot be asserted on.
+ * reach translate.googleapis.com, or Google answers the translation endpoint
+ * with HTTP 429, translation cannot be asserted on. CI accepts exit 2 as a
+ * skip (see .github/workflows/ci.yml); local runs without CI still show the
+ * explicit SKIP-ENV line.
  *
  * Headless visibility note: headless Firefox reports the initial tab as
  * visibilityState "hidden" until a tab activation happens, and pageTranslator
@@ -56,6 +59,33 @@ for (const [label, p] of [
 
 const { Builder, By } = await import(path.join(ROOT, "node_modules", "selenium-webdriver", "index.js"));
 const firefox = await import(path.join(ROOT, "node_modules", "selenium-webdriver", "firefox.js"));
+
+// The page-side probe below only proves the host is routable. Google can still
+// answer the translation endpoint with 429 while robots.txt returns 200, which
+// is exactly how a green run turns into "no translated content appeared" with
+// no code change. Probe the real endpoint first and treat 429 as SKIP-ENV.
+const translateProbe = await (async () => {
+  try {
+    // Send the same UA as tools/firefox (158). Google rate-limits on the exact
+    // client signature: a default Node UA returns 200 while Firefox gets 429
+    // from the same IP, so an unqualified probe would be a false green.
+    const res = await fetch(
+      "https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl=en&dt=t&q=hola",
+      {
+        cache: "no-store",
+        headers: {
+          "user-agent": "Mozilla/5.0 (X11; Linux x86_64; rv:158.0) Gecko/20100101 Firefox/158.0",
+        },
+        signal: AbortSignal.timeout(20000),
+      }
+    );
+    return res.status;
+  } catch {
+    return 0;
+  }
+})();
+if (translateProbe === 429) skipEnv("Google Translate is rate-limiting this network (HTTP 429)");
+if (translateProbe === 0) skipEnv("cannot reach translate.googleapis.com from Node");
 
 const server = http.createServer((req, res) => {
   res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
