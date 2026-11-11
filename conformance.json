@@ -1,0 +1,15 @@
+{
+  "spec": "2.0.0",
+  "host": "dualtran-extension",
+  "payload": "tests/options/options.test.js",
+  "static": {
+    "files": ["src/options/options.js"],
+    "patterns": [
+      "providerSeparator",
+      "__separator__",
+      "__more__",
+      "More (models.dev)"
+    ]
+  },
+  "platformLimits": []
+}

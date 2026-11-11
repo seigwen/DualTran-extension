@@ -34,6 +34,15 @@
 - [ ] Real-translation gate green (`node scripts/check-i18n-translations.js`) — no English mirrors, ledger fresh for every non-exempt pair, allowlist exact
 - [ ] New exemptions/allowlist entries carry a reason — `data` / `platform` only; `legacy` count stays 0
 
+## Host conformance (required when a settings/translation UI changed — SPEC v2)
+
+- [ ] `npm run conformance` is green (12 negative controls + the real settings surface)
+- [ ] Target language / provider / model are pickers; providers are ONE alphabetical list
+      (no divider, no disabled separator); endpoint is autofilled into `value` and a user
+      override survives a provider switch; reasoning defaults to `lowest`; UI text is i18n
+- [ ] Platform limits, if any, are declared in `conformance.json` with a reason and evidence
+- [ ] N/A — this PR does not touch a settings/translation UI
+
 ## Testing
 
 - [ ] Unit tests added/updated (`npm test`)

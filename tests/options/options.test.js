@@ -1,4 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+// Reasoning resolution is a pure core function (no host dependency): the
+// conformance payload's R4 cases are run through the production implementation.
+import { resolveReasoningDepth } from "../../src/core/providers/reasoningDepth.js";
+// The built-in registry list is what separates "built-in" from "models.dev" in the
+// conformance payload's provider sources.
+import { BUILT_IN_PROVIDERS } from "../../src/core/providers/registry.js";
 
 const state = vi.hoisted(() => {
   const defaultConfigValues = () => ({
@@ -241,9 +250,24 @@ vi.mock("../../src/lib/ai/providerRegistry.js", () => {
     iflytek: "讯飞星火 (iFlytek Spark)",
     perplexity: "Perplexity",
   };
+  // apiBase mirrors BUILT_IN_PROVIDERS too: the endpoint field autofills from it
+  // (R3), so a mock without apiBase cannot see the field's real default behavior.
+  const apiBases = {
+    openai: "https://api.openai.com/v1/chat/completions",
+    anthropic: "https://api.anthropic.com/v1/messages",
+    "google-gemini": "https://generativelanguage.googleapis.com/v1beta",
+    mistral: "https://api.mistral.ai/v1/chat/completions",
+    cohere: "https://api.cohere.com/v2/chat",
+    together: "https://api.together.xyz/v1/chat/completions",
+    groq: "https://api.groq.com/openai/v1/chat/completions",
+    openrouter: "https://openrouter.ai/api/v1/chat/completions",
+    deepseek: "https://api.deepseek.com/v1/chat/completions",
+    zhipu: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+  };
   const providerList = known.map(id => ({
     id,
     name: displayNames[id] || id,
+    apiBase: apiBases[id],
     // OpenAI carries the help link in production — the label tests assert it.
     ...(id === "openai" ? { apiKeyUrl: "https://platform.openai.com/api-keys" } : {}),
   }));
@@ -276,6 +300,22 @@ vi.mock("../../src/lib/ai/providerTypes.js", () => ({
 vi.mock("../../src/lib/ai/providerMigration.js", () => ({
   migrateProviderConfig: () => null,
 }));
+vi.mock("../../src/lib/ai/providerModelPreview.js", () => ({
+  // Preview rows stay network-free in jsdom, but they must still populate: the
+  // panel's model picker (and the conformance payload) reads these rows.
+  loadPreviewModels: vi.fn(({ provider }) =>
+    Promise.resolve(
+      provider === "openai"
+        ? [
+            { value: "gpt-6-sol", text: "GPT-6 Sol" },
+            { value: "gpt-5.1", text: "GPT-5.1" },
+          ]
+        : [{ value: `${provider}-model`, text: "Provider Model" }]
+    )
+  ),
+  getSmartDefaultModel: () => "",
+  getPreviewProviders: () => ({}),
+}));
 vi.mock("../../src/options/providerUI.js", () => ({
   createProviderUI: () => ({
     render: () => {},
@@ -292,6 +332,59 @@ vi.mock("../../src/background/providerUpdate.js", () => ({
   getRemoteProvidersWithCache: async () => null,
 }));
 vi.mock("toolcool-color-picker", () => ({}), { virtual: true });
+
+// ── Host conformance fixtures (shared by the divider contract and the
+// describe("host conformance (SPEC 2.0.0)") block below) ──
+const CONFORMANCE_CUSTOM_PROVIDER_ID = "_custom_conformance-lab";
+const CONFORMANCE_CUSTOM_PROVIDER_NAME = "Conformance Lab";
+const CONFORMANCE_CUSTOM_ENDPOINT = "https://conformance-lab.example/v1/chat/completions";
+
+/** Deterministic, network-free model declarations per provider (models.dev shape). */
+function conformanceModels(specs) {
+  return Object.fromEntries(
+    specs.map(([modelId, label, reasoningValues]) => [
+      modelId,
+      {
+        id: modelId,
+        name: label,
+        ...(reasoningValues ? { reasoning_options: [{ type: "effort", values: reasoningValues }] } : {}),
+      },
+    ])
+  );
+}
+
+/**
+ * A models.dev cache fragment (> 10 providers, so the store trusts it) whose
+ * entries overlap the built-in registry: openai/anthropic/groq/mistral/
+ * openrouter are exact twins, google↔google-gemini, moonshotai↔moonshot and
+ * xai↔grok are alias twins. The pads are catalogue-only providers.
+ */
+function mergedProviderCatalogue() {
+  return {
+    openai: {
+      npm: "@ai-sdk/openai",
+      models: conformanceModels([
+        ["gpt-6-sol", "GPT-6 Sol", ["none", "low", "high"]],
+        ["gpt-5.1", "GPT-5.1", ["minimal", "low"]],
+        ["gpt-image-2", "gpt-image-2", null],
+      ]),
+    },
+    anthropic: { npm: "@ai-sdk/anthropic", models: conformanceModels([["claude-sonnet-4-5", "Claude Sonnet 4.5", null]]) },
+    google: { name: "Google", api: "https://generativelanguage.googleapis.com/v1beta", models: conformanceModels([["gemini-3-pro", "Gemini 3 Pro", ["low", "high"]]]) },
+    deepseek: { name: "DeepSeek", api: "https://api.deepseek.com", models: conformanceModels([["deepseek-chat", "DeepSeek Chat", null]]) },
+    moonshotai: { name: "Moonshot AI", api: "https://api.moonshot.ai/v1", models: conformanceModels([["kimi-k2", "Kimi K2", null]]) },
+    xai: { name: "xAI", models: conformanceModels([["grok-5", "Grok 5", ["low", "high"]]]) },
+    groq: { name: "Groq", models: conformanceModels([["llama-4-scout", "Llama 4 Scout", null]]) },
+    mistral: { name: "Mistral", models: conformanceModels([["mistral-large", "Mistral Large", null]]) },
+    openrouter: { name: "OpenRouter", api: "https://openrouter.ai/api/v1", models: conformanceModels([["auto", "Auto", null]]) },
+    ...Object.fromEntries(
+      Array.from({ length: 12 }, (_, index) => [
+        `pad${index}`,
+        { name: `Pad ${index}`, api: `https://pad${index}.example/v1`, models: {} },
+      ])
+    ),
+  };
+}
 
 function resetConfig(overrides = {}) {
   for (const key of Object.keys(state.configValues)) {
@@ -537,7 +630,7 @@ function installBrowserGlobals({
     },
     permissions: {
       request: vi.fn((_options, callback) => callback(true)),
-      remove: vi.fn(),
+      contains: vi.fn((_options, callback) => callback(false)),
     },
     tabs: {
       create: vi.fn(),
@@ -1418,42 +1511,38 @@ describe("options/options", () => {
     expect(globalThis.prompt).toHaveBeenCalledWith("请输入模型名称/ID：");
   });
 
-  it("groups built-in providers before the models.dev catalogue behind a More divider", async () => {
-    await loadOptionsModule(
-      {},
-      {
-        modelsDevProviders: {
-          openai: { npm: "@ai-sdk/openai", models: {} },
-          google: { name: "Google", api: "https://generativelanguage.googleapis.com/v1beta", models: {} },
-          moonshotai: { name: "Moonshot AI", api: "https://api.moonshot.ai/v1", models: {} },
-          // the store only trusts a payload with >10 providers
-          ...Object.fromEntries(
-            Array.from({ length: 12 }, (_, index) => [
-              `pad${index}`,
-              { name: `Pad ${index}`, api: `https://pad${index}.example/v1`, models: {} },
-            ])
-          ),
-        },
-      }
-    );
+  it("merges built-in and models.dev providers into one alphabetical list with no divider", async () => {
+    await loadOptionsModule({}, { modelsDevProviders: mergedProviderCatalogue() });
     await flushAsyncWork();
 
     const select = document.querySelector("#aiProvider");
     expect(select).not.toBeNull();
     const options = Array.from(select.options);
-    const dividerIndex = options.findIndex((option) => option.disabled && /More/i.test(option.textContent));
-    expect(dividerIndex, "a disabled More divider separates the two groups").toBeGreaterThan(0);
 
-    // Everything before the divider is a curated built-in; openai leads the registry.
-    expect(options[0].value).toBe("openai");
-    // models.dev twins of a built-in never repeat in the catalogue group (#88 family):
-    // google ↔ google-gemini and moonshotai ↔ moonshot are aliases, so only the pads remain.
-    const catalogueIds = options.slice(dividerIndex + 1).map((option) => option.value);
-    expect(catalogueIds).toContain("pad0");
-    expect(catalogueIds).toHaveLength(12);
-    expect(catalogueIds).not.toContain("google");
-    expect(catalogueIds).not.toContain("moonshotai");
-    expect(catalogueIds).not.toContain("openai");
+    // R2: one list, sorted by the label the user sees — no group divider anywhere.
+    const disabled = options.filter((option) => option.disabled);
+    expect(disabled.map((option) => option.textContent)).toEqual([]);
+    const compare = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
+    const labels = options.map((option) => option.textContent.trim());
+    // One alphabetical list: the sequence is exactly its own sorted copy.
+    expect({ sorted: labels.slice().sort((left, right) => compare.compare(left, right)), labels }).toEqual({
+      sorted: labels,
+      labels,
+    });
+
+    // Both sources are present in the single list (the catalogue is merged in).
+    const ids = options.map((option) => option.value);
+    expect(ids).toContain("openai"); // built-in
+    expect(ids).toContain("pad0"); // models.dev
+    expect(ids).toHaveLength(18 + 12); // 18 registry providers minus 7 catalogued twins, + 12 pads
+
+    // models.dev twins of a built-in never repeat (#88 family): google ↔ google-gemini,
+    // moonshotai ↔ moonshot and xai ↔ grok are aliases, so only the built-in id survives.
+    expect(ids).not.toContain("google");
+    expect(ids).not.toContain("moonshotai");
+    expect(ids).not.toContain("xai");
+    expect(ids.filter((id) => id === "openai")).toHaveLength(1);
+    expect(ids.filter((id) => id === "groq")).toHaveLength(1);
   });
 
   it("localizes the reasoning-depth option labels through the translate hook", async () => {
@@ -1724,6 +1813,313 @@ describe("options/options — Google Gemini model dropdown pipeline (#161)", () 
     expect(state.loadAiProviderModelOptions).toHaveBeenCalledWith(
       expect.objectContaining({ provider: "google-gemini", apiKey: "new-gemini-key" })
     );
+  });
+});
+
+// ══════════════════════════════════════════════════════════════
+// Host conformance (SPEC 2.0.0) — dualtran-extension
+//
+// The kit (scripts/conformance/) is the only place the product rules live.
+// This suite feeds it a payload read from the REAL settings surface: the
+// options page booted into jsdom through loadOptionsModule(), the provider
+// picker the user sees, and #genericApiBase.value after a real provider switch.
+//
+//   R1 target language is a picker          → #selectTargetLanguage
+//   R2 providers/models are one alphabetical picker → #aiProvider / #genericModel
+//   R3 provider pick fills the endpoint VALUE → #genericApiBase.value
+//   R4 reasoning defaults to the lowest sentinel → #genericReasoningDepth
+//   R5 every UI string goes through i18n    → src/_locales matrix
+// ══════════════════════════════════════════════════════════════
+
+describe("host conformance (SPEC 2.0.0)", () => {
+  // Vitest rewrites import.meta.url for this CJS-transformed file, so anchor on
+  // the known test-file path instead of resolving relative to import.meta.
+  const REPO_ROOT = path.resolve(__dirname, "../..");
+  const CONFORMANCE_JSON = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, "conformance.json"), "utf8"));
+  const EN_MESSAGES = JSON.parse(
+    fs.readFileSync(path.join(REPO_ROOT, "src/_locales/en/messages.json"), "utf8")
+  );
+  const CUSTOM_PROVIDER_ID = CONFORMANCE_CUSTOM_PROVIDER_ID;
+  const CUSTOM_PROVIDER_NAME = CONFORMANCE_CUSTOM_PROVIDER_NAME;
+  const CUSTOM_ENDPOINT = CONFORMANCE_CUSTOM_ENDPOINT;
+
+  let kit;
+  beforeAll(async () => {
+    kit = await import("../../scripts/conformance/validate.mjs");
+  });
+
+  /** Poll until `predicate` holds (the panel fills its pickers asynchronously). */
+  async function waitFor(predicate, label) {
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      if (predicate()) return;
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    throw new Error(`timed out waiting for ${label} (setup error)`);
+  }
+
+  /** Reads a <select>'s options with the attributes the validator consumes. */
+  function readPicker(select) {
+    // R2 source: the built-in registry (what ships with the extension) vs the
+    // models.dev catalogue vs user-defined providers.
+    const builtInIds = new Set(BUILT_IN_PROVIDERS.map((provider) => provider.id));
+    return Array.from(select.options).map((option) => {
+      const value = option.value;
+      let source = "models.dev";
+      if (String(value).startsWith("_custom_")) source = "custom";
+      else if (builtInIds.has(value)) source = "built-in";
+      return { value, label: String(option.textContent || "").trim(), source };
+    });
+  }
+
+  /** Drives the provider select the way a user does (select + change event). */
+  function chooseProvider(providerId) {
+    const select = document.getElementById("aiProvider");
+    select.value = providerId;
+    select.dispatchEvent(new window.Event("change"));
+    return select.value;
+  }
+
+  /** Reads the endpoint input state of the generic AI panel. */
+  function readEndpoint() {
+    const input = document.getElementById("genericApiBase");
+    return { value: String(input.value || ""), placeholder: String(input.placeholder || "") };
+  }
+
+  /** Effective provider API the panel knows about (value if typed, else placeholder). */
+  function effectiveApi() {
+    const endpoint = readEndpoint();
+    return endpoint.value.trim() || endpoint.placeholder.trim();
+  }
+
+  /** Static anti-pattern scan declared by conformance.json (same kit as `npm run conformance`). */
+  async function staticHits() {
+    if (!CONFORMANCE_JSON.static) return [];
+    const { scanFiles } = await import("../../scripts/conformance/scan.mjs");
+    return scanFiles(REPO_ROOT, CONFORMANCE_JSON.static);
+  }
+
+  /** i18n matrix read straight from src/_locales (R5). */
+  function readI18nMatrix() {
+    const locales = fs
+      .readdirSync(path.join(REPO_ROOT, "src/_locales"), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+    const keys = Object.keys(EN_MESSAGES);
+    const files = {};
+    for (const locale of locales) {
+      const file = path.join(REPO_ROOT, "src/_locales", locale, "messages.json");
+      if (!fs.existsSync(file)) continue;
+      const messages = JSON.parse(fs.readFileSync(file, "utf8"));
+      files[locale] = Object.fromEntries(
+        keys
+          .filter((key) => messages[key])
+          .map((key) => [key, String(messages[key].message || "")])
+      );
+    }
+    return { locales, keys, files, sourceLocale: "en" };
+  }
+
+  it("kit self-test catches its negative controls", () => {
+    // A gate that cannot fail is worse than no gate — same prelude as run.mjs.
+    expect(kit.selfTest()).toBeGreaterThanOrEqual(12);
+  });
+
+  it("keeps the provider picker one alphabetical list (no divider, no disabled row)", async () => {
+    await loadOptionsModule(
+      { providerConfigs: { [CUSTOM_PROVIDER_ID]: { name: CUSTOM_PROVIDER_NAME, apiBase: CUSTOM_ENDPOINT, model: "", apiKey: "" } } },
+      { modelsDevProviders: mergedProviderCatalogue() }
+    );
+    // loadOptionsModule → two async _loadProviderDropdown() passes; drive both.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const options = readPicker(document.getElementById("aiProvider"));
+    // assertion-strength-allow: an empty picker is a setup error, not a product state
+    if (options.length === 0) throw new Error("provider picker rendered no options (setup error)");
+
+    // R2 on the real DOM array, split the way the rule states it: the built-in +
+    // catalogue list is alphabetical by visible label, custom providers come last.
+    const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
+    const catalogueOptions = options.filter((option) => option.source !== "custom");
+    const labels = catalogueOptions.map((option) => option.label);
+    expect({ sorted: labels.slice().sort((a, b) => collator.compare(a, b)), labels }).toEqual({
+      sorted: labels,
+      labels,
+    });
+    const rawSelect = document.getElementById("aiProvider");
+    expect(Array.from(rawSelect.options).filter((option) => option.disabled)).toEqual([]);
+    expect(labels.some((label) => /^[─\u2500]{2,}/.test(label) || /more/i.test(label))).toBe(false);
+    expect(options.filter((option) => option.source === "custom").map((option) => option.value)).toEqual([
+      CUSTOM_PROVIDER_ID,
+    ]);
+    expect(catalogueOptions[catalogueOptions.length - 1].label).not.toBe(CUSTOM_PROVIDER_NAME);
+    expect(options[options.length - 1].value).toBe(CUSTOM_PROVIDER_ID);
+    // Alias twins appear once: the built-in id survives, the models.dev twin does not.
+    const ids = options.map((option) => option.value);
+    expect([ids.filter((id) => id === "google-gemini").length, ids.includes("google")]).toEqual([1, false]);
+    expect([ids.filter((id) => id === "moonshot").length, ids.includes("moonshotai")]).toEqual([1, false]);
+    expect([ids.filter((id) => id === "grok").length, ids.includes("xai")]).toEqual([1, false]);
+  });
+
+  it("fills the endpoint VALUE when a provider is chosen and keeps a user override", async () => {
+    await loadOptionsModule(
+      { providerConfigs: { [CUSTOM_PROVIDER_ID]: { name: CUSTOM_PROVIDER_NAME, apiBase: CUSTOM_ENDPOINT, model: "", apiKey: "" } } },
+      { modelsDevProviders: mergedProviderCatalogue() }
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    chooseProvider("openai");
+    const afterOpenai = readEndpoint();
+    // R3: the VALUE (not the placeholder) carries the provider API — a
+    // placeholder-only endpoint submits an empty value and never counts.
+    expect(afterOpenai.value).toMatch(/^https?:\/\//);
+    expect(afterOpenai.value).toBe(effectiveApi());
+
+    // Switching to another provider with an untouched (autofilled) value replaces it.
+    chooseProvider("anthropic");
+    const afterSwitch = readEndpoint();
+    expect(afterSwitch.value).toMatch(/^https?:\/\//);
+    expect(afterSwitch.value).not.toBe(afterOpenai.value);
+
+    // A user-typed endpoint is never overwritten by a provider switch.
+    const input = document.getElementById("genericApiBase");
+    const typed = "https://proxy.example/v1/chat/completions";
+    input.value = typed;
+    input.dispatchEvent(new window.Event("change"));
+    chooseProvider("deepseek");
+    const afterUserSwitch = readEndpoint();
+    expect(afterUserSwitch.value).toBe(typed);
+
+    // An empty value is filled again (deleting the override means "use the default").
+    input.value = "";
+    chooseProvider("google-gemini");
+    expect(readEndpoint().value).toMatch(/^https?:\/\//);
+  });
+
+  it("builds the conformance payload from the live settings surface and validates it", async () => {
+    // R3 user-edit / switch sequence is exercised on a fresh page instance so the
+    // payload reads the value the provider pick really produced.
+    await loadOptionsModule(
+      { providerConfigs: { [CUSTOM_PROVIDER_ID]: { name: CUSTOM_PROVIDER_NAME, apiBase: CUSTOM_ENDPOINT, model: "", apiKey: "" } } },
+      { modelsDevProviders: mergedProviderCatalogue() }
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const languageSelect = document.getElementById("selectTargetLanguage");
+    const currentLanguage = languageSelect.value;
+    const languageOptions = readPicker(languageSelect);
+    // R1 breadth: the language picker is filled from the shipped language table
+    // (src/core/languages/names.js). In the harness that table is mocked down to six
+    // codes, so the full table — what the real page renders — is the source of the
+    // option matrix; the live select supplies the current value.
+    const namesSource = fs.readFileSync(path.join(REPO_ROOT, "src/core/languages/names.js"), "utf8");
+    const tableStart = namesSource.indexOf("{", namesSource.indexOf("export const allLanguagesNames"));
+    const tableEnd = namesSource.indexOf("};", tableStart);
+    const enTableStart = namesSource.indexOf("en: {", tableStart);
+    const enTableEnd = namesSource.indexOf("}", enTableStart);
+    const enEntries = namesSource.slice(enTableStart, enTableEnd);
+    const shippedLanguages = Array.from(enEntries.matchAll(/(?:"([^"]+)"|([A-Za-z0-9-]+)):\s*"([^"]*)"/g)).map(
+      ([, quoted, bare, label]) => ({ value: quoted || bare, label })
+    );
+    expect(shippedLanguages.length).toBeGreaterThan(30);
+    expect(tableEnd).toBeGreaterThan(tableStart);
+    // assertion-strength-allow: an empty language table is a fixture error
+    if (!languageOptions.some((option) => option.value === currentLanguage)) {
+      throw new Error(`current target language "${currentLanguage}" missing from the harness picker (setup error)`);
+    }
+
+    chooseProvider("openai");
+    const afterProviderPick = readEndpoint();
+    const providerApi = effectiveApi();
+    // the model picker fills from the provider's declarations after the switch
+    await waitFor(
+      () => Array.from(document.getElementById("genericModel").options).some((option) => option.value),
+      "the model picker to populate"
+    );
+    const typedEndpoint = "https://proxy.example/v1/chat/completions";
+    const input = document.getElementById("genericApiBase");
+    input.value = typedEndpoint;
+    input.dispatchEvent(new window.Event("change"));
+    chooseProvider("anthropic");
+    const afterUserSwitch = readEndpoint();
+    // …and the next provider's model list settles before the payload is built.
+    await waitFor(
+      () => Array.from(document.getElementById("genericModel").options).some((option) => option.value),
+      "the model picker to populate"
+    );
+    const modelSelect = document.getElementById("genericModel");
+    const modelsForSelection = () =>
+      readPicker(modelSelect)
+        .filter((option) => option.value)
+        .map(({ value, label }) => ({ value, label }));
+    // The panel rebuilds this list whenever the provider's cache entry lands, so
+    // read it once it is stable instead of racing that rebuild.
+    await waitFor(() => modelsForSelection().length > 0, "the model list to stay populated");
+
+    const providerOptions = readPicker(document.getElementById("aiProvider"));
+    const modelLabels = modelsForSelection().map((option) => option.label);
+    const modelSorted = modelLabels.slice().sort((a, b) => new Intl.Collator("en").compare(a, b));
+
+    const reasoning = document.getElementById("genericReasoningDepth");
+    const reasoningOptions = readPicker(reasoning).map((option) => ({ value: option.value, label: option.label }));
+    const reasoningResolved = (values) => ({
+      setting: reasoning.value,
+      options: values,
+      value: resolveReasoningDepth({
+        setting: reasoning.value,
+        options: values.map((value) => ({ value })),
+      }),
+    });
+
+    const payload = {
+      spec: "2.0.0",
+      host: "dualtran-extension",
+      language: { control: "select", current: currentLanguage, options: shippedLanguages },
+      provider: { control: "select", current: document.getElementById("aiProvider").value, options: providerOptions },
+      model: {
+        control: "select",
+        selectedProvider: document.getElementById("aiProvider").value,
+        selectedModel: modelSelect.value,
+        byProvider: { [document.getElementById("aiProvider").value]: modelsForSelection() },
+      },
+      endpoint: {
+        control: "text",
+        autofill: {
+          provider: "openai",
+          providerApi,
+          before: "",
+          after: afterProviderPick.value,
+          userEdited: typedEndpoint,
+          afterSwitch: afterUserSwitch.value,
+        },
+      },
+      reasoning: {
+        control: "select",
+        options: reasoningOptions,
+        default: reasoning.value,
+        resolved: {
+          none: [reasoningResolved(["none", "minimal", "low"])],
+          minimal: [reasoningResolved(["minimal", "low"])],
+          low: [reasoningResolved(["low", "medium"])],
+          "none-declared": [reasoningResolved([])],
+        },
+      },
+      i18n: { ...readI18nMatrix(), used: Object.keys(EN_MESSAGES) },
+    };
+
+    // The payload must be the live surface: sorted models, sentinel reasoning,
+    // and an endpoint value that equals the provider API after the pick.
+    expect(modelSorted).toEqual(modelLabels);
+    expect(reasoning.value).toBe("__lowest__");
+    expect(payload.endpoint.autofill.after.trim()).toBe(providerApi);
+
+    const staticScan = { hits: await staticHits() };
+    expect(staticScan.hits, "conformance.json banned tokens in src/options/options.js").toEqual([]);
+
+    const summary = kit.validatePayload(payload, CONFORMANCE_JSON);
+    expect(summary).toMatchObject({ host: "dualtran-extension" });
+    expect(summary.localeCount).toBeGreaterThanOrEqual(38);
   });
 });
 
