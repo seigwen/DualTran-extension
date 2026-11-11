@@ -18,6 +18,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { publicPagePolicy } from "./publicPagePolicy.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const LISTING = JSON.parse(fs.readFileSync(path.join(ROOT, "store", "listing.json"), "utf8"));
@@ -260,7 +261,12 @@ async function main() {
     results,
     { optional: true, note: "check from the home node / Partner Center" },
   );
-  await checkPublicPage("opera", "https://addons.opera.com/en/extensions/details/dualtran/", results);
+  await checkPublicPage(
+    "opera",
+    "https://addons.opera.com/en/extensions/details/dualtran/",
+    results,
+    publicPagePolicy(listing.channels.opera),
+  );
   await checkPublicPage("vscode", `https://github.com/${listing.channels.vscode.repo}/releases/latest`, results);
   checkManual("utools", results);
   checkManual("outlook", results);
