@@ -72,6 +72,8 @@
     },
     "opera": {
       "packageId": 307699,
+      "status": "in_review",
+      "pendingSince": "2026-10-19",
       "apply": [],
       "verify": [
         "publicPage"
