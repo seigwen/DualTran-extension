@@ -2,6 +2,19 @@
 
 此文件对任何在本仓库工作的 agent/协作者生效（Claude Code、其他 AI 工具、人类协作者）。CLAUDE.md 和 AGENTS.md 是完整规则，此文件是不可违反的铁律子集。
 
+## 宿主一致性铁律（最高优先级，2026-11-11，SPEC v2）
+
+任何翻译/设置 UI 改动必须满足五条产品规则（完整规范：`host-conformance/SPEC.md`，
+校验器 `scripts/conformance/validate.mjs`）：
+
+1. 目标语言、AI provider、AI model 三处一律选择器（禁止让用户输语言代码/provider id/model id）。
+2. **provider 列表 = 内建 + models.dev 合并成单一字母序列表**；禁止 divider / disabled 分隔项 / `──── More ────`；别名去重；自定义 provider 最后。model 列表按 provider 联动、按标签排序，自定义 model 最后。
+3. endpoint 的 **value**（不是 placeholder）随 provider 自动带入，用户改过的值不被覆盖。
+4. 推理强度默认哨兵 `lowest`，请求前解析 `none → minimal → low`，模型未声明则不发参数。
+5. 界面文字全部走 i18n（38 locale 键齐；平台上限只能写进 `conformance.json` 的 `platformLimits` 并给证据）。
+
+**门禁**：改设置 UI 后必须 `npm run conformance`（先跑 12 个内置反例，再校验真实控件），并随 PR 更新 payload 测试；禁止删除断言来“修绿”。新宿主没有 `conformance.json` + payload + CI job 不得发版。旧的「内建 → 分隔 → models.dev」分组已被 2026-11-11 用户口径废止，不要恢复。
+
 ## Git 提交铁律
 
 **代码改动完成后，应提交github。

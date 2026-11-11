@@ -2191,27 +2191,24 @@ twpConfig.onReady(function () {
         existingIds.add(providerId);
       }
       _aiProviderDropdown.innerHTML = "";
-      // Two groups, like the other DualTran hosts: the curated registry first, then
-      // everything models.dev knows about behind a plain "More" divider. models.dev
-      // twins of a built-in (google ↔ google-gemini, xai ↔ grok …) stay out of the
-      // second group, otherwise the same service appears twice.
+      // One list, like the other DualTran hosts: built-ins and models.dev entries are
+      // merged and sorted by the label the user sees — no "More" divider, no disabled
+      // row. models.dev twins of a built-in (google ↔ google-gemini, moonshotai ↔
+      // moonshot, xai ↔ grok …) appear once, under the built-in id.
       const builtInIds = new Set(builtInProviders.map((provider) => provider.id));
       const builtInDevIds = new Set(builtInProviders.map((provider) => resolveModelsDevId(provider.id)));
-      const byId = new Map(mergedProviders.map((provider) => [provider.id, provider]));
-      const orderedBuiltIns = builtInProviders
-        .map((provider) => byId.get(provider.id))
-        .filter(Boolean);
-      const isCatalogueProvider = (provider) =>
-        !builtInIds.has(provider.id) &&
-        !builtInDevIds.has(provider.id) &&
-        !String(provider.id || "").startsWith("_custom_");
       const sortByLabel = (list) =>
         sortProvidersByLabel(list, (provider) => _getProviderLocalizedName(provider.id, provider.name));
-      const catalogueProviders = sortByLabel(mergedProviders.filter(isCatalogueProvider));
-      // User-defined providers keep their own group at the very end.
-      const customProviders = sortByLabel(
-        mergedProviders.filter((provider) => String(provider.id || "").startsWith("_custom_"))
+      const isCustomProviderById = (provider) => String(provider.id || "").startsWith("_custom_");
+      const merged = sortByLabel(
+        mergedProviders.filter(
+          (provider) =>
+            !isCustomProviderById(provider) &&
+            !(builtInDevIds.has(provider.id) && !builtInIds.has(provider.id))
+        )
       );
+      // User-defined providers keep their own group at the very end.
+      const customProviders = sortByLabel(mergedProviders.filter(isCustomProviderById));
 
       const appendOption = (provider) => {
         const opt = document.createElement("option");
@@ -2222,15 +2219,7 @@ twpConfig.onReady(function () {
         _aiProviderDropdown.appendChild(opt);
       };
 
-      orderedBuiltIns.forEach(appendOption);
-      if (catalogueProviders.length) {
-        const divider = document.createElement("option");
-        divider.disabled = true;
-        divider.value = "__more__";
-        divider.textContent = "──── " + i18nOrDefault("more", "More") + " ────";
-        _aiProviderDropdown.appendChild(divider);
-        catalogueProviders.forEach(appendOption);
-      }
+      merged.forEach(appendOption);
       customProviders.forEach(appendOption);
 
       // A stored id the fresh list no longer knows (renamed/removed upstream) stays
@@ -2401,18 +2390,60 @@ twpConfig.onReady(function () {
           if (!apiBase) return "";
           return apiBase.includes("/chat/completions") ? apiBase : apiBase.replace(/\/+$/, "") + "/chat/completions";
         }
-        apiBaseInput.value = stored.apiBase || "";
-        apiBaseInput.placeholder = _endpointPlaceholder(providerDef?.apiBase || lookupKnownApiBase(providerId));
-        // When not in registry, async supplement placeholder from models.dev cache
-        if (!providerDef && typeof chrome !== "undefined" && chrome.storage?.local) {
-          chrome.storage.local.get("modelsdev:providers", (cacheRes) => {
-            const devData = cacheRes?.["modelsdev:providers"]?.data?.[providerId];
-            const rawApi = devData?.api || "";
-            const api = (rawApi && !rawApi.includes("${")) ? rawApi : lookupKnownApiBase(providerId);
-            if (api && apiBaseInput && !apiBaseInput.value) {
-              apiBaseInput.placeholder = _endpointPlaceholder(api);
+        const defaultEndpoint = _endpointPlaceholder(providerDef?.apiBase || lookupKnownApiBase(providerId));
+        // Provider lookup order lives here, next to the fallback: an earlier lookup
+        // (e.g. a models.dev models-only entry without `api`) may resolve nothing —
+        // the catalogue is the last place the effective default can come from.
+        function _lookupCatalogueApiBase() {
+          return new Promise((resolve) => {
+            if (!(typeof chrome !== "undefined" && chrome.storage?.local)) {
+              resolve("");
+              return;
             }
+            chrome.storage.local.get("modelsdev:providers", (cacheRes) => {
+              const devData = cacheRes?.["modelsdev:providers"]?.data?.[providerId];
+              const rawApi = devData?.api || "";
+              resolve((rawApi && !rawApi.includes("${")) ? rawApi : lookupKnownApiBase(providerId));
+            });
           });
+        }
+        const supplementEndpoint = (rawApi) => {
+          const supplement = _endpointPlaceholder(rawApi);
+          if (!supplement) return;
+          // Evaluated against the value this call started with: untouched (empty or
+          // autofilled) takes the catalogue default; a user-typed value is kept.
+          const untouched =
+            !currentValue || (previousAutofill !== "" && currentValue === previousAutofill);
+          if (!untouched) return;
+          apiBaseInput.value = supplement;
+          apiBaseInput.placeholder = supplement;
+          apiBaseInput.dataset.dualtranEndpointAutofill = supplement;
+        };
+        // The endpoint is a real default, so it belongs in the VALUE (a placeholder is
+        // never submitted). The input stays editable; the marker records that the
+        // current value was written by this autofill, which is what lets a later
+        // provider switch (or the async models.dev supplement below) replace it —
+        // a value the user typed is never overwritten.
+        const previousAutofill = apiBaseInput.dataset.dualtranEndpointAutofill || "";
+        const currentValue = apiBaseInput.value || "";
+        const canAutofill = !currentValue || (previousAutofill !== "" && currentValue === previousAutofill);
+        const storedOverride = stored.apiBase || "";
+        if (storedOverride) {
+          apiBaseInput.value = storedOverride;
+          delete apiBaseInput.dataset.dualtranEndpointAutofill;
+        } else if (defaultEndpoint && canAutofill) {
+          apiBaseInput.value = defaultEndpoint;
+          apiBaseInput.dataset.dualtranEndpointAutofill = defaultEndpoint;
+        } else if (!defaultEndpoint && canAutofill) {
+          apiBaseInput.value = "";
+          delete apiBaseInput.dataset.dualtranEndpointAutofill;
+        }
+        apiBaseInput.placeholder = defaultEndpoint;
+        // When not in registry, supplement the autofill from the models.dev cache —
+        // both when the registry knows nothing and when it knows only the provider
+        // name (a models-only catalogue entry carries no `api`).
+        if (!providerDef || !defaultEndpoint) {
+          _lookupCatalogueApiBase().then(supplementEndpoint);
         }
       }
       // Populate model select

@@ -33,6 +33,9 @@ jobs:
     - name: Run unit tests
       run: npm test
 
+    - name: Host conformance (SPEC v2)
+      run: npm run conformance
+
     - name: Bug ledger (fix without a regression test is not allowed — plan 83)
       if: github.event_name == 'pull_request'
       env:
