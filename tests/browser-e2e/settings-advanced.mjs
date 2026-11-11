@@ -800,7 +800,18 @@ async function h6OthersTabSwitches(page, extensionId, serviceWorker, collector) 
     } catch {
       console.warn(`    ⚠ 刷新后 waitForOptionsSelectReady(#${cfg.id}) 超时。`);
     }
-    await page.waitForTimeout(500);
+    try {
+      await page.waitForFunction(
+        ({ id, expected }) => {
+          const sel = document.getElementById(id);
+          return sel instanceof HTMLSelectElement && sel.value === expected;
+        },
+        { id: cfg.id, expected: cfg.testValue },
+        { timeout: 8000 }
+      );
+    } catch {
+      // Fall through: the assertion below reports the actual value.
+    }
 
     // 验证 UI 持久化
     const persistedUiValue = await page.evaluate((id) => {
