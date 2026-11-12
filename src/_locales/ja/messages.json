@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "AI プロバイダーを選択"
+  },
+  "providerRequiredError": {
+    "message": "翻訳する前に、設定で AI プロバイダーを選択してください。"
+  },
+  "providerRequiredForModel": {
+    "message": "先にプロバイダーを選択してください"
+  },
   "lblReport": {
     "message": "問題の報告"
   },

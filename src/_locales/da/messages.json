@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Vælg en udbyder"
+  },
+  "providerRequiredError": {
+    "message": "Vælg en AI-udbyder i indstillingerne, før du oversætter."
+  },
+  "providerRequiredForModel": {
+    "message": "Vælg først en udbyder"
+  },
   "lblReport": {
     "message": "Rapporter et problem"
   },

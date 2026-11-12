@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Selecteer een provider"
+  },
+  "providerRequiredError": {
+    "message": "Kies een AI-provider in de instellingen voordat je vertaalt."
+  },
+  "providerRequiredForModel": {
+    "message": "Selecteer eerst een provider"
+  },
   "lblReport": {
     "message": "Meld een probleem"
   },

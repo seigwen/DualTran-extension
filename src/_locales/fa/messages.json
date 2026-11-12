@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "یک ارائه‌دهنده انتخاب کنید"
+  },
+  "providerRequiredError": {
+    "message": "پیش از ترجمه، در تنظیمات یک ارائه‌دهنده هوش مصنوعی انتخاب کنید."
+  },
+  "providerRequiredForModel": {
+    "message": "ابتدا ارائه‌دهنده را انتخاب کنید"
+  },
   "lblReport": {
     "message": "یک مشکل را گزارش کنید"
   },

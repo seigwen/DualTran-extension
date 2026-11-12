@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Izvēlieties pakalpojumu sniedzēju"
+  },
+  "providerRequiredError": {
+    "message": "Pirms tulkošanas iestatījumos izvēlieties AI pakalpojumu sniedzēju."
+  },
+  "providerRequiredForModel": {
+    "message": "Vispirms izvēlieties pakalpojumu sniedzēju"
+  },
   "lblReport": {
     "message": "Ziņot par problēmu"
   },

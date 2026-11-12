@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "اختر مزوّدًا"
+  },
+  "providerRequiredError": {
+    "message": "اختر مزوّد ذكاء اصطناعي في الإعدادات قبل الترجمة."
+  },
+  "providerRequiredForModel": {
+    "message": "اختر مزوّدًا أولًا"
+  },
   "lblReport": {
     "message": "الإبلاغ عن مشكلة"
   },

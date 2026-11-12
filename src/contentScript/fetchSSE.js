@@ -9,6 +9,7 @@ import { resolveConfigValues, computeEffectiveBaseURL, computeExtraBaseURL, reso
 import detectTextLanguage from "../util/detectTextLanguage.js"
 import { fetchSSE } from "../lib/ai/sseClient.js"
 import { createProviderRegistry, BUILT_IN_PROVIDERS } from "../lib/ai/providerRegistry.js"
+import { getMessageWithFallback } from "./i18n.js"
 import "../lib/i18n.js" // Import i18n support
 
 const _providerRegistry = createProviderRegistry(BUILT_IN_PROVIDERS);
@@ -180,7 +181,19 @@ export async function translateWithAI(content, onMessage, onError, onFinished, s
   const requestBody = JSON.parse(JSON.stringify(baseRequestBody))
 
   // ① Read configuration
-  const provider = twpConfig.get("aiProvider") || "openai"
+  // SPEC 2.1 #5: an unconfigured provider is a user-visible error, never a silent
+  // fallback to OpenAI. Refuse before any prompt / network call.
+  const provider = String(twpConfig.get("aiProvider") || "").trim()
+  if (!provider) {
+    const providerRequiredMessage =
+      getMessageWithFallback("providerRequiredError", "Choose an AI provider in settings before translating.")
+    onError?.({
+      error: {
+        message: providerRequiredMessage
+      }
+    })
+    return
+  }
 
   const ensureConfigString = (configKey, promptKey, promptFallback, options) => {
     const {

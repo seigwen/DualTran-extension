@@ -470,6 +470,18 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Select a provider",
+    "description": "Empty-state row in the AI provider picker shown when no provider has been chosen yet; it is disabled and cannot be picked again."
+  },
+  "providerRequiredError": {
+    "message": "Choose an AI provider in settings before translating.",
+    "description": "Error shown when an AI translation is started while no AI provider has been chosen in settings."
+  },
+  "providerRequiredForModel": {
+    "message": "Select a provider first",
+    "description": "Placeholder in the disabled AI model picker telling the user to choose an AI provider before a model can be selected."
+  },
   "lblReport": {
     "message": "Report a problem"
   },

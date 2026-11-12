@@ -43,7 +43,8 @@ function setElementValue(root, elementId, value) {
 }
 
 export function syncAiProviderSelection({ root, aiProviderSelect, provider }) {
-  const effectiveProvider = provider || "openai";
+  // SPEC 2.1: "" is the unconfigured state — never coerced to "openai".
+  const effectiveProvider = String(provider || "");
   if (aiProviderSelect) {
     aiProviderSelect.value = effectiveProvider;
   }
@@ -61,7 +62,7 @@ export function handleAiConfigChange({
     syncAiProviderSelection({
       root,
       aiProviderSelect,
-      provider: newValue || "openai",
+      provider: newValue || "",
     });
     return true;
   }
@@ -94,7 +95,7 @@ export function syncAiStorageChanges({
     syncAiProviderSelection({
       root,
       aiProviderSelect,
-      provider: changes.aiProvider.newValue || "openai",
+      provider: changes.aiProvider.newValue || "",
     });
   }
 

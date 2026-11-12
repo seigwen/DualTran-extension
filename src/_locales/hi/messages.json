@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "कोई प्रदाता चुनें"
+  },
+  "providerRequiredError": {
+    "message": "अनुवाद करने से पहले सेटिंग्स में AI प्रदाता चुनें।"
+  },
+  "providerRequiredForModel": {
+    "message": "पहले प्रदाता चुनें"
+  },
   "lblReport": {
     "message": "समस्या के बारे में बताएं"
   },

@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Επιλογή παρόχου"
+  },
+  "providerRequiredError": {
+    "message": "Επιλέξτε πάροχο AI στις ρυθμίσεις πριν από τη μετάφραση."
+  },
+  "providerRequiredForModel": {
+    "message": "Επιλέξτε πρώτα πάροχο"
+  },
   "lblReport": {
     "message": "Αναφορά προβλήματος"
   },

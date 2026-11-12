@@ -369,6 +369,37 @@ describe("twpConfig", () => {
     expect(mockState.reloadMock).toHaveBeenCalledOnce();
   });
 
+  it("leaves aiProvider empty on a fresh install and never rewrites a stored value (SPEC 2.1)", async () => {
+    // A fresh/empty storage must not conjure a provider — the panel shows the
+    // "Select a provider" placeholder instead (no hidden OpenAI default).
+    const freshConfig = await loadReadyConfig();
+    expect(freshConfig.get("aiProvider")).toBe("");
+
+    // restoreToDefault goes back to that same unconfigured state…
+    freshConfig.set("aiProvider", "anthropic");
+    mockState.storageSetMock.mockClear();
+    freshConfig.restoreToDefault();
+    expect(freshConfig.get("aiProvider")).toBe("");
+    expect(storagePayloads()).toContainEqual({ aiProvider: "" });
+
+    // …while an existing stored value (including an explicit "") is never rewritten.
+    vi.resetModules();
+    resetMockState();
+    mockState.storageData = { aiProvider: "" };
+    const storedEmpty = await loadReadyConfig();
+    expect(storedEmpty.get("aiProvider")).toBe("");
+    expect(mockState.storageSetMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ aiProvider: "openai" }),
+      expect.anything()
+    );
+
+    vi.resetModules();
+    resetMockState();
+    mockState.storageData = { aiProvider: "deepseek" };
+    const storedProvider = await loadReadyConfig();
+    expect(storedProvider.get("aiProvider")).toBe("deepseek");
+  });
+
   it("restores defaults and reloads the extension", async () => {
     const twpConfig = await loadReadyConfig();
     twpConfig.set("targetLanguage", "de");

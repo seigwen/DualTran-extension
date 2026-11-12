@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Bir sağlayıcı seçin"
+  },
+  "providerRequiredError": {
+    "message": "Çeviri yapmadan önce ayarlardan bir yapay zekâ sağlayıcısı seçin."
+  },
+  "providerRequiredForModel": {
+    "message": "Önce bir sağlayıcı seçin"
+  },
   "lblReport": {
     "message": "Bir sorun bildir"
   },

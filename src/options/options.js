@@ -422,7 +422,7 @@ import { loadPreviewModels } from "../lib/ai/providerModelPreview.js";
 import { createProviderRegistry, BUILT_IN_PROVIDERS, mergeRegistries, lookupKnownApiBase, resolveModelsDevId } from "../lib/ai/providerRegistry.js";
 import { migrateProviderConfig } from "../lib/ai/providerMigration.js";
 import { buildReasoningDepthOptions, LOWEST_REASONING } from "../lib/ai/reasoningDepth.js";
-import { sortProvidersByLabel } from "./aiProviderUI.js";
+import { sortProvidersByLabel, ensureProviderPlaceholderOption, renderModelProviderRequiredState, renderReasoningDisabledState } from "./aiProviderUI.js";
 import { endpointOriginPattern } from "../lib/ai/endpointPermission.js";
 import { buildIssueUrl, buildMailtoUrl, formatDiagnosticsBlock, resolveProviderDisplayName } from "../lib/feedbackLink.js";
 import 'toolcool-color-picker'; // Import third-party color picker component (custom element)
@@ -2100,8 +2100,9 @@ twpConfig.onReady(function () {
 
   // Populate the AI provider dropdown from the registry
   const providerRegistry = createProviderRegistry(BUILT_IN_PROVIDERS);
-  // Prioritize the currently active aiProvider; the old activeProviderId is only a compatibility fallback to prevent historical values from overriding user's new selection.
-  const activeId = twpConfig.get("aiProvider") || twpConfig.get("activeProviderId") || "openai";
+  // SPEC 2.1: "" = unconfigured (fresh install). The stored value is read as-is —
+  // no `|| "openai"` default, and an empty value is not silently filled in here.
+  const activeId = twpConfig.get("aiProvider") || "";
 
   const _aiProviderDropdown = document.querySelector("#aiProvider");
   if (_aiProviderDropdown) {
@@ -2222,6 +2223,17 @@ twpConfig.onReady(function () {
       merged.forEach(appendOption);
       customProviders.forEach(appendOption);
 
+      // SPEC 2.1 #2/#6: the empty state is a disabled, selected placeholder row —
+      // not part of the catalogue, never sorted with the real providers, and never
+      // re-selectable once a provider is chosen ("None" ban).
+      ensureProviderPlaceholderOption(_aiProviderDropdown, {
+        label: i18nOrDefault("providerPlaceholder", "Select a provider"),
+        selected: !activeId,
+      });
+      // Appending options after the placeholder re-runs the select's own
+      // selectedness sync, so the unconfigured selection is written last.
+      _selectProviderPlaceholder();
+
       // A stored id the fresh list no longer knows (renamed/removed upstream) stays
       // selectable instead of silently switching the user to another provider.
       const stillThere = Array.prototype.some.call(
@@ -2319,6 +2331,27 @@ twpConfig.onReady(function () {
       let stored = providerConfigs[providerId] || {};
       _highlightConfigInputs();
 
+      // SPEC 2.1 #3: the unconfigured state. No provider → empty endpoint carrying
+      // only the "https://" hint, model picker empty + disabled, reasoning picker
+      // disabled but keeping the stored sentinel. Nothing here writes config.
+      if (!providerId) {
+        const apiKeyInput = document.querySelector("#apiKeyGeneric");
+        const apiBaseInput = document.querySelector("#genericApiBase");
+        const modelSelect = document.querySelector("#genericModel");
+        const reasoningSelect = document.querySelector("#genericReasoningDepth");
+        if (apiKeyInput) apiKeyInput.value = "";
+        if (apiBaseInput) {
+          apiBaseInput.value = "";
+          apiBaseInput.placeholder = "https://";
+          apiBaseInput.dataset.dualtranEndpointAutofill = "";
+        }
+        renderModelProviderRequiredState(modelSelect, i18nOrDefault("providerRequiredForModel", "Select a provider first"));
+        renderReasoningDisabledState(reasoningSelect, LOWEST_REASONING);
+        const modelLabel = document.querySelector("#genericModelLabel");
+        if (modelLabel) modelLabel.textContent = i18nOrDefault("lblProviderModel", "Model");
+        return;
+      }
+
       // Legacy fallback: if no data in providerConfigs, try old config keys
       const legacy = LEGACY_KEYS[providerId];
       if (legacy && !stored.apiKey && !stored.model) {
@@ -2386,11 +2419,21 @@ twpConfig.onReady(function () {
       if (apiKeyInput) apiKeyInput.value = stored.apiKey || "";
       if (apiBaseInput) {
         const providerDef = providerRegistry.getProvider(providerId);
+        // SPEC 2.1 #4: the "https://" hint belongs to the unconfigured state only —
+        // once a provider exists the panel shows API BASE URLs (the value keeps the
+        // full endpoint path).
         function _endpointPlaceholder(apiBase) {
-          if (!apiBase) return "";
-          return apiBase.includes("/chat/completions") ? apiBase : apiBase.replace(/\/+$/, "") + "/chat/completions";
+          if (!apiBase) return "https://";
+          return apiBase
+            .replace(/\/chat\/completions\/?$/, "")
+            .replace(/\/messages\/?$/, "")
+            .trim()
+            .replace(/\/+$/, "");
         }
-        const defaultEndpoint = _endpointPlaceholder(providerDef?.apiBase || lookupKnownApiBase(providerId));
+        const defaultPlaceholder = _endpointPlaceholder(providerDef?.apiBase || lookupKnownApiBase(providerId)) || "https://";
+        // The endpoint VALUE is a real default (a placeholder is never submitted):
+        // the provider API base the panel knows about.
+        const defaultEndpoint = defaultPlaceholder === "https://" ? "" : defaultPlaceholder;
         // Provider lookup order lives here, next to the fallback: an earlier lookup
         // (e.g. a models.dev models-only entry without `api`) may resolve nothing —
         // the catalogue is the last place the effective default can come from.
@@ -2408,8 +2451,10 @@ twpConfig.onReady(function () {
           });
         }
         const supplementEndpoint = (rawApi) => {
+          // SPEC 2.1 #4: the "https://" hint is the unconfigured state only.
+          if (!String(rawApi || "").trim()) return;
           const supplement = _endpointPlaceholder(rawApi);
-          if (!supplement) return;
+          if (!supplement || supplement === "https://") return;
           // Evaluated against the value this call started with: untouched (empty or
           // autofilled) takes the catalogue default; a user-typed value is kept.
           const untouched =
@@ -2438,7 +2483,7 @@ twpConfig.onReady(function () {
           apiBaseInput.value = "";
           delete apiBaseInput.dataset.dualtranEndpointAutofill;
         }
-        apiBaseInput.placeholder = defaultEndpoint;
+        apiBaseInput.placeholder = defaultPlaceholder;
         // When not in registry, supplement the autofill from the models.dev cache —
         // both when the registry knows nothing and when it knows only the provider
         // name (a models-only catalogue entry carries no `api`).
@@ -2594,6 +2639,12 @@ twpConfig.onReady(function () {
     function _rebuildReasoningDepthOptions(providerId, modelId) {
       const select = document.querySelector("#genericReasoningDepth");
       if (!select || select._isMissingElement) return;
+      // SPEC 2.1 #3: with no provider there is nothing to resolve — the picker
+      // stays disabled and keeps the stored sentinel.
+      if (!providerId) {
+        renderReasoningDisabledState(select, LOWEST_REASONING);
+        return;
+      }
       const stored = (twpConfig.get("providerConfigs") || {})[providerId] || {};
       // undefined = the user never touched it → the lowest-effort default;
       // "" is an explicit "Provider default" (send no reasoning parameter).
@@ -2713,6 +2764,22 @@ twpConfig.onReady(function () {
       _saveReasoningDepth(_aiProviderDropdown.value);
     });
 
+    /**
+     * Select the empty-state placeholder row. SPEC 2.1 #2/#6: the placeholder is
+     * the current row only while no provider is stored — it is never re-selected
+     * afterwards (no "None" item), and it is not part of the catalogue.
+     */
+    function _selectProviderPlaceholder() {
+      const placeholder = _aiProviderDropdown.querySelector?.("[data-dualtran-provider-placeholder]");
+      if (!placeholder || String(twpConfig.get("aiProvider") || "").trim()) return;
+      // Real rows step aside first: a disabled row cannot be selected while it is
+      // not already current (option.selected = true would be dropped silently).
+      Array.prototype.forEach.call(_aiProviderDropdown.options, (option) => {
+        if (option !== placeholder) option.selected = false;
+      });
+      placeholder.selected = true;
+    }
+
     // All providers use the generic panel uniformly
     _aiProviderDropdown.addEventListener("change", () => {
       _loadGenericProviderConfig(_aiProviderDropdown.value);
@@ -2721,9 +2788,18 @@ twpConfig.onReady(function () {
 
     // Initialize: after dropdown is populated, load config for the actually selected value
     _loadProviderDropdown().then(() => {
-      const activeProviderId = _aiProviderDropdown.value || activeId;
+      // SPEC 2.1: the STORED provider is the source of truth for the panel ("" =
+      // unconfigured). Reading the select's own value instead would resurrect the
+      // silent "openai" default on a fresh install.
+      const activeProviderId = activeId || _aiProviderDropdown.value || "";
       _loadGenericProviderConfig(activeProviderId);
       _rebuildReasoningDepthOptions(activeProviderId, document.querySelector("#genericModel")?.value || "");
+    });
+
+    // Any real pick clears the empty-state row (it stays listable but disabled).
+    _aiProviderDropdown.addEventListener("change", () => {
+      const placeholder = _aiProviderDropdown.querySelector?.("[data-dualtran-provider-placeholder]");
+      if (placeholder) placeholder.selected = false;
     });
 
     // ── "Add Custom Provider" Button ──

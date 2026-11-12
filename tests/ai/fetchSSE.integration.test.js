@@ -137,16 +137,24 @@ describe("translateWithAI", () => {
     expect(delivered).toEqual([expectedChunk, "[DONE]"]);
   });
 
-  it("uses the default OpenAI branch when no provider is configured", async () => {
+  it("refuses an unconfigured provider (no silent OpenAI fallback, zero network)", async () => {
+    // SPEC 2.1 #5: an empty provider is a user-visible configuration error — it
+    // must never be coerced into "openai", even when the legacy OpenAI key is set.
     setConfig({ aiProvider: "", apiKeyOpenAI: "openai-key", openAiModel: "gpt-4o-mini" });
+    const onError = vi.fn();
 
-    mocks.fetchSSE.mockImplementation(async (params) => { params.onFinished?.(); });
-    await translateWithAI("hello", vi.fn(), vi.fn(), vi.fn());
+    await translateWithAI("hello", vi.fn(), onError, vi.fn());
 
-    const params = mocks.fetchSSE.mock.calls[0][0];
-    expect(params.provider).toBe("openai");
-    expect(params.apiKey).toBe("openai-key");
-    expect(params.model).toBe("gpt-4o-mini");
+    expect(mocks.fetchSSE).not.toHaveBeenCalled();
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls[0][0]).toEqual({
+      error: { message: "Choose an AI provider in settings before translating." },
+    });
+    // No API-key prompt / options-page detour: the provider itself is missing.
+    expect(globalThis.window.confirm).not.toHaveBeenCalled();
+    expect(globalThis.prompt).not.toHaveBeenCalled();
+    expect(globalThis.chrome.runtime.sendMessage).not.toHaveBeenCalled();
   });
 
   it("opens the AI options page when the key is missing and user confirms", async () => {

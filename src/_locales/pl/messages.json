@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Wybierz dostawcę"
+  },
+  "providerRequiredError": {
+    "message": "Przed tłumaczeniem wybierz dostawcę AI w ustawieniach."
+  },
+  "providerRequiredForModel": {
+    "message": "Najpierw wybierz dostawcę"
+  },
   "lblReport": {
     "message": "Zgłoś problem"
   },

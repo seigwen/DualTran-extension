@@ -1,14 +1,28 @@
 {
-  "spec": "2.0.0",
+  "spec": "2.1.0",
   "host": "dualtran-extension",
   "payload": "tests/options/options.test.js",
   "static": {
-    "files": ["src/options/options.js"],
+    "files": [
+      "src/options/options.js",
+      "src/contentScript/fetchSSE.js",
+      "src/contentScript/pageTranslator.js",
+      "src/core/providers/migration.js",
+      "src/lib/config.js"
+    ],
     "patterns": [
       "providerSeparator",
       "__separator__",
       "__more__",
-      "More (models.dev)"
+      "More (models.dev)",
+      {
+        "token": "provider-fallback-openai",
+        "regex": "get\\(\\s*[\"']aiProvider[\"']\\s*\\)\\s*\\|\\|\\s*[\"']openai[\"']"
+      },
+      {
+        "token": "provider-fallback-custom",
+        "regex": "get\\(\\s*[\"']aiProvider[\"']\\s*\\)\\s*\\|\\|\\s*CUSTOM_PROVIDER"
+      }
     ]
   },
   "platformLimits": []

@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Выберите провайдера"
+  },
+  "providerRequiredError": {
+    "message": "Перед переводом выберите провайдера ИИ в настройках."
+  },
+  "providerRequiredForModel": {
+    "message": "Сначала выберите провайдера"
+  },
   "lblReport": {
     "message": "Сообщить о проблеме"
   },
