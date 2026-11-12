@@ -90,12 +90,12 @@ export function renderModelProviderRequiredState(select, message) {
  * @param {HTMLSelectElement} select
  * @param {string} sentinel
  */
-export function renderReasoningDisabledState(select, sentinel) {
+export function renderReasoningDisabledState(select, sentinel, label = sentinel) {
   if (!select || select._isMissingElement) return;
   select.innerHTML = "";
   const option = select.ownerDocument.createElement("option");
   option.value = sentinel;
-  option.textContent = sentinel;
+  option.textContent = label;
   select.appendChild(option);
   select.value = sentinel;
   select.disabled = true;

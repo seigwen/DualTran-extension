@@ -30,7 +30,6 @@ const LEGACY_CUSTOM_FIELDS = [
   "deepSeekApiBase",
   "azureOpenAIEndpoint",
   "openRouterApiBase",
-  "openRouterModel",
 ];
 
 export const LEGACY_CUSTOM_PROVIDER_ID = "_custom_legacy";

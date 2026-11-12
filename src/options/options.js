@@ -2346,9 +2346,17 @@ twpConfig.onReady(function () {
           apiBaseInput.dataset.dualtranEndpointAutofill = "";
         }
         renderModelProviderRequiredState(modelSelect, i18nOrDefault("providerRequiredForModel", "Select a provider first"));
-        renderReasoningDisabledState(reasoningSelect, LOWEST_REASONING);
+        renderReasoningDisabledState(
+          reasoningSelect,
+          LOWEST_REASONING,
+          i18nOrDefault("msgReasoningDepthLowest", "Lowest (default)")
+        );
         const modelLabel = document.querySelector("#genericModelLabel");
-        if (modelLabel) modelLabel.textContent = i18nOrDefault("lblProviderModel", "Model");
+        if (modelLabel) {
+          modelLabel.textContent = i18nOrDefault("lblProviderModel", "Model");
+          const loading = modelLabel.parentElement?.querySelector(".model-loading-msg");
+          if (loading) loading.style.display = "none";
+        }
         return;
       }
 
@@ -2367,6 +2375,9 @@ twpConfig.onReady(function () {
       const apiKeyInput = document.querySelector("#apiKeyGeneric");
       const apiBaseInput = document.querySelector("#genericApiBase");
       const modelSelect = document.querySelector("#genericModel");
+      // Preserve a model the user just picked when an async reload (e.g. the API
+      // key blur) runs before its change event has been persisted.
+      const preselectedModel = modelSelect?.value || "";
 
       // Dynamically update panel labels (prefer registry, fallback to models.dev cache)
       let providerDef = providerRegistry.getProvider(providerId);
@@ -2557,7 +2568,13 @@ twpConfig.onReady(function () {
               modelSelect.appendChild(opt);
             }
             modelSelect.disabled = false;
-            if (storedModel) modelSelect.value = storedModel;
+            const desiredModel =
+              storedModel ||
+              (preselectedModel && models.some((m) => m.value === preselectedModel) ? preselectedModel : "");
+            if (desiredModel) {
+              modelSelect.value = desiredModel;
+              if (!storedModel) _saveGenericProviderConfig(providerId);
+            }
             _hideLoading();
           }).catch(() => {
             // API Key fetch failed → load preview models first, then insert notice at top
@@ -2611,7 +2628,13 @@ twpConfig.onReady(function () {
               }
             }
             modelSelect.disabled = false;
-            if (storedModel) modelSelect.value = storedModel;
+            const desiredModel =
+              storedModel ||
+              (preselectedModel && models.some((m) => m.value === preselectedModel) ? preselectedModel : "");
+            if (desiredModel) {
+              modelSelect.value = desiredModel;
+              if (!storedModel) _saveGenericProviderConfig(providerId);
+            }
             _hideLoading();
           }).catch(() => {
             modelSelect.innerHTML = "";
@@ -2642,7 +2665,11 @@ twpConfig.onReady(function () {
       // SPEC 2.1 #3: with no provider there is nothing to resolve — the picker
       // stays disabled and keeps the stored sentinel.
       if (!providerId) {
-        renderReasoningDisabledState(select, LOWEST_REASONING);
+        renderReasoningDisabledState(
+          select,
+          LOWEST_REASONING,
+          i18nOrDefault("msgReasoningDepthLowest", "Lowest (default)")
+        );
         return;
       }
       const stored = (twpConfig.get("providerConfigs") || {})[providerId] || {};
@@ -2722,7 +2749,16 @@ twpConfig.onReady(function () {
       const modelSelect = document.querySelector("#genericModel");
       if (apiKeyInput) providerConfigs[providerId].apiKey = apiKeyInput.value.trim();
       if (apiBaseInput) providerConfigs[providerId].apiBase = apiBaseInput.value.trim();
-      if (modelSelect) providerConfigs[providerId].model = modelSelect.value || "";
+      if (modelSelect) {
+        // A transient empty value appears while the model list is rebuilt after a
+        // provider/key change. Never overwrite a stored model with that empty
+        // state; an explicit custom model is represented by the custom option,
+        // not by "".
+        const modelValue = modelSelect.value || "";
+        if (modelValue || !providerConfigs[providerId].model) {
+          providerConfigs[providerId].model = modelValue;
+        }
+      }
       const depthSelect = document.querySelector("#genericReasoningDepth");
       if (depthSelect) providerConfigs[providerId].reasoningDepth = depthSelect.value || "";
       twpConfig.set("providerConfigs", providerConfigs);
