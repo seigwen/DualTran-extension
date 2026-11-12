@@ -37,7 +37,10 @@ const twpConfig = (function () {
     apiKeyGrok: "",
     grokApiBase: "",
     grokModel: "grok-3-mini",
-    aiProvider: "openai",
+    // SPEC 2.1: a fresh install has NO AI provider — the settings picker shows a
+    // disabled "Select a provider" placeholder until the user chooses one, and the
+    // request path refuses instead of silently falling back to OpenAI.
+    aiProvider: "",
     apiKeyOpenRouter: "",
     openRouterModel: "openai/gpt-4o-mini",
     openRouterApiBase: "",

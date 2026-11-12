@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Kies 'n verskaffer"
+  },
+  "providerRequiredError": {
+    "message": "Kies 'n KI-verskaffer in die instellings voordat jy vertaal."
+  },
+  "providerRequiredForModel": {
+    "message": "Kies eers 'n verskaffer"
+  },
   "lblReport": {
     "message": "Rapporteer 'n probleem"
   },

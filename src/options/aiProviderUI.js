@@ -32,12 +32,73 @@ export function sortProvidersByLabel(providers, getLabel) {
 
 /**
  * Returns the provider id as-is (no registry normalization needed anymore).
+ *
+ * SPEC 2.1: an empty provider is a first-class state ("nothing selected yet") and
+ * must stay empty — coercing it to "openai" is the silent fallback the spec bans.
  * @param {string} provider
  * @returns {string}
  */
 export function getNormalizedAIProvider(provider) {
-  const normalized = (provider || "openai").trim().toLowerCase();
-  return normalized || "openai";
+  return String(provider || "").trim().toLowerCase();
+}
+
+/**
+ * Fill the provider <select> with the empty-state placeholder row: disabled,
+ * empty value, selected only while no provider is configured (SPEC 2.1 #2/#6).
+ *
+ * It is NOT one of the real providers: it never participates in the alphabetical
+ * sort (it is always the first row) and it cannot be picked again ("None" ban).
+ *
+ * @param {HTMLSelectElement} select
+ * @param {{ label: string, selected?: boolean }} options
+ * @returns {HTMLOptionElement|null}
+ */
+export function ensureProviderPlaceholderOption(select, { label, selected = false }) {
+  if (!select || typeof select.insertBefore !== "function") return null;
+  const ownerDocument = select.ownerDocument;
+  const placeholder = ownerDocument.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = label;
+  placeholder.disabled = true;
+  placeholder.hidden = false;
+  placeholder.setAttribute("data-dualtran-provider-placeholder", "true");
+  placeholder.selected = selected === true;
+  select.insertBefore(placeholder, select.firstChild || null);
+  return placeholder;
+}
+
+/**
+ * Render the model picker's unconfigured state: empty + disabled, telling the
+ * user to pick a provider first (SPEC 2.1 #3).
+ * @param {HTMLSelectElement} select
+ * @param {string} message
+ */
+export function renderModelProviderRequiredState(select, message) {
+  if (!select || select._isMissingElement) return;
+  select.innerHTML = "";
+  const placeholder = select.ownerDocument.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = message;
+  placeholder.disabled = true;
+  select.appendChild(placeholder);
+  select.disabled = true;
+}
+
+/**
+ * Render the reasoning picker's unconfigured state: disabled, but the stored
+ * sentinel stays selected (the setting is not lost while no provider exists).
+ * @param {HTMLSelectElement} select
+ * @param {string} sentinel
+ */
+export function renderReasoningDisabledState(select, sentinel) {
+  if (!select || select._isMissingElement) return;
+  select.innerHTML = "";
+  const option = select.ownerDocument.createElement("option");
+  option.value = sentinel;
+  option.textContent = sentinel;
+  select.appendChild(option);
+  select.value = sentinel;
+  select.disabled = true;
 }
 
 /**
@@ -47,7 +108,8 @@ export function getNormalizedAIProvider(provider) {
  * @returns {string} provider id
  */
 export function updateAIProviderUI(root, provider) {
-  if (!root || typeof root.querySelectorAll !== "function") return provider || "openai";
+  const effectiveProvider = String(provider || "");
+  if (!root || typeof root.querySelectorAll !== "function") return effectiveProvider;
 
   // Hide all legacy panels (for backward compat during transition)
   root.querySelectorAll(".ai-provider-settings").forEach((el) => {
@@ -58,5 +120,5 @@ export function updateAIProviderUI(root, provider) {
   const panel = root.querySelector("#genericAiSettings");
   if (panel) panel.style.display = "block";
 
-  return provider || "openai";
+  return effectiveProvider;
 }

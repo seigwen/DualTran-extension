@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * dualtran-extension host conformance gate (SPEC 2.0.0).
+ * dualtran-extension host conformance gate (SPEC 2.1.0).
  *
  * The conformance assertions live in tests/options/options.test.js
- * (`describe("host conformance (SPEC 2.0.0)")`) because the payload has to be
+ * (`describe("host conformance (SPEC 2.1.0)")`) because the payload has to be
  * read from the real settings surface: the options page is booted into jsdom
  * with the project's own loadOptionsModule harness, the provider list is the
  * dropdown the user actually sees, and the endpoint value is read after a real

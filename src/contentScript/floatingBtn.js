@@ -893,6 +893,13 @@ if (window.self !== window.top) {
     function updateButtons() {
       const { highlight } = getState();
       console.log("updateButtons() called, highlight =", highlight);
+      // SPEC 2.1 #5: keep the primary AI entry disabled + tooltipped while no
+      // provider is configured (also re-applied after a rebuild re-titles it).
+      try {
+        pageTranslator.applyProviderRequiredGate?.(!!String(twpConfig.get("aiProvider") || "").trim());
+      } catch (e) {
+        console.warn("[DualTran] provider-required gate sync failed", e);
+      }
 
       const isCompact = btnGoogleEl.clientWidth < 58;
       const buttons = [

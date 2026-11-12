@@ -55,7 +55,8 @@ const state = vi.hoisted(() => {
     showTranslateSelectedContextMenu: "no",
     showButtonInTheAddressBar: "yes",
     translateClickingOnce: "no",
-    aiProvider: "openai",
+    // SPEC 2.1: a fresh install is unconfigured (the panel shows the placeholder).
+    aiProvider: "",
     providerConfigs: {},
     apiKeyOpenAI: "",
     openAiModel: "",
@@ -1363,7 +1364,9 @@ describe("options/options", () => {
   }
 
   it("renders the reasoning depth control with a Default option and dynamic provider label", async () => {
-    await loadOptionsModule();
+    // A provider must exist for the reasoning list to be resolvable (spec 2.1:
+    // with no provider the picker is disabled and keeps only the sentinel).
+    await loadOptionsModule({ aiProvider: "openai", providerConfigs: { openai: { apiKey: "k", model: "m" } } });
 
     const select = document.querySelector("#genericReasoningDepth");
     expect(select, "#genericReasoningDepth should exist in the DOM").not.toBeNull();
@@ -1379,7 +1382,7 @@ describe("options/options", () => {
     // 存量值 "xhigh"：当前 models.dev 缓存里没有该模型声明 → 选项只有 Default，
     // 但存量值必须保留一个同名 option，否则用户在换模型时静默丢失设置。
     await loadOptionsModule(
-      { providerConfigs: { openai: { apiKey: "k", model: "m", reasoningDepth: "xhigh" } } },
+      { aiProvider: "openai", providerConfigs: { openai: { apiKey: "k", model: "m", reasoningDepth: "xhigh" } } },
       { modelsDevProviders: modelsDevCache({ npm: "@ai-sdk/openai", models: {} }) }
     );
     await flushAsyncWork();
@@ -1394,7 +1397,7 @@ describe("options/options", () => {
 
   it("persists the reasoning depth into providerConfigs for the active provider", async () => {
     await loadOptionsModule(
-      { providerConfigs: { openai: { apiKey: "k", model: "m" } } },
+      { aiProvider: "openai", providerConfigs: { openai: { apiKey: "k", model: "m" } } },
       {
         modelsDevProviders: modelsDevCache({
           npm: "@ai-sdk/openai",
@@ -1423,7 +1426,7 @@ describe("options/options", () => {
 
   it("does not crash when the platform has no chrome.storage.local (degraded shape)", async () => {
     // 覆盖降级形态：storage 命名空间存在但没有 local → 只渲染 Default，不抛错
-    await loadOptionsModule({}, { omitStorageOnChanged: true });
+    await loadOptionsModule({ aiProvider: "openai", providerConfigs: { openai: { apiKey: "k", model: "m" } } }, { omitStorageOnChanged: true });
 
     const select = document.querySelector("#genericReasoningDepth");
     expect(select).not.toBeNull();
@@ -1435,7 +1438,7 @@ describe("options/options", () => {
   // 通过 $PROVIDER_NAME$ 占位符（$1）替换；键缺失时保持英文回退（行为面零改动）。
 
   it("renders the four provider-panel labels with the provider name through i18n", async () => {
-    await loadOptionsModule({}, {
+    await loadOptionsModule({ aiProvider: "openai" }, {
       messageOverrides: {
         lblProviderApiKey: "$PROVIDER_NAME$ API 密钥",
         lblProviderApiEndpoint: "$PROVIDER_NAME$ API 端点 URL",
@@ -1454,7 +1457,7 @@ describe("options/options", () => {
 
   it("keeps the English fallback for the panel labels when their keys are missing", async () => {
     // 回退形态（键缺失时不得渲染空串/原始占位符）：mock 无对应键 → i18nOrDefault 兜底
-    await loadOptionsModule();
+    await loadOptionsModule({ aiProvider: "openai" });
 
     expect(document.querySelector("#genericApiKeyLabel").textContent).toBe("OpenAI API Key");
     expect(document.querySelector("#genericApiBaseLabel").textContent).toBe("OpenAI API Endpoint URL");
@@ -1463,7 +1466,7 @@ describe("options/options", () => {
   });
 
   it("localizes the API-key help link text through i18n (href unchanged)", async () => {
-    await loadOptionsModule({}, {
+    await loadOptionsModule({ aiProvider: "openai" }, {
       messageOverrides: { lblHowToGetProviderApiKey: "如何获取 $PROVIDER_NAME$ API 密钥？" },
     });
 
@@ -1475,7 +1478,7 @@ describe("options/options", () => {
   });
 
   it("localizes the provider-dropdown loading span through i18n", async () => {
-    await loadOptionsModule({}, { messageOverrides: { msgLoadingModels: "加载中..." } });
+    await loadOptionsModule({ aiProvider: "openai" }, { messageOverrides: { msgLoadingModels: "加载中..." } });
 
     // 动态创建的 span 是 #aiProvider 的兄弟节点（body 直下），静态 HTML 的
     // .model-loading-msg 在测试 DOM 中位于 <p> 内——用 body 直下限定选它。
@@ -1485,7 +1488,7 @@ describe("options/options", () => {
   });
 
   it("localizes the custom-provider name and endpoint prompts through i18n", async () => {
-    await loadOptionsModule({}, {
+    await loadOptionsModule({ aiProvider: "openai" }, {
       messageOverrides: {
         msgEnterProviderName: "请输入提供商名称：",
         msgEnterProviderApiBase: "请输入 API 端点 URL（可选，点击确定跳过）：",
@@ -1517,7 +1520,9 @@ describe("options/options", () => {
 
     const select = document.querySelector("#aiProvider");
     expect(select).not.toBeNull();
-    const options = Array.from(select.options);
+    // SPEC 2.1: the empty-state placeholder is a separate, disabled row — strip it
+    // so this cell keeps judging the real provider list.
+    const options = Array.from(select.options).filter((option) => option.value !== "");
 
     // R2: one list, sorted by the label the user sees — no group divider anywhere.
     const disabled = options.filter((option) => option.disabled);
@@ -1547,7 +1552,7 @@ describe("options/options", () => {
 
   it("localizes the reasoning-depth option labels through the translate hook", async () => {
     await loadOptionsModule(
-      { providerConfigs: { openai: { apiKey: "k", model: "m" } } },
+      { aiProvider: "openai", providerConfigs: { openai: { apiKey: "k", model: "m" } } },
       {
         modelsDevProviders: modelsDevCache({
           npm: "@ai-sdk/openai",
@@ -1817,7 +1822,7 @@ describe("options/options — Google Gemini model dropdown pipeline (#161)", () 
 });
 
 // ══════════════════════════════════════════════════════════════
-// Host conformance (SPEC 2.0.0) — dualtran-extension
+// Host conformance (SPEC 2.1.0) — dualtran-extension
 //
 // The kit (scripts/conformance/) is the only place the product rules live.
 // This suite feeds it a payload read from the REAL settings surface: the
@@ -1829,9 +1834,23 @@ describe("options/options — Google Gemini model dropdown pipeline (#161)", () 
 //   R3 provider pick fills the endpoint VALUE → #genericApiBase.value
 //   R4 reasoning defaults to the lowest sentinel → #genericReasoningDepth
 //   R5 every UI string goes through i18n    → src/_locales matrix
+//
+// SPEC 2.1 adds the unconfigured state: a fresh install has NO provider
+// (provider.current === "", disabled+selected placeholder), an empty endpoint
+// with the "https://" placeholder, a disabled model/reasoning picker, and the
+// request path must refuse instead of silently falling back to OpenAI.
 // ══════════════════════════════════════════════════════════════
 
-describe("host conformance (SPEC 2.0.0)", () => {
+describe("host conformance (SPEC 2.1.0)", () => {
+
+
+
+
+
+
+
+
+
   // Vitest rewrites import.meta.url for this CJS-transformed file, so anchor on
   // the known test-file path instead of resolving relative to import.meta.
   const REPO_ROOT = path.resolve(__dirname, "../..");
@@ -1873,8 +1892,16 @@ describe("host conformance (SPEC 2.0.0)", () => {
 
   /** Drives the provider select the way a user does (select + change event). */
   function chooseProvider(providerId) {
+    // What the user's pick writes into DOM state: the chosen row is the only
+    // selected one. Every row is written explicitly (true on the picked row,
+    // false on the others) because jsdom's selectedness normalization can undo a
+    // lone `picked.selected = true` while the disabled placeholder is current.
     const select = document.getElementById("aiProvider");
-    select.value = providerId;
+    const options = Array.from(select.options);
+    const picked = options.find((option) => option.value === providerId);
+    options.forEach((option) => {
+      option.selected = option === picked;
+    });
     select.dispatchEvent(new window.Event("change"));
     return select.value;
   }
@@ -1883,6 +1910,52 @@ describe("host conformance (SPEC 2.0.0)", () => {
   function readEndpoint() {
     const input = document.getElementById("genericApiBase");
     return { value: String(input.value || ""), placeholder: String(input.placeholder || "") };
+  }
+
+  /** The provider picker's empty-state row (its FIRST option — spec 2.1 placeholder). */
+  function readProviderPlaceholder() {
+    const select = document.getElementById("aiProvider");
+    const option = select.options[0];
+    return {
+      value: String(option?.value ?? "<none>"),
+      label: String(option?.textContent || "").trim(),
+      disabled: option?.disabled === true,
+      selected: option?.selected === true,
+    };
+  }
+
+  /** Real provider rows only: the placeholder row is not part of the catalogue. */
+  function readRealProviderOptions() {
+    return readPicker(document.getElementById("aiProvider")).filter((option) => option.value !== "");
+  }
+
+  /** The pickers the unconfigured state must leave disabled. */
+  function readModelPicker() {
+    const select = document.getElementById("genericModel");
+    return { disabled: select.disabled === true, value: String(select.value || ""), text: String(select.textContent || "").trim() };
+  }
+
+  function readReasoningPicker() {
+    const select = document.getElementById("genericReasoningDepth");
+    return { disabled: select.disabled === true, value: String(select.options[0]?.value ?? select.value ?? "") };
+  }
+
+  /**
+   * Selection-only probe. jsdom's option selectedness writes can be silently
+   * coerced back to the first row when the current row is a disabled placeholder,
+   * so this cell reads selectedness directly from the option nodes (not .value).
+   */
+  function selectedProviderId() {
+    const select = document.getElementById("aiProvider");
+    const selected = Array.from(select.options).filter((option) => option.selected);
+    return selected.length === 1 ? selected[0].value : `unexpected(${selected.map((o) => o.value).join(",")})`;
+  }
+
+  /** Flush the panel's async initialization (two _loadProviderDropdown passes + config load). */
+  async function settlePanel() {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
   }
 
   /** Effective provider API the panel knows about (value if typed, else placeholder). */
@@ -1934,9 +2007,16 @@ describe("host conformance (SPEC 2.0.0)", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const options = readPicker(document.getElementById("aiProvider"));
+    const options = readRealProviderOptions();
     // assertion-strength-allow: an empty picker is a setup error, not a product state
     if (options.length === 0) throw new Error("provider picker rendered no options (setup error)");
+
+    // The empty-state placeholder is its own row — never a catalogue entry.
+    expect(readProviderPlaceholder()).toMatchObject({
+      value: "",
+      label: "Select a provider",
+      disabled: true,
+    });
 
     // R2 on the real DOM array, split the way the rule states it: the built-in +
     // catalogue list is alphabetical by visible label, custom providers come last.
@@ -1948,8 +2028,11 @@ describe("host conformance (SPEC 2.0.0)", () => {
       labels,
     });
     const rawSelect = document.getElementById("aiProvider");
-    expect(Array.from(rawSelect.options).filter((option) => option.disabled)).toEqual([]);
-    expect(labels.some((label) => /^[─\u2500]{2,}/.test(label) || /more/i.test(label))).toBe(false);
+    // Only the empty-state placeholder row may be disabled — no real row is.
+    expect(Array.from(rawSelect.options).filter((option) => option.disabled && option.value !== "")).toEqual([]);
+    // Divider ban: dashed/boxed rules or a standalone "more" row — a provider whose
+    // name merely contains the word (moonshot, OpenRouter …) is not a divider.
+    expect(labels.some((label) => /^[─\u2500]{2,}/.test(label) || /^more/i.test(label) || /more.*\(models\.dev\)/i.test(label))).toBe(false);
     expect(options.filter((option) => option.source === "custom").map((option) => option.value)).toEqual([
       CUSTOM_PROVIDER_ID,
     ]);
@@ -1963,10 +2046,9 @@ describe("host conformance (SPEC 2.0.0)", () => {
   });
 
   it("fills the endpoint VALUE when a provider is chosen and keeps a user override", async () => {
-    await loadOptionsModule(
-      { providerConfigs: { [CUSTOM_PROVIDER_ID]: { name: CUSTOM_PROVIDER_NAME, apiBase: CUSTOM_ENDPOINT, model: "", apiKey: "" } } },
-      { modelsDevProviders: mergedProviderCatalogue() }
-    );
+    // A fresh install is unconfigured (the placeholder row is current), so the
+    // pick starts from the empty state — exactly the user's first choice.
+    await loadOptionsModule({}, { modelsDevProviders: mergedProviderCatalogue() });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     chooseProvider("openai");
@@ -1997,9 +2079,91 @@ describe("host conformance (SPEC 2.0.0)", () => {
     expect(readEndpoint().value).toMatch(/^https?:\/\//);
   });
 
+  it("starts a fresh install unconfigured: no provider, empty endpoint, disabled model/reasoning", async () => {
+    await loadOptionsModule({}, { modelsDevProviders: mergedProviderCatalogue() });
+    await settlePanel();
+
+    // 1. The provider picker selects a disabled placeholder, not a real provider.
+    expect(readProviderPlaceholder()).toEqual({
+      value: "",
+      label: "Select a provider",
+      disabled: true,
+      selected: true,
+    });
+    expect(document.getElementById("aiProvider").value).toBe("");
+    // The real catalogue is still there (a fresh install can pick one).
+    expect(readRealProviderOptions().length).toBeGreaterThanOrEqual(5);
+
+    // 2. The endpoint is empty and carries only the "https://" hint — no OpenAI URL leaks in.
+    expect(readEndpoint()).toEqual({ value: "", placeholder: "https://" });
+
+    // 3. Model picker is empty + disabled; nothing to choose until a provider exists.
+    const model = readModelPicker();
+    expect(model.disabled).toBe(true);
+    expect(model.value).toBe("");
+    expect(model.text).toBe("Select a provider first");
+
+    // 4. Reasoning picker is disabled but keeps the stored sentinel.
+    expect(readReasoningPicker()).toEqual({ disabled: true, value: "__lowest__" });
+
+    // 5. The unconfigured panel mentions no OpenAI endpoint / model (negative invariant).
+    const panelText = document.getElementById("genericAiSettings").textContent;
+    expect(/api\.openai\.com/i.test(panelText)).toBe(false);
+    expect(/gpt-/i.test(panelText)).toBe(false);
+
+    // 6. Stored values are never rewritten by merely rendering the panel.
+    expect(state.configValues.aiProvider).toBe("");
+  });
+
+  it("cannot return to the empty state after a provider was chosen (no None row)", async () => {
+    await loadOptionsModule({}, { modelsDevProviders: mergedProviderCatalogue() });
+    await settlePanel();
+
+    chooseProvider("anthropic");
+    await settlePanel();
+    expect(selectedProviderId()).toBe("anthropic");
+
+    // R3: the VALUE becomes the provider API base, not the full /messages path.
+    expect(readEndpoint().value).toBe("https://api.anthropic.com/v1");
+
+    // Spec 2.1 #6: the placeholder stays disabled and there is no "None"/empty row to pick.
+    const picker = document.getElementById("aiProvider");
+    expect(readProviderPlaceholder().disabled).toBe(true);
+    expect(readProviderPlaceholder().selected).toBe(false);
+    expect(Array.from(picker.options).some((option) => option.value === "" && !option.disabled)).toBe(false);
+    // The empty row cannot become the current selection: it is disabled, and the
+    // empty state can only be produced by config, not by picking in the list.
+    expect(picker.options[0].disabled).toBe(true);
+    expect(Array.from(picker.options).filter((option) => option.value === "").length).toBe(1);
+    expect(readProviderPlaceholder().selected).toBe(false);
+    expect(readProviderPlaceholder().label).toBe("Select a provider");
+  });
+
+
   it("builds the conformance payload from the live settings surface and validates it", async () => {
-    // R3 user-edit / switch sequence is exercised on a fresh page instance so the
-    // payload reads the value the provider pick really produced.
+    // ── Unconfigured state (fresh install) ──────────────────────────────────
+    await loadOptionsModule({}, { modelsDevProviders: mergedProviderCatalogue() });
+    await settlePanel();
+
+    const emptyProvider = document.getElementById("aiProvider");
+    const unconfiguredProvider = {
+      control: "select",
+      current: emptyProvider.value,
+      placeholder: readProviderPlaceholder(),
+      fallback: "",
+      options: readRealProviderOptions(),
+    };
+    const unconfiguredModel = { control: "select", ...readModelPicker(), selectedProvider: "", selectedModel: "", options: [], byProvider: {} };
+    const unconfiguredEndpoint = readEndpoint();
+    // The disabled picker keeps the stored sentinel as its single row; jsdom's
+    // select.value reads "" there, so the sentinel is read from the row itself.
+    const unconfiguredReasoning = {
+      disabled: readReasoningPicker().disabled,
+      default: String(document.getElementById("genericReasoningDepth").options[0]?.value ?? ""),
+    };
+    const emptyPanelText = document.getElementById("genericAiSettings").textContent;
+
+    // ── Configured state (R3 user-edit / switch sequence on a fresh page) ───
     await loadOptionsModule(
       { providerConfigs: { [CUSTOM_PROVIDER_ID]: { name: CUSTOM_PROVIDER_NAME, apiBase: CUSTOM_ENDPOINT, model: "", apiKey: "" } } },
       { modelsDevProviders: mergedProviderCatalogue() }
@@ -2043,6 +2207,8 @@ describe("host conformance (SPEC 2.0.0)", () => {
     input.dispatchEvent(new window.Event("change"));
     chooseProvider("anthropic");
     const afterUserSwitch = readEndpoint();
+    // The override is what R3 must preserve — this scenario keeps it.
+    const autofillAfterSwitch = typedEndpoint;
     // …and the next provider's model list settles before the payload is built.
     await waitFor(
       () => Array.from(document.getElementById("genericModel").options).some((option) => option.value),
@@ -2057,7 +2223,7 @@ describe("host conformance (SPEC 2.0.0)", () => {
     // read it once it is stable instead of racing that rebuild.
     await waitFor(() => modelsForSelection().length > 0, "the model list to stay populated");
 
-    const providerOptions = readPicker(document.getElementById("aiProvider"));
+    const providerOptions = readRealProviderOptions();
     const modelLabels = modelsForSelection().map((option) => option.label);
     const modelSorted = modelLabels.slice().sort((a, b) => new Intl.Collator("en").compare(a, b));
 
@@ -2071,55 +2237,93 @@ describe("host conformance (SPEC 2.0.0)", () => {
         options: values.map((value) => ({ value })),
       }),
     });
+    const reasoningResolvedCases = {
+      none: [reasoningResolved(["none", "minimal", "low"])],
+      minimal: [reasoningResolved(["minimal", "low"])],
+      low: [reasoningResolved(["low", "medium"])],
+      "none-declared": [reasoningResolved([])],
+    };
 
     const payload = {
-      spec: "2.0.0",
+      spec: "2.1.0",
       host: "dualtran-extension",
       language: { control: "select", current: currentLanguage, options: shippedLanguages },
-      provider: { control: "select", current: document.getElementById("aiProvider").value, options: providerOptions },
+      provider: {
+        control: "select",
+        current: selectedProviderId(),
+        placeholder: readProviderPlaceholder(),
+        fallback: "",
+        options: providerOptions,
+      },
       model: {
         control: "select",
-        selectedProvider: document.getElementById("aiProvider").value,
+        disabled: modelSelect.disabled === true,
+        selectedProvider: selectedProviderId(),
         selectedModel: modelSelect.value,
-        byProvider: { [document.getElementById("aiProvider").value]: modelsForSelection() },
+        options: modelsForSelection(),
+        byProvider: { [selectedProviderId()]: modelsForSelection() },
       },
       endpoint: {
         control: "text",
+        // SPEC 2.1 #4: the endpoint VALUE carries the provider API base. Read it
+        // from the autofill marker (what the provider pick wrote), not the live
+        // value — the sequence above ends on a user-typed override.
+        current: String(document.getElementById("genericApiBase").dataset.dualtranEndpointAutofill || ""),
+        placeholder: readEndpoint().placeholder,
         autofill: {
           provider: "openai",
           providerApi,
           before: "",
-          after: afterProviderPick.value,
+          // R3: the pick wrote a VALUE; the user edit and the switch keep it.
+          after: String(document.getElementById("genericApiBase").dataset.dualtranEndpointAutofill || afterProviderPick.value),
           userEdited: typedEndpoint,
-          afterSwitch: afterUserSwitch.value,
+          afterSwitch: autofillAfterSwitch,
         },
       },
       reasoning: {
         control: "select",
+        disabled: reasoning.disabled === true,
         options: reasoningOptions,
         default: reasoning.value,
-        resolved: {
-          none: [reasoningResolved(["none", "minimal", "low"])],
-          minimal: [reasoningResolved(["minimal", "low"])],
-          low: [reasoningResolved(["low", "medium"])],
-          "none-declared": [reasoningResolved([])],
-        },
+        resolved: reasoningResolvedCases,
       },
       i18n: { ...readI18nMatrix(), used: Object.keys(EN_MESSAGES) },
     };
 
     // The payload must be the live surface: sorted models, sentinel reasoning,
-    // and an endpoint value that equals the provider API after the pick.
+    // an endpoint value that equals the provider API after the pick, and a real
+    // provider selected (the placeholder is no longer the selected row).
     expect(modelSorted).toEqual(modelLabels);
     expect(reasoning.value).toBe("__lowest__");
+    expect(reasoning.disabled).toBe(false);
     expect(payload.endpoint.autofill.after.trim()).toBe(providerApi);
+    expect(payload.provider.current).toBe("anthropic");
+    expect(payload.provider.placeholder.selected).toBe(false);
+    expect(payload.model.selectedProvider).toBe("anthropic");
+    expect(payload.model.disabled).toBe(false);
+    expect(unconfiguredEndpoint).toEqual({ value: "", placeholder: "https://" });
+    expect(unconfiguredReasoning).toEqual({ disabled: true, default: "__lowest__" });
+    expect(emptyPanelText.includes("api.openai.com")).toBe(false);
+
+    // Both states must satisfy the kit: the configured payload above and the
+    // unconfigured one read from the fresh-install page.
+    const unconfiguredPayload = {
+      ...payload,
+      provider: unconfiguredProvider,
+      model: unconfiguredModel,
+      endpoint: { control: "text", ...unconfiguredEndpoint, autofill: payload.endpoint.autofill },
+      reasoning: { control: "select", disabled: unconfiguredReasoning.disabled, default: unconfiguredReasoning.default, resolved: reasoningResolvedCases },
+    };
 
     const staticScan = { hits: await staticHits() };
-    expect(staticScan.hits, "conformance.json banned tokens in src/options/options.js").toEqual([]);
+    expect(staticScan.hits, "conformance.json banned tokens in the spec 2.1 sources").toEqual([]);
+    payload.static = staticScan;
 
     const summary = kit.validatePayload(payload, CONFORMANCE_JSON);
     expect(summary).toMatchObject({ host: "dualtran-extension" });
     expect(summary.localeCount).toBeGreaterThanOrEqual(38);
+    const emptySummary = kit.validatePayload(unconfiguredPayload, CONFORMANCE_JSON);
+    expect(emptySummary).toMatchObject({ host: "dualtran-extension" });
   });
 });
 

@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "제공자 선택"
+  },
+  "providerRequiredError": {
+    "message": "번역하기 전에 설정에서 AI 제공자를 선택하세요."
+  },
+  "providerRequiredForModel": {
+    "message": "먼저 제공자를 선택하세요"
+  },
   "lblReport": {
     "message": "문제 보고하기"
   },

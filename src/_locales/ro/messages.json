@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Selectați un furnizor"
+  },
+  "providerRequiredError": {
+    "message": "Alegeți un furnizor AI din setări înainte de a traduce."
+  },
+  "providerRequiredForModel": {
+    "message": "Selectați mai întâi un furnizor"
+  },
   "lblReport": {
     "message": "Raportează o problemă"
   },

@@ -13,6 +13,8 @@ const {
     targetLanguageTextTranslation: "de",
     aiTranslatedColor: "rgb(1, 2, 3)",
     apiKeyOpenAI: "test-api-key",
+    // SPEC 2.1: a configured provider is required before any AI request is sent.
+    aiProvider: "openai",
   },
   translateWithAIMock: vi.fn(),
   toastFactoryMock: vi.fn(),
@@ -85,6 +87,7 @@ describe("pageTranslator aiTranslateText", () => {
     configValues.targetLanguage = "fr";
     configValues.targetLanguageTextTranslation = "de";
     configValues.aiTranslatedColor = "rgb(1, 2, 3)";
+    configValues.aiProvider = "openai";
     toastFactoryMock.mockReturnValue({
       showToast: showToastMock,
     });
@@ -120,6 +123,27 @@ describe("pageTranslator aiTranslateText", () => {
         getMessage: vi.fn(() => ""),
       },
     };
+  });
+
+  it("refuses every block with providerRequiredError when no provider is configured (zero requests)", async () => {
+    // SPEC 2.1 #5: an unconfigured install must never silently use OpenAI — not
+    // even when the legacy OpenAI key is still stored.
+    configValues.aiProvider = "";
+    const { aiTranslateText, aiCache } = await import("../../src/contentScript/pageTranslator.js");
+    aiCache.length = 0;
+    const button = createButton(document, { sourceString: "no provider here" });
+    const settled = vi.fn();
+
+    await aiTranslateText([button], true, settled);
+
+    expect(translateWithAIMock).not.toHaveBeenCalled();
+    expect(button.translationStatus).toBe("translationError");
+    expect(button.translatedTextNode.textContent || button.tooltip.textContent).toBeTruthy();
+    expect(settled).toHaveBeenCalledTimes(1);
+    expect(toastFactoryMock).toHaveBeenCalledTimes(1);
+    expect(toastFactoryMock.mock.calls[0][0].text).toBe("Choose an AI provider in settings before translating.");
+    // …and no "set an API key" detour: the provider itself is missing.
+    expect(globalThis.confirm).not.toHaveBeenCalled();
   });
 
   it("marks unfinished page translation buttons as translationError on stream parse failure", async () => {

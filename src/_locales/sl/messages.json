@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Izberite ponudnika"
+  },
+  "providerRequiredError": {
+    "message": "Pred prevajanjem v nastavitvah izberite ponudnika AI."
+  },
+  "providerRequiredForModel": {
+    "message": "Najprej izberite ponudnika"
+  },
   "lblReport": {
     "message": "Prijavite težavo"
   },

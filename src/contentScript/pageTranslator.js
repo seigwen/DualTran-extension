@@ -66,6 +66,7 @@ import {
 import {
   getFloatingButtonAiTooltipText,
   getFloatingButtonGoogleTooltipText,
+  getMessageWithFallback,
 } from "./i18n.js"
 import { AI_ENGINE_LABEL } from "./engineLabels.js";
 import Toastify from 'toastify-js'
@@ -452,7 +453,9 @@ export function _applyAiColorToTranslatedElement(btnAi, aiColor) {
  * @returns {boolean}
  */
 function hasActiveProviderApiKey() {
-  const providerId = twpConfig.get("aiProvider") || "openai";
+  const providerId = String(twpConfig.get("aiProvider") || "").trim();
+  // SPEC 2.1: no provider configured means no usable key — never assume OpenAI's.
+  if (!providerId) return false;
   const providerDef = _providerRegistry.getProvider(providerId);
 
   // Check migrated providerConfigs first
@@ -620,9 +623,71 @@ function _shouldSkipAiTranslation(hasApiKey, rateLimitCountdown, shouldForce) {
   return rateLimitCountdown > 0 || !shouldForce || !hasApiKey;
 }
 
+/**
+ * SPEC 2.1 #5: tell the user why the AI request did not start (no provider).
+ * Same toast skin as the other AI errors; text comes from _locales.
+ * @param {string} message
+ */
+function showProviderRequiredToast(message) {
+  try {
+    Toastify({
+      text: message,
+      duration: 8000,
+      close: true,
+      gravity: "top",
+      position: "right",
+      stopOnFocus: true,
+      style: {
+        background: "linear-gradient(to bottom, red, darkred)",
+        fontSize: "12px"
+      },
+      onClick: function () { }
+    }).showToast();
+  } catch (e) {
+    console.warn("[DualTran] provider-required toast failed", e)
+  }
+}
+
+/**
+ * SPEC 2.1 #5 — reflect the unconfigured state on the primary AI entries.
+ *
+ * While no AI provider is configured every primary AI button (`#btnAi` in the
+ * floating group, `[data-dualtran-primary-ai]` elsewhere) is disabled and
+ * carries providerRequiredError as its tooltip/title — the same localized
+ * string the request path returns. Once a provider exists the gate is lifted
+ * (disabled cleared, our own title removed).
+ * @param {boolean} providerConfigured
+ */
+function applyProviderRequiredGate(providerConfigured) {
+  const message = providerConfigured
+    ? ""
+    : getMessageWithFallback("providerRequiredError", "Choose an AI provider in settings before translating.")
+  try {
+    const entries = []
+    const floatingAiBtn = document.getElementById?.("btnAi")
+    if (floatingAiBtn) entries.push(floatingAiBtn)
+    document.querySelectorAll?.("[data-dualtran-primary-ai]")?.forEach((el) => entries.push(el))
+    entries.forEach((el) => {
+      el.disabled = !providerConfigured
+      if (providerConfigured) {
+        if (el.getAttribute?.("data-dualtran-provider-required-title") === "true") {
+          el.title = ""
+          el.removeAttribute?.("aria-label")
+          el.removeAttribute?.("data-dualtran-provider-required-title")
+        }
+      } else {
+        el.title = message
+        el.setAttribute?.("aria-label", message)
+        el.setAttribute?.("data-dualtran-provider-required-title", "true")
+      }
+    })
+  } catch (e) {
+    console.warn("[DualTran] provider-required gate failed", e)
+  }
+}
+
 function promptToConfigureAiProvider() {
   const confirmMessage = chrome.i18n.getMessage("confirmSetApiKeyNow") || "API key is not set. Do you want to set it now?"
-
   if (!window.confirm(confirmMessage)) {
     return
   }
@@ -1202,6 +1267,30 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true, onBlockSe
     try { onBlockSettled(btn) } catch (e) { console.warn("[DualTran] onBlockSettled failed", e) }
   }
 
+  // SPEC 2.1 #5: no AI provider configured → localized error, zero requests.
+  // Checked before the API-key gate (which would ask for a key of a provider
+  // that does not exist) and before any cache lookup.
+  const configuredProviderId = String(twpConfig.get("aiProvider") || "").trim()
+  if (!configuredProviderId) {
+    const providerRequiredError = getMessageWithFallback(
+      "providerRequiredError",
+      "Choose an AI provider in settings before translating."
+    )
+    toBeTranslated.forEach((btnAi) => {
+      try { const st = btnAi._st?.(); if (st) st.errorMessage = providerRequiredError } catch (e) { console.warn("[DualTran] aiTranslateText failed", e) }
+      applyAiErrorState(btnAi, {
+        errorText: providerRequiredError,
+        translatedText: btnAi.classList && btnAi.classList.contains('dualtran-ai-selected-btn') ? providerRequiredError : undefined,
+        tooltipColor: "red",
+        titleText: null,
+      })
+      settleBlock(btnAi)
+    })
+    if (showToastForError) showProviderRequiredToast(providerRequiredError)
+    setAiRenderState("error")
+    return false
+  }
+
   if (!hasActiveProviderApiKey()) {
     toBeTranslated.forEach((btnAi) => { resetAiButtonToIdle(btnAi); settleBlock(btnAi) })
     promptToConfigureAiProvider()
@@ -1253,7 +1342,8 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true, onBlockSe
     // 2. Check persistent AI cache (IndexedDB, via SW).
     // @arrival-path: persistent-cache
     //    Source language defaults to "und" (same convention as Google cache).
-    const providerId = twpConfig.get("aiProvider") || "openai";
+    // Configured provider (already non-empty: the unconfigured state returned above).
+    const providerId = String(twpConfig.get("aiProvider") || "").trim();
     const modelId = getModelForProvider(providerId);
     const cached = await getCachedAiTranslation(
       "und", targetLanguageCodeForAI,
@@ -1445,9 +1535,9 @@ let aiTranslateText = async (toBeTranslated, showToastForError = true, onBlockSe
             // Persistent cache write (fire-and-forget, sourceLanguage defaults to "und")
             setCachedAiTranslation(
               "und", targetLanguageCodeForAI,
-              twpConfig.get("aiProvider") || "openai",
-              getModelForProvider(twpConfig.get("aiProvider") || "openai"),
-              getReasoningDepthForProvider(twpConfig.get("aiProvider") || "openai"),
+              configuredProviderId,
+              getModelForProvider(configuredProviderId),
+              getReasoningDepthForProvider(configuredProviderId),
               btnAi.sourceString,
               aiTextForCache
             );
@@ -4527,8 +4617,16 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   }  
 
   // [intent-gate:translate-page-ai-flag]
+  pageTranslator.applyProviderRequiredGate = applyProviderRequiredGate;
   pageTranslator.translatePageAi = function (targetLanguage) {
-    if (!hasActiveProviderApiKey()) {
+    // SPEC 2.1 #5: no provider configured → the primary AI entry is disabled and
+    // carries providerRequiredError as its tooltip; no flow starts, no request.
+    // This shares the no-key early return below: both mean "AI is not usable
+    // yet", and both must announce the same intent.
+    const providerConfigured = !!String(twpConfig.get("aiProvider") || "").trim();
+    pageTranslator.applyProviderRequiredGate(providerConfigured);
+
+    if (!providerConfigured || !hasActiveProviderApiKey()) {
       // E3 (plan 30 / §3.2, audit fix): the intent is announced even on the
       // no-key early return. An external no-key AI op (popup / context menu /
       // shortcut) must still move the highlight (D1): the click path writes
@@ -4537,7 +4635,18 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       // via restore/rebuild.
       emitRequestedModeChange("ai");
       shouldForceAiAfterPageTranslation = false;
-      promptToConfigureAiProvider();
+      if (providerConfigured) {
+        promptToConfigureAiProvider();
+      } else {
+        // The missing thing is the provider itself, not an API key: say so
+        // instead of opening the "set an API key" prompt.
+        showProviderRequiredToast(
+          getMessageWithFallback(
+            "providerRequiredError",
+            "Choose an AI provider in settings before translating."
+          )
+        );
+      }
       return false;
     }
 

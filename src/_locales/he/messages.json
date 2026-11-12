@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "בחרו ספק"
+  },
+  "providerRequiredError": {
+    "message": "בחרו ספק בינה מלאכותית בהגדרות לפני התרגום."
+  },
+  "providerRequiredForModel": {
+    "message": "בחרו ספק תחילה"
+  },
   "lblReport": {
     "message": "לדווח על בעיה"
   },

@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Chọn nhà cung cấp"
+  },
+  "providerRequiredError": {
+    "message": "Hãy chọn nhà cung cấp AI trong cài đặt trước khi dịch."
+  },
+  "providerRequiredForModel": {
+    "message": "Hãy chọn nhà cung cấp trước"
+  },
   "lblReport": {
     "message": "Báo cáo sự cố"
   },

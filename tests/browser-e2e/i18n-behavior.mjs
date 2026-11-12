@@ -95,6 +95,17 @@ const EXPECTED_AI_PANEL = {
  * 初始静态文案为 "Model"；_updatePanelLabels 运行后被替换为
  * "{Provider} Model"（如 "OpenAI 模型"）——以此作为就绪信号。
  */
+async function seedOpenAiProvider(page) {
+  // SPEC 2.1: a fresh install has provider "". These i18n assertions are about
+  // the dynamic provider labels, so seed OpenAI and reload before reading them.
+  await page.evaluate(async () => {
+    if (globalThis.chrome && chrome.storage && chrome.storage.local) {
+      await chrome.storage.local.set({ aiProvider: "openai", registryMigrated: true });
+    }
+  });
+  await page.reload({ waitUntil: "load" });
+}
+
 async function waitForAiPanelReady(page) {
   await page.waitForFunction(() => {
     const el = document.getElementById("genericModelLabel");
@@ -188,6 +199,7 @@ async function i1ChineseLocale(scope) {
     console.log(`  [I1] lblAiProvider 中文正确 ✓`);
 
     // #155：AI 面板动态文案（$PROVIDER_NAME$ 替换后的 label / 帮助链接 / tooltip）
+    await seedOpenAiProvider(page);
     await waitForAiPanelReady(page);
     const aiPanelTexts = await readAiPanelTexts(page);
     assertAiPanelTexts(aiPanelTexts, EXPECTED_AI_PANEL["zh-CN"], "[I1]");
@@ -247,6 +259,7 @@ async function i2EnglishLocale(scope) {
     console.log(`  [I2] lblAiProvider 英文正确 ✓`);
 
     // #155：en 断言兼防 $PROVIDER_NAME$ 字面泄漏（相等断言天然覆盖）
+    await seedOpenAiProvider(page);
     await waitForAiPanelReady(page);
     const aiPanelTexts = await readAiPanelTexts(page);
     assertAiPanelTexts(aiPanelTexts, EXPECTED_AI_PANEL.en, "[I2]");
@@ -311,6 +324,7 @@ async function i3FallbackLocale(scope) {
     console.log(`  [I3] lblAiProvider fallback 到英文正确 ✓`);
 
     // #155：不存在的 locale 下 AI 面板动态文案同样回退到英文
+    await seedOpenAiProvider(page);
     await waitForAiPanelReady(page);
     const aiPanelTexts = await readAiPanelTexts(page);
     assertAiPanelTexts(aiPanelTexts, EXPECTED_AI_PANEL.en, "[I3]");
@@ -374,6 +388,7 @@ async function i4RealTranslationLocale(scope) {
     console.log(`  [I4] lblAiProvider 德语正确 ✓`);
 
     // AI 面板动态文案（$PROVIDER_NAME$ 替换后的两个 label）同样必须为德语真翻译。
+    await seedOpenAiProvider(page);
     await waitForAiPanelReady(page);
     const aiPanelTexts = await readAiPanelTexts(page);
     const providerName = "OpenAI";

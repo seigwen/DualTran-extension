@@ -18,7 +18,8 @@ describe("aiProviderUI", () => {
   it("returns provider id as-is (no registry normalization needed)", () => {
     expect(getNormalizedAIProvider("openrouter")).toBe("openrouter");
     expect(getNormalizedAIProvider("unknown-provider")).toBe("unknown-provider");
-    expect(getNormalizedAIProvider("")).toBe("openai");
+    // SPEC 2.1: "" is the unconfigured state — it stays empty (no OpenAI fallback).
+    expect(getNormalizedAIProvider("")).toBe("");
   });
 
   it("shows generic panel for any provider", () => {

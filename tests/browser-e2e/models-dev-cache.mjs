@@ -76,6 +76,10 @@ async function c1CacheClearAndDropdownFill(page, extensionId, serviceWorker) {
     }
   });
 
+  // SPEC 2.1: a fresh install has no provider, so no per-provider preview is
+  // requested. Seed OpenAI so C1-C4 still exercise the catalogue/cache path.
+  await writeStorage(serviceWorker, "aiProvider", "openai");
+
   // ── 导航到 options 页 ──
   console.log("  [C1] 导航到 options 页...");
   await page.goto(`chrome-extension://${extensionId}/options/options.html#translations`, { waitUntil: "load" });

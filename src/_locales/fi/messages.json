@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Valitse palveluntarjoaja"
+  },
+  "providerRequiredError": {
+    "message": "Valitse tekoälypalveluntarjoaja asetuksista ennen kääntämistä."
+  },
+  "providerRequiredForModel": {
+    "message": "Valitse ensin palveluntarjoaja"
+  },
   "lblReport": {
     "message": "Ilmoita ongelmasta"
   },

@@ -11,7 +11,11 @@ export function createAiOptionsController({
   onWarn = (message, error) => console.warn(message, error),
 }) {
   function getCurrentProvider() {
-    return config?.get?.("aiProvider") || aiProviderSelect?.value || "openai";
+    // SPEC 2.1: "" = unconfigured. Only fall back to the select's own value when
+    // the config has no entry at all (not when it explicitly says "none yet").
+    const stored = config?.get?.("aiProvider");
+    if (typeof stored === "string") return stored;
+    return aiProviderSelect?.value || "";
   }
 
   function initialize() {
@@ -23,7 +27,10 @@ export function createAiOptionsController({
   }
 
   function handleProviderChange(provider) {
-    const nextProvider = provider || "openai";
+    // The empty placeholder is disabled, but a programmatic "" must never be
+    // persisted as a selection either (spec 2.1 #6: cannot return to empty).
+    const nextProvider = String(provider || "");
+    if (!nextProvider) return;
     // Sync both old and new active provider keys to prevent stale migration fields from overwriting the latest selection when the page reopens.
     config?.set?.("aiProvider", nextProvider);
     config?.set?.("activeProviderId", nextProvider);

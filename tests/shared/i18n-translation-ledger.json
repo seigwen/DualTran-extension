@@ -209,7 +209,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "ar": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -422,7 +425,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "ca": {
       "backupToFile": "d8c6b60067ff",
@@ -629,7 +635,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "cs": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -840,7 +849,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "da": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -1047,7 +1059,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "de": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -1255,7 +1270,10 @@
       "lblProviderApiEndpoint": "3b3b17708eb6",
       "lblProviderApiKey": "af4aa8eebd61",
       "msgReasoningDepthXHigh": "0704c8f37934",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "el": {
       "backupToFile": "d8c6b60067ff",
@@ -1466,7 +1484,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "es": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -1674,7 +1695,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "fa": {
       "backupToFile": "d8c6b60067ff",
@@ -1885,7 +1909,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "fi": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -2096,7 +2123,10 @@
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
       "msgReasoningDepthXHigh": "0704c8f37934",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "fr": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -2301,7 +2331,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "he": {
       "backupToFile": "d8c6b60067ff",
@@ -2512,7 +2545,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "hi": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -2725,7 +2761,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "hr": {
       "backupToFile": "d8c6b60067ff",
@@ -2935,7 +2974,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "hu": {
       "backupToFile": "d8c6b60067ff",
@@ -3147,7 +3189,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "is": {
       "backupToFile": "d8c6b60067ff",
@@ -3358,7 +3403,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "it": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -3568,7 +3616,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "ja": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -3780,7 +3831,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "ko": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -3993,7 +4047,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "lv": {
       "backupToFile": "d8c6b60067ff",
@@ -4204,7 +4261,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "nl": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -4412,7 +4472,10 @@
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
       "msgReasoningDepthXHigh": "0704c8f37934",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "no": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -4621,7 +4684,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "pl": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -4833,7 +4899,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "pt_BR": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -5041,7 +5110,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "pt_PT": {
       "backupToFile": "d8c6b60067ff",
@@ -5249,7 +5321,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "ro": {
       "backupToFile": "d8c6b60067ff",
@@ -5459,7 +5534,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "ru": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -5671,7 +5749,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "sl": {
       "backupToFile": "d8c6b60067ff",
@@ -5883,7 +5964,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "sr": {
       "backupToFile": "d8c6b60067ff",
@@ -6096,7 +6180,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "sv": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -6303,7 +6390,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "th": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -6514,7 +6604,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "tr": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -6727,7 +6820,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "ug": {
       "backupToFile": "d8c6b60067ff",
@@ -6938,7 +7034,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "uk": {
       "backupToFile": "d8c6b60067ff",
@@ -7149,7 +7248,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "vi": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -7361,7 +7463,10 @@
       "lblBlockBtnGroupShowOnHover": "9cd73d1cb0c1",
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "zh_CN": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -7574,7 +7679,10 @@
       "lblBlockBtnGroupShowOnClick": "c9be2337774a",
       "blockBtnGroupBadgeTooltip": "2c8611bcfbba",
       "optionPopupConfig": "bec17178d24f",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     },
     "zh_TW": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -7787,7 +7895,10 @@
       "lblActivateTheExtension": "943a63c2d1e9",
       "lblAiTranslatedStyle": "69cda401b76c",
       "promptInputOpenAIKey": "67bd5632b9e9",
-      "msgReasoningDepthLowest": "5d3a4c52bf3f"
+      "msgReasoningDepthLowest": "5d3a4c52bf3f",
+      "providerPlaceholder": "71e2ca7b1c9f",
+      "providerRequiredError": "478579719018",
+      "providerRequiredForModel": "fbd4230d6570"
     }
   }
 }

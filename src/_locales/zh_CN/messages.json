@@ -464,6 +464,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "请选择 AI 提供商"
+  },
+  "providerRequiredError": {
+    "message": "翻译前请先在设置中选择 AI 提供商。"
+  },
+  "providerRequiredForModel": {
+    "message": "请先选择提供商"
+  },
   "lblReport": {
     "message": "反馈问题"
   },

@@ -65,10 +65,92 @@ describe("providerMigration", () => {
   });
 
   it("handles empty config gracefully", () => {
+    // SPEC 2.1 #8: nothing legacy to infer from → stay unconfigured (""), not openai.
     const config = { get: () => undefined, set: vi.fn() };
     const result = migrateProviderConfig(config);
-    expect(result.activeProviderId).toBe("openai");
+    expect(result.activeProviderId).toBe("");
     expect(result.providers).toBeDefined();
+    expect(config.set).toHaveBeenCalledWith("aiProvider", "");
+  });
+
+  it("keeps an explicit empty provider empty (never migrates it back to openai)", () => {
+    const config = createMockConfig({
+      aiProvider: "",
+      apiKeyOpenAI: "",
+      apiKeyGoogleGemini: "",
+      apiKeyAnthropic: "",
+      apiKeyAzureOpenAI: "",
+      apiKeyDeepSeek: "",
+      apiKeyGrok: "",
+      apiKeyOpenRouter: "",
+      openAiModel: "",
+      anthropicModel: "",
+      googleGeminiModel: "",
+      deepSeekModel: "",
+      grokModel: "",
+      openRouterModel: "",
+      openAiApiBase: "",
+      anthropicApiBase: "",
+      googleGeminiApiBase: "",
+      deepSeekApiBase: "",
+      openRouterApiBase: "",
+      azureOpenAIEndpoint: "",
+    });
+    const result = migrateProviderConfig(config);
+    expect(result.activeProviderId).toBe("");
+    expect(config.set).toHaveBeenCalledWith("aiProvider", "");
+  });
+
+  it("infers the provider from the legacy flat apiKeys (spec 2.1 order)", () => {
+    const onlyAnthropic = createMockConfig({
+      aiProvider: "",
+      apiKeyOpenAI: "",
+      apiKeyGoogleGemini: "",
+      apiKeyAnthropic: "anthropic-key",
+      apiKeyDeepSeek: "",
+      apiKeyOpenRouter: "",
+    });
+    expect(migrateProviderConfig(onlyAnthropic).activeProviderId).toBe("anthropic");
+
+    const onlyOpenRouter = createMockConfig({
+      aiProvider: "",
+      apiKeyOpenAI: "",
+      apiKeyAnthropic: "",
+      apiKeyGoogleGemini: "",
+      apiKeyDeepSeek: "",
+      apiKeyOpenRouter: "openrouter-key",
+    });
+    expect(migrateProviderConfig(onlyOpenRouter).activeProviderId).toBe("openrouter");
+  });
+
+  it("uses the custom provider when no key exists but an endpoint/model does", () => {
+    // openRouterApiBase is the only legacy endpoint field with no key next to it.
+    const config = createMockConfig({
+      aiProvider: "",
+      apiKeyOpenAI: "",
+      apiKeyAnthropic: "",
+      apiKeyGoogleGemini: "",
+      apiKeyDeepSeek: "",
+      apiKeyOpenRouter: "",
+      openRouterApiBase: "https://proxy.example/v1/chat/completions",
+    });
+    expect(migrateProviderConfig(config).activeProviderId).toBe("_custom_legacy");
+
+    const modelOnly = createMockConfig({
+      aiProvider: "",
+      apiKeyOpenAI: "",
+      apiKeyAnthropic: "",
+      apiKeyGoogleGemini: "",
+      apiKeyDeepSeek: "",
+      apiKeyOpenRouter: "",
+      openAiApiBase: "",
+      anthropicApiBase: "",
+      googleGeminiApiBase: "",
+      deepSeekApiBase: "",
+      openRouterApiBase: "",
+      openRouterModel: "some/model",
+    });
+    expect(migrateProviderConfig(modelOnly).activeProviderId).toBe("_custom_legacy");
   });
 
   it("does not re-migrate if already migrated", () => {

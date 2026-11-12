@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Seleziona un provider"
+  },
+  "providerRequiredError": {
+    "message": "Scegli un provider AI nelle impostazioni prima di tradurre."
+  },
+  "providerRequiredForModel": {
+    "message": "Seleziona prima un provider"
+  },
   "lblReport": {
     "message": "Segnala un problema"
   },

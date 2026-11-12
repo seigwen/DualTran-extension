@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Trieu un proveïdor"
+  },
+  "providerRequiredError": {
+    "message": "Trieu un proveïdor d'IA als paràmetres abans de traduir."
+  },
+  "providerRequiredForModel": {
+    "message": "Trieu primer un proveïdor"
+  },
   "lblReport": {
     "message": "Informa d'un problema"
   },

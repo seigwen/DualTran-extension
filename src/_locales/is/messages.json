@@ -470,6 +470,15 @@
       }
     }
   },
+  "providerPlaceholder": {
+    "message": "Veldu þjónustuveitanda"
+  },
+  "providerRequiredError": {
+    "message": "Veldu gervigreindarþjónustuveitanda í stillingum áður en þú þýðir."
+  },
+  "providerRequiredForModel": {
+    "message": "Veldu fyrst þjónustuveitanda"
+  },
   "lblReport": {
     "message": "Tilkynna vandamál"
   },
