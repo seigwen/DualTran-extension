@@ -2162,6 +2162,10 @@ describe("host conformance (SPEC 2.1.0)", () => {
       default: String(document.getElementById("genericReasoningDepth").options[0]?.value ?? ""),
     };
     const emptyPanelText = document.getElementById("genericAiSettings").textContent;
+    const emptyLoadingSpan = document
+      .querySelector("#genericModelLabel")
+      ?.parentElement?.querySelector(".model-loading-msg");
+    const emptyReasoningLabel = document.getElementById("genericReasoningDepth").options[0]?.textContent;
 
     // ── Configured state (R3 user-edit / switch sequence on a fresh page) ───
     await loadOptionsModule(
@@ -2304,6 +2308,8 @@ describe("host conformance (SPEC 2.1.0)", () => {
     expect(unconfiguredEndpoint).toEqual({ value: "", placeholder: "https://" });
     expect(unconfiguredReasoning).toEqual({ disabled: true, default: "__lowest__" });
     expect(emptyPanelText.includes("api.openai.com")).toBe(false);
+    expect(emptyLoadingSpan?.style.display).toBe("none");
+    expect(emptyReasoningLabel).toBe("Lowest (default)");
 
     // Both states must satisfy the kit: the configured payload above and the
     // unconfigured one read from the fresh-install page.

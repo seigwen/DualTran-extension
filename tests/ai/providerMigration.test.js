@@ -64,6 +64,30 @@ describe("providerMigration", () => {
     expect(second.activeProviderId).toBe(first.activeProviderId);
   });
 
+  it("keeps a fresh default config unconfigured (the openRouterModel default is not a custom provider)", () => {
+    // A real fresh install has no keys and the shipped default
+    // `openRouterModel: "openai/gpt-4o-mini"`. That default must not make the
+    // migration invent `_custom_legacy`; only a user-entered base URL should.
+    const config = createMockConfig({
+      aiProvider: "",
+      apiKeyOpenAI: "",
+      apiKeyGoogleGemini: "",
+      apiKeyAnthropic: "",
+      apiKeyAzureOpenAI: "",
+      apiKeyDeepSeek: "",
+      apiKeyGrok: "",
+      apiKeyOpenRouter: "",
+      openRouterApiBase: "",
+      azureOpenAIEndpoint: "",
+      openAiApiBase: "",
+      anthropicApiBase: "",
+      googleGeminiApiBase: "",
+      deepSeekApiBase: "",
+    });
+    const result = migrateProviderConfig(config);
+    expect(result.activeProviderId).toBe("");
+  });
+
   it("handles empty config gracefully", () => {
     // SPEC 2.1 #8: nothing legacy to infer from → stay unconfigured (""), not openai.
     const config = { get: () => undefined, set: vi.fn() };
