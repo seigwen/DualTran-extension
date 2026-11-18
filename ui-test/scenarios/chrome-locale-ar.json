@@ -19,5 +19,9 @@
       "name": "locale-main",
       "rubric": "chrome-locale-ar"
     }
-  ]
+  ],
+  "env": {
+    "DT_BROWSER_LOCALE": "ar",
+    "DT_BROWSER_ACCEPT_LANGUAGE": "ar,en;q=0.5"
+  }
 }

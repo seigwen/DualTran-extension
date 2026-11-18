@@ -19,5 +19,9 @@
       "name": "locale-main",
       "rubric": "chrome-locale-ja"
     }
-  ]
+  ],
+  "env": {
+    "DT_BROWSER_LOCALE": "ja-JP",
+    "DT_BROWSER_ACCEPT_LANGUAGE": "ja-JP,ja;q=0.9"
+  }
 }

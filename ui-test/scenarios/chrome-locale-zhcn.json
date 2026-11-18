@@ -19,5 +19,9 @@
       "name": "locale-main",
       "rubric": "chrome-locale-zhcn"
     }
-  ]
+  ],
+  "env": {
+    "DT_BROWSER_LOCALE": "zh-CN",
+    "DT_BROWSER_ACCEPT_LANGUAGE": "zh-CN,zh;q=0.9"
+  }
 }
