@@ -19,16 +19,23 @@ import { resolveModelsDevId } from "../providers/registry.js";
 import { createModelClient } from "./createModelClient.js";
 
 /**
- * Extract the most user-friendly error message from an AI SDK or fetch error.
- * Priority: original API error message → status code hint → raw message → string fallback
+ * Turn an AI SDK / fetch error into a SAFE user-facing error object.
+ *
+ * The page must never render upstream bodies or the request URL: a provider error body
+ * can carry vendor-internal fields, and the URL exposes the user's proxy/endpoint
+ * topology. `message` is therefore a short hint selected by class/status, while
+ * `detail` keeps the raw material for the console (diagnostics stay available, just not
+ * on screen). `code` is what the UI maps to a localized string.
+ *
+ * @returns {{message: string, code: string, statusCode: string, detail: string}}
  */
 export function formatAiError(err) {
   const apiMsg = err?.data?.error?.message || err?.responseBody?.error?.message || "";
-  const statusCode = err?.statusCode || err?.status || "";
-  const sdkMsg = err?.message || "";
+  const sdkMsg = String(err?.message || "");
+  const httpStatus = Number(err?.statusCode || err?.status || 0) || 0;
 
   // The AI SDK wraps parse failures as "Failed to process successful response" and keeps the
-  // real reason (bad JSON, wrong shape) in `cause`, so surface it instead of swallowing it.
+  // real reason (bad JSON, wrong shape) in `cause`, so keep it in the detail for the console.
   const causeMsg = String(err?.cause?.message || "").replace(/\s+/g, " ").trim().slice(0, 180);
   const rawBody = err?.responseBody;
   /** @type {string} */
@@ -43,35 +50,62 @@ export function formatAiError(err) {
     }
   }
   const looksLikeHtml = /^\s*</.test(bodySnippet);
-
-  let message = "";
-  if (apiMsg) {
-    message = apiMsg;
-  } else if (statusCode) {
-    // Map common status codes to user-friendly hints
-    const hints = { 401: "Invalid or missing API key", 403: "Access denied", 429: "Rate limit exceeded", 500: "Server error", 503: "Service unavailable" };
-    const hint = hints[statusCode] || `HTTP ${statusCode}`;
-    message = sdkMsg ? `${hint}: ${sdkMsg}` : hint;
-  } else if (sdkMsg) {
-    message = sdkMsg;
-  } else {
-    message = String(err || "Unknown error");
-  }
-
-  const detail = causeMsg || (looksLikeHtml ? "" : bodySnippet);
-  if (detail && !message.includes(detail)) {
-    message += ` (${detail})`;
-  }
-  if (looksLikeHtml && !/HTML/i.test(message)) {
-    message += " — the endpoint returned an HTML page instead of JSON; check the API base URL";
-  }
-  // A wrong base URL is the most common cause of a 200 that cannot be parsed, so show where
-  // the request actually went — it is the first thing worth knowing when this gets reported.
   const requestUrl = typeof err?.url === "string" ? err.url : "";
-  if (requestUrl && !message.includes(requestUrl)) {
-    message += ` [${requestUrl}]`;
+
+  // Console-only diagnostics. Never assembled into `message`.
+  const detail = [apiMsg, causeMsg, bodySnippet, requestUrl].filter(Boolean).join(" | ").slice(0, 400);
+
+  // A transport failure has no status code: fetch throws TypeError("Failed to fetch"), and
+  // Chromium reports net::ERR_* in the message. Both are localized by the caller (code
+  // "network") instead of surfacing the browser's English exception.
+  const isTransport =
+    String(err?.name || "") === "TypeError" ||
+    /Failed to fetch|NetworkError|net::ERR_|ECONNREFUSED|ENOTFOUND|ECONNRESET/i.test(sdkMsg);
+  if (isTransport && !httpStatus) {
+    return {
+      message: "Cannot reach the AI service — check the API endpoint and network",
+      code: "network",
+      statusCode: "",
+      detail,
+    };
   }
-  return { message };
+
+  if (httpStatus >= 300) {
+    const hints = {
+      401: "Invalid or missing API key",
+      403: "Access denied",
+      429: "Rate limit exceeded",
+      500: "Server error",
+      503: "Service unavailable",
+    };
+    const hint = hints[httpStatus] || "The AI provider rejected the request";
+    return {
+      message: `${hint} (HTTP ${httpStatus})`,
+      code: `http_${httpStatus}`,
+      statusCode: String(httpStatus),
+      detail,
+    };
+  }
+
+  if (looksLikeHtml) {
+    return {
+      message: "The endpoint returned an HTML page instead of JSON — check the API base URL",
+      code: "html",
+      statusCode: "",
+      detail,
+    };
+  }
+
+  if (sdkMsg) {
+    return {
+      message: "The AI response could not be read — check the API base URL",
+      code: "parse",
+      statusCode: httpStatus ? String(httpStatus) : "",
+      detail,
+    };
+  }
+
+  return { message: "Unknown AI error", code: "unknown", statusCode: "", detail };
 }
 
 /**
