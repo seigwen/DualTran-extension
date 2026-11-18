@@ -9,7 +9,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { applyAiResult, applyAiSuccessWithModeCheck, switchToAiDisplay, applyShowAiOnlyState, applyAiTranslatingState } from "../../src/contentScript/aiUiState.js";
+import { applyAiResult, applyAiSuccessWithModeCheck, switchToAiDisplay, applyShowAiOnlyState, applyAiTranslatingState, applyAiErrorState, applyAiSuccessState } from "../../src/contentScript/aiUiState.js";
 
 function makeNewLineBtnAi() {
   const googleSpan = document.createElement("span");
@@ -281,5 +281,49 @@ describe("applyAiResult — ghost-span heal (Q5 cold external-op fix)", () => {
     expect(live.textContent).toBe("Bonjour");
     expect(btnAi.parent.childElementCount).toBe(childrenBefore); // 未新建节点
     expect(btnAi._st().translatedTextNode).toBe(live);
+  });
+});
+
+/**
+ * Dual-span registry invariant (regression): in newLine mode the block state's
+ * `translatedTextNode` is the GOOGLE span (pageTranslator keeps that alias for
+ * backward compat). The AI error state used to write its message there, so a
+ * failed AI attempt destroyed the Google translation and left "No response from
+ * AI provider" visible underneath the sentence even after a successful retry.
+ */
+function makeDualSpanBtnAi() {
+  const googleSpan = document.createElement("span");
+  googleSpan.textContent = "谷歌译文";
+  googleSpan.style.display = "block";
+  const aiSpan = document.createElement("span");
+  aiSpan.style.display = "none";
+  return {
+    googleSpan,
+    aiSpan,
+    translatedTextNode: googleSpan,
+    translationStatus: "translating",
+    translationId: "t1",
+    _st: () => ({ displayMode: "google" }),
+    classList: { remove: () => {} },
+    style: {},
+    setAttribute: () => {},
+  };
+}
+
+describe("AI error text stays on the AI channel", () => {
+  it("writes the error into aiSpan, not over the Google translation", () => {
+    const btnAi = makeDualSpanBtnAi();
+    applyAiErrorState(btnAi, { errorText: "No response from AI provider", titleText: null });
+    expect(btnAi.aiSpan.textContent).toBe("No response from AI provider");
+    expect(btnAi.googleSpan.textContent).toBe("谷歌译文");
+  });
+
+  it("a successful retry replaces the error and leaves no error text behind", () => {
+    const btnAi = makeDualSpanBtnAi();
+    applyAiErrorState(btnAi, { errorText: "No response from AI provider", titleText: null });
+    applyAiSuccessState(btnAi, { translatedText: "敏捷的棕色狐狸跳过了懒狗。" });
+    expect(btnAi.aiSpan.textContent).toBe("敏捷的棕色狐狸跳过了懒狗。");
+    expect(btnAi.googleSpan.textContent).toBe("谷歌译文");
+    expect(btnAi.googleSpan.textContent).not.toContain("No response");
   });
 });

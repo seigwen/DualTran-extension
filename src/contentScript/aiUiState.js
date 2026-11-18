@@ -432,7 +432,16 @@ export function applyAiErrorState(btnAi, {
     if (btnAi.translatedTextNode && btnAi.translatedTextNode.classList) {
       btnAi.translatedTextNode.classList.remove("dualtran-loading");
     }
-    if (translatedText !== undefined && translatedText !== null && btnAi.translatedTextNode) {
+    // Dual-span mode: the registry's `translatedTextNode` aliases the GOOGLE span
+    // (pageTranslator keeps that alias for backward compat), so writing the error
+    // message there destroyed the Google translation and left "No response from AI
+    // provider" under the sentence even after a successful retry. The error belongs
+    // to the AI line: claim it the same way the translating state does.
+    if (btnAi.aiSpan) {
+      if (typeof translatedText === "string") btnAi.aiSpan.textContent = translatedText;
+      btnAi.aiSpan.style.display = "block";
+      if (btnAi.googleSpan) btnAi.googleSpan.style.display = "none";
+    } else if (translatedText !== undefined && translatedText !== null && btnAi.translatedTextNode) {
       btnAi.translatedTextNode.textContent = translatedText;
     }
   } catch (_) {
