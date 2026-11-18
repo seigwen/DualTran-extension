@@ -1,0 +1,1796 @@
+{
+  "host": "dualtran-extension",
+  "version": "0.1.0",
+  "adapter": "browser",
+  "adapterConfig": {
+    "entryUrl": "chrome-extension://${DT_EXTENSION_ID}/options/options.html"
+  },
+  "surfaces": [
+    {
+      "id": "options.ui.language",
+      "kind": "state",
+      "label": "Settings UI language",
+      "location": "whole options page",
+      "expected": [
+        "all chrome.i18n strings render in the browser UI language",
+        "no raw message keys or English fallback"
+      ]
+    },
+    {
+      "id": "options.ai.provider",
+      "kind": "select",
+      "label": "AI provider",
+      "location": "options#ai",
+      "options": "dynamic: models.dev + built-ins, alphabetical, custom last; empty placeholder disabled",
+      "expected": [
+        "empty state shows a disabled placeholder",
+        "picker is still clickable"
+      ]
+    },
+    {
+      "id": "options.ai.model",
+      "kind": "select",
+      "label": "Model",
+      "location": "options#ai",
+      "options": "provider model list, custom last",
+      "expected": [
+        "disabled while provider empty"
+      ]
+    },
+    {
+      "id": "options.ai.endpoint",
+      "kind": "input",
+      "label": "API Base URL",
+      "location": "options#ai",
+      "expected": [
+        "empty while provider empty",
+        "placeholder is https://"
+      ]
+    },
+    {
+      "id": "options.ai.reasoning",
+      "kind": "select",
+      "label": "Reasoning depth",
+      "location": "options#ai",
+      "options": "lowest first; none/minimal/low if declared",
+      "expected": [
+        "disabled while provider empty",
+        "shows the localized lowest label"
+      ]
+    },
+    {
+      "id": "options.languages.target_page",
+      "kind": "select",
+      "label": "Translate websites into this target language",
+      "location": "Languages tab, first row",
+      "expected": [
+        "set to the browser's target language",
+        "full label visible"
+      ]
+    },
+    {
+      "id": "options.languages.target_selection",
+      "kind": "select",
+      "label": "Translate selected text into this target language",
+      "location": "Languages tab, second row",
+      "expected": [
+        "set independently from the page target"
+      ]
+    },
+    {
+      "id": "options.languages.favorites",
+      "kind": "select",
+      "label": "Favorite languages",
+      "location": "Languages tab, rows 3-5",
+      "expected": [
+        "three favorite slots",
+        "alphabetical language list"
+      ]
+    },
+    {
+      "id": "options.languages.never_translate",
+      "kind": "select",
+      "label": "Never translate these languages",
+      "location": "Languages tab, below favorites",
+      "expected": [
+        "Add control opens a language picker"
+      ]
+    },
+    {
+      "id": "options.languages.always_translate_google",
+      "kind": "select",
+      "label": "Always translate these languages with Google",
+      "location": "Languages tab",
+      "expected": [
+        "Add control present"
+      ]
+    },
+    {
+      "id": "options.languages.always_translate_ai",
+      "kind": "select",
+      "label": "Always translate these languages with AI",
+      "location": "Languages tab",
+      "expected": [
+        "Add control present"
+      ]
+    },
+    {
+      "id": "options.languages.hover_translate",
+      "kind": "select",
+      "label": "Show translated text when hovering over sites with these",
+      "location": "Languages tab, last row",
+      "expected": [
+        "Add control present"
+      ]
+    },
+    {
+      "id": "options.sites.always_google",
+      "kind": "button",
+      "label": "Always translate these sites with Google",
+      "location": "Sites tab, first row",
+      "expected": [
+        "Add button present"
+      ]
+    },
+    {
+      "id": "options.sites.always_ai",
+      "kind": "button",
+      "label": "Always translate these sites with AI",
+      "location": "Sites tab, second row",
+      "expected": [
+        "Add button present"
+      ]
+    },
+    {
+      "id": "options.sites.never",
+      "kind": "button",
+      "label": "Never translate these sites",
+      "location": "Sites tab, third row",
+      "expected": [
+        "Add button present"
+      ]
+    },
+    {
+      "id": "options.sites.hover",
+      "kind": "button",
+      "label": "Show translated text when hovering on these sites",
+      "location": "Sites tab, fourth row",
+      "expected": [
+        "Add button present"
+      ]
+    },
+    {
+      "id": "options.sites.custom_dictionary",
+      "kind": "button",
+      "label": "Add to custom dictionary",
+      "location": "Sites tab, last row",
+      "expected": [
+        "Add button present"
+      ]
+    },
+    {
+      "id": "options.translations.threshold",
+      "kind": "input",
+      "label": "Only translate the text that has words more than",
+      "location": "Translations tab, top",
+      "expected": [
+        "numeric field with current value"
+      ]
+    },
+    {
+      "id": "options.translations.display_mode",
+      "kind": "select",
+      "label": "Where to display the translated text",
+      "location": "Translations tab",
+      "expected": [
+        "new line below / replace original options"
+      ]
+    },
+    {
+      "id": "options.translations.tts_speed",
+      "kind": "input",
+      "label": "Text-to-speech audio speed",
+      "location": "Translations tab",
+      "expected": [
+        "range control with numeric readout"
+      ]
+    },
+    {
+      "id": "options.translations.dynamic",
+      "kind": "select",
+      "label": "Translate dynamically created content",
+      "location": "Translations tab",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.translations.selected_button",
+      "kind": "select",
+      "label": "Show the button to translate the selected text",
+      "location": "Translations tab",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.translations.selected_conditions",
+      "kind": "checkbox",
+      "label": "Do not show if the page language is the target language",
+      "location": "Translations tab, four checkboxes",
+      "expected": [
+        "four independent conditions"
+      ]
+    },
+    {
+      "id": "options.translations.hover_original",
+      "kind": "select",
+      "label": "Show original text when hovering",
+      "location": "Translations tab",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.translations.paragraph_display",
+      "kind": "select",
+      "label": "When to display the paragraph button group",
+      "location": "Translations tab, below the fold",
+      "expected": [
+        "triggered/always options"
+      ]
+    },
+    {
+      "id": "options.translations.paragraph_style",
+      "kind": "select",
+      "label": "Always-visible style",
+      "location": "Translations tab, below the fold",
+      "expected": [
+        "badge/three buttons options"
+      ]
+    },
+    {
+      "id": "options.translations.paragraph_hover",
+      "kind": "select",
+      "label": "Show the paragraph button group when hovering over a paragraph",
+      "location": "Translations tab, below the fold",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.translations.paragraph_click",
+      "kind": "select",
+      "label": "Show the paragraph button group when clicking a paragraph",
+      "location": "Translations tab, below the fold",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.translations.link_auto",
+      "kind": "select",
+      "label": "Automatically translate when clicking on a link",
+      "location": "Translations tab, bottom",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.translations.pre_tag",
+      "kind": "select",
+      "label": "Enable translation for the tag <PRE>",
+      "location": "Translations tab, bottom",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.ai.threshold",
+      "kind": "input",
+      "label": "Only improve translations by AI that have words more than",
+      "location": "AI tab, top",
+      "expected": [
+        "numeric field with current value"
+      ]
+    },
+    {
+      "id": "options.ai.cache",
+      "kind": "select",
+      "label": "Enable AI translation cache",
+      "location": "AI tab",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.ai.api_key",
+      "kind": "input",
+      "label": "API Key",
+      "location": "AI tab",
+      "expected": [
+        "empty with Enter API key placeholder"
+      ]
+    },
+    {
+      "id": "options.style.google_color",
+      "kind": "button",
+      "label": "Color of Google translated text",
+      "location": "Style tab, first row",
+      "expected": [
+        "reset control present"
+      ]
+    },
+    {
+      "id": "options.style.ai_color",
+      "kind": "button",
+      "label": "Color of AI translated text",
+      "location": "Style tab, second row",
+      "expected": [
+        "reset control present"
+      ]
+    },
+    {
+      "id": "options.style.dark_mode",
+      "kind": "select",
+      "label": "Dark Mode",
+      "location": "Style tab",
+      "expected": [
+        "Automatic/On/Off options"
+      ]
+    },
+    {
+      "id": "options.style.popup_blue",
+      "kind": "select",
+      "label": "Make the pop-up icon blue when the site is translated",
+      "location": "Style tab",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.hotkeys.manager",
+      "kind": "button",
+      "label": "Open native shortcut key manager",
+      "location": "Hotkeys tab, top",
+      "expected": [
+        "button present and enabled"
+      ]
+    },
+    {
+      "id": "options.hotkeys.ctrl_twice",
+      "kind": "checkbox",
+      "label": "Translate selected text when pressing Ctrl twice",
+      "location": "Hotkeys tab",
+      "expected": [
+        "checkbox checked"
+      ]
+    },
+    {
+      "id": "options.hotkeys.hover_ctrl_twice",
+      "kind": "checkbox",
+      "label": "Translate the text over the mouse cursor when pressing Ctrl twice",
+      "location": "Hotkeys tab",
+      "expected": [
+        "checkbox checked"
+      ]
+    },
+    {
+      "id": "options.storage.calculate",
+      "kind": "button",
+      "label": "Calculate",
+      "location": "Storage tab",
+      "expected": [
+        "storage used readout present"
+      ]
+    },
+    {
+      "id": "options.storage.delete_cache",
+      "kind": "button",
+      "label": "Delete translation cache",
+      "location": "Storage tab",
+      "expected": [
+        "button present"
+      ]
+    },
+    {
+      "id": "options.storage.backup",
+      "kind": "button",
+      "label": "Backup to file",
+      "location": "Storage tab",
+      "expected": [
+        "button present"
+      ]
+    },
+    {
+      "id": "options.storage.restore",
+      "kind": "button",
+      "label": "Restore from file",
+      "location": "Storage tab",
+      "expected": [
+        "button present"
+      ]
+    },
+    {
+      "id": "options.storage.reset",
+      "kind": "button",
+      "label": "Reset settings to default",
+      "location": "Storage tab",
+      "expected": [
+        "button present"
+      ]
+    },
+    {
+      "id": "options.others.floating_button",
+      "kind": "select",
+      "label": "show the floating button",
+      "location": "Others tab, first row",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.others.address_bar",
+      "kind": "select",
+      "label": "Show button in the address bar",
+      "location": "Others tab",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.others.page_context_menu",
+      "kind": "select",
+      "label": "Show the option to translate the page in the context menu",
+      "location": "Others tab",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.others.selection_context_menu",
+      "kind": "select",
+      "label": "Show the option to translate the selected text in the context menu",
+      "location": "Others tab",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.others.click_once",
+      "kind": "select",
+      "label": "Translate the page by clicking once on the button in the address bar",
+      "location": "Others tab",
+      "expected": [
+        "Yes/No options"
+      ]
+    },
+    {
+      "id": "options.feedback.github",
+      "kind": "button",
+      "label": "Open GitHub issue form",
+      "location": "Report a problem tab",
+      "expected": [
+        "button present"
+      ]
+    },
+    {
+      "id": "options.feedback.diagnostics",
+      "kind": "button",
+      "label": "Copy diagnostic info",
+      "location": "Report a problem tab",
+      "expected": [
+        "button present"
+      ]
+    },
+    {
+      "id": "options.feedback.email",
+      "kind": "button",
+      "label": "seigwen@gmail.com",
+      "location": "Report a problem tab",
+      "expected": [
+        "mail link visible"
+      ]
+    },
+    {
+      "id": "options.feedback.store",
+      "kind": "button",
+      "label": "Chrome Web Store support section",
+      "location": "Report a problem tab",
+      "expected": [
+        "store link visible"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "id": "options.open",
+      "label": "Open the options page",
+      "entry": "extension options page",
+      "expected": "All settings sections render with their controls"
+    },
+    {
+      "id": "options.ai.open",
+      "label": "Open AI settings",
+      "entry": "options page AI tab",
+      "expected": "AI controls render with the empty provider state"
+    },
+    {
+      "id": "translate.selection",
+      "label": "Translate selection with AI",
+      "entry": "selection context menu / Alt+S",
+      "expected": "Selected text is translated by the configured AI provider without a permission prompt."
+    },
+    {
+      "id": "translate.page",
+      "label": "Translate the current page",
+      "entry": "floating button Google mode",
+      "expected": "The page shows a translation into the configured target language"
+    },
+    {
+      "id": "toggle.original",
+      "label": "Toggle between translation and original",
+      "entry": "floating panel Original / Google buttons",
+      "expected": "Original restores the source page; Google re-applies the translation"
+    },
+    {
+      "id": "panel.floating",
+      "label": "Floating translation panel",
+      "entry": "right-edge floating panel",
+      "expected": "The panel is hidden when the setting is off and visible when it is on"
+    },
+    {
+      "id": "translate.cache",
+      "label": "AI translation cache",
+      "entry": "repeat the same selection with cache enabled",
+      "expected": "The second identical translation is served without a new provider request"
+    }
+  ],
+  "rubrics": {
+    "chrome-options-empty-top": {
+      "hard": [
+        {
+          "id": "provider_placeholder_visible",
+          "question": "Is the AI provider selector showing the disabled placeholder text exactly Select a provider?",
+          "expected": true
+        },
+        {
+          "id": "endpoint_empty_hint",
+          "question": "Is the API Base URL field present with an empty value and a placeholder of exactly https://?",
+          "expected": true
+        },
+        {
+          "id": "model_disabled",
+          "question": "Is the model selector visibly disabled (greyed out / not actionable) while no provider is selected?",
+          "expected": true
+        },
+        {
+          "id": "no_loading_or_error",
+          "question": "Is the panel free of a persistent loading message, an uncaught error banner, or a raw internal key?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-options-empty-bottom": {
+      "hard": [
+        {
+          "id": "reasoning_localized_disabled",
+          "question": "Is the reasoning selector visibly disabled and showing a human-readable localized lowest option rather than the raw sentinel __lowest__?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-provider-configured-top": {
+      "hard": [
+        {
+          "id": "provider_configured",
+          "question": "Does the AI provider selector display exactly 302.AI?",
+          "expected": true
+        },
+        {
+          "id": "endpoint_autofilled",
+          "question": "Does the API Base URL field display exactly https://api.302.ai/v1?",
+          "expected": true
+        },
+        {
+          "id": "model_populated",
+          "question": "Does the model selector display exactly Claude Fable 5?",
+          "expected": true
+        },
+        {
+          "id": "no_error",
+          "question": "Is the panel free of errors and persistent loading messages?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-provider-configured-bottom": {
+      "hard": [
+        {
+          "id": "reasoning_enabled_localized",
+          "question": "Is the reasoning selector enabled and showing a human-readable localized option rather than __lowest__?",
+          "expected": true
+        },
+        {
+          "id": "reasoning_not_clipped",
+          "question": "Is the reasoning selector fully visible and not clipped at the window edge?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-selection-ai": {
+      "hard": [
+        {
+          "id": "translation_visible",
+          "question": "Is the translated text Chinese (contains Han characters), different from the English source sentence, and not an error message?",
+          "expected": true
+        },
+        {
+          "id": "target_language",
+          "question": "Does the page show a Chinese (Simplified) translation rather than Catalan or another language?",
+          "expected": true
+        },
+        {
+          "id": "no_error_banner",
+          "question": "Is the page free of an error banner, a Failed to fetch message, a permission dialog, and AI error text?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-local-config-top": {
+      "hard": [
+        {
+          "id": "custom_provider",
+          "question": "Does the AI provider selector display exactly 302.AI?",
+          "expected": true
+        },
+        {
+          "id": "local_endpoint",
+          "question": "Is the API Base URL field populated with http://127.0.0.1:11434/v1?",
+          "expected": true
+        },
+        {
+          "id": "local_model",
+          "question": "Is the model selector showing deepseek-v4.1-flash:cloud?",
+          "expected": true
+        },
+        {
+          "id": "no_errors",
+          "question": "Is the panel free of error banners and persistent loading messages?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-local-config-bottom": {
+      "hard": [
+        {
+          "id": "reasoning_visible",
+          "question": "Is the reasoning depth selector visible and not clipped?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-language-target": {
+      "hard": [
+        {
+          "id": "target_language",
+          "question": "Are both target-language selectors visibly set to Chinese (Simplified), not English, Catalan, or any other language?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-error-branch": {
+      "hard": [
+        {
+          "id": "localized_error_visible",
+          "question": "Is a visible localized AI translation error message shown (not a blank/white page)?",
+          "expected": true
+        },
+        {
+          "id": "no_custom_sentinel",
+          "question": "Is the panel free of raw _custom_ provider sentinel strings and raw sentinel values such as __lowest__?",
+          "expected": true
+        },
+        {
+          "id": "no_permission_prompt",
+          "question": "Is there no native permission dialog visible?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-error-retry": {
+      "hard": [
+        {
+          "id": "retry_success",
+          "question": "After retry, is a Chinese translation of the selected English sentence visible?",
+          "expected": true
+        },
+        {
+          "id": "no_error_after_retry",
+          "question": "Is the retry free of error banners and permission dialogs?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-error-config": {
+      "hard": [
+        {
+          "id": "provider_exact",
+          "question": "Does the AI provider selector display exactly 302.AI?",
+          "expected": true
+        },
+        {
+          "id": "endpoint_exact",
+          "question": "Does the API Endpoint URL field display exactly http://127.0.0.1:18124/v1?",
+          "expected": true
+        },
+        {
+          "id": "model_exact",
+          "question": "Does the model selector display exactly mock-model?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-persistence": {
+      "hard": [
+        {
+          "id": "provider_persisted",
+          "question": "After restart, does the AI provider selector display exactly 302.AI?",
+          "expected": true
+        },
+        {
+          "id": "endpoint_persisted",
+          "question": "After restart, does the API Endpoint URL field display exactly http://127.0.0.1:11434/v1?",
+          "expected": true
+        },
+        {
+          "id": "model_persisted",
+          "question": "After restart, does the model selector display exactly deepseek-v4.1-flash:cloud?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-no-response": {
+      "hard": [
+        {
+          "id": "localized_error",
+          "question": "Is a localized error message visible for a transport failure, rather than a blank page?",
+          "expected": true
+        },
+        {
+          "id": "no_raw_payload",
+          "question": "Is the visible error free of raw upstream JSON, HTTP status codes, and endpoint URLs?",
+          "expected": true
+        },
+        {
+          "id": "no_custom_sentinel",
+          "question": "Is the panel free of _custom_ sentinel text and raw __lowest__ values?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-persistence-bottom": {
+      "hard": [
+        {
+          "id": "reasoning_persisted",
+          "question": "After restart, is the reasoning-depth control visible with a localized lowest option?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-languages-top": {
+      "hard": [
+        {
+          "id": "target_page_control",
+          "question": "Is a control labelled 'Translate websites into this target language' visible with a language selector?",
+          "expected": true
+        },
+        {
+          "id": "target_selection_control",
+          "question": "Is a control labelled 'Translate selected text into this target language' visible with its own language selector?",
+          "expected": true
+        },
+        {
+          "id": "favorites_visible",
+          "question": "Are the three 'Favorite language' selectors visible, populated with language names?",
+          "expected": true
+        },
+        {
+          "id": "never_translate_visible",
+          "question": "Is the 'Never translate these languages' row visible with an Add control?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-languages-bottom": {
+      "hard": [
+        {
+          "id": "always_google_visible",
+          "question": "Is the 'Always translate these languages with Google' row visible with an Add control?",
+          "expected": true
+        },
+        {
+          "id": "always_ai_visible",
+          "question": "Is the 'Always translate these languages with AI' row visible with an Add control?",
+          "expected": true
+        },
+        {
+          "id": "hover_langs_visible",
+          "question": "Is the hover-translation language row visible with an Add control?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-sites": {
+      "hard": [
+        {
+          "id": "sites_google",
+          "question": "Is the 'Always translate these sites with Google' row visible with an Add control?",
+          "expected": true
+        },
+        {
+          "id": "sites_ai",
+          "question": "Is the 'Always translate these sites with AI' row visible with an Add control?",
+          "expected": true
+        },
+        {
+          "id": "sites_never",
+          "question": "Is the 'Never translate these sites' row visible with an Add control?",
+          "expected": true
+        },
+        {
+          "id": "sites_hover",
+          "question": "Is the 'Show translated text when hovering on these sites' row visible with an Add control?",
+          "expected": true
+        },
+        {
+          "id": "custom_dictionary",
+          "question": "Is the 'Add to custom dictionary' row visible with an Add control (the explanatory parenthetical may be long)?",
+          "expected": true
+        }
+      ],
+      "soft": [
+        {
+          "id": "custom_dictionary_note_unclipped",
+          "question": "Is the explanatory note after 'Add to custom dictionary' fully readable and not overlapped by the Add button?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-translations-top": {
+      "hard": [
+        {
+          "id": "threshold_visible",
+          "question": "Is the 'Only translate the text that has words more than' numeric field visible with a value?",
+          "expected": true
+        },
+        {
+          "id": "display_mode_visible",
+          "question": "Is the 'Where to display the translated text' selector visible with a selected option?",
+          "expected": true
+        },
+        {
+          "id": "tts_visible",
+          "question": "Is the 'Text-to-speech audio speed' control visible with a numeric readout?",
+          "expected": true
+        },
+        {
+          "id": "dynamic_visible",
+          "question": "Is the 'Translate dynamically created content' selector visible?",
+          "expected": true
+        },
+        {
+          "id": "selected_button_visible",
+          "question": "Is the 'Show the button to translate the selected text' selector visible with its four condition checkboxes below it?",
+          "expected": true
+        },
+        {
+          "id": "hover_original_visible",
+          "question": "Is the 'Show original text when hovering' selector visible?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-translations-bottom": {
+      "hard": [
+        {
+          "id": "paragraph_display",
+          "question": "Is the 'When to display the paragraph button group' selector visible with a selected option?",
+          "expected": true
+        },
+        {
+          "id": "paragraph_hover",
+          "question": "Is the 'Show the paragraph button group when hovering over a paragraph' selector visible?",
+          "expected": true
+        },
+        {
+          "id": "paragraph_click",
+          "question": "Is the 'Show the paragraph button group when clicking a paragraph' selector visible?",
+          "expected": true
+        },
+        {
+          "id": "link_auto",
+          "question": "Is the 'Automatically translate when clicking on a link' selector visible?",
+          "expected": true
+        },
+        {
+          "id": "pre_tag",
+          "question": "Is the 'Enable translation for the tag <PRE>' selector visible?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-style": {
+      "hard": [
+        {
+          "id": "google_color",
+          "question": "Is the 'Color of Google translated text' row visible with a color swatch and a Reset control?",
+          "expected": true
+        },
+        {
+          "id": "ai_color",
+          "question": "Is the 'Color of AI translated text' row visible with a color swatch and a Reset control?",
+          "expected": true
+        },
+        {
+          "id": "dark_mode",
+          "question": "Is the 'Dark Mode' selector visible with a selected option?",
+          "expected": true
+        },
+        {
+          "id": "popup_blue",
+          "question": "Is the 'Make the pop-up icon blue when the site is translated' selector visible?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-hotkeys": {
+      "hard": [
+        {
+          "id": "shortcut_manager",
+          "question": "Is the 'Open native shortcut key manager' button visible and enabled?",
+          "expected": true
+        },
+        {
+          "id": "ctrl_twice",
+          "question": "Is the 'Translate selected text when pressing Ctrl twice' checkbox visible and interactive (its current checked state may be off by default)?",
+          "expected": true
+        },
+        {
+          "id": "hover_ctrl_twice",
+          "question": "Is the 'Translate the text over the mouse cursor when pressing Ctrl twice' checkbox visible and interactive (its current checked state may be off by default)?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-storage": {
+      "hard": [
+        {
+          "id": "storage_used",
+          "question": "Is a 'Storage used' readout visible next to a Calculate button?",
+          "expected": true
+        },
+        {
+          "id": "delete_cache",
+          "question": "Is a 'Delete translation cache' button visible?",
+          "expected": true
+        },
+        {
+          "id": "backup_restore",
+          "question": "Are 'Backup to file' and 'Restore from file' buttons visible?",
+          "expected": true
+        },
+        {
+          "id": "reset_default",
+          "question": "Is a 'Reset settings to default' button visible?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-others": {
+      "hard": [
+        {
+          "id": "floating_button",
+          "question": "Is the 'show the floating button' selector visible with a selected option?",
+          "expected": true
+        },
+        {
+          "id": "address_bar",
+          "question": "Is the 'Show button in the address bar' selector visible?",
+          "expected": true
+        },
+        {
+          "id": "page_menu",
+          "question": "Is the 'Show the option to translate the page in the context menu' selector visible?",
+          "expected": true
+        },
+        {
+          "id": "selection_menu",
+          "question": "Is the 'Show the option to translate the selected text in the context menu' selector visible?",
+          "expected": true
+        },
+        {
+          "id": "click_once",
+          "question": "Is the 'Translate the page by clicking once on the button in the address bar' selector visible?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-feedback": {
+      "hard": [
+        {
+          "id": "github_form",
+          "question": "Is the 'Open GitHub issue form' button visible?",
+          "expected": true
+        },
+        {
+          "id": "diagnostics",
+          "question": "Is the 'Copy diagnostic info' button visible?",
+          "expected": true
+        },
+        {
+          "id": "email_link",
+          "question": "Is a mail link to seigwen@gmail.com visible?",
+          "expected": true
+        },
+        {
+          "id": "store_link",
+          "question": "Is the 'Chrome Web Store support section' link visible?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-locale-en": {
+      "hard": [
+        {
+          "id": "ui_language",
+          "question": "Is the settings navigation rendered in English? The expected nav labels are: Languages, Sites, Translations, AI, Style, Hotkeys, Storage, Others.",
+          "expected": true
+        },
+        {
+          "id": "no_raw_keys",
+          "question": "Is the page free of raw i18n message keys (for example msgLanguages) and of untranslated English fallback text in the navigation?",
+          "expected": true
+        },
+        {
+          "id": "controls_visible",
+          "question": "Is the settings content visible (not a blank page) with the navigation and at least one settings section rendered?",
+          "expected": true
+        }
+      ],
+      "soft": [
+        {
+          "id": "direction",
+          "question": "Does the page layout use left-to-right text direction as appropriate for this language?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-locale-zhcn": {
+      "hard": [
+        {
+          "id": "ui_language",
+          "question": "Is the settings navigation rendered in Simplified Chinese? The expected nav labels are: 语言, 网站, 翻译, AI, 样式, 热键, 存储, 其他.",
+          "expected": true
+        },
+        {
+          "id": "no_raw_keys",
+          "question": "Is the page free of raw i18n message keys (for example msgLanguages) and of untranslated English fallback text in the navigation?",
+          "expected": true
+        },
+        {
+          "id": "controls_visible",
+          "question": "Is the settings content visible (not a blank page) with the navigation and at least one settings section rendered?",
+          "expected": true
+        }
+      ],
+      "soft": [
+        {
+          "id": "direction",
+          "question": "Does the page layout use left-to-right text direction as appropriate for this language?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-locale-zhtw": {
+      "hard": [
+        {
+          "id": "ui_language",
+          "question": "Is the settings navigation rendered in Traditional Chinese? The expected nav labels are: 語言, 網站, 翻譯, AI, 樣式, 快捷鍵, 儲存空間, 其他.",
+          "expected": true
+        },
+        {
+          "id": "no_raw_keys",
+          "question": "Is the page free of raw i18n message keys (for example msgLanguages) and of untranslated English fallback text in the navigation?",
+          "expected": true
+        },
+        {
+          "id": "controls_visible",
+          "question": "Is the settings content visible (not a blank page) with the navigation and at least one settings section rendered?",
+          "expected": true
+        }
+      ],
+      "soft": [
+        {
+          "id": "direction",
+          "question": "Does the page layout use left-to-right text direction as appropriate for this language?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-locale-ar": {
+      "hard": [
+        {
+          "id": "ui_language",
+          "question": "Is the settings navigation rendered in Arabic? The expected nav labels are: اللغات, المواقع, الترجمات, AI, أسلوب, مفاتيح التشغيل السريع, التخزين, أخرى.",
+          "expected": true
+        },
+        {
+          "id": "no_raw_keys",
+          "question": "Is the page free of raw i18n message keys (for example msgLanguages) and of untranslated English fallback text in the navigation?",
+          "expected": true
+        },
+        {
+          "id": "controls_visible",
+          "question": "Is the settings content visible (not a blank page) with the navigation and at least one settings section rendered?",
+          "expected": true
+        }
+      ],
+      "soft": [
+        {
+          "id": "direction",
+          "question": "Does the page layout use right-to-left text direction as appropriate for this language?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-locale-de": {
+      "hard": [
+        {
+          "id": "ui_language",
+          "question": "Is the settings navigation rendered in German? The expected nav labels are: Sprachen, Seiten, Übersetzungen, AI, Stil, Tastenkürzel, Speicher, Andere.",
+          "expected": true
+        },
+        {
+          "id": "no_raw_keys",
+          "question": "Is the page free of raw i18n message keys (for example msgLanguages) and of untranslated English fallback text in the navigation?",
+          "expected": true
+        },
+        {
+          "id": "controls_visible",
+          "question": "Is the settings content visible (not a blank page) with the navigation and at least one settings section rendered?",
+          "expected": true
+        }
+      ],
+      "soft": [
+        {
+          "id": "direction",
+          "question": "Does the page layout use left-to-right text direction as appropriate for this language?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-locale-ja": {
+      "hard": [
+        {
+          "id": "ui_language",
+          "question": "Is the settings navigation rendered in Japanese? The expected nav labels are: 言語, サイト, 翻訳, AI, 外観, ショートカット, ストレージ, その他.",
+          "expected": true
+        },
+        {
+          "id": "no_raw_keys",
+          "question": "Is the page free of raw i18n message keys (for example msgLanguages) and of untranslated English fallback text in the navigation?",
+          "expected": true
+        },
+        {
+          "id": "controls_visible",
+          "question": "Is the settings content visible (not a blank page) with the navigation and at least one settings section rendered?",
+          "expected": true
+        }
+      ],
+      "soft": [
+        {
+          "id": "direction",
+          "question": "Does the page layout use left-to-right text direction as appropriate for this language?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-page-zh": {
+      "hard": [
+        {
+          "id": "translation_visible",
+          "question": "Is a Simplified Chinese translation visible beneath the English sentence, with no error banner?",
+          "expected": true
+        },
+        {
+          "id": "source_preserved",
+          "question": "Is the original English sentence still visible (new-line mode), rather than the page being blank or replaced by an error?",
+          "expected": true
+        },
+        {
+          "id": "no_error",
+          "question": "Is the page free of an AI error banner, a network error, and a permission prompt?",
+          "expected": true
+        }
+      ],
+      "soft": [
+        {
+          "id": "google_active",
+          "question": "Is the floating panel showing Google as the active engine?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-page-ar": {
+      "hard": [
+        {
+          "id": "translation_visible",
+          "question": "Is an Arabic translation visible beneath the English sentence, rendered in Arabic script and right-to-left, with no error banner?",
+          "expected": true
+        },
+        {
+          "id": "source_preserved",
+          "question": "Is the original English sentence still visible (new-line mode), rather than the page being blank or replaced by an error?",
+          "expected": true
+        },
+        {
+          "id": "no_error",
+          "question": "Is the page free of an AI error banner, a network error, and a permission prompt?",
+          "expected": true
+        }
+      ],
+      "soft": [
+        {
+          "id": "google_active",
+          "question": "Is the floating panel showing Google as the active engine?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-page-hi": {
+      "hard": [
+        {
+          "id": "translation_visible",
+          "question": "Is a Hindi translation visible beneath the English sentence, rendered in Devanagari script, with no error banner?",
+          "expected": true
+        },
+        {
+          "id": "source_preserved",
+          "question": "Is the original English sentence still visible (new-line mode), rather than the page being blank or replaced by an error?",
+          "expected": true
+        },
+        {
+          "id": "no_error",
+          "question": "Is the page free of an AI error banner, a network error, and a permission prompt?",
+          "expected": true
+        }
+      ],
+      "soft": [
+        {
+          "id": "google_active",
+          "question": "Is the floating panel showing Google as the active engine?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-page-ja": {
+      "hard": [
+        {
+          "id": "translation_visible",
+          "question": "Is a Japanese translation visible beneath the English sentence, using Japanese script, with no error banner?",
+          "expected": true
+        },
+        {
+          "id": "source_preserved",
+          "question": "Is the original English sentence still visible (new-line mode), rather than the page being blank or replaced by an error?",
+          "expected": true
+        },
+        {
+          "id": "no_error",
+          "question": "Is the page free of an AI error banner, a network error, and a permission prompt?",
+          "expected": true
+        }
+      ],
+      "soft": [
+        {
+          "id": "google_active",
+          "question": "Is the floating panel showing Google as the active engine?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-page-de": {
+      "hard": [
+        {
+          "id": "translation_visible",
+          "question": "Is a German translation visible beneath the English sentence, with no error banner or raw English echo?",
+          "expected": true
+        },
+        {
+          "id": "source_preserved",
+          "question": "Is the original English sentence still visible (new-line mode), rather than the page being blank or replaced by an error?",
+          "expected": true
+        },
+        {
+          "id": "no_error",
+          "question": "Is the page free of an AI error banner, a network error, and a permission prompt?",
+          "expected": true
+        }
+      ],
+      "soft": [
+        {
+          "id": "google_active",
+          "question": "Is the floating panel showing Google as the active engine?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-page-en": {
+      "hard": [
+        {
+          "id": "english_translation",
+          "question": "Does the body show an English translation (Latin script) of the Chinese sentence, with no Chinese characters left in the body text?",
+          "expected": true
+        },
+        {
+          "id": "no_error",
+          "question": "Is the page free of an AI error banner, a network error, and a permission prompt?",
+          "expected": true
+        }
+      ],
+      "soft": [
+        {
+          "id": "google_active",
+          "question": "Is the floating panel showing Google as the active engine?",
+          "expected": true
+        }
+      ]
+    },
+    "chrome-page-panel": {
+      "hard": [
+        {
+          "id": "floating_panel",
+          "question": "Is a floating DualTran panel visible at the right edge with three options labelled Original, Google, and AI?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-error-upstream": {
+      "hard": [
+        {
+          "id": "localized_error_visible",
+          "question": "Is a visible localized AI translation error message shown (not a blank/white page)?",
+          "expected": true
+        },
+        {
+          "id": "no_raw_payload",
+          "question": "Is the visible message free of raw upstream JSON bodies, endpoint URLs, header dumps, and stack text? (A status code inside the product's own localized sentence is acceptable.)",
+          "expected": true
+        },
+        {
+          "id": "no_custom_sentinel",
+          "question": "Is the panel free of raw _custom_ provider sentinel strings and raw sentinel values such as __lowest__?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-error-empty": {
+      "hard": [
+        {
+          "id": "no_response_visible",
+          "question": "Is a visible localized message explaining that the AI provider returned no response shown (not a blank page and not a silent success)?",
+          "expected": true
+        },
+        {
+          "id": "no_raw_payload",
+          "question": "Is the visible message free of raw upstream JSON bodies, endpoint URLs, header dumps, and stack text? (A status code inside the product's own localized sentence is acceptable.)",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-error-timeout": {
+      "hard": [
+        {
+          "id": "timeout_visible",
+          "question": "Is a visible localized error or timeout message shown instead of an indefinitely loading or blank panel?",
+          "expected": true
+        },
+        {
+          "id": "no_raw_payload",
+          "question": "Is the visible message free of raw upstream JSON bodies, endpoint URLs, header dumps, and stack text? (A status code inside the product's own localized sentence is acceptable.)",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-toggle-original": {
+      "hard": [
+        {
+          "id": "source_restored",
+          "question": "Does the page show only the original English sentence, with no Chinese translation visible?",
+          "expected": true
+        },
+        {
+          "id": "original_active",
+          "question": "Is the floating panel's Original option the active one?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-toggle-back": {
+      "hard": [
+        {
+          "id": "translation_back",
+          "question": "Does the page show the Chinese translation beneath the English sentence again?",
+          "expected": true
+        },
+        {
+          "id": "google_active",
+          "question": "Is the floating panel's Google option the active one?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-floating-off": {
+      "hard": [
+        {
+          "id": "panel_hidden",
+          "question": "Is the right edge of the page free of any floating DualTran panel or gear button?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-floating-on": {
+      "hard": [
+        {
+          "id": "panel_visible",
+          "question": "Is a floating DualTran panel or its gear button visible at the right edge of the page?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    },
+    "chrome-cache-hit": {
+      "hard": [
+        {
+          "id": "translation_visible",
+          "question": "Is the Chinese translation of the selected English sentence visible after the second request?",
+          "expected": true
+        },
+        {
+          "id": "no_error",
+          "question": "Is the page free of an error banner or a loading state that never settles?",
+          "expected": true
+        }
+      ],
+      "soft": []
+    }
+  },
+  "scenarios": [
+    "chrome-options-empty",
+    "chrome-provider-select",
+    "chrome-ai-selection",
+    "chrome-ai-error",
+    "chrome-persistence",
+    "chrome-ai-error-no-response",
+    "chrome-options-sections",
+    "chrome-locale-en",
+    "chrome-locale-zhcn",
+    "chrome-locale-zhtw",
+    "chrome-locale-ar",
+    "chrome-locale-de",
+    "chrome-locale-ja",
+    "chrome-page-zh",
+    "chrome-page-ar",
+    "chrome-page-hi",
+    "chrome-page-ja",
+    "chrome-page-de",
+    "chrome-page-en",
+    "chrome-ai-error-429",
+    "chrome-ai-error-500",
+    "chrome-ai-error-empty",
+    "chrome-ai-error-timeout",
+    "chrome-toggle-original",
+    "chrome-floating-axis",
+    "chrome-cache-hit"
+  ],
+  "inventory": {
+    "shots": [
+      {
+        "scenario": "chrome-options-sections",
+        "screenshot": "languages-top",
+        "region": {
+          "x1": 560,
+          "y1": 60,
+          "x2": 1400,
+          "y2": 900
+        },
+        "labels": [
+          "Translate websites into this target language",
+          "Translate selected text into this target language",
+          "Favorite languages",
+          "Favorite language 1",
+          "Favorite language 2",
+          "Favorite language 3",
+          "Never translate these languages",
+          "Always translate these languages with Google",
+          "Always translate these languages with AI",
+          "Show translated text when hovering over sites with these languages",
+          "Add",
+          "English",
+          "Spanish",
+          "German"
+        ]
+      },
+      {
+        "scenario": "chrome-options-sections",
+        "screenshot": "languages-bottom",
+        "region": {
+          "x1": 560,
+          "y1": 60,
+          "x2": 1400,
+          "y2": 900
+        },
+        "labels": [
+          "Translate websites into this target language",
+          "Translate selected text into this target language",
+          "Favorite languages",
+          "Favorite language 1",
+          "Favorite language 2",
+          "Favorite language 3",
+          "Never translate these languages",
+          "Always translate these languages with Google",
+          "Always translate these languages with AI",
+          "Show translated text when hovering over sites with these languages",
+          "Add",
+          "English",
+          "Spanish",
+          "German"
+        ]
+      },
+      {
+        "scenario": "chrome-options-sections",
+        "screenshot": "sites",
+        "region": {
+          "x1": 560,
+          "y1": 60,
+          "x2": 1400,
+          "y2": 900
+        },
+        "labels": [
+          "Always translate these sites with Google",
+          "Always translate these sites with AI",
+          "Never translate these sites",
+          "Show translated text when hovering on these sites",
+          "Add to custom dictionary",
+          "Add"
+        ]
+      },
+      {
+        "scenario": "chrome-options-sections",
+        "screenshot": "translations-top",
+        "region": {
+          "x1": 560,
+          "y1": 60,
+          "x2": 1400,
+          "y2": 900
+        },
+        "labels": [
+          "Only translate the text that has words more than",
+          "Where to display translated text",
+          "Display translated text in a new line",
+          "Text-to-speech audio speed",
+          "Translate dynamically created content",
+          "Yes",
+          "Show the button to translate the selected text",
+          "Do not show if the page language is the target language",
+          "Do not show if the page language is unknown",
+          "Do not show if the selected text language is the target language",
+          "Do not show if the selected text language is unknown",
+          "Show original text when hovering",
+          "No"
+        ]
+      },
+      {
+        "scenario": "chrome-options-sections",
+        "screenshot": "translations-bottom",
+        "region": {
+          "x1": 560,
+          "y1": 60,
+          "x2": 1400,
+          "y2": 900
+        },
+        "labels": [
+          "Do not show if the selected text language is the target language",
+          "Do not show if the selected text language is unknown",
+          "Show original text when hovering",
+          "No",
+          "Only takes effect when",
+          "When to display the paragraph button group",
+          "Show on hover or click",
+          "Show the paragraph button group when hovering over a paragraph",
+          "Yes",
+          "Show the paragraph button group when clicking a paragraph",
+          "Automatically translate when clicking on a link",
+          "Enable translation for the tag"
+        ]
+      },
+      {
+        "scenario": "chrome-options-sections",
+        "screenshot": "ai-top",
+        "region": {
+          "x1": 560,
+          "y1": 60,
+          "x2": 1400,
+          "y2": 900
+        },
+        "labels": [
+          "Only improve translations by AI that have words more than",
+          "Enable AI translation cache",
+          "Yes",
+          "AI provider",
+          "Select a provider",
+          "API Key",
+          "Enter API key",
+          "API Base URL",
+          "https://",
+          "Model",
+          "Loading...",
+          "Reasoning depth"
+        ]
+      },
+      {
+        "scenario": "chrome-options-sections",
+        "screenshot": "ai-bottom",
+        "region": {
+          "x1": 560,
+          "y1": 60,
+          "x2": 1400,
+          "y2": 900
+        },
+        "labels": [
+          "Only improve translations by AI that have words more than",
+          "Enable AI translation cache",
+          "Yes",
+          "AI provider",
+          "Select a provider",
+          "API Key",
+          "Enter API key",
+          "API Base URL",
+          "https://",
+          "Model",
+          "Loading...",
+          "Reasoning depth",
+          "Lowest (default)"
+        ]
+      },
+      {
+        "scenario": "chrome-options-sections",
+        "screenshot": "style",
+        "region": {
+          "x1": 560,
+          "y1": 60,
+          "x2": 1400,
+          "y2": 900
+        },
+        "labels": [
+          "Color of Google translated text",
+          "Color of AI translated text",
+          "Dark Mode",
+          "Automatic",
+          "Make the pop-up icon blue when the site is translated",
+          "No"
+        ]
+      },
+      {
+        "scenario": "chrome-options-sections",
+        "screenshot": "hotkeys",
+        "region": {
+          "x1": 560,
+          "y1": 60,
+          "x2": 1400,
+          "y2": 900
+        },
+        "labels": [
+          "Open native shortcut key manager",
+          "Special keyboard shortcuts",
+          "Translate selected text when pressing Ctrl twice",
+          "Translate the text over the mouse cursor when pressing Ctrl twice",
+          "Ctrl"
+        ]
+      },
+      {
+        "scenario": "chrome-options-sections",
+        "screenshot": "storage",
+        "region": {
+          "x1": 560,
+          "y1": 60,
+          "x2": 1400,
+          "y2": 900
+        },
+        "labels": [
+          "Translation cache",
+          "Storage used",
+          "Calculate",
+          "Delete translation cache",
+          "Personal settings",
+          "Backup to file",
+          "Restore from file",
+          "Restore default settings"
+        ]
+      },
+      {
+        "scenario": "chrome-options-sections",
+        "screenshot": "others",
+        "region": {
+          "x1": 560,
+          "y1": 60,
+          "x2": 1400,
+          "y2": 900
+        },
+        "labels": [
+          "show the floating button",
+          "Yes",
+          "Show button in the address bar",
+          "Show the option to translate the page in the context menu",
+          "Show the option to translate the selected text in the context menu",
+          "Translate the page by clicking once on the button in the address bar",
+          "No"
+        ]
+      },
+      {
+        "scenario": "chrome-options-sections",
+        "screenshot": "feedback",
+        "region": {
+          "x1": 560,
+          "y1": 60,
+          "x2": 1400,
+          "y2": 900
+        },
+        "labels": [
+          "Report a problem",
+          "Report bugs or suggest features on GitHub Issues — the form opens with your extension version, browser",
+          "and system already filled in",
+          "Open GitHub issue form",
+          "Copy diagnostic info",
+          "No GitHub account? You can still reach us",
+          "seigwen@gmail.com",
+          "Chrome Web Store support section"
+        ]
+      }
+    ],
+    "ignore": [
+      "Settings",
+      "DualTran"
+    ]
+  }
+}

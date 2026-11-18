@@ -1,0 +1,84 @@
+{
+  "id": "chrome-provider-select",
+  "host": "dualtran-extension",
+  "axis": "provider",
+  "covers": [
+    "options.ai.provider",
+    "options.ai.model",
+    "options.ai.endpoint",
+    "options.ai.reasoning"
+  ],
+  "actions": [
+    {
+      "type": "goto",
+      "url": "chrome-extension://${DT_EXTENSION_ID}/options/options.html"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "clickText",
+      "text": "AI"
+    },
+    {
+      "type": "wait",
+      "ms": 1200
+    },
+    {
+      "type": "clickText",
+      "text": "Select a provider"
+    },
+    {
+      "type": "wait",
+      "ms": 300
+    },
+    {
+      "type": "key",
+      "key": "Home",
+      "capture": false
+    },
+    {
+      "type": "key",
+      "key": "ArrowDown",
+      "capture": false
+    },
+    {
+      "type": "key",
+      "key": "Enter",
+      "capture": false
+    },
+    {
+      "type": "wait",
+      "ms": 4000
+    },
+    {
+      "type": "assertSelectValue",
+      "selector": "#aiProvider",
+      "value": "302ai"
+    },
+    {
+      "type": "assertInputValue",
+      "selector": "#genericApiBase",
+      "value": "https://api.302.ai/v1"
+    },
+    {
+      "type": "screenshot",
+      "name": "provider-configured-top",
+      "rubric": "chrome-provider-configured-top"
+    },
+    {
+      "type": "scroll",
+      "dy": 350
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "screenshot",
+      "name": "provider-configured-bottom",
+      "rubric": "chrome-provider-configured-bottom"
+    }
+  ]
+}
