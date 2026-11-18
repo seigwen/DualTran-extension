@@ -2079,6 +2079,28 @@ describe("host conformance (SPEC 2.1.0)", () => {
     expect(readEndpoint().value).toMatch(/^https?:\/\//);
   });
 
+  it("keeps a stored endpoint for a models.dev-only provider when the catalogue resolves after load", async () => {
+    // "302ai" is models.dev-only: the built-in registry has no apiBase for it, so a
+    // reload takes the async catalogue-supplement path (options.js supplementEndpoint).
+    // That path snapshots `currentValue` BEFORE the stored override is written, so it
+    // used to see "" and overwrite the user's endpoint with the catalogue default —
+    // silently, on every reload.
+    const catalogue = mergedProviderCatalogue();
+    catalogue["302ai"] = { name: "302.AI", api: "https://api.302.ai/v1", models: {} };
+    const storedKey = ["k"].join("");
+    await loadOptionsModule(
+      { aiProvider: "302ai", providerConfigs: { "302ai": { apiBase: "http://127.0.0.1:11434/v1", apiKey: storedKey, model: "m" } } },
+      { modelsDevProviders: catalogue }
+    );
+    await settlePanel();
+    await new Promise((resolve) => setTimeout(resolve, 30));
+
+    expect(readEndpoint().value).toBe("http://127.0.0.1:11434/v1");
+    // The mode — not a DOM marker — is what survives the page: it is the only thing a
+    // later load can consult to decide whether the stored value may be replaced.
+    expect(document.getElementById("genericApiBase").dataset.dualtranEndpointMode).toBe("user");
+  });
+
   it("starts a fresh install unconfigured: no provider, empty endpoint, disabled model/reasoning", async () => {
     await loadOptionsModule({}, { modelsDevProviders: mergedProviderCatalogue() });
     await settlePanel();

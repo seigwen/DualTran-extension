@@ -2466,14 +2466,23 @@ twpConfig.onReady(function () {
           if (!String(rawApi || "").trim()) return;
           const supplement = _endpointPlaceholder(rawApi);
           if (!supplement || supplement === "https://") return;
+          // Re-read the live DOM state at CALL time. The snapshot taken before the
+          // stored override was written always looked "untouched" (the box was still
+          // empty), which is exactly what let a reload replace a stored endpoint with
+          // the catalogue default. The persisted mode is the authority: a "user"
+          // endpoint is never supplemented.
+          const mode = apiBaseInput.dataset.dualtranEndpointMode || "";
+          if (mode === "user") return;
+          const live = apiBaseInput.value || "";
+          const marker = apiBaseInput.dataset.dualtranEndpointAutofill || "";
           // Evaluated against the value this call started with: untouched (empty or
           // autofilled) takes the catalogue default; a user-typed value is kept.
-          const untouched =
-            !currentValue || (previousAutofill !== "" && currentValue === previousAutofill);
+          const untouched = !live || (marker !== "" && live === marker);
           if (!untouched) return;
           apiBaseInput.value = supplement;
           apiBaseInput.placeholder = supplement;
           apiBaseInput.dataset.dualtranEndpointAutofill = supplement;
+          apiBaseInput.dataset.dualtranEndpointMode = "provider";
         };
         // The endpoint is a real default, so it belongs in the VALUE (a placeholder is
         // never submitted). The input stays editable; the marker records that the
@@ -2484,13 +2493,19 @@ twpConfig.onReady(function () {
         const currentValue = apiBaseInput.value || "";
         const canAutofill = !currentValue || (previousAutofill !== "" && currentValue === previousAutofill);
         const storedOverride = stored.apiBase || "";
-        if (storedOverride) {
+        // Where the value came from is persisted with the config, not inferred from a
+        // DOM marker that dies with the page: "user" survives reloads and provider
+        // switches, "provider" follows the provider default, "unset" is the empty state.
+        const endpointMode = normalizeApiBaseMode(stored.apiBaseMode, storedOverride, defaultEndpoint);
+        apiBaseInput.dataset.dualtranEndpointMode = endpointMode;
+        if (endpointMode === "user" && storedOverride) {
           apiBaseInput.value = storedOverride;
           delete apiBaseInput.dataset.dualtranEndpointAutofill;
         } else if (defaultEndpoint && canAutofill) {
           apiBaseInput.value = defaultEndpoint;
           apiBaseInput.dataset.dualtranEndpointAutofill = defaultEndpoint;
-        } else if (!defaultEndpoint && canAutofill) {
+          apiBaseInput.dataset.dualtranEndpointMode = "provider";
+        } else if (!storedOverride && canAutofill) {
           apiBaseInput.value = "";
           delete apiBaseInput.dataset.dualtranEndpointAutofill;
         }
@@ -2741,6 +2756,29 @@ twpConfig.onReady(function () {
       twpConfig.set("providerConfigs", providerConfigs);
     }
 
+    const API_BASE_MODES = new Set(["unset", "provider", "user"]);
+
+    /**
+     * Where does the endpoint value come from?
+     *
+     * Persisted with the provider config so a reload does not have to guess from a DOM
+     * marker — a marker dies with the page, which is exactly how a stored endpoint used
+     * to be replaced by the provider default on every restart. Legacy configs carry no
+     * mode: a value equal to the provider default was autofilled, anything else belongs
+     * to the user, and an unknown case is treated as "user" so a stored value is never
+     * clobbered.
+     *
+     * @param {string} mode stored mode (absent on legacy configs)
+     * @param {string} value stored endpoint
+     * @param {string} defaultEndpoint the provider's default endpoint for this load
+     * @returns {"unset" | "provider" | "user"}
+     */
+    function normalizeApiBaseMode(mode, value, defaultEndpoint) {
+      if (API_BASE_MODES.has(mode)) return mode;
+      if (!value) return "unset";
+      return defaultEndpoint && value === defaultEndpoint ? "provider" : "user";
+    }
+
     function _saveGenericProviderConfig(providerId) {
       const providerConfigs = twpConfig.get("providerConfigs") || {};
       if (!providerConfigs[providerId]) providerConfigs[providerId] = {};
@@ -2748,7 +2786,18 @@ twpConfig.onReady(function () {
       const apiBaseInput = document.querySelector("#genericApiBase");
       const modelSelect = document.querySelector("#genericModel");
       if (apiKeyInput) providerConfigs[providerId].apiKey = apiKeyInput.value.trim();
-      if (apiBaseInput) providerConfigs[providerId].apiBase = apiBaseInput.value.trim();
+      if (apiBaseInput) {
+        // Persist the value AND where it came from. Only a "user" value may be replaced
+        // by a provider default later, and after a reload only the persisted mode still
+        // knows which one it was.
+        const endpointValue = apiBaseInput.value.trim();
+        const endpointMarker = apiBaseInput.dataset.dualtranEndpointAutofill || "";
+        providerConfigs[providerId].apiBase = endpointValue;
+        providerConfigs[providerId].apiBaseMode =
+          endpointValue === ""
+            ? (providerId ? "provider" : "unset")
+            : (endpointMarker !== "" && endpointValue === endpointMarker ? "provider" : "user");
+      }
       if (modelSelect) {
         // A transient empty value appears while the model list is rebuilt after a
         // provider/key change. Never overwrite a stored model with that empty
@@ -2787,6 +2836,14 @@ twpConfig.onReady(function () {
       });
     }
 
+    // Typing is the user taking ownership of the endpoint: drop the autofill marker so a
+    // later provider switch cannot treat the typed value as replaceable. Persisting stays on
+    // `change` — saving mid-keystroke wrote half-typed URLs and re-rendered the AI panel
+    // (which rebuilds the model list and drops a custom model mid-edit).
+    document.querySelector("#genericApiBase")?.addEventListener("input", () => {
+      const input = document.querySelector("#genericApiBase");
+      if (input) delete input.dataset.dualtranEndpointAutofill;
+    });
     document.querySelector("#genericApiBase")?.addEventListener("change", () => {
       _saveGenericProviderConfig(_aiProviderDropdown.value);
       _ensureEndpointPermission(document.querySelector("#genericApiBase")?.value || "");
