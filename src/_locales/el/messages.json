@@ -242,6 +242,10 @@
     "message": "Η μετάφραση απέτυχε",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "Δεν είναι δυνατή η σύνδεση με την υπηρεσία AI — ελέγξτε το τελικό σημείο API και το δίκτυο",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "Το αίτημα μετάφρασης έληξε",
     "description": "Toast + in-box error text when a text translation request times out"

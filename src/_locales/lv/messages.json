@@ -242,6 +242,10 @@
     "message": "Tulkošana neizdevās",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "Nevar savienoties ar AI pakalpojumu — pārbaudiet API galapunktu un tīklu",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "Tulkošanas pieprasījuma noildze",
     "description": "Toast + in-box error text when a text translation request times out"

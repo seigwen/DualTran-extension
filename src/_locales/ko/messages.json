@@ -242,6 +242,10 @@
     "message": "번역 실패",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "AI 서비스에 연결할 수 없습니다 — API 엔드포인트와 네트워크를 확인하세요",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "번역 요청 시간 초과",
     "description": "Toast + in-box error text when a text translation request times out"

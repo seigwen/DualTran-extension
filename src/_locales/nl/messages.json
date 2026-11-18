@@ -242,6 +242,10 @@
     "message": "Vertaling mislukt",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "Kan de AI-service niet bereiken — controleer het API-eindpunt en het netwerk",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "Time-out van vertaalverzoek",
     "description": "Toast + in-box error text when a text translation request times out"

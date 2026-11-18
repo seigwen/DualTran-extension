@@ -242,6 +242,10 @@
     "message": "Не вдалося перекласти",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "Не вдається підключитися до сервісу ШІ — перевірте кінцеву точку API та мережу",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "Час очікування запиту на переклад вичерпано",
     "description": "Toast + in-box error text when a text translation request times out"

@@ -237,6 +237,10 @@
   "errorTranslationFailed": {
     "message": "翻譯失敗"
   },
+  "errorTranslationNetwork": {
+    "message": "無法連線至 AI 服務 — 請檢查 API 端點與網路",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "翻譯請求逾時"
   },

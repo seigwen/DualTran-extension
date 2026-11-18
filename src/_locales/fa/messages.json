@@ -242,6 +242,10 @@
     "message": "ترجمه ناموفق بود",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "دسترسی به سرویس هوش مصنوعی ممکن نیست — نقطه پایانی API و شبکه را بررسی کنید",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "زمان درخواست ترجمه به پایان رسید",
     "description": "Toast + in-box error text when a text translation request times out"

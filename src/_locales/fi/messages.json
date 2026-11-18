@@ -242,6 +242,10 @@
     "message": "Käännös epäonnistui",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "AI-palveluun ei saada yhteyttä — tarkista API-päätepiste ja verkko",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "Käännöspyyntö aikakatkaistiin",
     "description": "Toast + in-box error text when a text translation request times out"

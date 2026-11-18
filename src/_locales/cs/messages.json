@@ -242,6 +242,10 @@
     "message": "Překlad se nezdařil",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "Službu AI nelze kontaktovat — zkontrolujte koncový bod API a síť",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "Časový limit požadavku na překlad vypršel",
     "description": "Toast + in-box error text when a text translation request times out"

@@ -242,6 +242,10 @@
     "message": "A fordítás nem sikerült",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "Az AI-szolgáltatás nem érhető el — ellenőrizze az API-végpontot és a hálózatot",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "A fordítási kérés túllépte az időkorlátot",
     "description": "Toast + in-box error text when a text translation request times out"

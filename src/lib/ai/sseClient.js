@@ -51,11 +51,17 @@ export async function fetchSSE(options) {
 
   let timerId;
   let timedOut = false;
+  // What "no bytes for inactivityTimeoutMs" means depends on the transport: the direct
+  // fetch path aborts its controller; the port path has to tell the background AND report
+  // the timeout itself (the background may never answer an aborted request).
+  let inactivityHandler = () => {
+    timedOut = true;
+    controller.abort();
+  };
   const resetTimer = () => {
     if (timerId) clearTimeout(timerId);
     timerId = setTimeout(() => {
-      timedOut = true;
-      controller.abort();
+      inactivityHandler();
     }, inactivityTimeoutMs);
   };
 
@@ -74,25 +80,40 @@ export async function fetchSSE(options) {
         resetTimer();
         onMessage?.(message.chunk); // Plain-text chunk, no SSE parsing needed!
       } else if (message.type === "done") {
-        clearTimeout(timerId);
-        onFinished?.();
-        cleanup();
+        finish(onFinished);
       } else if (message.type === "error") {
-        clearTimeout(timerId);
-        onError?.(message);
-        cleanup();
+        finish(onError, message);
       } else if (message.type === "aborted") {
-        clearTimeout(timerId);
-        cleanup();
+        finish();
       }
+    };
+
+    let settled = false;
+    const finish = (callback, payload) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timerId);
+      try {
+        callback?.(payload);
+      } catch (_) {
+      }
+      cleanup();
     };
 
     const cleanup = () => {
       try { port.onMessage.removeListener(onPortMessage); } catch {}
+      try { port.onDisconnect?.removeListener(onPortDisconnect); } catch {}
       try { port.disconnect(); } catch {}
       if (externalSignal && externalAbortHandler) {
         try { externalSignal.removeEventListener("abort", externalAbortHandler); } catch {}
       }
+    };
+
+    // The Service Worker is recycled aggressively. Without this listener the port closed
+    // silently and the request stayed pending forever: no result, no error, a spinner that
+    // never stops. `settled` keeps the normal cleanup path from reporting a false failure.
+    const onPortDisconnect = () => {
+      finish(onError, { error: { type: "network", message: "connection to AI service closed" } });
     };
 
     let portAborted = false;
@@ -106,9 +127,19 @@ export async function fetchSSE(options) {
       else externalSignal.addEventListener("abort", abortViaPort, { once: true });
     }
 
+    // Inactivity in port mode used to abort only the local controller, which the background
+    // never hears about — so the page hung instead of showing a timeout. Report it here.
+    inactivityHandler = () => {
+      if (settled) return;
+      timedOut = true;
+      abortViaPort();
+      finish(onError, { error: { type: "timeout", message: "server response timeout" } });
+    };
+
     try {
       resetTimer();
       port.onMessage.addListener(onPortMessage);
+      port.onDisconnect?.addListener(onPortDisconnect);
 
       // Send structured request (no longer sending raw HTTP url/headers/body)
       port.postMessage({

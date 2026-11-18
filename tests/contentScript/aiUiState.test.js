@@ -54,14 +54,21 @@ describe("aiUiState", () => {
   });
 
   it("formats timeout, structured, and unknown AI errors consistently", () => {
+    // Localized strings (chrome.i18n is absent in jsdom, so the English fallback is used —
+    // the same fallback the content script uses when a locale has no entry).
     expect(formatAiTranslationError({ error: { type: "timeout" } })).toBe(
-      "AI translation error: server response timeout"
+      "AI translation error: Translation request timed out"
     );
+    // A safe hint from the background is shown as-is: no raw code prefix, no provider text.
     expect(formatAiTranslationError({ error: { code: 429, message: "Rate limit" } })).toBe(
-      "AI translation error: 429 - Rate limit"
+      "AI translation error: Rate limit"
     );
     expect(formatAiTranslationError({ error: { message: "Only message" } })).toBe(
       "AI translation error: Only message"
+    );
+    // A transport failure is localized instead of echoing the browser's English exception.
+    expect(formatAiTranslationError({ error: { code: "network", message: "Failed to fetch" } })).toBe(
+      "AI translation error: Cannot reach the AI service — check the API endpoint and network"
     );
     expect(formatAiTranslationError({ error: { foo: "bar" } })).toBe(
       'AI translation error: {"foo":"bar"}'

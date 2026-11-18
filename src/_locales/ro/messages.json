@@ -242,6 +242,10 @@
     "message": "Traducerea a eșuat",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "Serviciul AI nu poate fi contactat — verificați endpointul API și rețeaua",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "Cererea de traducere a expirat",
     "description": "Toast + in-box error text when a text translation request times out"

@@ -212,7 +212,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "ar": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -428,7 +429,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "ca": {
       "backupToFile": "d8c6b60067ff",
@@ -638,7 +640,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "cs": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -852,7 +855,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "da": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -1062,7 +1066,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "de": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -1273,7 +1278,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "el": {
       "backupToFile": "d8c6b60067ff",
@@ -1487,7 +1493,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "es": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -1698,7 +1705,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "fa": {
       "backupToFile": "d8c6b60067ff",
@@ -1912,7 +1920,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "fi": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -2126,7 +2135,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "fr": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -2334,7 +2344,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "he": {
       "backupToFile": "d8c6b60067ff",
@@ -2548,7 +2559,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "hi": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -2764,7 +2776,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "hr": {
       "backupToFile": "d8c6b60067ff",
@@ -2977,7 +2990,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "hu": {
       "backupToFile": "d8c6b60067ff",
@@ -3192,7 +3206,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "is": {
       "backupToFile": "d8c6b60067ff",
@@ -3406,7 +3421,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "it": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -3619,7 +3635,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "ja": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -3834,7 +3851,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "ko": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -4050,7 +4068,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "lv": {
       "backupToFile": "d8c6b60067ff",
@@ -4264,7 +4283,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "nl": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -4475,7 +4495,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "no": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -4687,7 +4708,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "pl": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -4902,7 +4924,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "pt_BR": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -5113,7 +5136,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "pt_PT": {
       "backupToFile": "d8c6b60067ff",
@@ -5324,7 +5348,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "ro": {
       "backupToFile": "d8c6b60067ff",
@@ -5537,7 +5562,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "ru": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -5752,7 +5778,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "sl": {
       "backupToFile": "d8c6b60067ff",
@@ -5967,7 +5994,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "sr": {
       "backupToFile": "d8c6b60067ff",
@@ -6183,7 +6211,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "sv": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -6393,7 +6422,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "th": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -6607,7 +6637,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "tr": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -6823,7 +6854,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "ug": {
       "backupToFile": "d8c6b60067ff",
@@ -7037,7 +7069,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "uk": {
       "backupToFile": "d8c6b60067ff",
@@ -7251,7 +7284,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "vi": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -7466,7 +7500,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "zh_CN": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -7682,7 +7717,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     },
     "zh_TW": {
       "alertSpecifyTargetLanguage": "d9b95db575a3",
@@ -7898,7 +7934,8 @@
       "msgReasoningDepthLowest": "5d3a4c52bf3f",
       "providerPlaceholder": "71e2ca7b1c9f",
       "providerRequiredError": "478579719018",
-      "providerRequiredForModel": "fbd4230d6570"
+      "providerRequiredForModel": "fbd4230d6570",
+      "errorTranslationNetwork": "d7707f61896b"
     }
   }
 }

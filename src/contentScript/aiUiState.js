@@ -2,6 +2,7 @@
 
 import { markTextWrite } from "./extensionTextWrites.js";
 import { AI_ENGINE_LABEL } from "./engineLabels.js";
+import { getMessageWithFallback } from "./i18n.js";
 
 export const SUCCESS_CHECK_COLOR = "#16a34a";
 export const ERROR_CROSS_COLOR = "#dc2626";
@@ -452,15 +453,28 @@ export function applyAiErrorState(btnAi, {
 export function formatAiTranslationError(err) {
   // Timeout from aiProxy
   if (err?.error?.type === "timeout") {
-    return "AI translation error: server response timeout";
+    return (
+      "AI translation error: " +
+      getMessageWithFallback("errorTranslationTimeout", "Translation request timed out")
+    );
   }
-  // Pre-formatted message from aiProxy
-  const msg = err?.error?.message || err?.message;
+  const code = String(err?.error?.code ?? err?.code ?? "");
+  const msg = String(err?.error?.message || err?.message || "");
+  // Transport failures carry no status code and no provider text worth showing: the
+  // browser's own exception ("Failed to fetch") is English and tells the user nothing.
+  if (code === "network" || /Failed to fetch|NetworkError|net::ERR_/i.test(msg)) {
+    return (
+      "AI translation error: " +
+      getMessageWithFallback(
+        "errorTranslationNetwork",
+        "Cannot reach the AI service — check the API endpoint and network"
+      )
+    );
+  }
   if (msg) {
-    // If there's an error code (e.g., HTTP status), include it in the message
-    const code = err?.error?.code ?? err?.code;
-    const prefix = (code != null) ? code + " - " : "";
-    return "AI translation error: " + prefix + msg;
+    // The background already reduced this to a safe hint (status code + reason); adding
+    // the raw code prefix ("http_401 - …") reads worse than the hint alone.
+    return "AI translation error: " + msg;
   }
   // Fallback for unexpected error shapes
   const fallback = err?.error || err?.message || err || "unknown error";

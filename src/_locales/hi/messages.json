@@ -242,6 +242,10 @@
     "message": "अनुवाद विफल रहा",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "AI सेवा तक नहीं पहुँच सका — API एंडपॉइंट और नेटवर्क जाँचें",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "अनुवाद अनुरोध का समय समाप्त हो गया",
     "description": "Toast + in-box error text when a text translation request times out"

@@ -242,6 +242,10 @@
     "message": "Dịch không thành công",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "Không thể kết nối tới dịch vụ AI — hãy kiểm tra điểm cuối API và mạng",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "Yêu cầu dịch đã hết thời gian chờ",
     "description": "Toast + in-box error text when a text translation request times out"

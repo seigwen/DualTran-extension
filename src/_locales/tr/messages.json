@@ -242,6 +242,10 @@
     "message": "Çeviri başarısız oldu",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "AI hizmetine ulaşılamıyor — API uç noktasını ve ağı kontrol edin",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "Çeviri isteği zaman aşımına uğradı",
     "description": "Toast + in-box error text when a text translation request times out"

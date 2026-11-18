@@ -42,16 +42,22 @@ function createControlledBody(signal) {
 
 function createMockPort({ throwOnStart = false } = {}) {
   let listener;
+  let disconnectListener;
   return {
     onMessage: {
       addListener: vi.fn((fn) => { listener = fn; }),
       removeListener: vi.fn((fn) => { if (listener === fn) listener = undefined; }),
+    },
+    onDisconnect: {
+      addListener: vi.fn((fn) => { disconnectListener = fn; }),
+      removeListener: vi.fn((fn) => { if (disconnectListener === fn) disconnectListener = undefined; }),
     },
     disconnect: vi.fn(),
     postMessage: vi.fn((msg) => {
       if (throwOnStart && msg?.type === "start") throw new Error("start failed");
     }),
     emit(msg) { listener?.(msg); },
+    emitDisconnect() { disconnectListener?.(); },
   };
 }
 
@@ -101,6 +107,64 @@ describe("sseClient", () => {
       expect(onError).toHaveBeenCalledWith({ id: startMsg.id, type: "error", error: { message: "boom" } });
       expect(port.onMessage.removeListener).toHaveBeenCalled();
       expect(port.disconnect).toHaveBeenCalled();
+    });
+
+    it("reports a network error when the port disconnects mid-stream", async () => {
+      // A recycled service worker closes the port. Without onDisconnect the request stayed
+      // pending forever: no result, no error, and a spinner that never stops.
+      const port = createMockPort();
+      vi.stubGlobal('chrome', { runtime: { connect: vi.fn(() => port) } });
+
+      const onError = vi.fn();
+      const onFinished = vi.fn();
+      await fetchSSE({ ...BASE_OPTS, onError, onFinished });
+      const startMsg = port.postMessage.mock.calls.find(([m]) => m?.type === "start")[0];
+
+      port.emit({ id: startMsg.id, type: "data", chunk: "partial" });
+      port.emitDisconnect();
+
+      expect(onError).toHaveBeenCalledOnce();
+      expect(onError.mock.calls[0][0].error.type).toBe("network");
+      expect(onFinished).not.toHaveBeenCalled();
+      expect(port.disconnect).toHaveBeenCalled();
+    });
+
+    it("does not report a network error when the stream already finished", async () => {
+      // Our own cleanup() disconnects the port, which also fires onDisconnect: the settled
+      // gate must keep a successful request from being reported as a failure.
+      const port = createMockPort();
+      vi.stubGlobal('chrome', { runtime: { connect: vi.fn(() => port) } });
+
+      const onError = vi.fn();
+      const onFinished = vi.fn();
+      await fetchSSE({ ...BASE_OPTS, onError, onFinished });
+      const startMsg = port.postMessage.mock.calls.find(([m]) => m?.type === "start")[0];
+
+      port.emit({ id: startMsg.id, type: "done" });
+      port.emitDisconnect();
+
+      expect(onFinished).toHaveBeenCalledOnce();
+      expect(onError).not.toHaveBeenCalled();
+    });
+
+    it("reports an inactivity timeout instead of hanging in port mode", async () => {
+      // The abort we send to the background is fire-and-forget; if the worker never answers,
+      // the page used to spin forever because nothing surfaced the timeout locally.
+      vi.useFakeTimers();
+      try {
+        const port = createMockPort();
+        vi.stubGlobal('chrome', { runtime: { connect: vi.fn(() => port) } });
+
+        const onError = vi.fn();
+        await fetchSSE({ ...BASE_OPTS, inactivityTimeoutMs: 50, onError });
+        await vi.advanceTimersByTimeAsync(80);
+
+        expect(onError).toHaveBeenCalledOnce();
+        expect(onError.mock.calls[0][0].error.type).toBe("timeout");
+        expect(port.postMessage.mock.calls.some(([m]) => m?.type === "abort")).toBe(true);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it("posts abort when external signal fires", async () => {

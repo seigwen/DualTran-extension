@@ -242,6 +242,10 @@
     "message": "Error al traducir",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "No se puede conectar con el servicio de IA: comprueba el endpoint de la API y la red",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "Se agotó el tiempo de espera de la solicitud de traducción",
     "description": "Toast + in-box error text when a text translation request times out"

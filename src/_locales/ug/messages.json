@@ -242,6 +242,10 @@
     "message": "تەرجىمە مەغلۇپ بولدى",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "AI مۇلازىمىتىگە ئۇلىنالمايدۇ — API ئاخىرقى نۇقتىسى ۋە تورنى تەكشۈرۈڭ",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "تەرجىمە تەلەپ قىلىش ۋاقتى ئۆتۈپ كەتتى",
     "description": "Toast + in-box error text when a text translation request times out"

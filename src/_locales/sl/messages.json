@@ -242,6 +242,10 @@
     "message": "Prevod ni uspel",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "Storitve AI ni mogoče doseči — preverite končno točko API in omrežje",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "Zahteva za prevod je potekla",
     "description": "Toast + in-box error text when a text translation request times out"

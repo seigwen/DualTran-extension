@@ -242,6 +242,10 @@
     "message": "Þýðing mistókst",
     "description": "Toast + in-box error text when a text translation request fails"
   },
+  "errorTranslationNetwork": {
+    "message": "Næst ekki sambandi við AI-þjónustuna — athugaðu API-endapunkt og netið",
+    "description": "Toast + in-box error text when the AI provider cannot be reached at all (transport failure: connection closed, DNS, refused)"
+  },
   "errorTranslationTimeout": {
     "message": "Tímamörk þýðingarbeiðni runnu út",
     "description": "Toast + in-box error text when a text translation request times out"
