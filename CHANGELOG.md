@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - 2026-11-18
+
+### Fixed
+
+- A stored API endpoint survives a reload: where the value came from is now persisted
+  (`apiBaseMode`), so the async catalogue supplement can no longer overwrite a user
+  endpoint with the provider default.
+- AI errors no longer print the provider's raw body or the request URL in the page; the
+  toast shows a classified hint with the HTTP status and the details stay in the console.
+- A streaming request whose port closes (service worker recycled) or that falls silent now
+  fails fast with a localized network/timeout message instead of spinning forever.
+
 ## [Unreleased]
 
 ## [2.3.0] - 2026-10-27
