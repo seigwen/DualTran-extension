@@ -251,6 +251,19 @@
       "ms": 2500
     },
     {
+      "type": "clickText",
+      "text": "AI"
+    },
+    {
+      "type": "wait",
+      "ms": 1200
+    },
+    {
+      "type": "assertSelectValue",
+      "selector": "#selectTargetLanguage",
+      "value": "zh-CN"
+    },
+    {
       "type": "assertSelectValue",
       "selector": "#aiProvider",
       "value": "302ai"
@@ -264,10 +277,6 @@
       "type": "assertInputValue",
       "selector": "#genericModel",
       "value": "deepseek-v4.1-flash:cloud"
-    },
-    {
-      "type": "clickText",
-      "text": "AI"
     },
     {
       "type": "wait",
