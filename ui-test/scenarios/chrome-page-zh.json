@@ -1,0 +1,60 @@
+{
+  "id": "chrome-page-zh",
+  "host": "dualtran-extension",
+  "axis": "target-language",
+  "covers": [
+    "options.languages.target_page",
+    "translate.page"
+  ],
+  "actions": [
+    {
+      "type": "goto",
+      "url": "chrome-extension://${DT_EXTENSION_ID}/options/options.html"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "selectOption",
+      "selector": "#selectTargetLanguage",
+      "value": "zh-CN"
+    },
+    {
+      "type": "selectOption",
+      "selector": "#selectTargetLanguageForText",
+      "value": "zh-CN"
+    },
+    {
+      "type": "wait",
+      "ms": 1200
+    },
+    {
+      "type": "goto",
+      "url": "http://127.0.0.1:8080/test.html"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "clickText",
+      "text": "Google"
+    },
+    {
+      "type": "wait",
+      "ms": 14000
+    },
+    {
+      "type": "screenshot",
+      "name": "page-translated",
+      "rubric": "chrome-page-zh"
+    },
+    {
+      "type": "assertTranslation",
+      "name": "page-translated",
+      "source": "The quick brown fox jumps over the lazy dog",
+      "script": "han"
+    }
+  ]
+}

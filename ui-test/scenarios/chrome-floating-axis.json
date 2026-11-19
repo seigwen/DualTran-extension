@@ -1,0 +1,87 @@
+{
+  "id": "chrome-floating-axis",
+  "host": "dualtran-extension",
+  "axis": "floating-panel",
+  "covers": [
+    "options.others.floating_button",
+    "panel.floating"
+  ],
+  "actions": [
+    {
+      "type": "goto",
+      "url": "chrome-extension://${DT_EXTENSION_ID}/options/options.html"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "clickText",
+      "text": "Others"
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "selectOption",
+      "selector": "#showFloatingBtn",
+      "value": "no"
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "goto",
+      "url": "http://127.0.0.1:8080/test.html"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "screenshot",
+      "name": "floating-off",
+      "rubric": "chrome-floating-off"
+    },
+    {
+      "type": "goto",
+      "url": "chrome-extension://${DT_EXTENSION_ID}/options/options.html"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "clickText",
+      "text": "Others"
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "selectOption",
+      "selector": "#showFloatingBtn",
+      "value": "yes"
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "goto",
+      "url": "http://127.0.0.1:8080/test.html"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "screenshot",
+      "name": "floating-on",
+      "rubric": "chrome-floating-on"
+    }
+  ]
+}

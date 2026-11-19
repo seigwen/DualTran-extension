@@ -1,0 +1,330 @@
+{
+  "id": "chrome-cache-miss",
+  "host": "dualtran-extension",
+  "axis": "cache",
+  "covers": [
+    "options.ai.cache",
+    "translate.selection",
+    "translate.cache"
+  ],
+  "actions": [
+    {
+      "type": "goto",
+      "url": "chrome-extension://${DT_EXTENSION_ID}/options/options.html"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "clickText",
+      "text": "Languages"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "selectOption",
+      "selector": "#selectTargetLanguage",
+      "value": "zh-CN"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "clickText",
+      "text": "Languages"
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "selectOption",
+      "selector": "#selectTargetLanguageForText",
+      "value": "zh-CN"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "clickText",
+      "text": "Languages"
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "assertSelectValue",
+      "selector": "#selectTargetLanguage",
+      "value": "zh-CN"
+    },
+    {
+      "type": "assertSelectValue",
+      "selector": "#selectTargetLanguageForText",
+      "value": "zh-CN"
+    },
+    {
+      "type": "screenshot",
+      "name": "language-target",
+      "rubric": "chrome-language-target"
+    },
+    {
+      "type": "clickText",
+      "text": "AI"
+    },
+    {
+      "type": "wait",
+      "ms": 1200
+    },
+    {
+      "type": "clickText",
+      "text": "Select a provider"
+    },
+    {
+      "type": "wait",
+      "ms": 400
+    },
+    {
+      "type": "key",
+      "key": "Home",
+      "capture": false
+    },
+    {
+      "type": "key",
+      "key": "ArrowDown",
+      "capture": false
+    },
+    {
+      "type": "key",
+      "key": "Enter",
+      "capture": false
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "assertInputValue",
+      "selector": "#genericApiBase",
+      "value": "https://api.302.ai/v1"
+    },
+    {
+      "type": "key",
+      "key": "Tab"
+    },
+    {
+      "type": "type",
+      "text": "${DT_TEST_API_KEY}"
+    },
+    {
+      "type": "assertInputValue",
+      "selector": "#apiKeyGeneric",
+      "value": "${DT_TEST_API_KEY}"
+    },
+    {
+      "type": "key",
+      "key": "Tab"
+    },
+    {
+      "type": "key",
+      "key": "Tab"
+    },
+    {
+      "type": "key",
+      "key": "Tab"
+    },
+    {
+      "type": "key",
+      "key": "Tab"
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "dialog",
+      "text": "mock-model",
+      "expect": "Enter model name/ID:"
+    },
+    {
+      "type": "key",
+      "key": "Enter"
+    },
+    {
+      "type": "wait",
+      "ms": 1500
+    },
+    {
+      "type": "assertInputValue",
+      "selector": "#genericApiBase",
+      "value": "https://api.302.ai/v1"
+    },
+    {
+      "type": "clickText",
+      "text": "API Endpoint URL",
+      "offsetY": 40
+    },
+    {
+      "type": "wait",
+      "ms": 300
+    },
+    {
+      "type": "key",
+      "key": "Control+a"
+    },
+    {
+      "type": "type",
+      "text": "http://127.0.0.1:18124/v1"
+    },
+    {
+      "type": "key",
+      "key": "Tab"
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "assertInputValue",
+      "selector": "#genericApiBase",
+      "value": "http://127.0.0.1:18124/v1"
+    },
+    {
+      "type": "assertSelectValue",
+      "selector": "#aiProvider",
+      "value": "302ai"
+    },
+    {
+      "type": "assertInputValue",
+      "selector": "#genericModel",
+      "value": "mock-model"
+    },
+    {
+      "type": "assertText",
+      "text": "302.AI",
+      "present": true
+    },
+    {
+      "type": "assertText",
+      "text": "127.0.0.1:18124",
+      "present": true
+    },
+    {
+      "type": "assertText",
+      "text": "mock-model",
+      "present": true
+    },
+    {
+      "type": "screenshot",
+      "name": "local-config-top",
+      "rubric": "chrome-error-config"
+    },
+    {
+      "type": "scroll",
+      "dy": 700
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "screenshot",
+      "name": "local-config-bottom",
+      "rubric": "chrome-local-config-bottom"
+    },
+    {
+      "type": "clickText",
+      "text": "AI"
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "selectOption",
+      "selector": "#enableAiTranslationCache",
+      "value": "no"
+    },
+    {
+      "type": "assertSelectValue",
+      "selector": "#enableAiTranslationCache",
+      "value": "no"
+    },
+    {
+      "type": "wait",
+      "ms": 800
+    },
+    {
+      "type": "goto",
+      "url": "http://127.0.0.1:8080/test.html"
+    },
+    {
+      "type": "wait",
+      "ms": 2000
+    },
+    {
+      "type": "dragText",
+      "text": "The quick brown fox jumps over the lazy dog"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "clickAt",
+      "x": 1554,
+      "y": 516
+    },
+    {
+      "type": "wait",
+      "ms": 15000
+    },
+    {
+      "type": "screenshot",
+      "name": "selection-ai",
+      "rubric": "chrome-selection-ai"
+    },
+    {
+      "type": "goto",
+      "url": "http://127.0.0.1:8080/test.html"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "dragText",
+      "text": "The quick brown fox jumps over the lazy dog"
+    },
+    {
+      "type": "wait",
+      "ms": 1000
+    },
+    {
+      "type": "clickAt",
+      "x": 1554,
+      "y": 516
+    },
+    {
+      "type": "wait",
+      "ms": 8000
+    },
+    {
+      "type": "screenshot",
+      "name": "cache-second",
+      "rubric": "chrome-cache-hit"
+    },
+    {
+      "type": "assertMockChats",
+      "count": 2
+    }
+  ],
+  "mock": {
+    "failCount": 0
+  }
+}
