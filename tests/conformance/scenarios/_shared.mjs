@@ -5,6 +5,9 @@
  * language, the floating button, and one AI provider whose endpoint is under test.
  */
 export const BASE_CONFIG = {
+  // The options page persists an explicit empty default since #213; seeding it here keeps
+  // the scenario state identical to what a fresh install has in storage.
+  aiProvider: "",
   targetLanguage: "zh-CN",
   targetLanguageTextTranslation: "zh-CN",
   targetLanguages: ["zh-CN", "en"],
