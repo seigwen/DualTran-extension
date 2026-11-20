@@ -4,7 +4,11 @@
 # Runs the dual-engine conformance matrix and the store audit, and speaks only when
 # something is wrong (watchdog pattern: empty output means all good).
 set -uo pipefail
-cd /root/DualTran-extension || exit 1
+# Run in the checkout this script belongs to, not a hard-coded working copy: the cron
+# wrapper points at a pinned master worktree (/root/DualTran-nightly), and a `cd` into the
+# developer's tree would silently test whatever branch they left checked out.
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT" || exit 1
 LOG=/root/.hermes/logs/nightly-conformance.log
 mkdir -p "$(dirname "$LOG")"
 
