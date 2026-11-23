@@ -22,8 +22,8 @@ const {
     configValues.targetLanguageTextTranslation = value;
   });
   const runtimeSendMessageMock = vi.fn((payload, callback) => {
-    if (payload.action === "translateSingleText") {
-      callback?.(`translated:${payload.translationService}:${payload.targetLanguage}:${payload.source}`);
+    if (payload.action === "translateSingleTextDetailed") {
+      callback?.({ result: `translated:${payload.translationService}:${payload.targetLanguage}:${payload.source}`, outcome: { status: "complete" } });
       return;
     }
     callback?.();
@@ -109,8 +109,8 @@ describe("popup-translate-text", () => {
     configValues.darkMode = "no";
 
     runtimeSendMessageMock.mockImplementation((payload, callback) => {
-      if (payload.action === "translateSingleText") {
-        callback?.(`translated:${payload.translationService}:${payload.targetLanguage}:${payload.source}`);
+      if (payload.action === "translateSingleTextDetailed") {
+        callback?.({ result: `translated:${payload.translationService}:${payload.targetLanguage}:${payload.source}`, outcome: { status: "complete" } });
         return;
       }
       callback?.();
@@ -131,7 +131,11 @@ describe("popup-translate-text", () => {
         sendMessage: runtimeSendMessageMock,
       },
       i18n: {
-        getMessage: vi.fn((key) => ({ btnListen: "Listen", btnStopListening: "Stop listening" }[key] || key)),
+        getMessage: vi.fn((key) => ({
+          btnListen: "Listen",
+          btnStopListening: "Stop listening",
+          errorTranslationFailed: "Translation failed",
+        }[key] || key)),
       },
     };
   });
@@ -174,7 +178,7 @@ describe("popup-translate-text", () => {
     expect(setMock).toHaveBeenCalledWith("textTranslatorService", "google");
     expect(runtimeSendMessageMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        action: "translateSingleText",
+        action: "translateSingleTextDetailed",
         translationService: "google",
         targetLanguage: "fr",
         source: "hello",
@@ -182,6 +186,24 @@ describe("popup-translate-text", () => {
       expect.any(Function)
     );
     expect(document.getElementById("sGoogle").classList.contains("selected")).toBe(true);
+  });
+
+  it("renders a failure message when the engine reports an error (plan 118 / P3)", async () => {
+    runtimeSendMessageMock.mockImplementation((payload, callback) => {
+      if (payload.action === "translateSingleTextDetailed") {
+        callback({ result: "", outcome: { status: "error", errorMessage: "429 Too Many Requests" } });
+        return;
+      }
+      callback?.();
+    });
+
+    await loadModule();
+    document.getElementById("eOrigText").textContent = "hello";
+
+    document.getElementById("sGoogle").click();
+    await flushMicrotasks(6);
+
+    expect(document.getElementById("eTextTranslated").textContent).toBe("Translation failed");
   });
 
   it("clicking DeepL selects it, stores the service, and translates", async () => {
@@ -238,8 +260,8 @@ describe("popup-translate-text", () => {
   it("clicking listen sends a text-to-speech message", async () => {
     let ttsCallback;
     runtimeSendMessageMock.mockImplementation((payload, callback) => {
-      if (payload.action === "translateSingleText") {
-        callback?.(`translated:${payload.translationService}:${payload.targetLanguage}:${payload.source}`);
+      if (payload.action === "translateSingleTextDetailed") {
+        callback?.({ result: `translated:${payload.translationService}:${payload.targetLanguage}:${payload.source}`, outcome: { status: "complete" } });
         return;
       }
       if (payload.action === "textToSpeech") {
@@ -271,8 +293,8 @@ describe("popup-translate-text", () => {
 
   it("clicking listen again while audio is playing sends stopAudio", async () => {
     runtimeSendMessageMock.mockImplementation((payload, callback) => {
-      if (payload.action === "translateSingleText") {
-        callback?.(`translated:${payload.translationService}:${payload.targetLanguage}:${payload.source}`);
+      if (payload.action === "translateSingleTextDetailed") {
+        callback?.({ result: `translated:${payload.translationService}:${payload.targetLanguage}:${payload.source}`, outcome: { status: "complete" } });
       }
     });
 
@@ -280,8 +302,8 @@ describe("popup-translate-text", () => {
     document.getElementById("eTextTranslated").textContent = "bonjour";
 
     runtimeSendMessageMock.mockImplementation((payload, callback) => {
-      if (payload.action === "translateSingleText") {
-        callback?.(`translated:${payload.translationService}:${payload.targetLanguage}:${payload.source}`);
+      if (payload.action === "translateSingleTextDetailed") {
+        callback?.({ result: `translated:${payload.translationService}:${payload.targetLanguage}:${payload.source}`, outcome: { status: "complete" } });
         return;
       }
       if (payload.action === "textToSpeech") {
@@ -308,7 +330,7 @@ describe("popup-translate-text", () => {
     await flushMicrotasks();
 
     expect(runtimeSendMessageMock).not.toHaveBeenCalledWith(
-      expect.objectContaining({ action: "translateSingleText" }),
+      expect.objectContaining({ action: "translateSingleTextDetailed" }),
       expect.any(Function)
     );
 
@@ -317,7 +339,7 @@ describe("popup-translate-text", () => {
 
     expect(runtimeSendMessageMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        action: "translateSingleText",
+        action: "translateSingleTextDetailed",
         translationService: "google",
         targetLanguage: "fr",
         source: "hello",
@@ -384,7 +406,7 @@ describe("popup-translate-text", () => {
     expect(document.getElementById("eOrigText").textContent).toBe("hello world");
     expect(runtimeSendMessageMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        action: "translateSingleText",
+        action: "translateSingleTextDetailed",
         source: "hello world",
       }),
       expect.any(Function)

@@ -107,6 +107,7 @@ export function createBlockState() {
   return {
     aiStatus: "idle",
     googleBtnState: "idle",
+    googleError: "",
     displayMode: "original",
     intentMode: "original",
     translationId: "",

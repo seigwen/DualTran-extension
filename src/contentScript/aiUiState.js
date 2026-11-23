@@ -570,6 +570,7 @@ export function applyGoogleSuccess(state, { preserveAiDisplay = false } = {}) {
     state.displayMode = "google";
   }
   state.googleBtnState = "success";
+  state.googleError = "";
 }
 
 /**
@@ -581,10 +582,22 @@ export function applyGoogleTranslating(state) {
 }
 
 /**
+ * Mark a block's Google channel as failed (plan 118 / P3). Unlike
+ * applyGoogleIdle, this records the failure so the page/UI can tell a failure
+ * from "not translated yet". The source text stays visible.
+ * @param {{ googleBtnState: string, googleError?: string }} state
+ */
+export function applyGoogleErrorState(state, { errorText = "" } = {}) {
+  state.googleBtnState = "error";
+  state.googleError = errorText || "";
+}
+
+/**
  * Reset a block's Google button state to idle (e.g. after translation failure).
  * Does NOT change displayMode — the block may still show whatever was there.
  * @param {{ googleBtnState: string }} state
  */
 export function applyGoogleIdle(state) {
   state.googleBtnState = "idle";
+  state.googleError = "";
 }

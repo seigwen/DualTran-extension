@@ -21,13 +21,31 @@ twpConfig.onReady(function () {
     return new Promise((resolve, reject) => {
       chrome.runtime.sendMessage(
         {
-          action: "translateSingleText",
+          // Plan 118 / P3: use the detailed action so engine failures reject
+          // instead of rendering an empty translation.
+          action: "translateSingleTextDetailed",
           translationService,
           targetLanguage,
           source,
         },
         (response) => {
-          resolve(response);
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+          if (response === undefined) {
+            reject(new Error("No translation response received"));
+            return;
+          }
+          if (typeof response === "string") {
+            resolve(response);
+            return;
+          }
+          if (response?.outcome?.status === "error") {
+            reject(new Error(response.outcome.errorMessage || "Translation failed"));
+            return;
+          }
+          resolve(typeof response?.result === "string" ? response.result : "");
         }
       );
     });
@@ -302,6 +320,10 @@ twpConfig.onReady(function () {
         eTextTranslated.setAttribute("dir", "ltr");
       }
       eTextTranslated.textContent = result;
+    }).catch((err) => {
+      eTextTranslated.textContent =
+        chrome.i18n.getMessage("errorTranslationFailed") || "Translation failed";
+      console.warn("popup translateText failed:", err?.message || err);
     });
   }
 

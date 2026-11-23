@@ -54,6 +54,7 @@ import {
   applyAiTranslatingState,
   applyGoogleIdle,
   applyGoogleSuccess,
+  applyGoogleErrorState,
   applyShowAiOnlyState,
   applyGoogleTranslating,
   applyShowGoogleOnlyState,
@@ -313,6 +314,9 @@ let nodesToRestore = [];
 let openAiRateLimitCountDown = 0
 let timerAiTran
 let hadGoogleTranslationError = false
+// Plan 118 / P3: one user-facing toast per translation run, even when several
+// batches fail (the ban case fails dozens of batches).
+let googleErrorToastShown = false
 // [intent-gate:state-decls]
 let shouldForceAiAfterPageTranslation = false
 // Q5: whether AI results should switch the display when they arrive.
@@ -1135,7 +1139,9 @@ async function handleSingletonBtnClick(buttonId, translatedElement) {
         })
         .catch((e) => {
           if (state.requestEpoch === myEpoch) {
-            applyGoogleIdle(state);
+            // Plan 118 / P3: a failed single-text Google request is an error
+            // state, not idle (idle means "not requested yet").
+            applyGoogleErrorState(state, { errorText: e?.message || "" });
             settleBlockProgressIndicator(translatedElement, "google", true, e?.message);
           }
         });
@@ -2032,11 +2038,19 @@ async function handleCustomWords(
       }
     }
   } catch (e) {
-    return await backgroundTranslateSingleText(
-      currentPageTranslatorService,
-      currentTargetLanguage,
-      originalText
-    );
+    try {
+      return await backgroundTranslateSingleText(
+        currentPageTranslatorService,
+        currentTargetLanguage,
+        originalText
+      );
+    } catch (translationError) {
+      // Plan 118 / P3: the single-text path now rejects on engine failure.
+      // Custom-word substitution is best-effort; fall back to the already
+      // available page translation instead of rejecting the block writer.
+      console.warn("[DualTran] custom words fallback translation failed:", translationError?.message || translationError);
+      return translated;
+    }
   }
 
   return translated;
@@ -2190,6 +2204,48 @@ function backgroundTranslateHTML(
 }
 
 /**
+ * Request background to translate node list with per-piece failure truth
+ * (plan 118 / P3). Resolves `{ results, outcomes }`; legacy array responses
+ * are treated as "all complete" so an older SW cannot break the page.
+ */
+function backgroundTranslateHTMLDetailed(
+  translationService,
+  targetLanguage,
+  sourceArray2d,
+  dontSortResults
+) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage(
+      {
+        action: "translateHTMLDetailed",
+        translationService,
+        targetLanguage,
+        sourceArray2d,
+        dontSortResults,
+      },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        if (response === undefined) {
+          reject(new Error("No translation response received"));
+          return;
+        }
+        if (Array.isArray(response)) {
+          resolve({ results: response, outcomes: null });
+          return;
+        }
+        resolve({
+          results: Array.isArray(response.results) ? response.results : [],
+          outcomes: Array.isArray(response.outcomes) ? response.outcomes : null,
+        });
+      }
+    );
+  });
+}
+
+/**
  * Request background to translate an attribute text list
  * 
  * @param {*} translationService 
@@ -2226,6 +2282,45 @@ function backgroundTranslateText(
 }
 
 /**
+ * Request background to translate an attribute text list with per-item
+ * failure truth (plan 118 / P3).
+ */
+function backgroundTranslateTextDetailed(
+  translationService,
+  targetLanguage,
+  sourceArray
+) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage(
+      {
+        action: "translateTextDetailed",
+        translationService,
+        targetLanguage,
+        sourceArray,
+      },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        if (response === undefined) {
+          reject(new Error("No translation response received"));
+          return;
+        }
+        if (Array.isArray(response)) {
+          resolve({ results: response, outcomes: null });
+          return;
+        }
+        resolve({
+          results: Array.isArray(response.results) ? response.results : [],
+          outcomes: Array.isArray(response.outcomes) ? response.outcomes : null,
+        });
+      }
+    );
+  });
+}
+
+/**
  * Request background to translate a single string (used for title translation or selected-text translation)
  * 
  * @param {*} translationService 
@@ -2241,7 +2336,9 @@ backgroundTranslateSingleText = function (
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(
       {
-        action: "translateSingleText",
+        // Plan 118 / P3: detailed variant carries the engine outcome; a
+        // failed Google request must reject, not resolve as "".
+        action: "translateSingleTextDetailed",
         translationService,
         targetLanguage,
         source,
@@ -2255,7 +2352,15 @@ backgroundTranslateSingleText = function (
           reject(new Error("No translation response received"));
           return;
         }
-        resolve(response);
+        if (typeof response === "string") {
+          resolve(response);
+          return;
+        }
+        if (response?.outcome?.status === "error") {
+          reject(new Error(response.outcome.errorMessage || "Translation failed"));
+          return;
+        }
+        resolve(typeof response?.result === "string" ? response.result : "");
       }
     );
   });
@@ -4066,9 +4171,18 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    * @param {*} attributesToTranslateNow 
    * @param {*} results 
    */
-  function translateAttributes(attributesToTranslateNow, results) {
+  function translateAttributes(attributesToTranslateNow, results, outcomes) {
+    const failures = [];
     for (const i in attributesToTranslateNow) {
       const ati = attributesToTranslateNow[i];
+      // Plan 118 / P3: an engine failure must leave the site's original
+      // attribute untouched. Do not write, show ⚠, and report the failure.
+      if (outcomes && outcomes[i]?.status === "error") {
+        const errorText = outcomes[i].errorMessage || "";
+        failures.push({ ati, errorText });
+        setBlockTranslationIndicator(ati.node, "google", "error", errorText || "Translation error");
+        continue;
+      }
       try {
         // Freshness guard (#98 follow-up, attribute channel): if the site
         // rewrote this attribute while the request was in flight, the result
@@ -4105,6 +4219,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         console.log(e)
       }
     }
+    return failures;
   }
 
   let pendingGoogleBatches = 0;
@@ -4113,10 +4228,70 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     if (pendingGoogleBatches > 0) {
       setPageRenderState("loading");
     } else if (hadGoogleTranslationError) {
-      setPageRenderState("idle");
+      // Plan 118 / P3: a failed Google run is an error, not a silent idle.
+      // The page render state drives the floating button + retry path.
+      setPageRenderState("error");
     } else {
       setPageRenderState("success");
     }
+  }
+
+  /**
+   * Resolve the block anchor for a piece in the current display mode
+   * (newLine: <translated>; replaceOriginal: last source node's parent).
+   */
+  function blockAnchorForPiece(piece) {
+    if (!piece) return null;
+    if (twpConfig.get("whereToDisplayTranslatedText") === "newLine") {
+      return piece.translatedElement || null;
+    }
+    const nodes = piece.nodes || [];
+    return nodes.length > 0 ? nodes[nodes.length - 1].parentNode : null;
+  }
+
+  /**
+   * Mark a piece's Google channel as failed: block state + page-side ⚠.
+   * Plan 118 / P3 — a failed request must never look like an empty success.
+   */
+  function markPieceGoogleFailure(piece, errorText) {
+    const anchor = blockAnchorForPiece(piece);
+    const st = anchor ? getBlockState(anchor) : null;
+    if (st) {
+      applyGoogleErrorState(st, { errorText });
+      try { updateSingletonUI(anchor); } catch (e) {
+        console.warn("[DualTran] google failure block update failed", e);
+      }
+    }
+    const firstNode = piece?.nodes?.[0];
+    if (firstNode && firstNode.parentNode) {
+      setBlockTranslationIndicator(firstNode, "google", "error", errorText || "Translation error");
+    }
+  }
+
+  /**
+   * One toast per translation run (a ban fails many batches; one message is
+   * enough and avoids a toast storm). Plan 118 / P3.
+   */
+  function showGoogleErrorToastOnce(errorText) {
+    if (googleErrorToastShown) return;
+    googleErrorToastShown = true;
+    const text = errorText
+      ? getMessageWithFallback("errorTranslationWithMessage", `Translation failed: ${errorText}`, [errorText])
+      : getMessageWithFallback("errorTranslationUnknown", "Unknown translation error");
+    Toastify({
+      text,
+      duration: 5000,
+      newWindow: true,
+      close: true,
+      gravity: "top",
+      position: "left",
+      stopOnFocus: true,
+      style: {
+        background: "linear-gradient(to bottom, red, darkred)",
+        fontSize: "12px"
+      },
+      onClick: function () { }
+    }).showToast();
   }
 
   /**
@@ -4226,14 +4401,21 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
             let array2d = piecesToTranslateNow.map((ptt) =>
               ptt.nodes.map((node) => filterKeywordsInText(node.textContent))
             )
-            backgroundTranslateHTML(
+            backgroundTranslateHTMLDetailed(
               currentPageTranslatorService,
               currentTargetLanguage,
               array2d,
               dontSortResults
-            ).then(async (results) => {
-              if([undefined, null].includes(results) || (results instanceof Array && results.length === 0)){
-                hadGoogleTranslationError = true
+            ).then(async ({ results, outcomes }) => {
+              if (
+                pageLanguageState !== "translated" ||
+                currentFooCount !== fooCount
+              ) {
+                return;
+              }
+
+              if (!Array.isArray(results) || results.length === 0) {
+                hadGoogleTranslationError = true;
                 emitDualTranDebugLog("error", "[DualTran][UnknownTranslationError]", {
                   translationService: currentPageTranslatorService,
                   targetLanguage: currentTargetLanguage,
@@ -4241,90 +4423,79 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                   requestPreview: array2d.slice(0, 5).map((row) => row.join(" ").slice(0, 160)),
                   rawResults: results,
                 });
-
-                // Show green error indicators for unknown translation error
-                piecesToTranslateNow.forEach((ptt) => {
-                  if (ptt.nodes && ptt.nodes.length > 0 && ptt.nodes[0] && ptt.nodes[0].parentNode) {
-                    setBlockTranslationIndicator(ptt.nodes[0], "google", "error", "Unknown translation error");
-                  }
-                });
-
-                Toastify({
-                  text: chrome.i18n.getMessage("errorTranslationUnknown"),
-                  duration: 2500,
-                  newWindow: true,
-                  close: true,
-                  gravity: "top", // `top` or `bottom`
-                  position: "left", // `left`, `center` or `right`
-                  stopOnFocus: true, // Prevents dismissing of toast on hover
-                  style: {
-                    background: "linear-gradient(to bottom, red, darkred)",
-                    fontSize: "12px"
-                  },
-                  onClick: function () { } // Callback after click
-                }).showToast();
+                piecesToTranslateNow.forEach((ptt) => markPieceGoogleFailure(ptt, ""));
+                showGoogleErrorToastOnce("");
+                updateGoogleRenderState();
+                return;
               }
-              if (
-                pageLanguageState === "translated" &&
-                currentFooCount === fooCount
-              ) {
-                if (!hadGoogleTranslationError) {
-                  console.log("array2d:", array2d)
-                  console.log("translated results:", results)
 
-                   // Freshness guard (#98): if the site rewrote a source node in
-                   // place while this request was in flight (characterData), the
-                   // result is for STALE text — writing it would replace a fresh
-                   // translation with one for the old text. Drop those pieces
-                   // (isTranslated=false re-queues them; the next tick re-reads
-                   // node.textContent and re-requests). Convergence: after
-                   // STALE_DROP_LIMIT consecutive drops for the same node the
-                   // result is accepted anyway, so a node whose text outruns the
-                   // request round-trip (live counter, ticking clock) cannot
-                   // spin the loop forever.
-                  const freshPieces = [];
-                  const freshResults = [];
-                  for (let k = 0; k < piecesToTranslateNow.length; k++) {
-                    const ptt = piecesToTranslateNow[k];
-                    const row = array2d[k] || [];
-                    let stale = false;
-                    if (ptt.nodes) {
-                      for (let j = 0; j < ptt.nodes.length; j++) {
-                        const node = ptt.nodes[j];
-                        if (row[j] === undefined || node.nodeType !== 3) continue;
-                        if (filterKeywordsInText(node.textContent) !== row[j]) {
-                          const drops = (staleDropCounts.get(node) || 0) + 1;
-                          staleDropCounts.set(node, drops);
-                          if (drops <= STALE_DROP_LIMIT) stale = true;
-                        } else {
-                          staleDropCounts.delete(node);
-                        }
-                      }
-                    }
-                    if (stale) {
-                      ptt.isTranslated = false;
-                      continue;
-                    }
-                    freshPieces.push(ptt);
-                    freshResults.push(results[k]);
+              const freshPieces = [];
+              const freshResults = [];
+              let firstErrorMessage = "";
+              let failedCount = 0;
+
+              for (let k = 0; k < piecesToTranslateNow.length; k++) {
+                const ptt = piecesToTranslateNow[k];
+                const outcome = outcomes ? outcomes[k] : null;
+
+                // Plan 118 / P3: an engine-reported failure is NOT an empty
+                // translation. Skip the write, mark the block ⚠, keep the
+                // source text, and let the page-level state become "error".
+                if (outcome?.status === "error" || !Array.isArray(results[k])) {
+                  failedCount++;
+                  if (!firstErrorMessage) {
+                    firstErrorMessage = outcome?.errorMessage || "";
                   }
-
-                  if (freshPieces.length > 0) {
-                    twpConfig.get("whereToDisplayTranslatedText") === "newLine"
-                       // Add translated text child node
-                      ? await addTranslatedContent(freshPieces, freshResults)
-                       // Replace original node text with translated node text
-                      : await translateResults(freshPieces, freshResults);
-                  }
-
-                  // Remove green loading indicators — Google translation done
-                  piecesToTranslateNow.forEach((ptt) => {
-                    if (ptt.nodes && ptt.nodes.length > 0 && ptt.nodes[0] && ptt.nodes[0].parentNode) {
-                      setBlockTranslationIndicator(ptt.nodes[0], "google", "done");
-                    }
-                  });
+                  markPieceGoogleFailure(ptt, outcome?.errorMessage || "");
+                  continue;
                 }
+
+                const row = array2d[k] || [];
+                let stale = false;
+                if (ptt.nodes) {
+                  for (let j = 0; j < ptt.nodes.length; j++) {
+                    const node = ptt.nodes[j];
+                    if (row[j] === undefined || node.nodeType !== 3) continue;
+                    if (filterKeywordsInText(node.textContent) !== row[j]) {
+                      const drops = (staleDropCounts.get(node) || 0) + 1;
+                      staleDropCounts.set(node, drops);
+                      if (drops <= STALE_DROP_LIMIT) stale = true;
+                    } else {
+                      staleDropCounts.delete(node);
+                    }
+                  }
+                }
+                if (stale) {
+                  ptt.isTranslated = false;
+                  continue;
+                }
+                freshPieces.push(ptt);
+                freshResults.push(results[k]);
               }
+
+              if (failedCount > 0) {
+                hadGoogleTranslationError = true;
+                showGoogleErrorToastOnce(firstErrorMessage);
+                updateGoogleRenderState();
+              }
+
+              console.log("array2d:", array2d)
+              console.log("translated results:", results)
+
+              if (freshPieces.length > 0) {
+                twpConfig.get("whereToDisplayTranslatedText") === "newLine"
+                   // Add translated text child node
+                  ? await addTranslatedContent(freshPieces, freshResults)
+                   // Replace original node text with translated node text
+                  : await translateResults(freshPieces, freshResults);
+              }
+
+              // Remove green loading indicators — Google translation done
+              freshPieces.forEach((ptt) => {
+                if (ptt.nodes && ptt.nodes.length > 0 && ptt.nodes[0] && ptt.nodes[0].parentNode) {
+                  setBlockTranslationIndicator(ptt.nodes[0], "google", "done");
+                }
+              });
             })
             .catch((e) => {
               hadGoogleTranslationError = true
@@ -4336,27 +4507,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
                 errorMessage: e?.message,
                 errorName: e?.name,
               });
-              Toastify({
-                text: chrome.i18n.getMessage("errorTranslationWithMessage", [e.message]),
-                duration: 2500,
-                newWindow: true,
-                close: true,
-                gravity: "top", // `top` or `bottom`
-                position: "left", // `left`, `center` or `right`
-                stopOnFocus: true, // Prevents dismissing of toast on hover
-                style: {
-                  background: "linear-gradient(to bottom, red, darkred)",
-                  fontSize: "12px"
-                },
-                onClick: function () { } // Callback after click
-              }).showToast();
+              showGoogleErrorToastOnce(e?.message || "");
 
-              // Show green error indicators for each piece
-              piecesToTranslateNow.forEach((ptt) => {
-                if (ptt.nodes && ptt.nodes.length > 0 && ptt.nodes[0] && ptt.nodes[0].parentNode) {
-                  setBlockTranslationIndicator(ptt.nodes[0], "google", "error", e?.message || "Translation error");
-                }
-              });
+              // Show error indicators for each piece
+              piecesToTranslateNow.forEach((ptt) => markPieceGoogleFailure(ptt, e?.message || ""));
+              updateGoogleRenderState();
             }).finally(() => {
               pendingGoogleBatches--;
               updateGoogleRenderState();
@@ -4369,18 +4524,30 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
           if (attributesToTranslateNow.length > 0) {
              // Translate attribute list
-            backgroundTranslateText(
+            backgroundTranslateTextDetailed(
               currentPageTranslatorService,
               currentTargetLanguage,
               attributesToTranslateNow.map((ati) => ati.original)
-            ).then((results) => {
+            ).then(({ results, outcomes }) => {
               if (
                 pageLanguageState === "translated" &&
                 currentFooCount === fooCount
               ) {
                  // Replace attribute text with translated attribute text
-                translateAttributes(attributesToTranslateNow, results);
+                const failures = translateAttributes(attributesToTranslateNow, results, outcomes);
+                if (failures.length > 0) {
+                  hadGoogleTranslationError = true;
+                  showGoogleErrorToastOnce(failures[0].errorText || "");
+                  updateGoogleRenderState();
+                }
               }
+            }).catch((e) => {
+              hadGoogleTranslationError = true;
+              attributesToTranslateNow.forEach((ati) => {
+                setBlockTranslationIndicator(ati.node, "google", "error", e?.message || "Translation error");
+              });
+              showGoogleErrorToastOnce(e?.message || "");
+              updateGoogleRenderState();
             });
           }
 
@@ -4523,6 +4690,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
       if (result) {
         document.title = result;
       }
+    }).catch((e) => {
+      // Plan 118 / P3: a failed Google request now rejects; title translation
+      // is best-effort, so keep the original title and log the failure.
+      console.warn("[DualTran] page title translation failed:", e?.message || e);
     });
   }
 
@@ -4821,6 +4992,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     // twin of the announcement gate; the user's one AI click re-arms it.
     shouldForceAiAfterPageTranslation = shouldForceAiForThisRun && aiModeActive
     hadGoogleTranslationError = false
+    googleErrorToastShown = false
     pendingGoogleBatches = 0
     setPageRenderState("loading")
     setAiRenderState(shouldForceAiAfterPageTranslation ? "loading" : "idle")
@@ -4883,6 +5055,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   pageTranslator.restorePage = function (silent = false) {
     shouldForceAiAfterPageTranslation = false;
     hadGoogleTranslationError = false;
+    googleErrorToastShown = false;
     pendingGoogleBatches = 0;
     setPageRenderState("idle");
     setAiRenderState("idle");
@@ -5044,7 +5217,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    /** @internal — for testing #98 follow-up: run getAttributesToTranslate on a root */
   pageTranslator._getAttributesToTranslate = (root) => getAttributesToTranslate(root);
    /** @internal — for testing #98 follow-up: run translateAttributes with fixed results */
-  pageTranslator._translateAttributes = (now, results) => translateAttributes(now, results);
+  pageTranslator._translateAttributes = (now, results, outcomes) => translateAttributes(now, results, outcomes);
    /** @internal — for testing #98: read the current piecesToTranslate array */
   pageTranslator._getPiecesToTranslateArray = () => piecesToTranslate;
 

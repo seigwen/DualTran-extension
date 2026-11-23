@@ -90,8 +90,13 @@ function resolveOriginalClick(uiState) {
 }
 
 function resolveGoogleClick(uiState) {
-  const { pageLanguageState, displayMode, googleInFlight } = uiState;
+  const { pageLanguageState, displayMode, googleInFlight, hasGoogleFailedBlocks } = uiState;
 
+  // Plan 118 / P3: Google failed (ban/rate-limit) → clicking Google retries
+  // the page translation instead of a local switch to text that isn't there.
+  if (hasGoogleFailedBlocks) {
+    return { type: "translatePage" };
+  }
   // Google translation already displayed → no-op (Q16-revised).
   if (displayMode === "google") {
     return { type: "noop" };

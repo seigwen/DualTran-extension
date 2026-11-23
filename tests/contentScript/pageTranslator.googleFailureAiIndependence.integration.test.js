@@ -93,6 +93,7 @@ vi.mock("../../src/lib/ai/providerRegistry.js", () => ({
 function installDom() {
   const dom = new JSDOM("<!DOCTYPE html><html><head></head><body></body></html>", {
     url: "https://example.com/article",
+    pretendToBeVisual: true,
   });
   globalThis.window = dom.window;
   globalThis.document = dom.window.document;
@@ -126,11 +127,13 @@ function installDom() {
 }
 
 let pageTranslator;
+let backgroundTranslateSingleText;
 
 beforeAll(async () => {
   installDom();
   const mod = await import("../../src/contentScript/pageTranslator.js");
   pageTranslator = mod.pageTranslator;
+  backgroundTranslateSingleText = mod.backgroundTranslateSingleText;
   await vi.waitFor(() => {
     expect(pageTranslator._addTranslatedContent).toBeTypeOf("function");
     expect(pageTranslator._aiTranslateDynamically).toBeTypeOf("function");
@@ -144,6 +147,11 @@ afterAll(() => {
 beforeEach(() => {
   translateWithAIMock.mockClear();
   sendMessageMock.mockClear();
+  sendMessageMock.mockImplementation((payload, callback) => {
+    if (typeof callback === "function") {
+      callback(payload?.action === "getTabHostName" ? "example.com" : undefined);
+    }
+  });
   configValues.whereToDisplayTranslatedText = "newLine";
   document.body.innerHTML = "";
 });
@@ -304,5 +312,148 @@ describe("Google empty result must not disable AI translation", () => {
 
     expect(getAllProxies().length).toBe(1);
     expect(p.querySelectorAll(":scope > .dualtran-aitranslatedtext-replacemode").length).toBe(1);
+  });
+
+  it("banned page run: pageRenderState becomes error, no empty translation is written (plan 118 / P3)", async () => {
+    const p = document.createElement("p");
+    const textNode = document.createTextNode("A banned page paragraph that must stay visible in the source language");
+    p.appendChild(textNode);
+    document.body.appendChild(p);
+
+    sendMessageMock.mockImplementation((payload, callback) => {
+      if (typeof callback !== "function") return;
+      if (payload?.action === "getTabHostName") return callback("example.com");
+      if (payload?.action === "translateHTMLDetailed") {
+        const rows = payload.sourceArray2d.map(() => [""]);
+        return callback({
+          results: rows,
+          outcomes: rows.map(() => ({ status: "error", errorMessage: "429 Too Many Requests" })),
+        });
+      }
+      if (payload?.action === "translateSingleTextDetailed") {
+        return callback({ result: "", outcome: { status: "error", errorMessage: "429 Too Many Requests" } });
+      }
+      callback(undefined);
+    });
+
+    const states = [];
+    pageTranslator.onPageRenderStateChange((state) => states.push(state));
+
+    pageTranslator.translatePage("fr");
+
+    await vi.waitFor(() => expect(states).toContain("error"), { timeout: 5000 });
+
+    const translated = document.querySelector("translated");
+    expect(translated).not.toBeNull();
+    expect(translated.textContent).toBe("");
+    expect(textNode.textContent).toContain("must stay visible");
+
+    const st = getBlockState(translated);
+    expect(st.googleBtnState).toBe("error");
+    expect(st.googleError).toContain("429");
+    expect(st.displayMode).not.toBe("google");
+  });
+
+  it("partial ban: successful pieces still render, failed pieces stay original and mark error (plan 118 / P3)", async () => {
+    // A >1000-char block forces the scan to start a new piece, so the batch
+    // can carry one success row + one failure row.
+    const p1 = document.createElement("p");
+    const t1 = document.createTextNode("Alpha paragraph that google translated " + "x".repeat(1100));
+    p1.appendChild(t1);
+    document.body.appendChild(p1);
+    const p2 = document.createElement("p");
+    const t2 = document.createTextNode("Beta paragraph that google refused");
+    p2.appendChild(t2);
+    document.body.appendChild(p2);
+
+    sendMessageMock.mockImplementation((payload, callback) => {
+      if (typeof callback !== "function") return;
+      if (payload?.action === "getTabHostName") return callback("example.com");
+      if (payload?.action === "translateHTMLDetailed") {
+        const rows = payload.sourceArray2d.map((row) =>
+          row.map((text) => (String(text).startsWith("Alpha") ? `FR:${text}` : ""))
+        );
+        const outcomes = payload.sourceArray2d.map((row) => ({
+          status: String(row[0]).startsWith("Alpha") ? "complete" : "error",
+          errorMessage: String(row[0]).startsWith("Alpha") ? "" : "429 Too Many Requests",
+        }));
+        return callback({ results: rows, outcomes });
+      }
+      if (payload?.action === "translateSingleTextDetailed") {
+        return callback({ result: "", outcome: { status: "complete" } });
+      }
+      callback(undefined);
+    });
+
+    pageTranslator.translatePage("fr");
+
+    await vi.waitFor(() => {
+      const proxies = getAllProxies();
+      expect(proxies.some((p) => p.googleBtnState === "success")).toBe(true);
+      expect(proxies.some((p) => p.googleBtnState === "error")).toBe(true);
+    }, { timeout: 5000 });
+
+    const successState = getAllProxies().find((p) => p.googleBtnState === "success");
+    const failedState = getAllProxies().find((p) => p.googleBtnState === "error");
+    expect(successState.googleSpan.textContent).toContain("FR:Alpha");
+    expect(failedState.googleSpan.textContent).toBe("");
+    expect(t1.textContent).toContain("Alpha paragraph");
+    expect(t2.textContent).toBe("Beta paragraph that google refused");
+  });
+
+  it("single-text surfaces reject on an engine failure instead of resolving \"\" (plan 118 / P3)", async () => {
+    sendMessageMock.mockImplementation((payload, callback) => {
+      if (payload?.action === "translateSingleTextDetailed") {
+        callback({ result: "", outcome: { status: "error", errorMessage: "429 Too Many Requests" } });
+        return;
+      }
+      callback(undefined);
+    });
+
+    await expect(
+      backgroundTranslateSingleText("google", "fr", "hello")
+    ).rejects.toThrow("429 Too Many Requests");
+  });
+
+  it("single-text legacy string responses still resolve (SW compatibility)", async () => {
+    sendMessageMock.mockImplementation((payload, callback) => {
+      if (payload?.action === "translateSingleTextDetailed") {
+        callback("Bonjour");
+        return;
+      }
+      callback(undefined);
+    });
+
+    await expect(
+      backgroundTranslateSingleText("google", "fr", "hello")
+    ).resolves.toBe("Bonjour");
+  });
+
+  it("attribute failure leaves the site's original value untouched (plan 118 / P3)", () => {
+    const okNode = document.createElement("div");
+    okNode.setAttribute("title", "Alpha attribute text");
+    document.body.appendChild(okNode);
+    const failedNode = document.createElement("div");
+    failedNode.setAttribute("title", "Beta attribute text");
+    document.body.appendChild(failedNode);
+
+    const attrs = [
+      { node: okNode, attrName: "title", original: "Alpha attribute text", isTranslated: true },
+      { node: failedNode, attrName: "title", original: "Beta attribute text", isTranslated: true },
+    ];
+
+    const failures = pageTranslator._translateAttributes(
+      attrs,
+      ["FR Alpha attribute text", ""],
+      [
+        { status: "complete" },
+        { status: "error", errorMessage: "429 Too Many Requests" },
+      ]
+    );
+
+    expect(okNode.getAttribute("title")).toBe("FR Alpha attribute text");
+    expect(failedNode.getAttribute("title")).toBe("Beta attribute text");
+    expect(failures).toHaveLength(1);
+    expect(failures[0].errorText).toContain("429");
   });
 });
