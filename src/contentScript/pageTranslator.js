@@ -72,7 +72,7 @@ import { AI_ENGINE_LABEL } from "./engineLabels.js";
 import Toastify from 'toastify-js'
 import { encode } from 'gpt-tokenizer'
 import { wordsCount } from "../util/globalWordsCount.js"
-import { registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, setCallbacks, getProxiesForTranslation, getAllProxies, getBlockState, updateSingletonUI, hideButtonGroup, setEntryPolicyProvider, syncBlockBadges, syncAllBlockBadgeActiveStates } from "./singletonBtnGroup.js";
+import { registerBlock, createSingletonButtonGroup, destroySingletonButtonGroup, attachHoverDelegation, setCallbacks, getProxiesForTranslation, getAllProxies, getBlockState, updateSingletonUI, hideButtonGroup, setEntryPolicyProvider, syncBlockBadges, syncAllBlockBadgeActiveStates, clearAllBlockStates } from "./singletonBtnGroup.js";
 import { resolveSingletonBtnClick } from "./singletonBtnClickResolver.js";
 import { setBlockTranslationIndicator, injectBlockIndicatorStyles } from "./blockTranslationIndicator.js";
 import { installFeedbackReporter } from "./feedbackReporter.js";
@@ -3576,38 +3576,33 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     if (dontSortResults) {
       for (let i = 0; i < results.length; i++) {
         const nodes = piecesToTranslateNow[i].nodes;
+        const parentForBlock = nodes.length > 0 ? nodes[nodes.length - 1].parentNode : null;
+        const blockStateForPiece = parentForBlock ? getBlockState(parentForBlock) : null;
+        // AI already owns this block's display (AI may arrive before Google in
+        // the source-derived model). Google text must be stored for a later
+        // "show Google" switch, but NEVER written into the cleared source nodes
+        // — that would resurrect the original line next to the AI text.
+        const aiOwnsDisplay = !!blockStateForPiece && blockStateForPiece.displayMode === "ai";
 
-         // Add inline button group (Google + AI)
+         // Google arrival UPDATE (registration happens at the source scan —
+         // plan 118 / P2). The Google text itself is written into the source
+         // nodes below (nodesToRestore); this only owns the block's channel
+         // status. Never re-register and never steal an AI display.
         if (nodes.length > 0 && nodes[0]) {
           let sourceString = nodes.reduce((accumulator, currentNode) => accumulator + currentNode.textContent, "")
           if (shouldTriggerAiImprove(wordsCount(sourceString), twpConfig.get("aiImproveForLongerThan"))) {
-             // Translation node (for displaying AI translation results)
             let lastTextNode = nodes[nodes.length - 1]
-            if (lastTextNode && lastTextNode.parentNode) {
-              lastTextNode.parentNode.classList.add("dualtran-result-container")
-            }
-            // Guard: skip if the parent already has an AI translation span.
-            // In replaceOriginal mode, the MutationObserver can pick up the AI span
-            // (it is NOT inside a <translated> element) and feed it back as "new content",
-            // causing translateResults to be called again on the same parent.
-            // Without this guard, each cycle creates a duplicate AI span.
-            if (lastTextNode && lastTextNode.parentNode &&
-                !lastTextNode.parentNode.querySelector(".dualtran-aitranslatedtext-replacemode")) {
-              let translatedTextNode = document.createElement("span")
-              translatedTextNode.classList.add("dualtran-aitranslatedtext-replacemode")
-              lastTextNode.parentNode.appendChild(translatedTextNode)
-
-              ensureSingletonInit();
-              registerBlock(
-                lastTextNode.parentNode, sourceString, translatedTextNode,
-                "", // Google text restored via nodesToRestore
-                nodes
-              );
-              // Intent inheritance (plan 30 / Q4d): the new block joins the
-              // page's live intent instead of defaulting to "google".
-              {
-                const st = getBlockState(lastTextNode.parentNode);
-                if (st) st.intentMode = currentPageIntentMode();
+            const parent = lastTextNode && lastTextNode.parentNode
+            if (parent) {
+              parent.classList.add("dualtran-result-container")
+              const st = getBlockState(parent)
+              if (st) {
+                applyGoogleSuccess(st, { preserveAiDisplay: true })
+                try {
+                  updateSingletonUI(parent)
+                } catch (e) {
+                  console.warn("[DualTran] translateResults google update failed", e)
+                }
               }
             }
           }
@@ -3651,6 +3646,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
               currentPageTranslatorService,
               currentTargetLanguage
             ).then((results) => {
+              if (aiOwnsDisplay) {
+                toRestore.translatedText = results;
+                return;
+              }
                // If the node has been hidden by AI translation (display: none), skip updating
                // This avoids overwriting the hide operation in applyAiTranslatingState
               if (nodes[j].nodeType === 1 && nodes[j].style?.display === "none") {
@@ -3672,6 +3671,9 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         for (const j in piecesToTranslateNow[i].nodes) {
           if (results[i][j]) {
             const nodes = piecesToTranslateNow[i].nodes;
+            const parentForBlock = nodes.length > 0 ? nodes[nodes.length - 1].parentNode : null;
+            const blockStateForPiece = parentForBlock ? getBlockState(parentForBlock) : null;
+            const aiOwnsDisplay = !!blockStateForPiece && blockStateForPiece.displayMode === "ai";
             const translated = results[i][j] + " ";
 
             const originalTextNode = nodes[j];
@@ -3698,6 +3700,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
               currentPageTranslatorService,
               currentTargetLanguage
             ).then((results) => {
+              if (aiOwnsDisplay) {
+                toRestore.translatedText = results;
+                return;
+              }
                // Set the text node's text value to the translated text
               nodes[j].textContent = results;
               markTextWrite(nodes[j]);
@@ -3713,7 +3719,7 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
 
   /**
-   * Register AI translation blocks from the SOURCE DOM scan (plan 118 / P1).
+   * Register AI translation blocks from the SOURCE DOM scan (plan 118 / P1+P2).
    *
    * Blocks used to be created as a side effect of the Google arrival
    * (`addTranslatedContent` / `translateResults`). That made AI's work set
@@ -3725,25 +3731,23 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
    *
    * newLine: the block anchor is the `<translated>` element created by
    * getPiecesToTranslate; google/ai spans are ensured now so either engine can
-   * arrive first. replaceOriginal parity lands in plan 118 / P2.
+   * arrive first.
+   * replaceOriginal: the block anchor is the last source text node's parent
+   * (the same anchor translateResults used); the AI span is ensured now and
+   * `nodesToClear` is captured before any engine writes.
    *
    * @param {Array<Object>} pieces — piecesToTranslate-shaped records
    */
   function registerSourceBlocks(pieces) {
     if (!Array.isArray(pieces) || pieces.length === 0) return;
     if (window.self !== window.top) return;
-    // P1 scope: newLine only (replaceOriginal registers on the source parent in P2).
-    if (twpConfig.get("whereToDisplayTranslatedText") !== "newLine") return;
+    const mode = twpConfig.get("whereToDisplayTranslatedText");
 
     const candidates = [];
     for (const piece of pieces) {
       try {
         const nodes = piece?.nodes;
         if (!nodes || nodes.length === 0) continue;
-        const translatedElement = piece.translatedElement;
-        if (!translatedElement || !translatedElement.isConnected) continue;
-        // Never overwrite an existing block (dynamic-content rescans, reruns).
-        if (getBlockState(translatedElement)) continue;
         const sourceString = nodes.reduce(
           (accumulator, node) => accumulator + (node?.textContent || ""),
           ""
@@ -3751,20 +3755,56 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
         if (!shouldTriggerAiImprove(wordsCount(sourceString), twpConfig.get("aiImproveForLongerThan"))) {
           continue;
         }
-        let googleSpan = translatedElement.querySelector(":scope > .dualtran-google");
-        let aiSpan = translatedElement.querySelector(":scope > .dualtran-ai");
-        if (!googleSpan) {
-          googleSpan = document.createElement("span");
-          googleSpan.className = "dualtran-google";
-          translatedElement.appendChild(googleSpan);
+
+        if (mode === "newLine") {
+          const translatedElement = piece.translatedElement;
+          if (!translatedElement || !translatedElement.isConnected) continue;
+          // Never overwrite an existing block (dynamic-content rescans, reruns).
+          if (getBlockState(translatedElement)) continue;
+          let googleSpan = translatedElement.querySelector(":scope > .dualtran-google");
+          let aiSpan = translatedElement.querySelector(":scope > .dualtran-ai");
+          if (!googleSpan) {
+            googleSpan = document.createElement("span");
+            googleSpan.className = "dualtran-google";
+            translatedElement.appendChild(googleSpan);
+          }
+          if (!aiSpan) {
+            aiSpan = document.createElement("span");
+            aiSpan.className = "dualtran-ai";
+            aiSpan.style.display = "none";
+            translatedElement.appendChild(aiSpan);
+          }
+          candidates.push({
+            anchor: translatedElement,
+            sourceString,
+            nodesToClear: null,
+            googleSpan,
+            aiSpan,
+            stateAiSpan: aiSpan,
+          });
+        } else {
+          // replaceOriginal: same anchor semantics as translateResults.
+          const anchor = nodes[nodes.length - 1]?.parentNode;
+          if (!anchor || !anchor.isConnected || anchor.nodeType !== 1) continue;
+          if (getBlockState(anchor)) continue;
+          let aiSpan = anchor.querySelector(":scope > .dualtran-aitranslatedtext-replacemode");
+          if (!aiSpan) {
+            aiSpan = document.createElement("span");
+            aiSpan.classList.add("dualtran-aitranslatedtext-replacemode");
+            anchor.appendChild(aiSpan);
+          }
+          candidates.push({
+            anchor,
+            sourceString,
+            nodesToClear: nodes,
+            googleSpan: null,
+            aiSpan,
+            // Keep the legacy replaceOriginal state shape: aiSpan stays null
+            // so the AI result path uses translatedTextNode and the mode-aware
+            // color rule (replaceOriginal must NOT paint aiTranslatedColor).
+            stateAiSpan: null,
+          });
         }
-        if (!aiSpan) {
-          aiSpan = document.createElement("span");
-          aiSpan.className = "dualtran-ai";
-          aiSpan.style.display = "none";
-          translatedElement.appendChild(aiSpan);
-        }
-        candidates.push({ translatedElement, sourceString, googleSpan, aiSpan });
       } catch (e) {
         console.warn("[DualTran] registerSourceBlocks scan failed", e);
       }
@@ -3775,14 +3815,16 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     for (const candidate of candidates) {
       try {
         registerBlock(
-          candidate.translatedElement,
+          candidate.anchor,
           candidate.sourceString,
-          candidate.googleSpan,
+          // Legacy translatedTextNode: googleSpan in newLine (dual-span),
+          // the AI span in replaceOriginal.
+          candidate.googleSpan || candidate.aiSpan,
           "",
-          null,
+          candidate.nodesToClear,
           {
             googleSpan: candidate.googleSpan,
-            aiSpan: candidate.aiSpan,
+            aiSpan: candidate.stateAiSpan,
             // No engine has arrived yet: the block shows the source text.
             initialDisplayMode: "original",
             initialIntentMode: currentPageIntentMode(),
@@ -4846,6 +4888,10 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     setAiRenderState("idle");
      // User actively restores original text; clear AI translation marker to avoid auto-triggering AI translation on back navigation
     removeAiAppliedFlag();
+     // Plan 118 / P2: drop stale block registrations before the views are
+     // removed. replaceOriginal source elements survive restore; without this
+     // the next run would see the old state and skip re-registration.
+    try { clearAllBlockStates(); } catch (e) { console.warn("[DualTran] clearAllBlockStates failed", e); }
      // Remove all <translated> elements
     document.querySelectorAll("translated").forEach((node) => { node.parentNode.removeChild(node); node = null })
 

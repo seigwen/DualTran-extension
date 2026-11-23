@@ -306,6 +306,21 @@ export function getBlockState(translatedElement) {
   return blockStateMap.get(translatedElement) || null;
 }
 
+/**
+ * Drop every block registration (WeakMap state + data-dualtran-block marker).
+ *
+ * restorePage() removes the DOM views, but in replaceOriginal mode the source
+ * elements survive. Without this, the next translation run's
+ * registerSourceBlocks() sees the stale registration and skips the block,
+ * leaving old sourceString/aiStatus/displayMode in place (plan 118 / P2).
+ */
+export function clearAllBlockStates() {
+  for (const el of document.querySelectorAll("[data-dualtran-block], translated")) {
+    blockStateMap.delete(el);
+    try { delete el.dataset.dualtranBlock; } catch (_) {}
+  }
+}
+
 // ── Singleton DOM ───────────────────────────────────────────────
 
 let _singleton = {

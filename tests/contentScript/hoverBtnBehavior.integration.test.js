@@ -994,6 +994,7 @@ describe("Intent inheritance — dynamic blocks join the page intent (plan 30 / 
   afterEach(() => {
     pageTranslator.restorePage(true);
     pageTranslator._setForceAiTranslation(false);
+    mockState.configValues.whereToDisplayTranslatedText = "newLine";
   });
 
   it("newLine: a source-scanned block inherits the AI intent (plan 118 / P1)", async () => {
@@ -1017,7 +1018,8 @@ describe("Intent inheritance — dynamic blocks join the page intent (plan 30 / 
     expect(st.displayMode).toBe("google"); // Google arrival is the only actual display switch here
   });
 
-  it("replaceOriginal: a block registered by translateResults inherits the AI intent", () => {
+  it("replaceOriginal: a source-scanned block inherits the AI intent (plan 118 / P2)", () => {
+    mockState.configValues.whereToDisplayTranslatedText = "replaceOriginal";
     pageTranslator._setForceAiTranslation(true);
     pageTranslator.translatePage("fr");
 
@@ -1026,7 +1028,9 @@ describe("Intent inheritance — dynamic blocks join the page intent (plan 30 / 
     p.appendChild(textNode);
     document.body.appendChild(p);
 
-    pageTranslator._translateResults([{ nodes: [textNode] }], [["Bonjour"]]);
+    const piece = { nodes: [textNode] };
+    pageTranslator._registerSourceBlocks([piece]);
+    pageTranslator._translateResults([piece], [["Bonjour"]]);
 
     const st = getBlockState(p);
     expect(st).not.toBeNull();
