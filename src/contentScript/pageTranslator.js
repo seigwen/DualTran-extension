@@ -2716,6 +2716,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
     }
     // Trigger translation for newly discovered pieces
     // But not if translateDynamically() is already running (prevents duplicate translations)
+    if (hasNewPieces) {
+      // Plan 118 / P1: dynamic pieces get their block at scan time too, so AI
+      // can translate them even if the Google request for this batch fails.
+      registerSourceBlocks(piecesToTranslate);
+    }
     if (hasNewPieces && !isDynamicTranslating) {
       translateDynamically();
     }
@@ -3708,6 +3713,88 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
 
   /**
+   * Register AI translation blocks from the SOURCE DOM scan (plan 118 / P1).
+   *
+   * Blocks used to be created as a side effect of the Google arrival
+   * (`addTranslatedContent` / `translateResults`). That made AI's work set
+   * depend on the OTHER engine's output: a banned/failed Google pass resolved
+   * with empty strings and registered nothing, so the page-level AI loop found
+   * no blocks ("no blocks to translate"). Registration is derived from the
+   * source nodes here, at translation-run start (and for dynamic pieces when
+   * they enter the pipeline); arrivals only UPDATE the block's channels.
+   *
+   * newLine: the block anchor is the `<translated>` element created by
+   * getPiecesToTranslate; google/ai spans are ensured now so either engine can
+   * arrive first. replaceOriginal parity lands in plan 118 / P2.
+   *
+   * @param {Array<Object>} pieces — piecesToTranslate-shaped records
+   */
+  function registerSourceBlocks(pieces) {
+    if (!Array.isArray(pieces) || pieces.length === 0) return;
+    if (window.self !== window.top) return;
+    // P1 scope: newLine only (replaceOriginal registers on the source parent in P2).
+    if (twpConfig.get("whereToDisplayTranslatedText") !== "newLine") return;
+
+    const candidates = [];
+    for (const piece of pieces) {
+      try {
+        const nodes = piece?.nodes;
+        if (!nodes || nodes.length === 0) continue;
+        const translatedElement = piece.translatedElement;
+        if (!translatedElement || !translatedElement.isConnected) continue;
+        // Never overwrite an existing block (dynamic-content rescans, reruns).
+        if (getBlockState(translatedElement)) continue;
+        const sourceString = nodes.reduce(
+          (accumulator, node) => accumulator + (node?.textContent || ""),
+          ""
+        );
+        if (!shouldTriggerAiImprove(wordsCount(sourceString), twpConfig.get("aiImproveForLongerThan"))) {
+          continue;
+        }
+        let googleSpan = translatedElement.querySelector(":scope > .dualtran-google");
+        let aiSpan = translatedElement.querySelector(":scope > .dualtran-ai");
+        if (!googleSpan) {
+          googleSpan = document.createElement("span");
+          googleSpan.className = "dualtran-google";
+          translatedElement.appendChild(googleSpan);
+        }
+        if (!aiSpan) {
+          aiSpan = document.createElement("span");
+          aiSpan.className = "dualtran-ai";
+          aiSpan.style.display = "none";
+          translatedElement.appendChild(aiSpan);
+        }
+        candidates.push({ translatedElement, sourceString, googleSpan, aiSpan });
+      } catch (e) {
+        console.warn("[DualTran] registerSourceBlocks scan failed", e);
+      }
+    }
+
+    if (candidates.length === 0) return;
+    ensureSingletonInit();
+    for (const candidate of candidates) {
+      try {
+        registerBlock(
+          candidate.translatedElement,
+          candidate.sourceString,
+          candidate.googleSpan,
+          "",
+          null,
+          {
+            googleSpan: candidate.googleSpan,
+            aiSpan: candidate.aiSpan,
+            // No engine has arrived yet: the block shows the source text.
+            initialDisplayMode: "original",
+            initialIntentMode: currentPageIntentMode(),
+          }
+        );
+      } catch (e) {
+        console.warn("[DualTran] registerSourceBlocks failed", e);
+      }
+    }
+  }
+
+  /**
     * Add translated text to an existing translatedElement node
    * 
     * @param {*} piecesToTranslateNow nodes to translate
@@ -3863,28 +3950,18 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
           // characterData mutation as extension output (#98).
           markTextWrite(googleSpan)
 
-           // Add inline button group (Google + AI)
-          let sourceString = piecesToTranslateNow[i].nodes.reduce((accumulator, currentNode) => accumulator + currentNode.textContent, "")
-           // Use shouldTriggerAiImprove instead of inline expression to ensure consistent behavior between newLine and replaceOriginal modes.
-           // Gate on the SOURCE text, not the Google output: a failed/banned
-           // Google pass resolves with an empty string per block, and gating on
-           // that output silently unregistered the block — the page-level AI
-           // loop then had nothing to translate ("no blocks to translate"), so
-           // a Google outage took AI translation down with it. The source text
-           // is what AI translates, and replaceOriginal already gates on it.
-          if (shouldTriggerAiImprove(wordsCount(sourceString), twpConfig.get("aiImproveForLongerThan"))) {
-            ensureSingletonInit();
-            registerBlock(
-              translatedElement, sourceString, googleSpan,  // translatedTextNode points to googleSpan for backward compat
-              finalResults, // Store Google translation for restoration
-              null, // No nodes to clear in new-line mode
-              { googleSpan, aiSpan }
-            );
-            // Intent inheritance (plan 30 / Q4d): the new block joins the
-            // page's live intent instead of defaulting to "google".
-            {
-              const st = getBlockState(translatedElement);
-              if (st) st.intentMode = currentPageIntentMode();
+           // Google arrival UPDATE (registration happens at the source scan —
+           // plan 118 / P1). Never touch the AI channel: AI may already have
+           // arrived and claimed the display, and re-registering here was the
+           // structural coupling that let a Google outage remove AI's work set.
+          const blockState = getBlockState(translatedElement);
+          if (blockState) {
+            blockState.googleTranslatedText = finalResults;
+            applyGoogleSuccess(blockState, { preserveAiDisplay: true });
+            try {
+              updateSingletonUI(translatedElement);
+            } catch (e) {
+              console.warn("[DualTran] addTranslatedContent google update failed", e);
             }
           }
         }
@@ -4722,6 +4799,11 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
      // Get info list for all nodes to translate (one-dimensional array)
     piecesToTranslate = getPiecesToTranslate();
 
+     // Plan 118 / P1: register the AI blocks from the SOURCE scan, before any
+     // engine arrives. A Google failure must not be able to remove AI's work
+     // set (the pre-#218 "no blocks to translate" coupling).
+    registerSourceBlocks(piecesToTranslate);
+
      // Get info list for all attributes to translate (one-dimensional array)
     attributesToTranslate = getAttributesToTranslate();
 
@@ -4868,6 +4950,8 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
   pageTranslator._translateResults = translateResults;
    /** @internal — for testing */
   pageTranslator._addTranslatedContent = addTranslatedContent;
+   /** @internal — for testing source-derived block registration (plan 118 / P1) */
+  pageTranslator._registerSourceBlocks = registerSourceBlocks;
    /** @internal — for testing getPiecesToTranslate DOM parsing behavior */
   pageTranslator._getPiecesToTranslate = getPiecesToTranslate;
    /** @internal — for testing custom dictionary filtering */

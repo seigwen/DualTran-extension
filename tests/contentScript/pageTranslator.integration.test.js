@@ -158,6 +158,7 @@ beforeAll(async () => {
   await vi.waitFor(() => {
     expect(pageTranslator._translateResults).toBeTypeOf("function");
     expect(pageTranslator._addTranslatedContent).toBeTypeOf("function");
+    expect(pageTranslator._registerSourceBlocks).toBeTypeOf("function");
     expect(pageTranslator._getPiecesToTranslate).toBeTypeOf("function");
     expect(pageTranslator._filterKeywordsInText).toBeTypeOf("function");
     expect(pageTranslator._handleCustomWords).toBeTypeOf("function");
@@ -257,7 +258,7 @@ describe("addTranslatedContent (newLine 模式)", () => {
     mockState.showOriginalAddMock.mockClear();
   });
 
-  it("aiImproveForLongerThan=0 时应调用 registerBlock", async () => {
+  it("aiImproveForLongerThan=0 时应由源扫描注册块，Google 到达只更新", async () => {
     const textNode = document.createTextNode("Hello world");
     const parentElement = document.createElement("p");
     parentElement.appendChild(textNode);
@@ -266,12 +267,15 @@ describe("addTranslatedContent (newLine 模式)", () => {
     parentElement.appendChild(translatedElement);
     document.body.appendChild(parentElement);
 
-    await addTranslatedContent(
-      [{ nodes: [textNode], translatedElement, nodesToBeInTranslatedNode: [textNode] }],
-      [["Bonjour le monde"]]
-    );
+    const piece = {
+      nodes: [textNode],
+      translatedElement,
+      nodesToBeInTranslatedNode: [textNode],
+    };
+    pageTranslator._registerSourceBlocks([piece]);
+    await addTranslatedContent([piece], [["Bonjour le monde"]]);
 
-    expect(mockState.registerBlockMock).toHaveBeenCalled();
+    expect(mockState.registerBlockMock).toHaveBeenCalledTimes(1);
   });
 
   it("showOriginal 启用时应把 translated 元素连同原文注册到 showOriginal（newLine 模式 hover 原文回归）", async () => {

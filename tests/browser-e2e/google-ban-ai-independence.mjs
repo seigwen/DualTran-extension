@@ -115,6 +115,23 @@ async function removeGoogleBan(serviceWorker) {
 }
 
 /**
+ * Wait until the Google pass settles (no pending batches). Since plan 118/P1
+ * registers blocks at the source scan, the block-existence wait alone no
+ * longer implies the Google arrivals finished — the empty-output assertion
+ * must observe the settled pass.
+ */
+async function waitForGoogleSettled(serviceWorker, tabUrl, timeoutMs = 20000) {
+  const deadline = Date.now() + timeoutMs;
+  let last = null;
+  while (Date.now() < deadline) {
+    last = await sendMessageToTab(serviceWorker, tabUrl, { action: "getFloatingUiState" });
+    if (last && last.googleInFlight === false) return last;
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  throw new Error(`Google pass did not settle within ${timeoutMs}ms: ${JSON.stringify(last)}`);
+}
+
+/**
  * Insert unique probe paragraphs (Google cache is shared across scenarios —
  * fixed text would be served from cache and never hit the 429 patch).
  */
@@ -162,6 +179,10 @@ async function runMode(scope, mode, token) {
       PROBE_COUNT,
       { timeout: 20000 }
     );
+
+    // ...and wait for the Google pass to actually settle before asserting its
+    // output (source registration happens before any engine arrives).
+    await waitForGoogleSettled(serviceWorker, page.url(), 20000);
 
     const banHits = await serviceWorker.evaluate(() => globalThis.__googleBanHits || 0);
     if (!(banHits > 0)) {

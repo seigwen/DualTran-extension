@@ -115,7 +115,19 @@ export function createBlockState() {
   };
 }
 
-export function registerBlock(translatedElement, sourceString, translatedTextNode, googleTranslatedText, nodesToClear, { googleSpan = null, aiSpan = null } = {}) {
+export function registerBlock(translatedElement, sourceString, translatedTextNode, googleTranslatedText, nodesToClear, {
+  googleSpan = null,
+  aiSpan = null,
+  // Source-derived registration (plan 118 / P1): a block can exist BEFORE any
+  // engine arrives. Backward-compatible defaults keep the legacy
+  // register-on-Google-arrival call sites behaving exactly as before.
+  // Names are prefixed to avoid the ui-state lint treating defaults as bare
+  // writes to the UI SSOT fields.
+  initialDisplayMode = "google",
+  initialIntentMode = "google",
+  initialGoogleBtnState = "idle",
+  initialAiStatus = "idle",
+} = {}) {
   // Mark element so getProxiesForTranslation can find non-<translated> elements in replaceOriginal mode
   translatedElement.dataset.dualtranBlock = "1";
   blockStateMap.set(translatedElement, {
@@ -127,12 +139,10 @@ export function registerBlock(translatedElement, sourceString, translatedTextNod
     // Dual-span mode: separate spans for Google and AI translations
     googleSpan,   // <span class="dualtran-google"> — Google writes here
     aiSpan,       // <span class="dualtran-ai"> — AI writes here
-    // Override: registerBlock is called after Google translation completes
-    displayMode: "google",
-    // Intent at registration = Google (same reasoning): the block's first
-    // registered moment is the Google pass. Page-level intent changes reach
-    // it afterwards via propagateIntentToBlocks.
-    intentMode: "google",
+    displayMode: initialDisplayMode,
+    intentMode: initialIntentMode,
+    googleBtnState: initialGoogleBtnState,
+    aiStatus: initialAiStatus,
   });
 
   // Always mode (#57): a persistent control at the block end for no-mouse
