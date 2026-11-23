@@ -211,18 +211,18 @@ describe("translateResults (replaceOriginal 模式)", () => {
     mockState.registerBlockMock.mockClear();
     mockState.ensureSingletonInitMock.mockClear();
     mockState.configValues.aiImproveForLongerThan = 0;
+    mockState.configValues.whereToDisplayTranslatedText = "replaceOriginal";
   });
 
-  it("ISSUE-006 回归: aiImproveForLongerThan=0 时应调用 registerBlock", () => {
+  it("ISSUE-006 回归: aiImproveForLongerThan=0 时应由源扫描注册块", () => {
     const textNode = document.createTextNode("Hello world this is a test sentence for translation");
     const parentElement = document.createElement("p");
     parentElement.appendChild(textNode);
     document.body.appendChild(parentElement);
 
-    translateResults(
-      [{ nodes: [textNode] }],
-      [["Bonjour le monde ceci est une phrase test pour la traduction"]]
-    );
+    const piece = { nodes: [textNode] };
+    pageTranslator._registerSourceBlocks([piece]);
+    translateResults([piece], [["Bonjour le monde ceci est une phrase test pour la traduction"]]);
 
     expect(mockState.registerBlockMock).toHaveBeenCalled();
     const callArgs = mockState.registerBlockMock.mock.calls[0];
@@ -239,10 +239,9 @@ describe("translateResults (replaceOriginal 模式)", () => {
     parentElement.appendChild(textNode);
     document.body.appendChild(parentElement);
 
-    translateResults(
-      [{ nodes: [textNode] }],
-      [["Bonjour"]]
-    );
+    const piece = { nodes: [textNode] };
+    pageTranslator._registerSourceBlocks([piece]);
+    translateResults([piece], [["Bonjour"]]);
 
     expect(mockState.registerBlockMock).not.toHaveBeenCalled();
   });
@@ -254,6 +253,7 @@ describe("addTranslatedContent (newLine 模式)", () => {
     mockState.registerBlockMock.mockClear();
     mockState.ensureSingletonInitMock.mockClear();
     mockState.configValues.aiImproveForLongerThan = 0;
+    mockState.configValues.whereToDisplayTranslatedText = "newLine";
     mockState.showOriginalIsEnabled = false;
     mockState.showOriginalAddMock.mockClear();
   });
@@ -418,6 +418,9 @@ describe("replaceOriginal 模式：Google 翻译和 AI 翻译位置正确性", (
     parentElement.appendChild(textNode);
     document.body.appendChild(parentElement);
 
+    // Plan 118 / P2: the block (and its AI span) is created by the source scan.
+    pageTranslator._registerSourceBlocks([{ nodes: [textNode] }]);
+
     translateResults(
       [{ nodes: [textNode] }],
       [["Bonjour le monde ceci est une phrase test"]]
@@ -440,6 +443,8 @@ describe("replaceOriginal 模式：Google 翻译和 AI 翻译位置正确性", (
     const parentElement = document.createElement("p");
     parentElement.appendChild(textNode);
     document.body.appendChild(parentElement);
+
+    pageTranslator._registerSourceBlocks([{ nodes: [textNode] }]);
 
     translateResults(
       [{ nodes: [textNode] }],
@@ -521,6 +526,8 @@ describe("replaceOriginal 模式：Google 翻译和 AI 翻译位置正确性", (
     const parentElement = document.createElement("p");
     parentElement.appendChild(textNode);
     document.body.appendChild(parentElement);
+
+    pageTranslator._registerSourceBlocks([{ nodes: [textNode] }]);
 
     translateResults(
       [{ nodes: [textNode] }],
@@ -766,6 +773,8 @@ describe("replaceOriginal 模式：dontSortResults 分支覆盖", () => {
     const p = document.createElement("p");
     p.appendChild(textNode);
     document.body.appendChild(p);
+
+    pageTranslator._registerSourceBlocks([{ nodes: [textNode] }]);
 
     translateResults(
       [{ nodes: [textNode] }],
@@ -1070,6 +1079,7 @@ describe("replaceOriginal 模式：AI 翻译后 showOriginal 注册（hover 原�
     document.body.appendChild(parentElement);
 
     // Google 翻译
+    pageTranslator._registerSourceBlocks([{ nodes: [textNode] }]);
     translateResults(
       [{ nodes: [textNode] }],
       [["Bonjour le monde"]]
@@ -1419,6 +1429,7 @@ describe("replaceOriginal 模式 — 重复翻译元素防护", () => {
     document.body.appendChild(p);
 
     // 第一次调用 translateResults
+    pageTranslator._registerSourceBlocks([{ nodes: [textNode] }]);
     translateResults(
       [{ nodes: [textNode] }],
       [["Bonjour le monde"]]
@@ -1446,6 +1457,7 @@ describe("replaceOriginal 模式 — 重复翻译元素防护", () => {
     p.appendChild(textNode);
     document.body.appendChild(p);
 
+    pageTranslator._registerSourceBlocks([{ nodes: [textNode] }]);
     for (let i = 0; i < 3; i++) {
       const currentNode = p.querySelector("font") || textNode;
       translateResults(
@@ -1471,6 +1483,7 @@ describe("replaceOriginal 模式 — 重复翻译元素防护", () => {
     document.body.appendChild(p);
 
     // Step 1: 首次翻译
+    pageTranslator._registerSourceBlocks([{ nodes: [textNode] }]);
     translateResults(
       [{ nodes: [textNode] }],
       [["Paragraphe de test de boucle de rétroaction"]]

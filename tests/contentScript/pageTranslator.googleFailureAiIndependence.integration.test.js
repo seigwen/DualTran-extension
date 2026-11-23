@@ -144,6 +144,7 @@ afterAll(() => {
 beforeEach(() => {
   translateWithAIMock.mockClear();
   sendMessageMock.mockClear();
+  configValues.whereToDisplayTranslatedText = "newLine";
   document.body.innerHTML = "";
 });
 
@@ -219,12 +220,15 @@ describe("Google empty result must not disable AI translation", () => {
   });
 
   it("mode symmetry: replaceOriginal registers on the SOURCE text, so an empty Google result still dispatches AI", async () => {
+    configValues.whereToDisplayTranslatedText = "replaceOriginal";
     const textNode = document.createTextNode("Replace original paragraph that google refused");
     const p = document.createElement("p");
     p.appendChild(textNode);
     document.body.appendChild(p);
 
-    pageTranslator._translateResults([{ nodes: [textNode] }], [[""]]);
+    const piece = { nodes: [textNode] };
+    pageTranslator._registerSourceBlocks([piece]);
+    pageTranslator._translateResults([piece], [[""]]);
 
     pageTranslator._setForceAiTranslation(true);
     await pageTranslator._aiTranslateDynamically();
@@ -232,5 +236,73 @@ describe("Google empty result must not disable AI translation", () => {
     expect(translateWithAIMock).toHaveBeenCalled();
     const content = translateWithAIMock.mock.calls[0][0];
     expect(content).toContain("Replace original paragraph that google refused");
+  });
+
+  it("replaceOriginal AI-first: a late Google result must not refill the cleared source line", async () => {
+    configValues.whereToDisplayTranslatedText = "replaceOriginal";
+    const textNode = document.createTextNode("Replace original AI first paragraph");
+    const p = document.createElement("p");
+    p.appendChild(textNode);
+    document.body.appendChild(p);
+
+    const piece = { nodes: [textNode] };
+    pageTranslator._registerSourceBlocks([piece]);
+    pageTranslator._setForceAiTranslation(true);
+    await pageTranslator._aiTranslateDynamically();
+    expect(translateWithAIMock).toHaveBeenCalled();
+
+    const proxies = getAllProxies();
+    expect(proxies.length).toBe(1);
+    applyAiSuccessState(proxies[0], { translatedText: "AI replaces the line first" });
+    // AI display cleared the source text node and shows the AI span.
+    expect(textNode.textContent).toBe("");
+
+    pageTranslator._translateResults([piece], [["Google arrives later"]]);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const st = getBlockState(p);
+    expect(st.displayMode).toBe("ai");
+    expect(st.aiSpan).toBeNull();
+    expect(st.translatedTextNode.textContent).toBe("AI replaces the line first");
+    // Google text is kept for a later "show Google" switch, never written into
+    // the visible source line while AI owns the display.
+    expect(textNode.textContent).toBe("");
+  });
+
+  it("restore + retranslate clears stale registrations and re-registers (replaceOriginal source elements survive)", () => {
+    configValues.whereToDisplayTranslatedText = "replaceOriginal";
+    const textNode = document.createTextNode("Replace original restore paragraph");
+    const p = document.createElement("p");
+    p.appendChild(textNode);
+    document.body.appendChild(p);
+
+    const piece = { nodes: [textNode] };
+    pageTranslator._registerSourceBlocks([piece]);
+    expect(getBlockState(p)).not.toBeNull();
+    expect(p.dataset.dualtranBlock).toBe("1");
+
+    pageTranslator.restorePage(true);
+
+    expect(getBlockState(p)).toBeNull();
+    expect(p.dataset.dualtranBlock).toBeUndefined();
+
+    pageTranslator._registerSourceBlocks([piece]);
+    expect(getBlockState(p)).not.toBeNull();
+    expect(p.querySelectorAll(":scope > .dualtran-aitranslatedtext-replacemode").length).toBe(1);
+  });
+
+  it("replaceOriginal: multiple pieces sharing one parent register once (existing anchor semantics)", () => {
+    configValues.whereToDisplayTranslatedText = "replaceOriginal";
+    const p = document.createElement("p");
+    const a = document.createTextNode("First piece in the shared parent");
+    const b = document.createTextNode("Second piece in the shared parent");
+    p.appendChild(a);
+    p.appendChild(b);
+    document.body.appendChild(p);
+
+    pageTranslator._registerSourceBlocks([{ nodes: [a] }, { nodes: [b] }]);
+
+    expect(getAllProxies().length).toBe(1);
+    expect(p.querySelectorAll(":scope > .dualtran-aitranslatedtext-replacemode").length).toBe(1);
   });
 });
