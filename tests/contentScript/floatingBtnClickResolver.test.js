@@ -21,6 +21,7 @@ function baseState(overrides = {}) {
     googleInFlight: false,
     aiInFlight: false,
     hasAiFailedBlocks: false,
+    hasGoogleFailedBlocks: false,
     aiResultAvailable: false, // newLine mode: AI text exists and can be re-shown locally
     hasApiKey: true,
     whereToDisplayTranslatedText: "newLine",
@@ -78,6 +79,34 @@ describe("resolveFloatingBtnClick — Google button", () => {
   it("page original + Google highlighted (e.g. after failure) → translatePage (retry)", () => {
     expect(
       resolveFloatingBtnClick(baseState({ highlight: "google" }), "google")
+    ).toEqual({ type: "translatePage" });
+  });
+
+  it("Google failed (page error) → translatePage retry, even if displayMode is google (plan 118 / P3)", () => {
+    expect(
+      resolveFloatingBtnClick(
+        baseState({
+          pageLanguageState: "translated",
+          displayMode: "google",
+          highlight: "google",
+          hasGoogleFailedBlocks: true,
+        }),
+        "google"
+      )
+    ).toEqual({ type: "translatePage" });
+  });
+
+  it("Google failed while AI is displayed → translatePage retry (the click's intent is Google)", () => {
+    expect(
+      resolveFloatingBtnClick(
+        baseState({
+          pageLanguageState: "translated",
+          displayMode: "ai",
+          highlight: "ai",
+          hasGoogleFailedBlocks: true,
+        }),
+        "google"
+      )
     ).toEqual({ type: "translatePage" });
   });
 

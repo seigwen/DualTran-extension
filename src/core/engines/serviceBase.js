@@ -351,10 +351,21 @@ export class Service {
    * @param {string} targetLanguage
    * @param {Array<string[]>} sourceArray2d
    * @param {boolean} dontSaveInPersistentCache
-   * @param {boolean} dontSortResults 
-   * @returns {Promise<string[][]>}
+   * @param {boolean} dontSortResults
+   * @returns {Promise<{ rows: string[][], outcomes: Array<{
+   *   status: "complete" | "error",
+   *   error: Error | null,
+   *   originalText: string,
+   *   translatedText: string | null,
+   *   detectedLanguage: string | null,
+   * }> }>}
+   *
+   * Plan 118 / P3: `translate()` used to collapse every failure into empty
+   * strings, so the page could not distinguish "translated to empty" from
+   * "request failed". This variant keeps the per-row status/error alongside
+   * the rows; `translate()` remains the compatibility wrapper.
    */
-  async translate(
+  async translateWithOutcomes(
     sourceLanguage,
     targetLanguage,
     sourceArray2d,
@@ -423,9 +434,46 @@ export class Service {
     await Promise.all(
       currentTranslationsInProgress.map((transInfo) => transInfo.waitTranlate)
     );
-    return currentTranslationsInProgress.map((transInfo) =>
+    const rows = currentTranslationsInProgress.map((transInfo) =>
       this.cbTransformResponse(transInfo.translatedText, dontSortResults)
     );
+    const outcomes = currentTranslationsInProgress.map((transInfo) => ({
+      status: transInfo.status === "error" ? "error" : "complete",
+      error: transInfo.error || null,
+      originalText: transInfo.originalText,
+      translatedText: transInfo.translatedText,
+      detectedLanguage: transInfo.detectedLanguage,
+    }));
+    return { rows, outcomes };
+  }
+
+  /**
+   * Compatibility wrapper — returns only the translated rows, exactly as
+   * before plan 118 / P3. Callers that need failure truth use
+   * translateWithOutcomes().
+   *
+   * @param {string} sourceLanguage
+   * @param {string} targetLanguage
+   * @param {Array<string[]>} sourceArray2d
+   * @param {boolean} dontSaveInPersistentCache
+   * @param {boolean} dontSortResults
+   * @returns {Promise<string[][]>}
+   */
+  async translate(
+    sourceLanguage,
+    targetLanguage,
+    sourceArray2d,
+    dontSaveInPersistentCache = false,
+    dontSortResults = false
+  ) {
+    const { rows } = await this.translateWithOutcomes(
+      sourceLanguage,
+      targetLanguage,
+      sourceArray2d,
+      dontSaveInPersistentCache,
+      dontSortResults
+    );
+    return rows;
   }
 
   /**

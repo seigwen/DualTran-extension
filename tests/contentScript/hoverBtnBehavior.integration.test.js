@@ -97,7 +97,7 @@ const defaultSendMessageImpl = (payload, callback) => {
   if (typeof callback === "function") {
     if (payload?.action === "getTabHostName") {
       callback("example.com");
-    } else if (payload?.action === "translateSingleText") {
+    } else if (payload?.action === "translateSingleTextDetailed") {
       callback("Google译文");
     } else {
       callback(undefined);
@@ -206,7 +206,7 @@ describe("Behavior 1 — O → restore original → G → local replay (no netwo
     expect(aiSpan.style.display).toBe("none");
     expect(getBlockState(translatedEl).displayMode).toBe("google");
     expect(
-      sendMessageSpy.mock.calls.filter(([p]) => p?.action === "translateSingleText")
+      sendMessageSpy.mock.calls.filter(([p]) => p?.action === "translateSingleTextDetailed")
     ).toHaveLength(0);
   });
 
@@ -225,7 +225,7 @@ describe("Behavior 1 — O → restore original → G → local replay (no netwo
     expect(textNode.textContent).toBe("Google译文");
     expect(getBlockState(p).displayMode).toBe("google");
     expect(
-      sendMessageSpy.mock.calls.filter(([p2]) => p2?.action === "translateSingleText")
+      sendMessageSpy.mock.calls.filter(([p2]) => p2?.action === "translateSingleTextDetailed")
     ).toHaveLength(0);
   });
 });
@@ -266,7 +266,7 @@ describe("Behavior 3 — AI → Google+AI concurrent → A noop → O restores (
     await handleBtn("ai", p);
     await flushAsync();
     expect(sendMessageSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ action: "translateSingleText" }),
+      expect.objectContaining({ action: "translateSingleTextDetailed" }),
       expect.any(Function)
     );
     expect(textNode.textContent).toBe("");
@@ -281,7 +281,7 @@ describe("Behavior 3 — AI → Google+AI concurrent → A noop → O restores (
     expect(aiSpan.textContent).toBe("AI译文");
     expect(getBlockState(p).displayMode).toBe("ai");
     expect(
-      sendMessageSpy.mock.calls.filter(([p2]) => p2?.action === "translateSingleText")
+      sendMessageSpy.mock.calls.filter(([p2]) => p2?.action === "translateSingleTextDetailed")
     ).toHaveLength(0);
 
     // Click O: restore original (restore responsibility lives on O)
@@ -492,7 +492,7 @@ describe("晚写抑制 — requestEpoch (#65)", () => {
       if (typeof callback === "function") {
         if (payload?.action === "getTabHostName") {
           callback("example.com");
-        } else if (payload?.action === "translateSingleText") {
+        } else if (payload?.action === "translateSingleTextDetailed") {
           held.push(callback);
         } else {
           callback(undefined);
@@ -726,7 +726,7 @@ describe("Arrival gate — hover A after page-level Google (issue #70)", () => {
       sendMessageSpy.mock.calls.filter(([payload]) => payload?.action === "aiTranslationCacheGet")
     ).toHaveLength(0);
     expect(
-      sendMessageSpy.mock.calls.filter(([payload]) => payload?.action === "translateSingleText")
+      sendMessageSpy.mock.calls.filter(([payload]) => payload?.action === "translateSingleTextDetailed")
     ).toHaveLength(0);
   });
 
@@ -759,7 +759,7 @@ describe("Arrival gate — hover A after page-level Google (issue #70)", () => {
     expect(aiSpan.textContent).toBe("AI译文");
     expect(getBlockState(p).displayMode).toBe("ai");
     expect(
-      sendMessageSpy.mock.calls.filter(([payload]) => payload?.action === "translateSingleText")
+      sendMessageSpy.mock.calls.filter(([payload]) => payload?.action === "translateSingleTextDetailed")
     ).toHaveLength(0);
   });
 

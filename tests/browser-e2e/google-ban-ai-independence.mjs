@@ -184,6 +184,21 @@ async function runMode(scope, mode, token) {
     // output (source registration happens before any engine arrives).
     await waitForGoogleSettled(serviceWorker, page.url(), 20000);
 
+    // Plan 118 / P3: the settled Google pass must report ERROR (not idle /
+    // success), and the page must show at least one ⚠ instead of silently
+    // rendering empty translations.
+    const floatingState = await sendMessageToTab(serviceWorker, page.url(), { action: "getFloatingUiState" });
+    if (floatingState?.pageRenderState !== "error") {
+      throw new Error(`[${mode}] Google ban did not surface as pageRenderState=error (got ${floatingState?.pageRenderState})`);
+    }
+    const errorIndicators = await page.evaluate(() => {
+      const wrap = document.getElementById("ban-probe-wrap");
+      return wrap ? wrap.querySelectorAll(".dualtran-block-error").length : 0;
+    });
+    if (errorIndicators < 1) {
+      throw new Error(`[${mode}] expected at least one block ⚠ after the ban, got ${errorIndicators}`);
+    }
+
     const banHits = await serviceWorker.evaluate(() => globalThis.__googleBanHits || 0);
     if (!(banHits > 0)) {
       throw new Error(`[${mode}] Google ban was never exercised (0 requests hit the 429 patch)`);

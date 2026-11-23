@@ -798,6 +798,7 @@ if (window.self !== window.top) {
         googleInFlight: s.googleInFlight,
         aiInFlight: s.aiInFlight,
         hasAiFailedBlocks: s.aiRenderState === "error",
+        hasGoogleFailedBlocks: s.pageRenderState === "error",
         aiResultAvailable: pageTranslator.hasAiResults ? pageTranslator.hasAiResults() : false,
         hasApiKey: true, // translatePageAi returns false when no key — handled below
         whereToDisplayTranslatedText: twpConfig.get("whereToDisplayTranslatedText"),
