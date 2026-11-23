@@ -563,8 +563,12 @@ export function resetBlockState(state) {
  * Mark a block as showing Google translation (success).
  * @param {{ displayMode: string, googleBtnState: string }} state
  */
-export function applyGoogleSuccess(state) {
-  state.displayMode = "google";
+export function applyGoogleSuccess(state, { preserveAiDisplay = false } = {}) {
+  // Arrival writers must not steal an AI display that already claimed the
+  // block (source-derived block registration: AI may arrive before Google).
+  if (!preserveAiDisplay || state.displayMode !== "ai") {
+    state.displayMode = "google";
+  }
   state.googleBtnState = "success";
 }
 

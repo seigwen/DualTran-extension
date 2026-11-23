@@ -15,6 +15,8 @@
 
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { JSDOM } from "jsdom";
+import { applyAiSuccessState } from "../../src/contentScript/aiUiState.js";
+import { getAllProxies, getBlockState } from "../../src/contentScript/singletonBtnGroup.js";
 
 const { configValues, translateWithAIMock, sendMessageMock } = vi.hoisted(() => ({
   configValues: {
@@ -161,8 +163,9 @@ function makeParagraph(sourceText) {
 }
 
 describe("Google empty result must not disable AI translation", () => {
-  it("control: a normal Google result registers the block and AI dispatches", async () => {
+  it("control: a normal Google result keeps the source-registered block and AI dispatches", async () => {
     const { piece } = makeParagraph("Control paragraph with normal google output");
+    pageTranslator._registerSourceBlocks([piece]);
     await pageTranslator._addTranslatedContent([piece], [["Paragraphe de controle"]]);
 
     pageTranslator._setForceAiTranslation(true);
@@ -173,11 +176,16 @@ describe("Google empty result must not disable AI translation", () => {
     expect(content).toContain("Control paragraph with normal google output");
   });
 
-  it("banned: an empty Google result still lets AI translate the same block", async () => {
-    const { piece } = makeParagraph("Banned paragraph that google refused to translate");
+  it("banned: an empty Google result never removes the block, and AI still dispatches", async () => {
+    const { piece, translatedElement } = makeParagraph("Banned paragraph that google refused to translate");
+    pageTranslator._registerSourceBlocks([piece]);
     // A banned Google endpoint resolves with empty strings (serviceBase catches
     // the HTTP error and returns "" per block) — not with null/throw.
     await pageTranslator._addTranslatedContent([piece], [[""]]);
+
+    const st = getBlockState(translatedElement);
+    expect(st).not.toBeNull();
+    expect(st.googleTranslatedText).toBe("");
 
     pageTranslator._setForceAiTranslation(true);
     await pageTranslator._aiTranslateDynamically();
@@ -185,6 +193,29 @@ describe("Google empty result must not disable AI translation", () => {
     expect(translateWithAIMock).toHaveBeenCalled();
     const content = translateWithAIMock.mock.calls[0][0];
     expect(content).toContain("Banned paragraph that google refused to translate");
+  });
+
+  it("AI arrives before Google: the late Google result updates only its channel and never steals the AI display", async () => {
+    const { piece, translatedElement } = makeParagraph("AI first paragraph that google was slow to translate");
+    pageTranslator._registerSourceBlocks([piece]);
+
+    pageTranslator._setForceAiTranslation(true);
+    await pageTranslator._aiTranslateDynamically();
+    expect(translateWithAIMock).toHaveBeenCalled();
+
+    // Real arrival writer on the real registry proxy (no mocked state).
+    const proxies = getAllProxies();
+    expect(proxies.length).toBe(1);
+    applyAiSuccessState(proxies[0], { translatedText: "AI arrives first" });
+
+    await pageTranslator._addTranslatedContent([piece], [["Google arrives later"]]);
+
+    const st = getBlockState(translatedElement);
+    expect(st.aiStatus).toBe("translated");
+    expect(st.aiSpan.textContent).toBe("AI arrives first");
+    expect(st.googleSpan.textContent).toBe("Google arrives later");
+    expect(st.displayMode).toBe("ai");
+    expect(st.googleBtnState).toBe("success");
   });
 
   it("mode symmetry: replaceOriginal registers on the SOURCE text, so an empty Google result still dispatches AI", async () => {

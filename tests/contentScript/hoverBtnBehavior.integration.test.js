@@ -996,7 +996,7 @@ describe("Intent inheritance — dynamic blocks join the page intent (plan 30 / 
     pageTranslator._setForceAiTranslation(false);
   });
 
-  it("newLine: a block registered by addTranslatedContent inherits the AI intent", async () => {
+  it("newLine: a source-scanned block inherits the AI intent (plan 118 / P1)", async () => {
     pageTranslator._setForceAiTranslation(true);
     pageTranslator.translatePage("fr"); // page intent is now ai (translated + loading)
 
@@ -1007,15 +1007,14 @@ describe("Intent inheritance — dynamic blocks join the page intent (plan 30 / 
     p.appendChild(translatedElement);
     document.body.appendChild(p);
 
-    await pageTranslator._addTranslatedContent(
-      [{ nodes: [textNode], translatedElement, nodesToBeInTranslatedNode: [textNode] }],
-      [["Bonjour le monde"]]
-    );
+    const piece = { nodes: [textNode], translatedElement, nodesToBeInTranslatedNode: [textNode] };
+    pageTranslator._registerSourceBlocks([piece]);
+    await pageTranslator._addTranslatedContent([piece], [["Bonjour le monde"]]);
 
     const st = getBlockState(translatedElement);
     expect(st).not.toBeNull();
-    expect(st.intentMode).toBe("ai"); // inherited — not the "google" seed
-    expect(st.displayMode).toBe("google"); // registration still seeds the actual-display record
+    expect(st.intentMode).toBe("ai"); // inherited at source registration — not the "google" seed
+    expect(st.displayMode).toBe("google"); // Google arrival is the only actual display switch here
   });
 
   it("replaceOriginal: a block registered by translateResults inherits the AI intent", () => {
