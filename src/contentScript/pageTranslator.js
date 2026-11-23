@@ -3865,8 +3865,14 @@ Promise.all([twpConfig.onReady(), getTabHostName()]).then(function (_) {
 
            // Add inline button group (Google + AI)
           let sourceString = piecesToTranslateNow[i].nodes.reduce((accumulator, currentNode) => accumulator + currentNode.textContent, "")
-           // Use shouldTriggerAiImprove instead of inline expression to ensure consistent behavior between newLine and replaceOriginal modes
-          if (shouldTriggerAiImprove(wordsCount(finalResults), twpConfig.get("aiImproveForLongerThan"))) {
+           // Use shouldTriggerAiImprove instead of inline expression to ensure consistent behavior between newLine and replaceOriginal modes.
+           // Gate on the SOURCE text, not the Google output: a failed/banned
+           // Google pass resolves with an empty string per block, and gating on
+           // that output silently unregistered the block — the page-level AI
+           // loop then had nothing to translate ("no blocks to translate"), so
+           // a Google outage took AI translation down with it. The source text
+           // is what AI translates, and replaceOriginal already gates on it.
+          if (shouldTriggerAiImprove(wordsCount(sourceString), twpConfig.get("aiImproveForLongerThan"))) {
             ensureSingletonInit();
             registerBlock(
               translatedElement, sourceString, googleSpan,  // translatedTextNode points to googleSpan for backward compat
