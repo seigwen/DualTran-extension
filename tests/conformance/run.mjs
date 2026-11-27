@@ -164,7 +164,7 @@ async function main() {
       ` — report: ${reportPath}`
   );
   if (args.json) console.log(JSON.stringify(report, null, 2));
-  return report.summary.failed === 0 ? 0 : 1;
+  return report.summary.failed === 0 && report.summary.skipped === 0 && report.summary.total > 0 ? 0 : 1;
 }
 
 process.exit(await main());
