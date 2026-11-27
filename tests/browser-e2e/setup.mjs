@@ -1078,6 +1078,12 @@ export async function resetScenarioState(scope) {
       .evaluate(async () => {
         await chrome.storage.local.set({
           whereToDisplayTranslatedText: "newLine",
+          // Phase 3 (2026-11-27): selected-panel writes sentinel colors + darkMode
+          // and previously never restored them, contaminating visual-audit's AI
+          // color / dark state (openIssue selected-panel-sentinel-color-carryover--harness).
+          translatedColor: "#1d4ed8",
+          aiTranslatedColor: "#7c3aed",
+          darkMode: "auto",
           // #171: block button group display settings（控件族状态污染守卫）
           blockBtnGroupDisplay: "triggered",
           blockBtnGroupAlwaysStyle: "badge",
