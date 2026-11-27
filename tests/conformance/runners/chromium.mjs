@@ -44,11 +44,29 @@ export async function launch({ extensionDir, artifactsDir }) {
       // before the service worker sees the config looks exactly like a broken AI path.
       // Use the promise form inside the worker: the callback form could stall while the
       // service worker was still starting, which read as "config not applied".
+      //
+      // Compare every key the scenario set, not one hard-coded field. Checking `aiProvider`
+      // alone made every BASE_CONFIG scenario fail once the options page began persisting
+      // `aiProvider: ""` at startup: the key was absent from the expected object, so the
+      // comparison was `"" === undefined` on all 20 attempts — a config write that worked
+      // was reported as rejected.
       const applied = await worker.evaluate(async (expected) => {
+        const keys = Object.keys(expected);
+        // Deep equality that ignores object key order: the extension rewrites nested objects
+        // (providerConfigs) in its own order, which is not a failed write.
+        const same = (a, b) => {
+          if (a === b) return true;
+          if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;
+          if (Array.isArray(a) !== Array.isArray(b)) return false;
+          const aKeys = Object.keys(a);
+          const bKeys = Object.keys(b);
+          if (aKeys.length !== bKeys.length) return false;
+          return aKeys.every((key) => Object.prototype.hasOwnProperty.call(b, key) && same(a[key], b[key]));
+        };
         for (let attempt = 0; attempt < 20; attempt += 1) {
           await chrome.storage.local.set(expected);
-          const got = await chrome.storage.local.get("aiProvider");
-          if (got.aiProvider === expected.aiProvider) return true;
+          const got = await chrome.storage.local.get(keys);
+          if (keys.every((key) => same(got[key], expected[key]))) return true;
           await new Promise((r) => setTimeout(r, 150));
         }
         return false;
