@@ -282,8 +282,16 @@ describe("#98 站点更新触发已翻译 piece 重译", () => {
     const sentPayloads = [];
     const originalSend = chrome.runtime.sendMessage;
     chrome.runtime.sendMessage.mockImplementation((payload, callback) => {
-      if (payload?.action === "translateHTML") {
+      if (payload?.action === "translateHTMLDetailed") {
         sentPayloads.push(payload);
+        if (typeof callback === "function") {
+          const rows = payload.sourceArray2d.map((row) => row.map((t) => `译:${t}`));
+          callback({
+            results: rows,
+            outcomes: payload.sourceArray2d.map(() => ({ status: "complete" })),
+          });
+        }
+        return;
       }
       if (typeof callback === "function") callback(undefined);
     });
@@ -375,8 +383,16 @@ describe("#98 容器过滤改判据回归锁（replaceOriginal 下站点更新�
     // 而不是 isTranslated 的瞬时值）。
     const sentPayloads = [];
     chrome.runtime.sendMessage.mockImplementation((payload, callback) => {
-      if (payload?.action === "translateHTML") {
+      if (payload?.action === "translateHTMLDetailed") {
         sentPayloads.push(payload);
+        if (typeof callback === "function") {
+          const rows = payload.sourceArray2d.map((row) => row.map((t) => `译:${t}`));
+          callback({
+            results: rows,
+            outcomes: payload.sourceArray2d.map(() => ({ status: "complete" })),
+          });
+        }
+        return;
       }
       if (typeof callback === "function") callback(undefined);
     });

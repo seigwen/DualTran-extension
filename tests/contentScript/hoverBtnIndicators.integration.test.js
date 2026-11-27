@@ -89,7 +89,7 @@ const defaultSendMessageImpl = (payload, callback) => {
   if (typeof callback === "function") {
     if (payload?.action === "getTabHostName") {
       callback("example.com");
-    } else if (payload?.action === "translateSingleText") {
+    } else if (payload?.action === "translateSingleTextDetailed") {
       if (heldGoogleCallback === null) {
         callback("Google译文");
       } else {

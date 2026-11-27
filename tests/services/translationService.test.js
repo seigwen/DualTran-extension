@@ -381,6 +381,47 @@ describe("translationService", () => {
       expect(requests[1][0].originalText).toBe("fresh");
     });
 
+    it("translateWithOutcomes keeps per-row failure truth (plan 118 / P3)", async () => {
+      const translationService = await importTestableTranslationService();
+      const { Service } = translationService.__testHooks;
+      const service = new Service(
+        "custom",
+        "https://service.test",
+        "GET",
+        (sourceArray) => sourceArray.join("|"),
+        () => [],
+        (result) => (result ? result.split("|") : [""])
+      );
+
+      mockState.fetchMock.mockRejectedValueOnce(new Error("429 Too Many Requests"));
+
+      const { rows, outcomes } = await service.translateWithOutcomes("en", "fr", [["hello"]]);
+
+      expect(rows).toEqual([[""]]);
+      expect(outcomes).toHaveLength(1);
+      expect(outcomes[0].status).toBe("error");
+      expect(outcomes[0].error.message).toContain("429");
+      expect(outcomes[0].originalText).toBe("hello");
+      expect(mockState.translationCacheSetMock).not.toHaveBeenCalled();
+    });
+
+    it("translate remains the compatibility wrapper (rows only)", async () => {
+      const translationService = await importTestableTranslationService();
+      const { Service } = translationService.__testHooks;
+      const service = new Service(
+        "custom",
+        "https://service.test",
+        "GET",
+        (sourceArray) => sourceArray.join("|"),
+        () => [],
+        (result) => (result ? result.split("|") : [""])
+      );
+
+      mockState.fetchMock.mockRejectedValueOnce(new Error("boom"));
+
+      await expect(service.translate("en", "fr", [["hello"]])).resolves.toEqual([[""]]);
+    });
+
     it("translate falls back to empty strings when parsed responses are invalid", async () => {
       const translationService = await importTestableTranslationService();
       const { Service } = translationService.__testHooks;
@@ -930,6 +971,70 @@ describe("translationService", () => {
         false
       );
       expect(sendResponse).toHaveBeenCalledWith([["bonjour"]]);
+    });
+
+    it("handles translateHTMLDetailed and serializes per-piece failure truth (plan 118 / P3)", async () => {
+      const translationService = await importActualTranslationService();
+      const listener = mockState.runtimeOnMessageListeners[0];
+      vi.spyOn(translationService, "translateHTMLDetailed").mockResolvedValueOnce({
+        rows: [["bonjour"], [""]],
+        outcomes: [
+          { status: "complete", error: null, originalText: "hello", translatedText: "bonjour", detectedLanguage: "en" },
+          { status: "error", error: new Error("429 Too Many Requests"), originalText: "fail", translatedText: null, detectedLanguage: null },
+        ],
+      });
+      const sendResponse = vi.fn();
+
+      const keepAlive = listener(
+        {
+          action: "translateHTMLDetailed",
+          translationService: "google",
+          targetLanguage: "fr",
+          sourceArray2d: [["hello"], ["fail"]],
+          dontSortResults: false,
+        },
+        { tab: { incognito: true } },
+        sendResponse
+      );
+
+      await flushTimers();
+
+      expect(keepAlive).toBe(true);
+      expect(sendResponse).toHaveBeenCalledWith({
+        results: [["bonjour"], [""]],
+        outcomes: [
+          { status: "complete", errorMessage: "", originalText: "hello", translatedText: "bonjour", detectedLanguage: "en" },
+          { status: "error", errorMessage: "429 Too Many Requests", originalText: "fail", translatedText: null, detectedLanguage: null },
+        ],
+      });
+    });
+
+    it("handles translateSingleTextDetailed: an engine failure rejects the page promise (plan 118 / P3)", async () => {
+      const translationService = await importActualTranslationService();
+      const listener = mockState.runtimeOnMessageListeners[0];
+      vi.spyOn(translationService, "translateSingleTextDetailed").mockResolvedValueOnce({
+        result: null,
+        outcome: { status: "error", error: new Error("429 Too Many Requests"), originalText: "hello", translatedText: null, detectedLanguage: null },
+      });
+      const sendResponse = vi.fn();
+
+      listener(
+        {
+          action: "translateSingleTextDetailed",
+          translationService: "google",
+          targetLanguage: "fr",
+          source: "hello",
+        },
+        {},
+        sendResponse
+      );
+
+      await flushTimers();
+
+      expect(sendResponse).toHaveBeenCalledWith({
+        result: null,
+        outcome: expect.objectContaining({ status: "error", errorMessage: "429 Too Many Requests" }),
+      });
     });
 
     it("handles translateHTML message errors by responding with undefined", async () => {

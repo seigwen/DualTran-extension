@@ -938,6 +938,111 @@ const translationService = (function () {
     )[0][0];
   };
 
+  /**
+   * Translate element list (2D array) with per-row failure truth.
+   * Plan 118 / P3: the page needs to distinguish "translated to empty" from
+   * "Google request failed". Returns the same rows plus aligned outcomes.
+   *
+   * @returns {Promise<{ rows: string[][], outcomes: Array<{status: "complete"|"error", error: Error|null, originalText: string, translatedText: string|null, detectedLanguage: string|null}> }>}
+   */
+  translationService.translateHTMLDetailed = async (
+    serviceName,
+    sourceLanguage,
+    targetLanguage,
+    sourceArray2d,
+    dontSaveInPersistentCache = false,
+    dontSortResults = false
+  ) => {
+    serviceName = twpLang.getAlternativeService(
+      targetLanguage,
+      serviceName,
+      true
+    );
+    const service = serviceList.get(serviceName) || serviceList.get("google");
+    return await service.translateWithOutcomes(
+      sourceLanguage,
+      targetLanguage,
+      sourceArray2d,
+      dontSaveInPersistentCache,
+      dontSortResults
+    );
+  };
+
+  /**
+   * Translate text array (1D array) with per-item failure truth. The whole
+   * array is one request row, so its outcome is fanned out to every item.
+   *
+   * @returns {Promise<{ results: (string|null)[], outcomes: Array<{status: "complete"|"error", error: Error|null}> }>}
+   */
+  translationService.translateTextDetailed = async (
+    serviceName,
+    sourceLanguage,
+    targetLanguage,
+    sourceArray,
+    dontSaveInPersistentCache = false
+  ) => {
+    serviceName = twpLang.getAlternativeService(
+      targetLanguage,
+      serviceName,
+      false
+    );
+    const service = serviceList.get(serviceName) || serviceList.get("google");
+    const { rows, outcomes } = await service.translateWithOutcomes(
+      sourceLanguage,
+      targetLanguage,
+      [sourceArray],
+      dontSaveInPersistentCache
+    );
+    return {
+      results: rows[0] || [],
+      outcomes: sourceArray.map(() => outcomes[0]),
+    };
+  };
+
+  /**
+   * Translate a single string with failure truth.
+   *
+   * @returns {Promise<{ result: (string|null), outcome: {status: "complete"|"error", error: Error|null} }>}
+   */
+  translationService.translateSingleTextDetailed = async (
+    serviceName,
+    sourceLanguage,
+    targetLanguage,
+    originalText,
+    dontSaveInPersistentCache = false
+  ) => {
+    serviceName = twpLang.getAlternativeService(
+      targetLanguage,
+      serviceName,
+      false
+    );
+    const service = serviceList.get(serviceName) || serviceList.get("google");
+    const { rows, outcomes } = await service.translateWithOutcomes(
+      sourceLanguage,
+      targetLanguage,
+      [[originalText]],
+      dontSaveInPersistentCache
+    );
+    return {
+      result: rows[0] ? rows[0][0] : null,
+      outcome: outcomes[0],
+    };
+  };
+
+  /**
+   * Serialize a translation outcome for chrome.runtime messaging (Error
+   * objects do not survive structured cloning as usable errors).
+   */
+  function serializeOutcome(outcome) {
+    return {
+      status: outcome?.status === "error" ? "error" : "complete",
+      errorMessage: outcome?.error?.message || "",
+      originalText: outcome?.originalText || "",
+      translatedText: outcome?.translatedText ?? null,
+      detectedLanguage: outcome?.detectedLanguage ?? null,
+    };
+  }
+
   // Listen for translation requests from content scripts
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log(222222222, request)
@@ -994,6 +1099,73 @@ const translationService = (function () {
           dontSaveInPersistentCache
         )
         .then((results) => sendResponse(results))
+        .catch((e) => {
+          sendResponse();
+          console.error(e);
+        });
+
+      return true;
+    } else if (request.action === "translateHTMLDetailed") {
+      // Plan 118 / P3: page text translation with per-piece failure truth.
+      translationService
+        .translateHTMLDetailed(
+          request.translationService,
+          "auto",
+          request.targetLanguage,
+          request.sourceArray2d,
+          dontSaveInPersistentCache,
+          request.dontSortResults
+        )
+        .then(({ rows, outcomes }) => sendResponse({
+          results: rows,
+          outcomes: outcomes.map(serializeOutcome),
+        }))
+        .catch((e) => {
+          console.error("[DualTran][BackgroundTranslateHTMLDetailedCatch]", {
+            translationService: request.translationService,
+            targetLanguage: request.targetLanguage,
+            pieceCount: Array.isArray(request.sourceArray2d) ? request.sourceArray2d.length : 0,
+            errorMessage: e?.message,
+            errorName: e?.name,
+          });
+          sendResponse();
+        });
+
+      return true;
+    } else if (request.action === "translateTextDetailed") {
+      // Plan 118 / P3: attribute text translation with per-item failure truth.
+      translationService
+        .translateTextDetailed(
+          request.translationService,
+          "auto",
+          request.targetLanguage,
+          request.sourceArray,
+          dontSaveInPersistentCache
+        )
+        .then(({ results, outcomes }) => sendResponse({
+          results,
+          outcomes: outcomes.map(serializeOutcome),
+        }))
+        .catch((e) => {
+          sendResponse();
+          console.error(e);
+        });
+
+      return true;
+    } else if (request.action === "translateSingleTextDetailed") {
+      // Plan 118 / P3: single-text surfaces (panels / title / popup).
+      translationService
+        .translateSingleTextDetailed(
+          request.translationService,
+          "auto",
+          request.targetLanguage,
+          request.source,
+          dontSaveInPersistentCache
+        )
+        .then(({ result, outcome }) => sendResponse({
+          result,
+          outcome: serializeOutcome(outcome),
+        }))
         .catch((e) => {
           sendResponse();
           console.error(e);
