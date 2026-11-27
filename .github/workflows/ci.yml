@@ -105,9 +105,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     timeout-minutes: 120
-    env:
-      # Temporary Phase 3 calibration switch: new asserts log warn/unknown instead of failing.
-      VISUAL_ASSERT_MODE: warn
 
     steps:
     - name: Checkout code
