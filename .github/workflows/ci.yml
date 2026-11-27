@@ -5,6 +5,12 @@ on:
     branches: [ master, main ]
   pull_request:
     branches: [ master, main ]
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: 'Run only this browser E2E scenario (empty = full suite)'
+        required: false
+        default: ''
 
 jobs:
   test:
@@ -126,11 +132,23 @@ jobs:
     - name: Run browser E2E suite (attempt 1)
       id: e2e-attempt-1
       continue-on-error: true
-      run: xvfb-run -a node tests/browser-e2e/run-all.mjs
+      run: |
+        SCENARIO="${{ github.event.inputs.scenario }}"
+        if [ -n "$SCENARIO" ]; then
+          xvfb-run -a node tests/browser-e2e/run-all.mjs --scenario="$SCENARIO"
+        else
+          xvfb-run -a node tests/browser-e2e/run-all.mjs
+        fi
 
     - name: Run browser E2E suite (retry)
       if: steps.e2e-attempt-1.outcome == 'failure'
-      run: xvfb-run -a node tests/browser-e2e/run-all.mjs
+      run: |
+        SCENARIO="${{ github.event.inputs.scenario }}"
+        if [ -n "$SCENARIO" ]; then
+          xvfb-run -a node tests/browser-e2e/run-all.mjs --scenario="$SCENARIO"
+        else
+          xvfb-run -a node tests/browser-e2e/run-all.mjs
+        fi
 
     - name: Upload E2E logs
       if: always()
