@@ -686,8 +686,12 @@ export async function assertShowMoreCollapsed(page) {
     return { missing: !btn, text: (btn?.textContent || "").trim() };
   });
   if (r.missing) unknown("assertShowMoreCollapsed", "#showmore-btn missing");
-  if (r.text !== "Show more") fail("assertShowMoreCollapsed", `text=${JSON.stringify(r.text)}`);
-  else pass("assertShowMoreCollapsed");
+  // Google may append its translation inline (e.g. "Show moreAfficher plus");
+  // judge the source label, not exact equality.
+  const text = r.text.toLowerCase();
+  if (!text.startsWith("show more") || text.includes("show less")) {
+    fail("assertShowMoreCollapsed", `text=${JSON.stringify(r.text)}`);
+  } else pass("assertShowMoreCollapsed");
 }
 
 /** E25: no expanded long paragraph is visible before the update channels run. */
