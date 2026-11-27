@@ -1,0 +1,27 @@
+{
+  "id": "chrome-locale-de",
+  "host": "dualtran-extension",
+  "axis": "ui-language",
+  "covers": [
+    "options.ui.language"
+  ],
+  "actions": [
+    {
+      "type": "goto",
+      "url": "chrome-extension://${DT_EXTENSION_ID}/options/options.html"
+    },
+    {
+      "type": "wait",
+      "ms": 3000
+    },
+    {
+      "type": "screenshot",
+      "name": "locale-main",
+      "rubric": "chrome-locale-de"
+    }
+  ],
+  "env": {
+    "DT_BROWSER_LOCALE": "de-DE",
+    "DT_BROWSER_ACCEPT_LANGUAGE": "de-DE,de;q=0.9"
+  }
+}

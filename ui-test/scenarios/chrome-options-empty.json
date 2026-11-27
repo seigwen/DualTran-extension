@@ -1,0 +1,22 @@
+{
+  "id": "chrome-options-empty",
+  "host": "dualtran-extension",
+  "axis": "baseline",
+  "covers": [
+    "options.ai.provider",
+    "options.ai.model",
+    "options.ai.endpoint",
+    "options.ai.reasoning",
+    "options.ai.open"
+  ],
+  "actions": [
+    { "type": "goto", "url": "chrome-extension://${DT_EXTENSION_ID}/options/options.html" },
+    { "type": "wait", "ms": 3000 },
+    { "type": "clickText", "text": "AI" },
+    { "type": "wait", "ms": 1500 },
+    { "type": "screenshot", "name": "ai-empty-top", "rubric": "chrome-options-empty-top" },
+    { "type": "scroll", "dy": 350 },
+    { "type": "wait", "ms": 800 },
+    { "type": "screenshot", "name": "ai-empty-bottom", "rubric": "chrome-options-empty-bottom" }
+  ]
+}

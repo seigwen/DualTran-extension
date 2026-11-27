@@ -1,0 +1,81 @@
+{
+  "id": "chrome-toggle-original",
+  "host": "dualtran-extension",
+  "axis": "toggle",
+  "covers": [
+    "options.languages.target_page",
+    "translate.page",
+    "toggle.original"
+  ],
+  "actions": [
+    {
+      "type": "goto",
+      "url": "chrome-extension://${DT_EXTENSION_ID}/options/options.html"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "selectOption",
+      "selector": "#selectTargetLanguage",
+      "value": "zh-CN"
+    },
+    {
+      "type": "selectOption",
+      "selector": "#selectTargetLanguageForText",
+      "value": "zh-CN"
+    },
+    {
+      "type": "wait",
+      "ms": 1200
+    },
+    {
+      "type": "goto",
+      "url": "http://127.0.0.1:8080/test.html"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "clickText",
+      "text": "Google"
+    },
+    {
+      "type": "wait",
+      "ms": 12000
+    },
+    {
+      "type": "clickText",
+      "text": "Original"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "screenshot",
+      "name": "toggle-original",
+      "rubric": "chrome-toggle-original"
+    },
+    {
+      "type": "clickText",
+      "text": "Google"
+    },
+    {
+      "type": "wait",
+      "ms": 12000
+    },
+    {
+      "type": "screenshot",
+      "name": "toggle-back",
+      "rubric": "chrome-toggle-back"
+    },
+    {
+      "type": "assertTranslation",
+      "name": "toggle-back",
+      "source": "The quick brown fox jumps over the lazy dog"
+    }
+  ]
+}

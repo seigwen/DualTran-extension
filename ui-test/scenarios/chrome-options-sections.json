@@ -1,0 +1,227 @@
+{
+  "id": "chrome-options-sections",
+  "host": "dualtran-extension",
+  "axis": "baseline",
+  "covers": [
+    "options.ai.provider",
+    "options.ai.model",
+    "options.ai.endpoint",
+    "options.ai.reasoning",
+    "options.languages.target_page",
+    "options.languages.target_selection",
+    "options.languages.favorites",
+    "options.languages.never_translate",
+    "options.languages.always_translate_google",
+    "options.languages.always_translate_ai",
+    "options.languages.hover_translate",
+    "options.sites.always_google",
+    "options.sites.always_ai",
+    "options.sites.never",
+    "options.sites.hover",
+    "options.sites.custom_dictionary",
+    "options.translations.threshold",
+    "options.translations.display_mode",
+    "options.translations.tts_speed",
+    "options.translations.dynamic",
+    "options.translations.selected_button",
+    "options.translations.selected_conditions",
+    "options.translations.hover_original",
+    "options.translations.paragraph_display",
+    "options.translations.paragraph_style",
+    "options.translations.paragraph_hover",
+    "options.translations.paragraph_click",
+    "options.translations.link_auto",
+    "options.translations.pre_tag",
+    "options.ai.threshold",
+    "options.ai.cache",
+    "options.ai.api_key",
+    "options.style.google_color",
+    "options.style.ai_color",
+    "options.style.dark_mode",
+    "options.style.popup_blue",
+    "options.hotkeys.manager",
+    "options.hotkeys.ctrl_twice",
+    "options.hotkeys.hover_ctrl_twice",
+    "options.storage.calculate",
+    "options.storage.delete_cache",
+    "options.storage.backup",
+    "options.storage.restore",
+    "options.storage.reset",
+    "options.others.floating_button",
+    "options.others.address_bar",
+    "options.others.page_context_menu",
+    "options.others.selection_context_menu",
+    "options.others.click_once",
+    "options.feedback.github",
+    "options.feedback.diagnostics",
+    "options.feedback.email",
+    "options.feedback.store",
+    "options.open"
+  ],
+  "actions": [
+    {
+      "type": "goto",
+      "url": "chrome-extension://${DT_EXTENSION_ID}/options/options.html"
+    },
+    {
+      "type": "wait",
+      "ms": 2500
+    },
+    {
+      "type": "clickText",
+      "text": "Languages"
+    },
+    {
+      "type": "wait",
+      "ms": 700
+    },
+    {
+      "type": "screenshot",
+      "name": "languages-top",
+      "rubric": "chrome-languages-top"
+    },
+    {
+      "type": "scroll",
+      "dy": 450
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "screenshot",
+      "name": "languages-bottom",
+      "rubric": "chrome-languages-bottom"
+    },
+    {
+      "type": "clickText",
+      "text": "Sites"
+    },
+    {
+      "type": "wait",
+      "ms": 700
+    },
+    {
+      "type": "screenshot",
+      "name": "sites",
+      "rubric": "chrome-sites"
+    },
+    {
+      "type": "clickText",
+      "text": "Translations"
+    },
+    {
+      "type": "wait",
+      "ms": 700
+    },
+    {
+      "type": "screenshot",
+      "name": "translations-top",
+      "rubric": "chrome-translations-top"
+    },
+    {
+      "type": "scroll",
+      "dy": 1100
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "screenshot",
+      "name": "translations-bottom",
+      "rubric": "chrome-translations-bottom"
+    },
+    {
+      "type": "clickText",
+      "text": "AI"
+    },
+    {
+      "type": "wait",
+      "ms": 700
+    },
+    {
+      "type": "screenshot",
+      "name": "ai-top",
+      "rubric": "chrome-options-empty-top"
+    },
+    {
+      "type": "scroll",
+      "dy": 350
+    },
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "screenshot",
+      "name": "ai-bottom",
+      "rubric": "chrome-options-empty-bottom"
+    },
+    {
+      "type": "clickText",
+      "text": "Style"
+    },
+    {
+      "type": "wait",
+      "ms": 700
+    },
+    {
+      "type": "screenshot",
+      "name": "style",
+      "rubric": "chrome-style"
+    },
+    {
+      "type": "clickText",
+      "text": "Hotkeys"
+    },
+    {
+      "type": "wait",
+      "ms": 700
+    },
+    {
+      "type": "screenshot",
+      "name": "hotkeys",
+      "rubric": "chrome-hotkeys"
+    },
+    {
+      "type": "clickText",
+      "text": "Storage"
+    },
+    {
+      "type": "wait",
+      "ms": 700
+    },
+    {
+      "type": "screenshot",
+      "name": "storage",
+      "rubric": "chrome-storage"
+    },
+    {
+      "type": "clickText",
+      "text": "Others"
+    },
+    {
+      "type": "wait",
+      "ms": 700
+    },
+    {
+      "type": "screenshot",
+      "name": "others",
+      "rubric": "chrome-others"
+    },
+    {
+      "type": "clickText",
+      "text": "Report a problem"
+    },
+    {
+      "type": "wait",
+      "ms": 700
+    },
+    {
+      "type": "screenshot",
+      "name": "feedback",
+      "rubric": "chrome-feedback"
+    }
+  ]
+}
