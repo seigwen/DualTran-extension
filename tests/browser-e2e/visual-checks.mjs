@@ -83,6 +83,12 @@ export const CHECKPOINTS = [
       page: "mock test-page.html",
       when: "after AI translation completes (mock provider)",
     },
+    programmatic: [
+      "assertAiVisibleWithAiColor",
+      "assertNoDuplicateTranslationBlocks",
+      "assertContrastWarn",
+      "assertExactlyOneFloatingActive",
+    ],
     expect: [
       "AI translation text is visible with the configured AI color treatment",
       "No duplicate/stacked translation blocks at any paragraph",
@@ -113,10 +119,15 @@ export const CHECKPOINTS = [
       page: "mock test-page.html",
       when: "after clicking Original on the hover group, group still hovered",
     },
+    programmatic: [
+      "assertSingletonActiveOnly",
+      "assertSingletonInactive",
+      "assertHoveredBlockOriginal",
+    ],
     expect: [
       "Original button is the active one (grey filled state)",
       "Google/AI buttons show their inactive outline styles",
-      "Page text is back to the original language",
+      "The hovered block's text is back to the original language; other blocks keep their AI display",
     ],
   },
   {
@@ -126,6 +137,11 @@ export const CHECKPOINTS = [
       page: "mock test-page.html",
       when: "floating button cycle: original → google → ai",
     },
+    programmatic: [
+      "assertFloatingRightEdge",
+      "assertOneActivePerState",
+      "assertNoStaleTranslation",
+    ],
     expect: [
       "Floating group stays anchored to the right edge through the cycle",
       "Exactly one button highlighted per state, no two buttons highlighted simultaneously",
@@ -153,9 +169,12 @@ export const CHECKPOINTS = [
       page: "popup.html",
       when: "opened fresh with default settings",
     },
+    programmatic: [
+      "assertPopupNoOverflow",
+      "assertPopupControlsAffordances",
+    ],
     expect: [
       "Popup renders fully — no clipped sections, no overflowing text",
-      "All controls (selects, checkboxes, labels) aligned on a consistent grid",
       "Interactive controls show standard affordances (no invisible/blank rows)",
     ],
   },
@@ -166,6 +185,12 @@ export const CHECKPOINTS = [
       page: "options.html#languages",
       when: "loaded",
     },
+    programmatic: [
+      "assertOptionsSidebarEntries",
+      "assertLanguageSelectsNoLeak",
+      "assertLanguageRowsAlignedWarn",
+      "assertNoSidebarOverlap",
+    ],
     expect: [
       "Sidebar navigation visible with all section entries",
       "Language selects and favorite-language rows aligned; no placeholder text leaking",
@@ -272,6 +297,11 @@ export const CHECKPOINTS = [
       page: "mock test-page.html",
       when: "newLine: after the O→A round trip and a page-level AI switch (all blocks should show AI)",
     },
+    programmatic: [
+      "assertAllBlocksShowAi",
+      "assertNoEmptyOrClippedBlocks",
+      "assertFloatingOnlyAndHoverDismissed",
+    ],
     expect: [
       "Every translated block shows AI text — none shows the original language (#73 assertion: the O restore must be undone by the next AI display)",
       "No block appears empty or partially hidden",
@@ -285,6 +315,11 @@ export const CHECKPOINTS = [
       page: "mock test-page.html",
       when: "replaceOriginal: after the O→A round trip and a page-level AI switch",
     },
+    programmatic: [
+      "assertAllBlocksShowAi",
+      "assertNoRawSourceInReplaceMode",
+      "assertNoBlockClipOrOverlap",
+    ],
     expect: [
       "Block 0 and its neighbours show AI translation text after the round trip (#73)",
       "No block left showing raw untranslated source text",
@@ -304,8 +339,13 @@ export const CHECKPOINTS = [
       when: "initial translation complete, before any content-update channel is triggered",
     },
     mustDifferFrom: ["content-update-after-expand"],
+    programmatic: [
+      "assertCollapsedPreviewTranslated",
+      "assertShowMoreCollapsed",
+      "assertBeforeExpandCollapsed",
+    ],
     expect: [
-      "Collapsed preview blocks show translated (French) text above the source lines",
+      "Collapsed preview blocks show translated (French) text below the source lines",
       "The show-more buttons are still in their collapsed label state (\"Show more\")",
       "No expanded long paragraph is visible yet — the update channels have not run",
     ],

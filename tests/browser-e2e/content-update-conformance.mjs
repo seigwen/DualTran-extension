@@ -50,6 +50,11 @@ import {
   assertNoDuplicateTranslations,
   assertReplaceOriginalNoDuplicates,
 } from "./setup.mjs";
+import {
+  assertCollapsedPreviewTranslated,
+  assertShowMoreCollapsed,
+  assertBeforeExpandCollapsed,
+} from "./visual-asserts.mjs";
 
 // 通道 SSOT —— 与 lint（scripts/check-content-update-channels.js）同一份数据。
 import { ACTIVE_CHANNELS } from "../shared/content-update-channels.mjs";
@@ -643,6 +648,9 @@ export async function run(scope) {
       // ── 视觉检查点：展开前（仅 newLine 一趟，控制时长）──
       if (mode === "newLine") {
         await scrollAnchor();
+        await assertCollapsedPreviewTranslated(page);
+        await assertShowMoreCollapsed(page);
+        await assertBeforeExpandCollapsed(page);
         await screenshotCheckpoint(page, "content-update-before-expand", { scenario: name });
       }
 

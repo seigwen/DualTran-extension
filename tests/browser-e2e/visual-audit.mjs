@@ -27,6 +27,24 @@ import {
   waitForOptionsSelectReady,
   writeStorage,
 } from "./setup.mjs";
+import {
+  assertAiVisibleWithAiColor,
+  assertNoDuplicateTranslationBlocks,
+  assertContrastWarn,
+  assertExactlyOneFloatingActive,
+  assertSingletonActiveOnly,
+  assertSingletonInactive,
+  assertHoveredBlockOriginal,
+  assertFloatingRightEdge,
+  assertOneActivePerState,
+  assertNoStaleTranslation,
+  assertPopupNoOverflow,
+  assertPopupControlsAffordances,
+  assertOptionsSidebarEntries,
+  assertLanguageSelectsNoLeak,
+  assertLanguageRowsAlignedWarn,
+  assertNoSidebarOverlap,
+} from "./visual-asserts.mjs";
 
 export const name = "visual-audit";
 export const needsMock = true;
@@ -590,6 +608,10 @@ export async function run(scope) {
     { timeout: 60000 }
   );
   await page.waitForTimeout(500);
+  await assertAiVisibleWithAiColor(page);
+  await assertNoDuplicateTranslationBlocks(page);
+  await assertContrastWarn(page);
+  await assertExactlyOneFloatingActive(page, "btnAi");
   await screenshotCheckpoint(page, "after-ai-translation", { scenario: name });
 
   // checkpoint 4: 悬停组可见（悬停已注册块）
@@ -613,6 +635,9 @@ export async function run(scope) {
     el?.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
   });
   await page.waitForTimeout(400);
+  await assertSingletonActiveOnly(page, ".dualtran-original-btn");
+  await assertSingletonInactive(page, [".dualtran-google-btn", ".dualtran-ai-btn"]);
+  await assertHoveredBlockOriginal(page, 0);
   await screenshotCheckpoint(page, "hover-group-original-mode", { scenario: name });
 
   // checkpoint 6: 浮动按钮三态循环后停在 AI（O → G → A）
@@ -621,7 +646,10 @@ export async function run(scope) {
       document.getElementById("dualtran-floating-btn-host")?.shadowRoot?.getElementById(id)?.click();
     }, btnId);
     await page.waitForTimeout(600);
+    await assertFloatingRightEdge(page);
+    await assertOneActivePerState(page, btnId);
   }
+  await assertNoStaleTranslation(page);
   await screenshotCheckpoint(page, "floating-three-state", { scenario: name });
 
   // checkpoint 7: replaceOriginal 模式
@@ -662,6 +690,8 @@ export async function run(scope) {
   await page.goto(`chrome-extension://${extensionId}/popup/popup.html`, { waitUntil: "load" });
   await waitForOptionsSelectReady(page, "selectTargetLanguage").catch(() => {});
   await page.waitForTimeout(600);
+  await assertPopupNoOverflow(page);
+  await assertPopupControlsAffordances(page);
   await applySelfTestInjection(page, "popup-default");
   await screenshotCheckpoint(page, "popup-default", { scenario: name });
   await clearSelfTestInjection(page);
@@ -670,6 +700,10 @@ export async function run(scope) {
   await page.goto(`chrome-extension://${extensionId}/options/options.html#languages`, { waitUntil: "load" });
   await waitForOptionsSelectReady(page, "selectTargetLanguage").catch(() => {});
   await page.waitForTimeout(600);
+  await assertOptionsSidebarEntries(page);
+  await assertLanguageSelectsNoLeak(page);
+  await assertLanguageRowsAlignedWarn(page);
+  await assertNoSidebarOverlap(page);
   await applySelfTestInjection(page, "options-languages");
   await screenshotCheckpoint(page, "options-languages", { scenario: name });
   await clearSelfTestInjection(page);
