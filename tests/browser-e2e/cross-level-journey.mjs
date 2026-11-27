@@ -30,6 +30,13 @@ import {
   waitForVisualStability,
   screenshotCheckpoint,
 } from "./setup.mjs";
+import {
+  assertAllBlocksShowAi,
+  assertNoEmptyOrClippedBlocks,
+  assertFloatingOnlyAndHoverDismissed,
+  assertNoRawSourceInReplaceMode,
+  assertNoBlockClipOrOverlap,
+} from "./visual-asserts.mjs";
 
 export const name = "cross-level-journey";
 export const needsMock = true;
@@ -405,6 +412,28 @@ async function runJourney(page, serviceWorker, mockServerConfig, mode, collector
       );
     }
     console.log(`  ${label} Step 5 PASSED: ${sweep.aiVisible}/${sweep.total} blocks show AI`);
+
+    await assertAllBlocksShowAi(page, mode);
+    await assertNoEmptyOrClippedBlocks(page);
+
+    // #82: the synthetic journey never dispatches a pointer-out, while the product
+    // hides the hover group only on mouseout/scroll (singletonBtnGroup.js). Move the
+    // pointer away and dispatch the real event shape before the final capture; the
+    // checkpoint's "hover group not stuck" clause is otherwise unsatisfiable.
+    await page.mouse.move(2, 2).catch(() => {});
+    await page.evaluate(() => {
+      const block = document.querySelector("[data-dualtran-block]");
+      const host = document.getElementById("dualtran-singleton-btn-host");
+      for (const el of [block, host]) {
+        el?.dispatchEvent(new MouseEvent("mouseout", { bubbles: true, relatedTarget: document.body }));
+      }
+    });
+    await page.waitForTimeout(500);
+    await assertFloatingOnlyAndHoverDismissed(page);
+    if (mode === "replaceOriginal") {
+      await assertNoRawSourceInReplaceMode(page, ["[aimock]"]);
+    }
+    await assertNoBlockClipOrOverlap(page);
 
     await waitForVisualStability(page);
     if (mode === "newLine") {
